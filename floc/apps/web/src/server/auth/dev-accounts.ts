@@ -13,7 +13,7 @@
  * address that is not the env account or a `.seed.floc.test` one, so a leaked
  * request naming a real user gets the same 404 as a shut door.
  */
-import { like } from "drizzle-orm";
+import { eq, like } from "drizzle-orm";
 
 import { db } from "@/db";
 import { user } from "@/db/schema";
@@ -37,6 +37,13 @@ export async function listDevAccounts(): Promise<DevAccount[]> {
     { email: process.env.FLOC_DEV_USER_EMAIL!, name: "You (dev account)" },
     ...rows.sort((a, b) => a.email.localeCompare(b.email)),
   ];
+}
+
+/** The dev link names a person by id, so no address goes in a URL; `passwordFor` still decides who is allowed. */
+export async function devAccountEmail(userId: string): Promise<string | null> {
+  if (!devSignInEnabled()) return null;
+  const row = await db.select({ email: user.email }).from(user).where(eq(user.id, userId)).get();
+  return row?.email ?? null;
 }
 
 /** Null for anybody the door does not know — the caller turns that into a 404. */
