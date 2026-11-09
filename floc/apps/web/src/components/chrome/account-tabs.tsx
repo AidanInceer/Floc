@@ -6,6 +6,7 @@ import {
   PersonIcon,
   SlidersIcon,
 } from "@/components/system/icons/account";
+import { ListsCapsule } from "./lists-branch";
 import "./trip-tabs.css";
 
 export type AccountTabKey = "profile" | "settings" | "lists";
@@ -26,8 +27,8 @@ const TABS: {
   },
   {
     key: "lists",
-    href: "/packing-lists",
-    label: "Saved lists",
+    href: "/lists",
+    label: "Lists",
     icon: <ListIcon />,
   },
 ];
@@ -47,7 +48,10 @@ export function AccountTabs({ current }: { current: AccountTabKey }) {
           aria-label="Your account"
           className="flex items-center gap-4 sm:gap-5"
         >
-          {TABS.map((tab) => (
+          {TABS.map((tab) =>
+            tab.key === "lists" && current === "lists" ? (
+              <ListsCapsule key={tab.key} />
+            ) : (
             <Link
               key={tab.key}
               href={tab.href}
@@ -58,9 +62,11 @@ export function AccountTabs({ current }: { current: AccountTabKey }) {
               <span className="trip-tab-icon inline-flex size-8 items-center justify-center rounded-sm transition-colors sm:size-6">
                 {tab.icon}
               </span>
-              <span>{tab.label}</span>
+              {/* Why: on a phone the open Lists capsule needs the room; the other tabs keep their glyphs and names for readers. */}
+              <span className={current === "lists" ? "max-sm:sr-only" : undefined}>{tab.label}</span>
             </Link>
-          ))}
+            ),
+          )}
         </nav>
       </div>
     </div>

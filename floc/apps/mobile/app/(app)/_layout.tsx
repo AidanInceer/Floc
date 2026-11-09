@@ -55,7 +55,7 @@ export default function AppLayout() {
       {/* One level under You, not a fourth tab — the bar is the three places
           that are not a trip (#302, #230). */}
       <Stack.Screen name="settings" options={{ title: "Settings" }} />
-      <Stack.Screen name="kits" options={{ title: "Saved lists" }} />
+      <Stack.Screen name="lists" options={{ title: "Lists" }} />
       <Stack.Screen name="inbox" options={{ title: "Notifications" }} />
       {/* The title is the person's name, so the screen sets it once it knows one. */}
       <Stack.Screen name="person/[userId]" options={{ title: "Profile" }} />

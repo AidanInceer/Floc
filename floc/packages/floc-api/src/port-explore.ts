@@ -11,4 +11,8 @@ export type ExplorePort = {
   /** Your last Explore finder — null means never set. */
   loadExplore(viewerId: string): Promise<ExploreState>;
   setExploreFinder(viewerId: string, finder: Finder): Promise<void>;
+  /** Listing ids you saved, newest first (#467). Never another account's. */
+  listSavedTrips(viewerId: string): Promise<string[]>;
+  /** Saves or takes off one listing; an id Explore does not list is ignored. */
+  setTripSaved(viewerId: string, presetId: string, saved: boolean): Promise<void>;
 };

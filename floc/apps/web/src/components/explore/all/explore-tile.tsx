@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { skinFor } from "@/components/explore/listing";
+import { SaveHeart } from "@/components/explore/save/save-heart";
 import { OutlineMap } from "@/components/explore/outline/outline-map";
 import { cx } from "@/components/system/ui";
 import { listingPrice } from "@floc/core/trip/explore/listing-price";
@@ -16,21 +17,24 @@ const nightsOf = (n: number) => `${n} ${n === 1 ? "night" : "nights"}`;
 
 /**
  * One listing as a tile: its outline map, then what it is. The children say how it fits what you asked for.
- * The tile opens the listing's own page; the footer sits under that link, so it can hold a second action.
+ * The tile opens the listing's own page, or `href`; the footer sits under that link, so it can hold a second action.
+ * The heart sits over the map but outside the link, so a tap on it never opens the page.
  */
 export function ExploreTile({
   trip,
   children,
   footer,
+  href,
 }: {
   trip: PresetTrip;
+  href?: string;
   children?: ReactNode;
   footer?: ReactNode;
 }) {
   const rates = useListingRates();
   return (
-    <div className="lift flex h-full flex-col overflow-hidden rounded-md bg-sheet shadow-[var(--shadow)]">
-      <Link href={`/explore/${trip.id}`} className="flex w-full flex-col text-left text-ink">
+    <div className="lift relative flex h-full flex-col overflow-hidden rounded-md bg-sheet shadow-[var(--shadow)]">
+      <Link href={href ?? `/explore/${trip.id}`} className="flex w-full flex-col text-left text-ink">
         <span aria-hidden className="pointer-events-none block aspect-[24/17] w-full bg-sheet-2">
           <OutlineMap trip={trip} size="tile" />
         </span>
@@ -43,6 +47,7 @@ export function ExploreTile({
           {children}
         </span>
       </Link>
+      <SaveHeart presetId={trip.id} title={trip.title} className="absolute right-2.5 top-2.5" />
       {footer ? <div className="mt-auto px-3.5 pb-3.5">{footer}</div> : null}
     </div>
   );

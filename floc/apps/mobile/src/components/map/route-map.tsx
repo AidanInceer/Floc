@@ -9,8 +9,6 @@ import {
   type InitialViewState,
   type LngLat,
 } from "@maplibre/maplibre-react-native";
-import type { GroupRoute } from "@floc/api/port";
-import type { WhoTone } from "@floc/core/people/who";
 import { StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";
@@ -56,8 +54,8 @@ function pin(places: MappablePlace[]): Pinned[] {
  * Where the camera opens. Bounds when the places are far enough apart to make
  * a box, the middle of them at town zoom when they are not.
  */
-function view(pins: Pinned[], extra: LngLat[]): InitialViewState {
-  const all = [...pins.map((p) => p.lngLat), ...extra];
+function view(pins: Pinned[]): InitialViewState {
+  const all = pins.map((p) => p.lngLat);
   const lngs = all.map((p) => p[0]);
   const lats = all.map((p) => p[1]);
   const west = Math.min(...lngs);
@@ -75,11 +73,10 @@ function view(pins: Pinned[], extra: LngLat[]): InitialViewState {
  * The map alone. Explore draws a listing's bases over its own written route,
  * so it wants the frame without a second list of the same names under it.
  */
-export function RouteMapFrame({ places, tracks = [] }: { places: MappablePlace[]; tracks?: GroupRoute[] }) {
+export function RouteMapFrame({ places }: { places: MappablePlace[] }) {
   const { c } = useTheme();
   const pins = pin(places);
   if (pins.length === 0) return null;
-  const ink = (t: GroupRoute) => c[`${t.tone as WhoTone}-ink`];
 
   return (
     <View
@@ -101,7 +98,7 @@ export function RouteMapFrame({ places, tracks = [] }: { places: MappablePlace[]
             compass={false}
             attribution={false}
           >
-            <Camera initialViewState={view(pins, tracks.flatMap((t) => t.path))} maxZoom={MAX_ZOOM} />
+            <Camera initialViewState={view(pins)} maxZoom={MAX_ZOOM} />
             <LandLayer />
 
             {pins.length > 1 ? (
@@ -130,34 +127,6 @@ export function RouteMapFrame({ places, tracks = [] }: { places: MappablePlace[]
               </GeoJSONSource>
             ) : null}
 
-            {tracks.filter((t) => t.path.length > 1).map((t) => (
-              <GeoJSONSource
-                key={t.userId}
-                id={`track-${t.userId}`}
-                data={{ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: t.path } }}
-              >
-                <Layer
-                  id={`track-line-${t.userId}`}
-                  type="line"
-                  paint={{ "line-color": ink(t), "line-width": 2.5, "line-opacity": 0.9 }}
-                  layout={{ "line-cap": "round", "line-join": "round" }}
-                />
-              </GeoJSONSource>
-            ))}
-
-            {tracks.flatMap((t) =>
-              t.live
-                ? [
-                    <Marker key={`live-${t.userId}`} lngLat={[t.live.lng, t.live.lat]}>
-                      <View
-                        accessible
-                        accessibilityLabel={`${t.name} is here`}
-                        style={{ width: 14, height: 14, borderRadius: radius.pill, borderWidth: 2.5, borderColor: c.sheet, backgroundColor: ink(t) }}
-                      />
-                    </Marker>,
-                  ]
-                : [],
-            )}
 
             {pins.map((p) => (
               <Marker key={p.id} lngLat={p.lngLat}>

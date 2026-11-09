@@ -24,7 +24,7 @@ import {
 import { refresh } from "@/server/freshness";
 
 export async function createPackingKit(formData: FormData) {
-  const viewer = await requireUser("/packing-lists");
+  const viewer = await requireUser("/lists/packing");
   const name = capRequiredText(formData.get("name"), "packingKitName");
   if (!name) throw new Error("A saved list needs a name");
 
@@ -33,11 +33,11 @@ export async function createPackingKit(formData: FormData) {
   refresh({ kind: "packingKits" });
   // Straight into the new list, because a list with no things in it is not
   // what you came to make.
-  if (id !== null) redirect(`/packing-lists#kit-${id}`);
+  if (id !== null) redirect(`/lists/packing#kit-${id}`);
 }
 
 export async function renameKit(kitId: number, formData: FormData) {
-  const viewer = await requireUser("/packing-lists");
+  const viewer = await requireUser("/lists/packing");
   const name = capRequiredText(formData.get("name"), "packingKitName");
   if (!name) throw new Error("A saved list needs a name");
 
@@ -47,7 +47,7 @@ export async function renameKit(kitId: number, formData: FormData) {
 }
 
 export async function deleteKit(kitId: number) {
-  const viewer = await requireUser("/packing-lists");
+  const viewer = await requireUser("/lists/packing");
 
   await softDeletePackingKit(kitId, viewer.id);
 
@@ -55,7 +55,7 @@ export async function deleteKit(kitId: number) {
 }
 
 export async function addKitItem(kitId: number, formData: FormData) {
-  const viewer = await requireUser("/packing-lists");
+  const viewer = await requireUser("/lists/packing");
   const label = capRequiredText(formData.get("label"), "packingLabel");
   if (!label) throw new Error("A thing to pack needs a name");
 
@@ -71,7 +71,7 @@ export async function addKitItem(kitId: number, formData: FormData) {
 }
 
 export async function removeKitItem(itemId: number) {
-  const viewer = await requireUser("/packing-lists");
+  const viewer = await requireUser("/lists/packing");
 
   await softDeletePackingKitItem(itemId, viewer.id);
 
@@ -79,7 +79,7 @@ export async function removeKitItem(itemId: number) {
 }
 
 export async function stepKitItemQuantity(itemId: number, formData: FormData) {
-  const viewer = await requireUser("/packing-lists");
+  const viewer = await requireUser("/lists/packing");
   const delta = parseQuantityStep(formData.get("step"));
   if (!delta) throw new Error("That isn't a quantity step");
 

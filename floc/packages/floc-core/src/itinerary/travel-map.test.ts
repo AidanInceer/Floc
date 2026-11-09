@@ -6,7 +6,7 @@
 import { describe, expect, it } from "vitest";
 
 import { readCountryCode } from "../people/countries";
-import { mergeMarks, nextMark } from "./travel-map";
+import { mergeMarks, nextMark, wantToGoCountries } from "./travel-map";
 
 describe("mergeMarks", () => {
   it("draws what the trips say when nothing is hand-painted", () => {
@@ -79,5 +79,19 @@ describe("a tap on a country", () => {
     expect(nextMark(undefined)).toBe("yellow");
     expect(nextMark("yellow")).toBe("green");
     expect(nextMark("green")).toBe("blank");
+  });
+});
+
+describe("wantToGoCountries", () => {
+  it("lists the yellow countries by name, the same ones the globe draws (#467)", () => {
+    const map = mergeMarks({ JP: "yellow", ES: "green" }, { PT: "yellow", IT: "none" });
+    expect(wantToGoCountries(map)).toEqual([
+      { code: "JP", name: "Japan" },
+      { code: "PT", name: "Portugal" },
+    ]);
+  });
+
+  it("is empty when nothing is yellow", () => {
+    expect(wantToGoCountries(mergeMarks({ ES: "green" }, {}))).toEqual([]);
   });
 });

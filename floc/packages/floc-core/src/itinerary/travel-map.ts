@@ -8,6 +8,7 @@
  * hand-painted marks in `user_country_mark`, which win permanently — a `none`
  * row means "no, I didn't go", taking back a trip's claim after the fact.
  */
+import { countryName } from "../people/countries";
 import type { CountryMarkState } from "../vocabulary";
 
 /** What a country can look like on the drawing. Absent means unpainted. */
@@ -62,4 +63,12 @@ export function strongest(a: MapState | undefined, b: MapState): MapState {
 export function nextMark(current: MapState | undefined): MapState | "blank" {
   if (!current) return "yellow";
   return current === "yellow" ? "green" : "blank";
+}
+
+/** The want-to-go countries by name: the list on Lists and the yellow on the globe are one fact (ADR-042). */
+export function wantToGoCountries(map: Pick<TravelMap, "states">): { code: string; name: string }[] {
+  return Object.entries(map.states)
+    .filter(([, state]) => state === "yellow")
+    .map(([code]) => ({ code, name: countryName(code) }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }

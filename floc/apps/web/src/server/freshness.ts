@@ -41,7 +41,8 @@ export type Fact =
   | { kind: "friendship"; otherId: string }
   | { kind: "inbox" }
   | { kind: "bell" }
-  | { kind: "explore" };
+  | { kind: "explore" }
+  | { kind: "savedTrips" };
 
 export type FactKind = Fact["kind"];
 
@@ -83,16 +84,18 @@ const PAGES: Pages = {
   tripList: () => [{ path: "/trips" }, { path: "/trips/archived" }],
   invites: () => [{ path: "/trips" }],
   invitePage: ({ token }) => [{ path: `/invite/${token}` }],
-  profile: () => [{ path: "/profile" }, { path: "/settings" }],
+  // Why: want-to-go countries on Lists are the globe's yellow (ADR-042).
+  profile: () => [{ path: "/profile" }, { path: "/settings" }, { path: "/lists" }],
   // Sign-in methods and notification prefs live only on Settings.
   accountSettings: () => [{ path: "/settings" }],
   profileTrips: () => [{ path: "/profile" }],
-  packingKits: () => [{ path: "/packing-lists" }],
+  packingKits: () => [{ path: "/lists/packing" }],
   friendship: ({ otherId }) => [{ path: "/friends" }, { path: `/profile/${otherId}` }],
   inbox: () => [{ path: "/inbox" }],
   // The bell hangs off the root layout, so it is stale on every page at once.
   bell: () => [{ path: "/", type: "layout" }],
   explore: () => [{ path: "/explore" }],
+  savedTrips: () => [{ path: "/lists" }, { path: "/explore", type: "layout" }],
 };
 
 /** Facts a fact drags with it. Same shape of id, so the implied fact reuses it. */

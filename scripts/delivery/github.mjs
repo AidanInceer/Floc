@@ -47,10 +47,12 @@ export function withoutTickets(body, issues) {
     .map((line) => (/^\d+\.\s/.test(line) ? line.replace(/^\d+\./, `${++n}.`) : line)).join("\n");
 }
 
+export const landedLabels = (issue) => ["issue", "edit", issue, "--add-label", "on-develop", "--remove-label", "in-progress"];
+
 /** A ticket leaves the Priority stack when its work lands on develop (delivery finish); it closes when that reaches main. */
 export function markLanded(root, issues, scratch) {
   if (!issues.length) return;
-  for (const issue of issues) gh(root, "issue", "edit", issue, "--add-label", "on-develop");
+  for (const issue of issues) gh(root, ...landedLabels(issue));
   const stack = json(root, "issue", "list", "--state", "open", "--search", "Priority in:title", "--json", "number,title,body")
     .find((i) => i.title.trim() === "Priority");
   if (!stack) return;

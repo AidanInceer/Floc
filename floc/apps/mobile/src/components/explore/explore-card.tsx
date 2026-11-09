@@ -6,6 +6,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../system/theme";
 import { Button, Divider } from "../system/ui";
 import { RegionTags } from "./region-tag";
+import { SaveHeart } from "./save-heart";
 import { useListingRates } from "./use-listing-rates";
 import { fonts, radius, size, space } from "@/lib/theme";
 
@@ -46,13 +47,14 @@ export function ExploreCard({
         opacity: pressed ? 0.85 : 1,
       })}
     >
-      <View style={{ flexDirection: "row", alignItems: "flex-start", gap: space.sm }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
         <View style={{ flex: 1 }}>
           <RegionTags region={trip.region} countries={trip.country} />
         </View>
         <Text style={{ ...mono, color: c["ink-3"], lineHeight: 22 }}>
           {pin} · {trip.nights} nights
         </Text>
+        <SaveHeart presetId={trip.id} title={trip.title} />
       </View>
       <View style={{ gap: space.xs }}>
         <Text numberOfLines={2} style={{ color: c.ink, fontFamily: fonts.displayBold, fontSize: size.heading }}>
