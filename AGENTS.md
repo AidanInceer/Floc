@@ -51,7 +51,7 @@ Before any UI work — web, phone, mockup or marketing — read the [design card
 
 The flow is fixed: start (ticket, analysis, or small fix) → worktree → `/floc:implement-feature` → `/floc:push` → merged → finish. Analysis work (`/floc:audit`, `/floc:feedback`, `/floc:retro`) needs no worktree. Never add a step, watcher or stage; change the flow only when Aidan says part of it is not working. A new guardrail goes at the cheapest gate that catches it:
 
-1. **Pre-commit**, under a minute: staged lint, related tests, comments, secrets, repository rules (`lint-staged.config.mjs`, `scripts/workspace/hooks.mjs`).
+1. **Pre-commit**, under a minute: staged lint, comments, secrets, repository rules — no tests (`lint-staged.config.mjs`, `scripts/workspace/hooks.mjs`).
 2. **CI on the PR to develop**, fast: `pnpm checks pr` — types, affected tests, changed-code coverage, build, fitness, migrations.
 3. **CI on the PR to main**, everything: `pnpm checks release --full` — plus e2e journeys, mobile bundles, audit, Sonar.
 
