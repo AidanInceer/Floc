@@ -1,5 +1,5 @@
 /**
- * Explore — your last finder. The listings themselves are static
+ * Explore — your last finder and your saved trips. The listings themselves are static
  * `@floc/core` data both clients read directly.
  */
 import { NIGHTS_SCALE } from "@floc/core/trip/explore/finder/finder";
@@ -29,4 +29,12 @@ export const exploreRouter = router({
   get: protectedProcedure.query(({ ctx }) => ctx.port.loadExplore(ctx.viewer.id)),
 
   setFinder: protectedProcedure.input(finder).mutation(({ ctx, input }) => ctx.port.setExploreFinder(ctx.viewer.id, input)),
+
+  /** Your saved Explore trips, newest first (#467). Only yours: saves are private (ADR-042). */
+  saves: protectedProcedure.query(({ ctx }) => ctx.port.listSavedTrips(ctx.viewer.id)),
+
+  /** The heart. The host ignores an id Explore does not list. */
+  setSaved: protectedProcedure
+    .input(z.object({ presetId: z.string().trim().min(1).max(80), saved: z.boolean() }))
+    .mutation(({ ctx, input }) => ctx.port.setTripSaved(ctx.viewer.id, input.presetId, input.saved)),
 });

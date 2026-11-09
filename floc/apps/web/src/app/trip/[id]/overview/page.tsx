@@ -5,7 +5,6 @@ import { requireTripAccess } from "@/server/access";
 import { listDocuments } from "@/server/documents/documents";
 import { documentsEnabled } from "@/server/documents/document-store";
 import { listDaysWithEvents, listRouteDays, transportByDay } from "@/server/itinerary/itinerary";
-import { groupRoutes } from "@/server/route/group-routes";
 import { listAvailability } from "@/server/itinerary/availability";
 import { listIdeas } from "@/server/ideas/ideas-read";
 import { listDeclinedInvitees, listPendingInvitees } from "@/server/trips/invites";
@@ -20,12 +19,10 @@ import { tripStateFor } from "@floc/core/trip/trip-state";
 import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
 import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import { readTags } from "@floc/core/trip/tags";
-import { hasEnded, nightsBetween, today } from "@floc/core/dates/dates";
+import { hasEnded, nightsBetween, today, underway } from "@floc/core/dates/dates";
 import { tripLegs } from "@floc/core/trip/overview/legs";
 import { ideasTucked } from "@floc/core/trip/ideas";
 import { overviewRoute } from "@floc/core/trip/overview/route";
-import { todayPlan } from "@floc/core/trip/route/today-plan";
-import { underway } from "@floc/core/trip/route/route-track";
 import { IdeasPanel } from "@/components/trip/ideas/ideas-panel";
 import { IdeasRow } from "@/components/trip/ideas/ideas-row";
 import { OverviewCard } from "@/components/trip/overview/overview-card";
@@ -34,11 +31,7 @@ import { BookingsCard } from "@/components/trip/overview/stops/bookings-card";
 import { OverviewStops } from "@/components/trip/overview/stops/overview-stops";
 import { OverviewMap } from "@/components/trip/overview/overview-map";
 import { TripArrival } from "@/components/trip/overview/trip-arrival";
-import { RefreshWhileLive } from "@/components/trip/overview/route/refresh-while-live";
-import { RouteLegend } from "@/components/trip/overview/route/route-legend";
-import { TodayBlock } from "@/components/trip/overview/today/today-block";
 import { LeftToSort } from "@/components/trip/overview/left-to-sort";
-import { deleteMyRoute } from "./actions";
 import { leftToSortFor, readSharedPacking } from "./left-to-sort-for";
 import { PanelPlaceholder, StreamedGroup } from "./streamed";
 import { WalkthroughDialog } from "@/components/walkthrough/walkthrough-dialog";
@@ -68,7 +61,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
 
   const now = today();
   const sharedPacking = readSharedPacking(tripId);
-  const [availabilityRows, expenseRows, dayRows, splitRows, settlementRows, routeDays, transport, walkthrough, ideas, docs, tracks, homes] =
+  const [availabilityRows, expenseRows, dayRows, splitRows, settlementRows, routeDays, transport, walkthrough, ideas, docs, homes] =
     await Promise.all([
       listAvailability(tripId),
       listExpenses(tripId),
@@ -81,7 +74,6 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
       listIdeas(tripId, viewer.id),
       // Rule 11: no storage volume, no files — and no query for them.
       files ? listDocuments(tripId, viewer.id) : Promise.resolve([]),
-      groupRoutes(access, now),
       homeCurrenciesFor([...new Set([viewer.id, ...members.map((m) => m.userId)])]),
     ]);
 
@@ -104,8 +96,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
   const position = expenseRows.length === 0 ? null : yourPosition(settle.rows, viewer.id);
   const color = readTripColor(trip.colorKey);
   const tone = tripPastel(color, tripId);
-  const plan = todayPlan({ trip, days: dayRows, files: docs, today: now });
-  const tucked = ideasTucked({ days: routeDays, today: plan !== null });
+  const tucked = ideasTucked({ days: routeDays, today: underway(trip, now) });
   const sortList = leftToSortFor({
     trip,
     today: now,
@@ -119,8 +110,6 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="mx-auto flex w-full max-w-[84rem] flex-col gap-7 px-4 pb-20 pt-6 sm:px-6">
-      {plan ? <TodayBlock tripId={tripId} plan={plan} /> : null}
-      {underway(trip, now) ? <RefreshWhileLive /> : null}
       <LeftToSort tripId={tripId} list={sortList} />
       {/* Why: the card floats over the globe on a wide screen, as on Explore; the map keeps its route clear of it (clear-area.ts). */}
       <section className="rounded-md bg-sheet shadow-raised ring-1 ring-rule">
@@ -131,8 +120,6 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
             route={route}
             tone={tone}
             datesUnset={datesUnset}
-            tracks={tracks}
-            legend={<RouteLegend routes={tracks} viewerId={viewer.id} now={Date.now()} deleteMine={deleteMyRoute.bind(null, tripId)} />}
           />
           <div data-overview-card className="relative z-10 bg-sheet lg:col-start-2 lg:m-5 lg:self-start lg:rounded-md lg:shadow-lift lg:ring-1 lg:ring-rule">
             <OverviewCard

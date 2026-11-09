@@ -46,7 +46,7 @@ async function setPassword(userId: string, password: string): Promise<void> {
 }
 
 /** Upserts rather than skipping — otherwise re-seeding never rolls a new column forward. */
-async function upsertAccount(args: {
+export async function upsertAccount(args: {
   /** Used only when the account is new, so a fresh database always gets the same ids. */
   id: string;
   email: string;
@@ -95,6 +95,17 @@ async function paintMap(userId: string, map: Profile["map"]): Promise<void> {
     ...(map?.yellow ?? []).map((countryCode) => ({ userId, countryCode, state: "yellow" as const })),
   ];
   if (rows.length > 0) await db.insert(userCountryMark).values(rows);
+}
+
+/**
+ * A guest on an invite link is a `user` row with `is_anonymous` (ADR-029). This one also
+ * gets the seed password, so the dev door can hand you its session; signing up from it still
+ * runs the real adoption, because only `is_anonymous` decides that.
+ */
+export async function seedGuest(args: { id: string; email: string; name: string }): Promise<string> {
+  await db.insert(user).values({ ...args, emailVerified: false, isAnonymous: true });
+  await setPassword(args.id, SEED_PASSWORD);
+  return args.id;
 }
 
 export async function seedPerson(person: Person, scenario: Scenario): Promise<string> {

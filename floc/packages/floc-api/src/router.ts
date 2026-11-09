@@ -10,7 +10,6 @@ import { billingRouter } from "./routers/billing";
 import { commentsRouter } from "./routers/comments";
 import { exploreRouter } from "./routers/explore";
 import { filesRouter } from "./routers/files";
-import { routeRouter } from "./routers/itinerary/route";
 import { friendsRouter } from "./routers/friends";
 import { ideasRouter } from "./routers/itinerary/ideas";
 import { invitesRouter } from "./routers/invites";
@@ -44,7 +43,6 @@ export const appRouter = router({
   people: peopleRouter,
   invites: invitesRouter,
   files: filesRouter,
-  route: routeRouter,
   comments: commentsRouter,
   pages: pagesRouter,
   packing: packingRouter,

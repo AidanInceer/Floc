@@ -22,6 +22,7 @@ import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { CopySheet } from "@/components/explore/copy-sheet";
+import { SaveHeart } from "@/components/explore/save-heart";
 import { PresetRoute } from "@/components/packing/preset-route";
 import { RouteMapFrame } from "@/components/map/route-map";
 import { Body, Button, Card, Empty, Figure, Pill, SectionTitle } from "@/components/system/ui";
@@ -38,10 +39,11 @@ function bases(trip: PresetTrip) {
 
 export default function PresetDetail() {
   const { c } = useTheme();
-  const { preset } = useLocalSearchParams<{ preset: string }>();
+  const { preset, start: asked } = useLocalSearchParams<{ preset: string; start?: string }>();
   const router = useRouter();
   const trip = PRESET_TRIPS.find((candidate) => candidate.id === preset);
-  const [sheet, setSheet] = useState(false);
+  // Why: a saved trip on Lists opens with the copy choice open, as on the web (ADR-025).
+  const [sheet, setSheet] = useState(asked !== undefined);
   const rates = useListingRates();
 
   const start = useMutation({
@@ -69,9 +71,12 @@ export default function PresetDetail() {
       <Stack.Screen options={{ title: trip.title }} />
       <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
         <View style={{ gap: space.sm }}>
-          <Figure tone="ink-2">
-            {trip.country} · {trip.region}
-          </Figure>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.md }}>
+            <Figure tone="ink-2">
+              {trip.country} · {trip.region}
+            </Figure>
+            <SaveHeart presetId={trip.id} title={trip.title} />
+          </View>
           <Body>{trip.summary}</Body>
           {trip.editorial ? <Pill word="Floc's own" tone="pastel-blue" /> : null}
         </View>

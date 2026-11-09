@@ -39,7 +39,13 @@
     "explore.get": {
       "mobile": "yes"
     },
+    "explore.saves": {
+      "mobile": "yes"
+    },
     "explore.setFinder": {
+      "mobile": "yes"
+    },
+    "explore.setSaved": {
       "mobile": "yes"
     },
     "files.attach": {
@@ -340,21 +346,6 @@
       "mobile": "yes"
     },
     "roster.remove": {
-      "mobile": "yes"
-    },
-    "route.deleteMine": {
-      "mobile": "yes"
-    },
-    "route.group": {
-      "mobile": "yes"
-    },
-    "route.on": {
-      "mobile": "yes"
-    },
-    "route.record": {
-      "mobile": "yes"
-    },
-    "route.setOn": {
       "mobile": "yes"
     },
     "settings.bookingSite": {

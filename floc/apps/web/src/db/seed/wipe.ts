@@ -16,12 +16,12 @@
  * happen is the one a mistyped `.env` could point it at.
  */
 import { rm } from "node:fs/promises";
-import { isAbsolute, relative, resolve } from "node:path";
+import { relative, resolve } from "node:path";
 
 import { sql } from "drizzle-orm";
 
 import { db } from "../index.ts";
-import { assertLocalDatabase } from "./local-only.ts";
+import { assertClearableFilesDir, assertLocalDatabase } from "./local-only.ts";
 
 const KEEP = new Set(["__drizzle_migrations", "fx_rate", "sqlite_sequence"]);
 
@@ -43,19 +43,15 @@ async function emptyTables(): Promise<number> {
   return doomed.length;
 }
 
-/** Uploaded bytes whose `document` rows just went. Only ever inside this app's folder. */
+/** Uploaded bytes whose `document` rows just went. Only ever this app's or this worktree's folder. */
 async function emptyUploads(): Promise<string | null> {
   const dir = process.env.FLOC_FILES_DIR?.trim();
   if (!dir) return null;
 
   const target = resolve(dir);
-  const inside = relative(process.cwd(), target);
-  if (!inside || inside.startsWith("..") || isAbsolute(inside)) {
-    throw new Error(`Refusing to clear FLOC_FILES_DIR outside the web app: ${target}`);
-  }
-
+  assertClearableFilesDir(target, process.cwd());
   await rm(target, { recursive: true, force: true });
-  return inside;
+  return relative(process.cwd(), target);
 }
 
 export async function wipeEverything(): Promise<string> {

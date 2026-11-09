@@ -1,0 +1,224 @@
+/**
+ * Saved (#467, ADR-042): the Explore trips you saved, then the countries you want to go to, as rows.
+ * Trips and countries sit in their own sections (A3); a country's name is its title. A row opens the trip or Explore searched for
+ * the country; Start trip, in pen on its last line, starts one from it.
+ * A country is the globe's yellow, so adding or removing one here paints the globe too.
+ */
+import { wantToGoCountries } from "@floc/core/itinerary/travel-map";
+import { COUNTRIES } from "@floc/core/people/countries";
+import { listingsIn } from "@floc/core/trip/explore/listing-countries";
+import { PRESET_TRIPS, type PresetTrip } from "@floc/core/trip/explore/preset-trips";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+
+import { listingPrice } from "@floc/core/trip/explore/listing-price";
+import { RegionTags } from "@/components/explore/region-tag";
+import { useListingRates } from "@/components/explore/use-listing-rates";
+import { HeartButton, useSavedTrips } from "@/components/explore/save-heart";
+import { PlusGlyph } from "@/components/system/glyphs";
+import { useTheme } from "@/components/system/theme";
+import { Body, Button, Card, Failed, Loading, SearchField, SectionTitle } from "@/components/system/ui";
+import { trpc } from "@/lib/api";
+import { fonts, size, space } from "@/lib/theme";
+
+type Country = { code: string; name: string };
+
+const byId = new Map(PRESET_TRIPS.map((t) => [t.id, t]));
+
+export function SavedPane() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const face = useQuery(trpc.me.profile.queryOptions());
+  const { ids, pending, failed, retry, toggle } = useSavedTrips();
+  const rates = useListingRates();
+  const [filter, setFilter] = useState("");
+  const profileKey = trpc.me.profile.queryKey();
+  const mark = useMutation({
+    ...trpc.me.setMark.mutationOptions(),
+    // Why: the row goes or comes under the finger, as on the web; the refetch puts it right either way.
+    onMutate: async ({ code, state }) => {
+      await queryClient.cancelQueries({ queryKey: profileKey });
+      queryClient.setQueryData(profileKey, (face) =>
+        face ? { ...face, map: [...face.map.filter((m) => m.code !== code), ...(state === "blank" ? [] : [{ code, state }])] } : face,
+      );
+      return undefined;
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: profileKey }),
+  });
+
+  if (face.isPending || pending) return <Loading />;
+  if (face.isError || failed) return <Failed onRetry={() => (face.isError ? face.refetch() : retry())} />;
+
+  const countries = wantToGoCountries({ states: Object.fromEntries(face.data.map.map((m) => [m.code, m.state])) });
+  const trips = ids.map((id) => byId.get(id)).filter((t): t is PresetTrip => Boolean(t));
+  const have = new Set(countries.map((c) => c.code));
+  const needle = filter.trim().toLowerCase();
+  const found = needle ? COUNTRIES.filter((c) => !have.has(c.code) && c.name.toLowerCase().includes(needle)).slice(0, 8) : [];
+
+  return (
+    <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }} keyboardShouldPersistTaps="handled">
+      <View style={{ gap: space.sm }}>
+        <SearchField label="Add a country" value={filter} onChangeText={setFilter} />
+        {needle ? (
+          <Card>
+            {found.length === 0 ? <Body tone="ink-3">No country by that name.</Body> : null}
+            {found.map((c) => (
+              <AddRow
+                key={c.code}
+                name={c.name}
+                onPress={() => {
+                  setFilter("");
+                  mark.mutate({ code: c.code, state: "yellow" });
+                }}
+              />
+            ))}
+          </Card>
+        ) : null}
+      </View>
+
+      {trips.length + countries.length === 0 ? (
+        <View style={{ alignItems: "center", paddingVertical: space.xl }}>
+          <Button label="Find a trip on Explore" fit="small" onPress={() => router.push("/explore")} />
+        </View>
+      ) : (
+        <>
+          {trips.length ? (
+            <Section title="Trips" count={trips.length}>
+          {trips.map((trip, i) => (
+            <SavedRow
+              key={trip.id}
+              first={i === 0}
+              tags={<RegionTags region={trip.region} countries={trip.country} />}
+              title={trip.title}
+              name={trip.title}
+              figures={`${trip.nights} ${trip.nights === 1 ? "night" : "nights"} · ${listingPrice(trip, rates)}`}
+              heart={<HeartButton saved label={trip.title} onPress={() => toggle(trip.id, false)} />}
+              onOpen={() => router.push({ pathname: "/explore/[preset]", params: { preset: trip.id } })}
+              onStart={() => router.push({ pathname: "/explore/[preset]", params: { preset: trip.id, start: "1" } })}
+            />
+          ))}
+            </Section>
+          ) : null}
+          {countries.length ? (
+            <Section title="Countries" count={countries.length}>
+          {countries.map((c, i) => (
+            <CountryRow
+              key={c.code}
+              country={c}
+              first={i === 0}
+              onDrop={() => mark.mutate({ code: c.code, state: "blank" })}
+              onOpen={() => router.push({ pathname: "/explore", params: { country: c.code } })}
+              onStart={() => router.push({ pathname: "/(app)/new-trip", params: { name: c.name } })}
+            />
+          ))}
+            </Section>
+          ) : null}
+        </>
+      )}
+    </ScrollView>
+  );
+}
+
+function Section({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
+  const { c } = useTheme();
+  return (
+    <View style={{ gap: space.sm }}>
+      <View style={{ flexDirection: "row", alignItems: "baseline", gap: space.sm }}>
+        <SectionTitle>{title}</SectionTitle>
+        <Text style={{ color: c["ink-3"], fontFamily: fonts.type, fontSize: size.small }}>{count}</Text>
+      </View>
+      <Card style={{ padding: 0, gap: 0 }}>{children}</Card>
+    </View>
+  );
+}
+
+function CountryRow({ country, first, onDrop, onOpen, onStart }: { country: Country; first: boolean; onDrop: () => void; onOpen: () => void; onStart: () => void }) {
+  const count = listingsIn(country.code).length;
+  return (
+    <SavedRow
+      first={first}
+      title={country.name}
+      figures={count === 0 ? "No Explore trips" : `${count} Explore ${count === 1 ? "trip" : "trips"}`}
+      heart={<HeartButton saved label={country.name} onPress={onDrop} />}
+      onOpen={onOpen}
+      onStart={onStart}
+      name={country.name}
+    />
+  );
+}
+
+function SavedRow({
+  first,
+  tags,
+  title,
+  figures,
+  heart,
+  onOpen,
+  onStart,
+  name,
+}: {
+  first: boolean;
+  tags?: React.ReactNode;
+  title: string;
+  figures: string;
+  heart: React.ReactNode;
+  onOpen: () => void;
+  onStart: () => void;
+  /** What the row is, for its Start trip's name. */
+  name: string;
+}) {
+  const { c } = useTheme();
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "flex-start",
+        gap: space.md,
+        paddingHorizontal: space.lg,
+        paddingTop: space.md,
+        paddingBottom: space.xs,
+        borderTopColor: c.rule,
+        borderTopWidth: first ? 0 : StyleSheet.hairlineWidth,
+      }}
+    >
+      <View style={{ flex: 1 }}>
+        <Pressable accessibilityRole="button" accessibilityLabel={`${title}, ${figures}`} onPress={onOpen} style={({ pressed }) => ({ gap: space.xs + 2, paddingTop: space.xs, opacity: pressed ? 0.6 : 1 })}>
+          {tags}
+          <Text style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>{title}</Text>
+        </Pressable>
+        {/* Why: Start trip shares the figures' line (A3, #467), at full press height and clear of the heart above. */}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
+          <Pressable accessible={false} onPress={onOpen} style={{ flex: 1, minHeight: 44, justifyContent: "center" }}>
+            <Text style={{ color: c["ink-2"], fontFamily: fonts.type, fontSize: size.small, fontVariant: ["tabular-nums"] }}>{figures}</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Start trip from ${name}`}
+            onPress={onStart}
+            style={({ pressed }) => ({ minHeight: 44, justifyContent: "center", paddingLeft: space.sm, opacity: pressed ? 0.6 : 1 })}
+          >
+            <Text style={{ color: c.pen, fontFamily: fonts.sansBold, fontSize: size.small }}>Start trip</Text>
+          </Pressable>
+        </View>
+      </View>
+      {heart}
+    </View>
+  );
+}
+
+function AddRow({ name, onPress }: { name: string; onPress: () => void }) {
+  const { c } = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Add ${name}`}
+      onPress={onPress}
+      style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: space.sm, paddingVertical: space.sm, opacity: pressed ? 0.6 : 1 })}
+    >
+      <PlusGlyph color={c["ink-2"]} />
+      <Body>{name}</Body>
+    </Pressable>
+  );
+}

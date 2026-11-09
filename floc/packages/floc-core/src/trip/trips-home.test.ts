@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { arrangeTripsHome } from "./trips-home";
+import { arrangeTripsHome, arrangeTripsList } from "./trips-home";
 
 type Trip = { id: number; startDate: string | null };
 
@@ -29,5 +29,22 @@ describe("arrangeTripsHome", () => {
       later: [],
       undated: trips,
     });
+  });
+});
+
+describe("arrangeTripsList", () => {
+  it("puts every dated trip in one list, soonest first, and keeps undated trips apart", () => {
+    const trips: Trip[] = [
+      { id: 1, startDate: "2027-06-01" },
+      { id: 2, startDate: null },
+      { id: 3, startDate: "2026-11-01" },
+      { id: 4, startDate: "2027-02-01" },
+    ];
+
+    expect(arrangeTripsList(trips)).toEqual({
+      dated: [trips[2], trips[3], trips[0]],
+      undated: [trips[1]],
+    });
+    expect(trips.map((trip) => trip.id)).toEqual([1, 2, 3, 4]);
   });
 });

@@ -1,5 +1,5 @@
 import { clipRing } from "./clip";
-import { frameFor, homePiece, type Frame, type Size } from "./frame";
+import { countryFrame, frameFor, homePiece, type Frame, type Size } from "./frame";
 import { onLand, type Box, type Piece, type Spot } from "./land";
 import { ringPath } from "./ring-path";
 import { thin } from "./thin";
@@ -53,4 +53,10 @@ export function drawOutline(stops: readonly Spot[], codes: ReadonlySet<string>, 
     return [{ x: tenth(p.x), y: tenth(p.y), r: tenth(r) }];
   });
   return { ...landPaths(land, codes, frame, size), islets, frame };
+}
+
+/** One country on its own, filled as the trip's own, with the land around it plain (#467). Nothing until its outline arrives. */
+export function drawCountry(code: string, land: readonly Piece[], size: Size): { home: string; other: string } | null {
+  const frame = countryFrame(land, code, size);
+  return frame ? landPaths(land, new Set([code]), frame, size) : null;
 }

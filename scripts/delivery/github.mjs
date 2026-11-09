@@ -5,7 +5,9 @@ import { TASK_BRANCH } from "../workspace/worktrees.mjs";
 
 export const repository = "AidanInceer/Floc";
 const SHARED = ["SonarQube analysis", "Secret scan", "Known vulnerabilities"];
-export const requiredChecks = { develop: ["PR checks", ...SHARED], main: ["Release checks", ...SHARED] };
+// Why: the three PR jobs are listed too, so a red one is reported when it fails, not when "PR checks" finally reports.
+const PR_JOBS = ["PR fast", "PR tests", "PR build"];
+export const requiredChecks = { develop: ["PR checks", ...PR_JOBS, ...SHARED], main: ["Release checks", ...SHARED] };
 
 export const gh = (root, ...args) => command("gh", [...args, "--repo", repository], { cwd: root });
 export const json = (root, ...args) => JSON.parse(gh(root, ...args) || "null");
@@ -47,10 +49,12 @@ export function withoutTickets(body, issues) {
     .map((line) => (/^\d+\.\s/.test(line) ? line.replace(/^\d+\./, `${++n}.`) : line)).join("\n");
 }
 
+export const landedLabels = (issue) => ["issue", "edit", issue, "--add-label", "on-develop", "--remove-label", "in-progress"];
+
 /** A ticket leaves the Priority stack when its work lands on develop (delivery finish); it closes when that reaches main. */
 export function markLanded(root, issues, scratch) {
   if (!issues.length) return;
-  for (const issue of issues) gh(root, "issue", "edit", issue, "--add-label", "on-develop");
+  for (const issue of issues) gh(root, ...landedLabels(issue));
   const stack = json(root, "issue", "list", "--state", "open", "--search", "Priority in:title", "--json", "number,title,body")
     .find((i) => i.title.trim() === "Priority");
   if (!stack) return;

@@ -4,6 +4,7 @@
  * another trip's rows" a one-line assertion. See ./setup.ts for the seam and
  * the Next.js stubs.
  */
+import { sql } from "drizzle-orm";
 import { migrate } from "drizzle-orm/libsql/migrator";
 import { expect } from "vitest";
 
@@ -15,6 +16,7 @@ let migrated = false;
 // Once per worker; cheap enough to call from every suite's beforeAll.
 export async function migrateTestDb(): Promise<void> {
   if (migrated) return;
+  await db.run(sql`PRAGMA synchronous = OFF`);
   await migrate(db, { migrationsFolder: "./drizzle" });
   migrated = true;
 }
@@ -58,7 +60,8 @@ const TABLES = [
 
 // Call in beforeEach — suites share a worker's file.
 export async function resetDb(): Promise<void> {
-  for (const table of TABLES) await db.delete(table);
+  const [first, ...rest] = TABLES.map((table) => db.delete(table));
+  await db.batch([first, ...rest]);
   currentUser.id = null;
 }
 

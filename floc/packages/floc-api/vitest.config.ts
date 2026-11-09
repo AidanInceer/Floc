@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
+    pool: "threads",
     include: ["src/**/*.test.ts"],
     /**
      * The router's own job is authorisation and input validation — the data

@@ -72,6 +72,8 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
     startTripFromPreset: vi.fn().mockResolvedValue({ id: 3 }),
     loadExplore: vi.fn().mockResolvedValue({ finder: null, rates: null }),
     setExploreFinder: vi.fn().mockResolvedValue(undefined),
+    listSavedTrips: vi.fn().mockResolvedValue(["lisbon"]),
+    setTripSaved: vi.fn().mockResolvedValue(undefined),
     updateTrip: vi.fn().mockResolvedValue(undefined),
     archiveTrip: vi.fn().mockResolvedValue(undefined),
     leaveTrip: vi.fn().mockResolvedValue(undefined),
@@ -193,6 +195,21 @@ describe("explore", () => {
     price: { unit: "trip" as const, min: null, max: 2000 },
     likes: ["Food" as const],
   };
+
+  it("reads and writes saved trips only for the caller (#467)", async () => {
+    const { caller: ana, port } = caller("u1");
+    expect(await ana.explore.saves()).toEqual(["lisbon"]);
+    expect(port.listSavedTrips).toHaveBeenCalledWith("u1");
+    await ana.explore.setSaved({ presetId: "lisbon", saved: false });
+    expect(port.setTripSaved).toHaveBeenCalledWith("u1", "lisbon", false);
+  });
+
+  it("refuses a saved-trip id that is no id at all", async () => {
+    const { caller: ana, port } = caller("u1");
+    await expect(ana.explore.setSaved({ presetId: "", saved: true })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(ana.explore.setSaved({ presetId: "x".repeat(200), saved: true })).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    expect(port.setTripSaved).not.toHaveBeenCalled();
+  });
 
   it("saves the finder only for the caller", async () => {
     const { caller: ana, port } = caller("u1");

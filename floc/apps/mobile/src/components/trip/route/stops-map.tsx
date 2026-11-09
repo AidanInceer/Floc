@@ -1,8 +1,6 @@
 // Why: the web Overview's map style on the phone — the trip's countries in its colour, an ink line patterned by how you travel, named stops, a tag a leg.
-import type { GroupRoute } from "@floc/api/port";
 import type { Pastel } from "@floc/core/design/pastels";
 import { nightsLabel } from "@floc/core/itinerary/stops";
-import type { WhoTone } from "@floc/core/people/who";
 import type { OverviewRoute } from "@floc/core/trip/overview/route";
 import { routeLines, stopRoles, type RouteLine } from "@floc/core/trip/route/route-lines";
 import { Camera, GeoJSONSource, Layer, Map, Marker, type InitialViewState, type LngLat } from "@maplibre/maplibre-react-native";
@@ -50,12 +48,11 @@ function sideOf(stops: OverviewRoute["stops"], k: number): "left" | "right" {
   return east > 0 ? "left" : "right";
 }
 
-export function StopsMap({ route, tone, tracks }: { route: OverviewRoute; tone: Pastel; tracks: GroupRoute[] }) {
+export function StopsMap({ route, tone }: { route: OverviewRoute; tone: Pastel }) {
   const { c } = useTheme();
   const lines = routeLines(route);
   const roles = stopRoles(route.stops);
-  const ink = (t: GroupRoute) => c[`${t.tone as WhoTone}-ink`];
-  const points: LngLat[] = [...route.stops.map((s) => [s.lng, s.lat] as LngLat), ...lines.flatMap((l) => l.coords), ...tracks.flatMap((t) => t.path)];
+  const points: LngLat[] = [...route.stops.map((s) => [s.lng, s.lat] as LngLat), ...lines.flatMap((l) => l.coords)];
   const features = {
     type: "FeatureCollection" as const,
     features: lines.map((l) => ({ type: "Feature" as const, properties: { look: lookOf(l.mode) }, geometry: { type: "LineString" as const, coordinates: l.coords } })),
@@ -88,11 +85,6 @@ export function StopsMap({ route, tone, tracks }: { route: OverviewRoute; tone: 
           })}
         </GeoJSONSource>
 
-        {tracks.filter((t) => t.path.length > 1).map((t) => (
-          <GeoJSONSource key={t.userId} id={`track-${t.userId}`} data={{ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: t.path } }}>
-            <Layer id={`track-line-${t.userId}`} type="line" paint={{ "line-color": ink(t), "line-width": 2.5, "line-opacity": 0.9 }} layout={{ "line-cap": "round", "line-join": "round" }} />
-          </GeoJSONSource>
-        ))}
 
         {lines.map((l, k) => (
           <Marker key={`arrow-${k}`} lngLat={l.mid}>
@@ -104,15 +96,6 @@ export function StopsMap({ route, tone, tracks }: { route: OverviewRoute; tone: 
             <LegTag mode={l.mode} time={l.time} />
           </Marker>
         ))}
-        {tracks.flatMap((t) =>
-          t.live
-            ? [
-                <Marker key={`live-${t.userId}`} lngLat={[t.live.lng, t.live.lat]}>
-                  <View accessible accessibilityLabel={`${t.name} is here`} style={{ width: 14, height: 14, borderRadius: radius.pill, borderWidth: 2.5, borderColor: c.sheet, backgroundColor: ink(t) }} />
-                </Marker>,
-              ]
-            : [],
-        )}
         {route.stops.map((s, k) =>
           roles[k].named ? (
             <Marker key={`stop-${k}`} lngLat={[s.lng, s.lat]}>

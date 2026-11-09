@@ -67,9 +67,9 @@ export function AccountMenu({
             <SlidersIcon />
             Settings
           </Link>
-          <Link role="menuitem" href="/packing-lists" className={tileClass}>
+          <Link role="menuitem" href="/lists" className={tileClass}>
             <ListIcon />
-            Saved lists
+            Lists
           </Link>
         </div>
         <div className="flex items-center justify-between border-t border-rule bg-sheet-2 px-2.5 py-2">

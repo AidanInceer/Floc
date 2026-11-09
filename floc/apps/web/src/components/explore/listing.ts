@@ -29,6 +29,8 @@ export function landFor(trip: PresetTrip): string {
   return REGION_LAND[trip.region];
 }
 
+export const regionLand = (region: Region): string => REGION_LAND[region];
+
 const REGION_TONE: Record<Region, string> = { Europe: "blue", Africa: "yellow", Asia: "red", Americas: "green", Oceania: "blue" };
 
 /** The region's colour as a token family (`--tone-red`), for a map drawn on a canvas. */

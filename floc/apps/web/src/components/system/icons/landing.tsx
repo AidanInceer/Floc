@@ -25,6 +25,7 @@ export type GlyphName =
   | "weather"
   | "mail"
   | "receipt"
+  | "tag"
   | "offline"
   | "keep"
   | "live"
@@ -120,6 +121,12 @@ const PATHS: Record<GlyphName, ReactNode> = {
     <>
       <path d="M3 1.8h8v10.4l-1.6-1-1.2 1-1.2-1-1.2 1-1.2-1L3 12.2Z" />
       <path d="M5 5h4M5 7.2h4M5 9.2h2" />
+    </>
+  ),
+  tag: (
+    <>
+      <path d="M7.6 1.8h4.6v4.6L6.6 12 2 7.4Z" />
+      <circle cx="9.8" cy="4.2" r=".9" />
     </>
   ),
   offline: (

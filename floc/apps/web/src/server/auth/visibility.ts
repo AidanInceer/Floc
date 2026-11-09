@@ -111,7 +111,7 @@ async function sharesATrip(a: string, b: string): Promise<boolean> {
   return (await sharedTripIds(a, b)).length > 0;
 }
 
-export type PastTrip = {
+type PastTrip = {
   id: number;
   name: string;
   startDate: string | null;
@@ -275,7 +275,7 @@ async function friendsOnProfile(
 }
 
 /** Ended trips only, no link in, no roster — third parties never consented to appear here (ticket 46). `show` may still be loading; the trips read does not wait for it. */
-export async function pastTripsFor(
+async function pastTripsFor(
   ownerId: string,
   show: PastTripsShow | PromiseLike<PastTripsShow>,
 ): Promise<PastTrip[]> {

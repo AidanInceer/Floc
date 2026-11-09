@@ -1,4 +1,4 @@
-import { arrangeTripsHome } from "@floc/core/trip/trips-home";
+import { arrangeTripsList } from "@floc/core/trip/trips-home";
 import Link from "next/link";
 
 import { requireUser } from "@/server/access";
@@ -12,6 +12,7 @@ import { Sheet, SubmitButton } from "@/components/system/client-ui";
 import { ChevronIcon, PlusIcon } from "@/components/system/icons";
 import type { TripCardData } from "@/components/trip/trip-card";
 import { TripBar } from "@/components/trip/trips/trip-bar";
+import { NewTripField } from "@/components/trip/trips/new-trip-field";
 import { NewTripForm } from "@/components/trip/new-trip-form";
 import { acceptTripInvite, createTrip, declineTripInvite } from "./actions";
 import "./past-trips.css";
@@ -42,22 +43,18 @@ export default async function TripsPage({
   // A finished trip is still yours, so it is folded away rather than dropped —
   // archiving is the other thing, and it is a decision someone has to make.
   const { live, ended } = splitEnded(ordered);
-  const { featured, later, undated } = arrangeTripsHome(live);
+  const { dated, undated } = arrangeTripsList(live);
 
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
-      <header className="flex flex-wrap items-end justify-between gap-6">
-        <div>
-          <PageTitle>My trips</PageTitle>
+      <PageTitle className="sr-only">My trips</PageTitle>
+      <header className="grid grid-cols-[minmax(0,1fr)] gap-1.5 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+        <div className="sm:col-start-2">
+          <NewTripField action={createTrip} friends={friends} asked={asked} />
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <ButtonLink href="/trips/archived" variant="ghost">
-            Archived
-          </ButtonLink>
-          <Sheet trigger="New trip" title="Start a trip" body="split" defaultOpen={asked !== null}>
-            <NewTripForm action={createTrip} friends={friends} name={asked ?? ""} />
-          </Sheet>
-        </div>
+        <ButtonLink href="/trips/archived" variant="ghost" className="row-start-1 justify-self-end max-sm:h-11 sm:col-start-3">
+          Archived
+        </ButtonLink>
       </header>
 
       {invites.length > 0 ? <InviteList invites={invites} /> : null}
@@ -75,30 +72,18 @@ export default async function TripsPage({
           </Link>
         </p>
       ) : null}
-      {featured ? (
-        <ul className="mt-6">
-          <TripBar trip={featured} next />
-        </ul>
-      ) : null}
-
-      {later.length > 0 ? (
-        <section className="mt-9">
-          <h2 className="typed">Later</h2>
-          <TripList trips={later} className="mt-3" />
+      {dated.length > 0 ? (
+        <section className="mt-6">
+          <h2 className="sr-only">With dates</h2>
+          <TripList trips={dated} next={dated[0]} />
         </section>
       ) : null}
 
       {undated.length > 0 ? (
         <section className="mt-9">
           <h2 className="typed">No dates yet</h2>
-          <TripList trips={undated} className="mt-3" newTrip={friends} />
+          <TripList trips={undated} className="mt-3" />
         </section>
-      ) : null}
-
-      {live.length > 0 && undated.length === 0 ? (
-        <ul className="mt-9 grid gap-3">
-          <NewTripTile friends={friends} />
-        </ul>
       ) : null}
 
       {ended.length > 0 ? <PastTrips trips={ended} /> : null}
@@ -109,18 +94,17 @@ export default async function TripsPage({
 function TripList({
   trips,
   className,
-  newTrip,
+  next,
 }: {
   trips: TripCardData[];
   className?: string;
-  newTrip?: Person[];
+  next?: TripCardData;
 }) {
   return (
     <ul className={cx(className, "grid gap-3")}>
       {trips.map((t) => (
-        <TripBar key={t.id} trip={t} />
+        <TripBar key={t.id} trip={t} next={t === next} />
       ))}
-      {newTrip ? <NewTripTile friends={newTrip} /> : null}
     </ul>
   );
 }
@@ -182,10 +166,7 @@ function NewTripTile({ friends, first }: { friends: Person[]; first?: boolean })
 function InviteList({ invites }: { invites: PendingInvite[] }) {
   return (
     <section className="mt-8">
-      <p className="typed">
-        {invites.length === 1 ? "An invitation" : "Invitations"} · waiting on you
-      </p>
-      <Stack gap={3} className="mt-3">
+      <Stack gap={3}>
         {invites.map((invite) => (
           <div
             key={invite.tripId}

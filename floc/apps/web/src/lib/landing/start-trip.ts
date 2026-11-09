@@ -12,6 +12,14 @@ export function listingStartHref(signedIn: boolean, listingId: string): string {
   return signedIn ? listing : `/signup?redirect=${encodeURIComponent(listing)}`;
 }
 
+/** Something on your Saved list: an Explore trip, or a country you want to go to (#467). */
+export type SavedThing = { kind: "trip"; id: string } | { kind: "country"; name: string };
+
+/** "Start trip" on Saved: a trip brings its plan through the copy choice (ADR-025); a country is just a trip named after it. */
+export function savedStartHref(saved: SavedThing): string {
+  return saved.kind === "trip" ? listingStartHref(true, saved.id) : startTripHref(true, saved.name);
+}
+
 /** `?new=` on My trips: null means no sheet; a string (maybe empty) opens it with that name. */
 export function newTripName(raw: string | string[] | undefined): string | null {
   const value = Array.isArray(raw) ? raw[0] : raw;

@@ -31,7 +31,6 @@ import { queryClient } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { signOutHere } from "@/lib/sign-out";
 import { onSessionEnded, sessionResumed } from "@/lib/session/session-ended";
-import { useRouteUpload } from "@/lib/route/use-route-upload";
 
 /**
  * The seven files behind the three faces (#no-ticket). Two weights each for
@@ -62,7 +61,6 @@ function Routes() {
   const finishLaunch = useCallback(() => setLaunched(true), []);
 
   const signedIn = !!session?.user;
-  useRouteUpload(signedIn);
   const inApp = segments[0] === "(app)";
   // A deep link is not a navigation, and these three arrive as one: a reset
   // link opens while signed out *and* while signed in, and throwing the

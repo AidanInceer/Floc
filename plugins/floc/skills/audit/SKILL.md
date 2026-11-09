@@ -45,7 +45,7 @@ Use `get_page_text` for words and numbers, screenshots for layout.
 | Area | Routes |
 |---|---|
 | Front door | `/`, `/explore`, `/explore/<slug>`, `/invite/<token>` signed out, `/login`, `/signup`, `/privacy`, `/terms` |
-| Home | `/trips`, `/trips/archived`, new-trip dialog, `/friends`, `/inbox`, `/profile`, `/settings`, `/packing-lists` |
+| Home | `/trips`, `/trips/archived`, new-trip dialog, `/friends`, `/inbox`, `/profile`, `/settings`, `/lists` |
 | Trip | `/trip/<id>/` `overview`, `ideas`, `dates`, `days`, `money`, `packing`, `notes`, `files` |
 
 For each page, ask:

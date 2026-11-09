@@ -64,7 +64,7 @@ export default function TabsLayout() {
           tabBarLabel: ({ focused }) => <TabLabel on={focused || inTrip}>Trips</TabLabel>,
         }}
       />
-      {/* Settings and Saved lists are NOT hidden tabs. A hidden tab is still a
+      {/* Settings and Lists are NOT hidden tabs. A hidden tab is still a
           tab, so back from one pops to whichever tab the bar starts on rather
           than to You — they are pushed onto the (app) stack instead, the way
           Friends is. */}
