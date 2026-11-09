@@ -1,11 +1,12 @@
 /**
  * Saved (#467, ADR-042): the Explore trips you saved, then the countries you want to go to, as rows.
- * A row opens the trip or Explore searched for the country; its Start trip button starts one from it.
+ * Trips and countries sit in their own sections (A3); a country's name is its title. A row opens the trip or Explore searched for
+ * the country; Start trip, in pen on its last line, starts one from it.
  * A country is the globe's yellow, so adding or removing one here paints the globe too.
  */
 import { wantToGoCountries } from "@floc/core/itinerary/travel-map";
 import { COUNTRIES } from "@floc/core/people/countries";
-import { listingsIn, regionOf } from "@floc/core/trip/explore/listing-countries";
+import { listingsIn } from "@floc/core/trip/explore/listing-countries";
 import { PRESET_TRIPS, type PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
@@ -18,9 +19,9 @@ import { useListingRates } from "@/components/explore/use-listing-rates";
 import { HeartButton, useSavedTrips } from "@/components/explore/save-heart";
 import { PlusGlyph } from "@/components/system/glyphs";
 import { useTheme } from "@/components/system/theme";
-import { Body, Button, Card, Failed, Loading, SearchField } from "@/components/system/ui";
+import { Body, Button, Card, Failed, Loading, SearchField, SectionTitle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
-import { fonts, radius, size, space } from "@/lib/theme";
+import { fonts, size, space } from "@/lib/theme";
 
 type Country = { code: string; name: string };
 
@@ -82,7 +83,9 @@ export function SavedPane() {
           <Button label="Find a trip on Explore" fit="small" onPress={() => router.push("/explore")} />
         </View>
       ) : (
-        <Card style={{ padding: 0, gap: 0 }}>
+        <>
+          {trips.length ? (
+            <Section title="Trips" count={trips.length}>
           {trips.map((trip, i) => (
             <SavedRow
               key={trip.id}
@@ -96,31 +99,48 @@ export function SavedPane() {
               onStart={() => router.push({ pathname: "/explore/[preset]", params: { preset: trip.id, start: "1" } })}
             />
           ))}
+            </Section>
+          ) : null}
+          {countries.length ? (
+            <Section title="Countries" count={countries.length}>
           {countries.map((c, i) => (
             <CountryRow
               key={c.code}
               country={c}
-              first={trips.length === 0 && i === 0}
+              first={i === 0}
               onDrop={() => mark.mutate({ code: c.code, state: "blank" })}
               onOpen={() => router.push({ pathname: "/explore", params: { country: c.code } })}
               onStart={() => router.push({ pathname: "/(app)/new-trip", params: { name: c.name } })}
             />
           ))}
-        </Card>
+            </Section>
+          ) : null}
+        </>
       )}
     </ScrollView>
   );
 }
 
+function Section({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
+  const { c } = useTheme();
+  return (
+    <View style={{ gap: space.sm }}>
+      <View style={{ flexDirection: "row", alignItems: "baseline", gap: space.sm }}>
+        <SectionTitle>{title}</SectionTitle>
+        <Text style={{ color: c["ink-3"], fontFamily: fonts.type, fontSize: size.small }}>{count}</Text>
+      </View>
+      <Card style={{ padding: 0, gap: 0 }}>{children}</Card>
+    </View>
+  );
+}
+
 function CountryRow({ country, first, onDrop, onOpen, onStart }: { country: Country; first: boolean; onDrop: () => void; onOpen: () => void; onStart: () => void }) {
-  const region = regionOf(country.code);
   const count = listingsIn(country.code).length;
   return (
     <SavedRow
       first={first}
-      tags={region ? <RegionTags region={region} countries={country.name} /> : <PlainTag name={country.name} />}
-      title="Want to go"
-      figures={count === 0 ? "No trips on Explore yet" : `${count} ${count === 1 ? "trip" : "trips"} on Explore`}
+      title={country.name}
+      figures={count === 0 ? "No Explore trips" : `${count} Explore ${count === 1 ? "trip" : "trips"}`}
       heart={<HeartButton saved label={country.name} onPress={onDrop} />}
       onOpen={onOpen}
       onStart={onStart}
@@ -140,7 +160,7 @@ function SavedRow({
   name,
 }: {
   first: boolean;
-  tags: React.ReactNode;
+  tags?: React.ReactNode;
   title: string;
   figures: string;
   heart: React.ReactNode;
@@ -154,33 +174,36 @@ function SavedRow({
     <View
       style={{
         flexDirection: "row",
-        alignItems: "center",
+        alignItems: "flex-start",
         gap: space.md,
         paddingHorizontal: space.lg,
+        paddingTop: space.md,
+        paddingBottom: space.xs,
         borderTopColor: c.rule,
         borderTopWidth: first ? 0 : StyleSheet.hairlineWidth,
       }}
     >
-      <Pressable accessibilityRole="button" accessibilityLabel={`${title}, ${figures}`} onPress={onOpen} style={({ pressed }) => ({ flex: 1, gap: space.xs + 2, paddingVertical: space.lg, opacity: pressed ? 0.6 : 1 })}>
-        {tags}
-        <Text style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>{title}</Text>
-        <Text style={{ color: c["ink-2"], fontFamily: fonts.type, fontSize: size.small, fontVariant: ["tabular-nums"] }}>{figures}</Text>
-      </Pressable>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
-        {heart}
-        <Button label="Start trip" accessibilityLabel={`Start trip from ${name}`} variant="quiet" fit="small" onPress={onStart} />
+      <View style={{ flex: 1 }}>
+        <Pressable accessibilityRole="button" accessibilityLabel={`${title}, ${figures}`} onPress={onOpen} style={({ pressed }) => ({ gap: space.xs + 2, paddingTop: space.xs, opacity: pressed ? 0.6 : 1 })}>
+          {tags}
+          <Text style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>{title}</Text>
+        </Pressable>
+        {/* Why: Start trip shares the figures' line (A3, #467), at full press height and clear of the heart above. */}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
+          <Pressable accessible={false} onPress={onOpen} style={{ flex: 1, minHeight: 44, justifyContent: "center" }}>
+            <Text style={{ color: c["ink-2"], fontFamily: fonts.type, fontSize: size.small, fontVariant: ["tabular-nums"] }}>{figures}</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Start trip from ${name}`}
+            onPress={onStart}
+            style={({ pressed }) => ({ minHeight: 44, justifyContent: "center", paddingLeft: space.sm, opacity: pressed ? 0.6 : 1 })}
+          >
+            <Text style={{ color: c.pen, fontFamily: fonts.sansBold, fontSize: size.small }}>Start trip</Text>
+          </Pressable>
+        </View>
       </View>
-    </View>
-  );
-}
-
-function PlainTag({ name }: { name: string }) {
-  const { c } = useTheme();
-  return (
-    <View style={{ alignSelf: "flex-start", borderColor: c["rule-2"], borderWidth: StyleSheet.hairlineWidth, borderRadius: radius.pill, paddingVertical: 2, paddingHorizontal: space.sm }}>
-      <Text numberOfLines={1} style={{ color: c["ink-2"], fontFamily: fonts.type, fontSize: size.label, textTransform: "uppercase", letterSpacing: 0.6 }}>
-        {name}
-      </Text>
+      {heart}
     </View>
   );
 }

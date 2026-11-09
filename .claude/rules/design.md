@@ -51,7 +51,8 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - No small picture that needs a key to read (dots and hatched squares standing for days): it reads as noise. A glyph and words do the job.
 - Never ask what the data already answers. A question about a trip starts from what the trip holds (dates set, places on the route), and a preview of a page shows that trip's own content, or says what is missing.
 - If the drawing is clear, say nothing. No heading above a heading, no caption that decodes the design, no instruction, no text that repeats a control. Exceptions: what is missing, and status.
-- A page its tab bar already names (a trip tab, Profile, Settings, Lists) shows no visible page title; the `h1` stays for screen readers (`sr-only`).
+- The account bar is the same four tabs on every account page — Profile, Settings, Saved, Packing — so nothing opens or moves between them; below sm it shows glyphs only (#467).
+- A page its tab bar already names (a trip tab, Profile, Settings, Saved, Packing) shows no visible page title; the `h1` stays for screen readers (`sr-only`).
 - No tiny all-caps kicker above a heading. The mono label names a value; it never introduces a section.
 - Sentence case. British English. Real content, never lorem ipsum.
 - ✓ A field starts empty: no placeholder, no example, nothing pre-filled the person did not choose. A visible label or an `aria-label` names it.
@@ -60,8 +61,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 ## Layout
 
 - One main action per screen. One visible action per row; more verbs go behind a `…` menu.
-  - One exception: on Lists the account tab opens sideways into a hairline capsule of its pages (Saved, Packing); below sm the other account tabs show only their glyphs while it is open (#467).
-  - One exception: a Saved tile on Lists shows Start trip at its bottom right beside its heart, so a saved trip or country starts a trip at once (#467).
+  - One exception: a Saved tile on Lists shows Start trip beside its heart (#467). It is a quiet pen word with an arrow at the right end of the tile's last line, sharing that line with the figures (nights and price, or Explore trips); below sm only the arrow shows, and a trip's nights sit over its price. A compact country tile keeps the house heart size, larger than the mockup's, so its press target stays full size.
   - One exception: a My trips card shows two toggles beside its `…`, star and mute (a bell, slashed when muted). Each says its state in its label (`aria-pressed`, Mute/Unmute). Every other verb stays in the menu.
 - Rows on one surface beat cards for everything. No borders around borders, no boxes inside boxes.
 - Below a panel's coloured head, every part — a field or a section — takes one title style and is ruled off edge to edge from the part above (`panelTitleClass`, `panelBandClass` in `ui.tsx`). A part whose controls name themselves (the event type tiles) needs no title. An empty part shows its button, not a sentence about being empty.

@@ -2,7 +2,7 @@
 
 import { COUNTRIES } from "@floc/core/people/countries";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
-import { useOptimistic, useState, useTransition } from "react";
+import { useOptimistic, useState, useTransition, type ReactNode } from "react";
 
 import { setCountryMark } from "@/app/profile/actions";
 import { ExploreTile } from "@/components/explore/all/explore-tile";
@@ -12,13 +12,26 @@ import { ButtonLink, Input } from "@/components/system/ui";
 import { CountryTile } from "./country-tile";
 import { StartTripButton } from "./start-trip-button";
 
+function Section({ title, count, children }: { title: string; count: number; children: ReactNode }) {
+  return (
+    <section aria-label={title} className="mt-8 first:mt-0">
+      <h2 className="mb-3 flex items-baseline gap-2.5 font-display text-lg font-semibold tracking-[-0.015em]">
+        {title}
+        <span className="nums text-xs font-normal text-ink-faint">{count}</span>
+      </h2>
+      {children}
+    </section>
+  );
+}
+
 type Country = { code: string; name: string };
 
 const byName = (a: Country, b: Country) => a.name.localeCompare(b.name);
 
 /**
  * Where you want to go (#467, ADR-042): the Explore trips you saved, then the countries, both as tiles.
- * A tile opens the trip or Explore searched for the country; its Start trip button starts one from it. A country is the globe's yellow, so adding or removing one paints it.
+ * Trips and countries sit apart (A3): trips as Explore tiles, countries four across and smaller. A tile opens the trip or Explore
+ * searched for the country; Start trip on its last line starts one from it. A country is the globe's yellow, so adding or removing one paints it.
  */
 export function WantToGo({ trips, countries }: { trips: PresetTrip[]; countries: Country[] }) {
   const [shown, change] = useOptimistic(countries, (list, next: { add?: Country; drop?: string }) =>
@@ -75,18 +88,30 @@ export function WantToGo({ trips, countries }: { trips: PresetTrip[]; countries:
           <ButtonLink href="/explore">Find a trip on Explore</ButtonLink>
         </div>
       ) : (
-        <ul className="grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-3">
-          {trips.map((trip) => (
-            <li key={trip.id}>
-              <ExploreTile trip={trip} footer={<StartTripButton saved={{ kind: "trip", id: trip.id }} name={trip.title} />} />
-            </li>
-          ))}
-          {shown.map((c) => (
-            <li key={c.code}>
-              <CountryTile code={c.code} name={c.name} onDrop={() => drop(c.code)} />
-            </li>
-          ))}
-        </ul>
+        <div>
+          {trips.length ? (
+            <Section title="Trips" count={trips.length}>
+              <ul className="grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-3">
+                {trips.map((trip) => (
+                  <li key={trip.id}>
+                    <ExploreTile trip={trip} action={<StartTripButton saved={{ kind: "trip", id: trip.id }} name={trip.title} />} />
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          ) : null}
+          {shown.length ? (
+            <Section title="Countries" count={shown.length}>
+              <ul className="grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 lg:grid-cols-4">
+                {shown.map((c) => (
+                  <li key={c.code}>
+                    <CountryTile code={c.code} name={c.name} onDrop={() => drop(c.code)} />
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          ) : null}
+        </div>
       )}
     </section>
   );
