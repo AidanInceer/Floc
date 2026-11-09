@@ -110,12 +110,20 @@ const WIDTHS = [
 
 const TRIP_TABS = ["", "/dates", "/days", "/ideas", "/money", "/packing", "/files", "/notes"];
 
+// Why: the first-trip walkthrough opens only while Priya is on one trip, so whether it shows depends on the order specs ran in.
+async function skipWelcome(page: Page) {
+  const welcome = page.getByRole("dialog", { name: "Welcome to Floc" });
+  await page.addLocatorHandler(welcome, () => welcome.getByRole("button", { name: "Skip" }).click());
+}
+
+const settle = (page: Page) =>
+  page.evaluate(() => new Promise<void>((done) => requestAnimationFrame(() => requestAnimationFrame(() => done()))));
+
 async function portugal(page: Page) {
+  await skipWelcome(page);
   await page.goto("/trips");
   await page.getByText("Portugal, late summer").first().click();
   await expect(page).toHaveURL(/\/trip\/\d+/);
-  const skip = page.getByRole("button", { name: "Skip", exact: true });
-  if (await skip.isVisible({ timeout: 3000 }).catch(() => false)) await skip.click();
   return new URL(page.url()).pathname.match(/\/trip\/\d+/)![0];
 }
 
@@ -166,13 +174,13 @@ for (const size of WIDTHS) {
 
       test("a long trip name still fits", async ({ page }) => {
         const name = `Bosnia and Herzegovina, Montenegro and the long way round ${size.width}`;
+        await skipWelcome(page);
         await page.goto("/trips");
         await page.getByRole("button", { name: "New trip" }).click();
         await page.getByRole("dialog").getByLabel("Name").fill(name);
         await page.getByRole("button", { name: "Create trip" }).click();
         await expect(page).toHaveURL(/\/trip\/\d+/);
-        const skip = page.getByRole("button", { name: "Skip", exact: true });
-        if (await skip.isVisible({ timeout: 3000 }).catch(() => false)) await skip.click();
+        await expect(page.getByRole("heading", { level: 1 })).toContainText("Bosnia And Herzegovina");
         await expectClean(page, "long-named trip");
         await page.goto("/trips");
         await expectClean(page, "/trips with a long name");
@@ -185,11 +193,14 @@ for (const size of WIDTHS) {
         await expect(today).toBeVisible();
         const other = page.locator("button[title]:not([aria-current])").filter({ has: page.locator("b.nums") });
         await page.mouse.wheel(0, 200);
-        await page.waitForTimeout(200);
+        await settle(page);
         const before = await page.evaluate(() => scrollY);
         const stripBefore = (await today.boundingBox())!.y;
-        await other.nth(2).click();
-        await page.waitForTimeout(400);
+        const picked = other.nth(2);
+        const title = (await picked.getAttribute("title"))!;
+        await picked.click();
+        await expect(page.getByTitle(title, { exact: true })).toHaveAttribute("aria-current", "date");
+        await settle(page);
         expect(await page.evaluate(() => scrollY), "the page scrolled when a day was picked").toBe(before);
         const stripAfter = (await page.locator("button[aria-current='date']").first().boundingBox())!.y;
         expect(Math.abs(stripAfter - stripBefore), "the day strip moved when a day was picked").toBeLessThanOrEqual(2);

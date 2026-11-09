@@ -1,6 +1,7 @@
 import { chmodSync, mkdirSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
 import { command, git } from "../delivery/process.mjs";
+import { runPreCommit } from "./precommit.mjs";
 import { folderFor, isScratch } from "./worktrees.mjs";
 
 export function installHooks(root) {
@@ -28,9 +29,8 @@ if (process.argv[1]?.endsWith("hooks.mjs")) {
   const action = process.argv[2];
   if (action === "install") installHooks(root);
   else if (action === "pre-commit") {
-    command(process.execPath, ["scripts/sync-floc-plugin.mjs", "--check"], { cwd: root });
-    command(process.execPath, ["scripts/checks/repo.mjs"], { cwd: root, stdio: "inherit" });
-    command("pnpm", ["exec", "lint-staged"], { cwd: root, stdio: "inherit" });
+    const staged = git(root, "diff", "--cached", "--name-only", "--no-renames", "-z").split("\0").filter(Boolean);
+    if (!(await runPreCommit(root, staged))) process.exitCode = 1;
   } else if (action === "post-checkout") {
     const warning = process.argv[5] === "1" ? switchWarning({ root, branch: git(root, "branch", "--show-current") }) : null;
     if (warning) console.error(warning);
