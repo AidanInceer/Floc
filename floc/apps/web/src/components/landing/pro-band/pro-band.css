@@ -1,0 +1,38 @@
+@layer components {
+  /*
+   * The Pro band: black across the page, both edges slanted the same way so it
+   * reads as one slab. The strip under it is the FAQ's white, painted beneath the
+   * black so the slant shows it as a triangle with no seam.
+   */
+  .pro-slab {
+    --slant: 44px; --pad: 64px;
+    position: relative; isolation: isolate; padding-block: calc(var(--slant) + var(--pad));
+  }
+  @media (min-width: 40rem) { .pro-slab { --slant: 88px; --pad: 96px; } }
+  .pro-slab::before, .pro-slab::after { content: ""; position: absolute; z-index: -1; }
+  .pro-slab::before { inset: 0; background: var(--slab); clip-path: polygon(0 var(--slant), 100% 0, 100% calc(100% - var(--slant)), 0 100%); }
+  .pro-slab::after { inset: auto 0 0; z-index: -2; height: var(--slant); background: var(--sheet); }
+  .pro-slab, .pro-slab .band-title { color: var(--slab-ink); }
+
+  .pro-eg { text-wrap: pretty; font-size: 14px; color: var(--slab-ink); opacity: 0.7; }
+  .pro-tile {
+    display: grid; place-items: center; flex: none; width: 30px; height: 30px;
+    border-radius: var(--radius-sm); background: var(--t); color: var(--t-ink);
+  }
+  .pro-tone-yellow { --t: var(--pastel-yellow); --t-ink: var(--pastel-yellow-ink); }
+  .pro-tone-green { --t: var(--pastel-green); --t-ink: var(--pastel-green-ink); }
+  .pro-tone-blue { --t: var(--pastel-blue); --t-ink: var(--pastel-blue-ink); }
+  .pro-tone-grey { --t: var(--sheet-2); --t-ink: var(--ink-2); }
+  .pro-tile-soon { --t: transparent; --t-ink: var(--slab-ink); border: 1px dashed color-mix(in srgb, var(--slab-ink) 40%, transparent); }
+  .pro-soon > li { padding: 16px; border-radius: var(--radius-md); border: 1px dashed color-mix(in srgb, var(--slab-ink) 45%, transparent); }
+
+  .pro-seg { transition: background-color 0.22s var(--ease), color 0.22s var(--ease); }
+  .pro-best {
+    position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+    display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: var(--radius-pill);
+    background: var(--ink); color: var(--sheet); font-size: 11px; font-weight: 600; white-space: nowrap;
+  }
+  .pro-price { grid-area: 1 / 1; opacity: 0; transition: opacity 0.22s var(--ease); }
+  .pro-price.is-on { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .pro-seg, .pro-price { transition: none; } }
+}

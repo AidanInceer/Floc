@@ -20,7 +20,7 @@ import { HeroDeck } from "@/components/landing/hero/hero-deck";
 import { TypedWord } from "@/components/landing/hero/typed-word";
 import { Shore } from "@/components/landing/shore";
 import { LandingFaq } from "@/components/landing/landing-faq";
-import { ProBand } from "@/components/landing/pro-tour/pro-band";
+import { ProBand } from "@/components/landing/pro-band/pro-band";
 import { FeatureTour } from "@/components/landing/tour/feature-tour";
 import { shotFor } from "@/components/landing/tour/tour-shots";
 import { tourSlides } from "@/components/landing/tour/tour-slides";
@@ -129,7 +129,7 @@ export default async function LandingPage() {
       </div>
 
       {/* ── pro ────────────────────────────────────────────────────────── */}
-      {sellingPro && <ProBand monthly={monthly} signedIn={signedIn} />}
+      {sellingPro && <ProBand prices={prices} signedIn={signedIn} />}
 
       {/* Why: the Pro slab's lower slant is painted in this white, so with Pro off the FAQ brings its own gap and hairline. */}
       <section className={cx("bg-sheet", !sellingPro && "mt-24 border-t border-rule")}>
