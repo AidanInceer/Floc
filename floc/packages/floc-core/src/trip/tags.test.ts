@@ -21,11 +21,6 @@ describe("parseTags", () => {
     expect(parseTags("beach, Beach, beach")).toEqual(["beach"]);
   });
 
-  it("caps the count", () => {
-    const many = Array.from({ length: MAX_TAGS + 4 }, (_, i) => `t${i}`).join(",");
-    expect(parseTags(many)).toHaveLength(MAX_TAGS);
-  });
-
   it("keeps at most five tags", () => {
     expect(parseTags("a, b, c, d, e, f, g")).toEqual(["a", "b", "c", "d", "e"]);
   });

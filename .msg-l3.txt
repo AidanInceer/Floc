@@ -1,0 +1,3 @@
+#no-ticket: test: run unit tests in worker threads, clear the test database in one batch
+
+Why: vitest spent most of its time starting a process per test file. Threads start faster; @floc/core also shares one loaded copy of each module (no test there touches global state, checked with shuffled runs). floc-web keeps forks for suites that reach libSQL, because a worker thread that ends with it loaded segfaulted the run now and then. The test database resets in one batch and skips fsync. Two repeated tests removed; coverage unchanged.
