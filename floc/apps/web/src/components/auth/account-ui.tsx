@@ -5,7 +5,7 @@
  */
 import type { ReactNode } from "react";
 
-import { cx, PageTitle, segmentTrack } from "@/components/system/ui";
+import { cx, PageTitle } from "@/components/system/ui";
 import "./account-ui.css";
 
 export function AccountPage({
@@ -106,70 +106,6 @@ export function PersonRow({
     >
       {children}
     </li>
-  );
-}
-
-/**
- * A one-of-N choice as a pill group (ticket 201 follow-up; matched to the nav
- * bar's own pills by 235, so a choice looks the same wherever it is made).
- * Every option is on screen, so the rings can be compared rather than opened
- * one at a time — and it stays plain radio inputs, so the form posts exactly
- * what a `<select>` did and it works without JavaScript.
- *
- * The chosen pill is inked as well as filled, so the state is never carried by
- * colour alone.
- */
-const pillShape =
-  "block cursor-pointer rounded-sm px-4 py-1.5 text-center text-sm font-medium transition-colors";
-const pillOff = "text-ink-soft hover:bg-sheet hover:text-ink";
-const pillOn =
-  "peer-checked:bg-pen-soft peer-checked:text-pen-deep peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-pen";
-
-export function PillChoice<T extends string>({
-  name,
-  label,
-  hint,
-  value,
-  options,
-  className,
-}: {
-  name: string;
-  label: string;
-  hint?: ReactNode;
-  value: T;
-  options: { value: T; label: string }[];
-  className?: string;
-}) {
-  // `role`/`aria-labelledby` rather than fieldset/legend: a legend can't be a
-  // flex item, and the label has to sit beside the pills, not above them.
-  const labelId = `${name}-label`;
-  return (
-    <div className={cx("min-w-0", className)}>
-      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <span id={labelId} className="typed">
-          {label}
-        </span>
-        <div
-          role="radiogroup"
-          aria-labelledby={labelId}
-          className={cx(segmentTrack, "flex w-full flex-col gap-1 sm:w-auto sm:flex-row sm:items-center")}
-        >
-          {options.map((o) => (
-            <label key={o.value} className="block min-w-0">
-              <input
-                type="radio"
-                name={name}
-                value={o.value}
-                defaultChecked={o.value === value}
-                className="peer sr-only"
-              />
-              <span className={cx(pillShape, pillOff, pillOn)}>{o.label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-      {hint ? <p className="mt-2 text-xs text-ink-faint">{hint}</p> : null}
-    </div>
   );
 }
 

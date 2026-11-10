@@ -33,7 +33,7 @@ import { Body, Dropdown, Failed, Loading, Segmented, Toggle } from "@/components
 import { trpc } from "@/lib/api";
 import { signOutHere } from "@/lib/sign-out";
 import { proView } from "@/lib/billing/pro";
-import { aboutSummary, notificationSummary, privacySummary, tripsSummary } from "@/lib/settings/summary";
+import { notificationSummary, privacySummary, travelStyleSummary, tripsSummary } from "@floc/core/people/settings-summary";
 import { MoonGlyph, SunGlyph } from "@/components/system/glyphs";
 import { space } from "@/lib/theme";
 
@@ -168,7 +168,13 @@ function SettingsPanels({
           <Segmented options={THEMES} value={choice} onChange={setChoice} />
         </Drawer>
 
-        <Drawer title="Privacy" summary={privacySummary(privacy)}>
+        <Drawer
+          title="Privacy"
+          summary={privacySummary({
+            isPrivate: privacy.isPrivate,
+            rings: [privacy.visibilityVibeTags, privacy.visibilityTravelMap, privacy.visibilityFriends],
+          })}
+        >
           <SettingsPrivacy
             privacy={privacy}
             onChange={(next) => {
@@ -178,7 +184,7 @@ function SettingsPanels({
           />
         </Drawer>
 
-        <Drawer title="About you" summary={aboutSummary(tags.length)}>
+        <Drawer title="Your travel style" summary={travelStyleSummary(tags)}>
           <SettingsVibeTags
             tags={tags}
             onChange={(next) => {
