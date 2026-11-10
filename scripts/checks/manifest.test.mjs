@@ -5,6 +5,12 @@ import { commandFor, checks, onlyChecks, selectedChecks } from "./manifest.mjs";
 const ids = (list) => list.map((c) => c.id);
 const code = ["floc/apps/web/src/a.ts"];
 
+test("wireframe-only PRs keep repository and secret checks without app checks", () => {
+  const wireframe = "floc/wireframe/pick-a/tui.ts";
+  assert.deepEqual(ids(selectedChecks("pr", [wireframe])), ["repository", "secrets"]);
+  assert.deepEqual(ids(selectedChecks("pr", [...code, wireframe])), ids(selectedChecks("pr", code)));
+});
+
 test("the PR profile runs the cheap, often-red checks before tests and build", () => {
   const order = ids(selectedChecks("pr", code));
   const before = (a, b) => assert.ok(order.indexOf(a) < order.indexOf(b), `${a} before ${b}`);

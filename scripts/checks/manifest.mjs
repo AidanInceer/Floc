@@ -24,7 +24,7 @@ export const checks = [
 
 export function scopeFor(paths) {
   return {
-    code: paths.some((p) => !p.endsWith(".md")),
+    code: paths.some((p) => !p.endsWith(".md") && !p.startsWith("floc/wireframe/")),
     tooling: paths.some((p) => /^(scripts\/|\.github\/|plugins\/|package\.json|pnpm-)/.test(p)),
     web: paths.some((p) => /^(floc\/apps\/web\/|floc\/packages\/|\.claude\/rules\/design\.md)/.test(p)),
     mobile: paths.some((p) => /^(floc\/(apps\/mobile|packages)\/|pnpm-lock\.yaml|package\.json)/.test(p)),

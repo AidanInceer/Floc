@@ -9,13 +9,11 @@ import { fileURLToPath } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const MAP = "floc/FILES.md";
 const REPO_PATH = /^(floc|scripts|plugins|\.claude)\/\S*$/;
-const GITIGNORED = ["floc/wireframe/"];
 
 export function missingPaths(markdown, exists) {
   const paths = [...markdown.matchAll(/`([^`]+)`/g)].map((m) => m[1]);
   return [...new Set(paths)]
     .filter((path) => REPO_PATH.test(path))
-    .filter((path) => !GITIGNORED.some((ignored) => path.startsWith(ignored)))
     .filter((path) => !exists(path));
 }
 

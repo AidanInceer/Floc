@@ -1,0 +1,41 @@
+/* Shared chrome for the three landing prototypes. Throwaway. */
+.site {
+  max-width: 84rem; margin: 0 auto; padding: 20px 24px 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.wordmark { font-family: var(--display); font-weight: 600; font-size: 24px; letter-spacing: -0.03em; }
+.wordmark i { color: var(--pen); font-style: normal; }
+.site nav { display: flex; align-items: center; gap: 18px; font-size: var(--text-sm); }
+.site nav a:not(.pill-btn) { color: var(--ink-2); text-decoration: none; }
+.site nav a:not(.pill-btn):hover { color: var(--ink); }
+
+.page { max-width: 84rem; margin: 0 auto; padding: 48px 24px 140px; }
+.ghost-section {
+  margin-top: 72px; padding: 22px 24px; border: 1px dashed var(--rule-2); border-radius: 16px;
+  color: var(--ink-3); font-family: var(--type); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+}
+
+.hl-green {
+  background-repeat: no-repeat; background-position: 0 92%; background-size: 100% 34%;
+  background-image: linear-gradient(180deg, transparent 0%, var(--green-edge) 22%, var(--green-edge) 78%, transparent 100%);
+}
+
+.lift { transition: transform .22s var(--ease), box-shadow .22s var(--ease), background-color .22s var(--ease), border-color .22s var(--ease); }
+.lift:hover { transform: translateY(-1.5px); box-shadow: var(--shadow-lift); }
+
+.pill-btn {
+  display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 10px 20px;
+  font-family: var(--type); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+  background: var(--pen); color: var(--sheet); text-decoration: none; border: 1px solid var(--pen);
+}
+.pill-btn:hover { background: var(--pen-deep); border-color: var(--pen-deep); }
+.pill-btn.ghost { background: transparent; color: var(--ink-2); border-color: var(--rule-2); }
+.pill-btn.ghost:hover { color: var(--ink); border-color: var(--pen); }
+.pill-btn.pro { background: var(--pro); color: var(--pro-ink); border-color: var(--pro-edge); }
+.pill-btn svg { width: 13px; height: 13px; }
+
+.ico { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+}

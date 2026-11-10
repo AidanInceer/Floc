@@ -88,10 +88,6 @@ the Priority stack, pushes only your doc pages to `floc-docs`, and removes this 
 branch. `docsAlsoCarry` in the result names pages that went out with another branch's unpushed
 edits on them: name those pages and branches in the report.
 
-**Prototype tag.** For each prototype this work built, set its `wf-status` to
-`Chosen: <key>, on develop <first 7 of the merge sha>` in the main
-checkout's `floc/wireframe/`. Rules: [prototype](../prototype/SKILL.md#the-tag-follows-the-work).
-
 ## 6. Report
 
 PR link, commit subject, how many CI rounds it took, doc pages pushed, worktree closed or kept

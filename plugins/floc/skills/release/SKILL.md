@@ -50,7 +50,7 @@ pnpm delivery finish --pr <n>
 
 Run it in the background: it waits until `https://floc.live/api/health` reports the merge
 commit and the homepage loads (at most 45 minutes). Then it closes split parents whose children
-all closed and moves shipped prototype tags. `needs you` → name the reason and stop.
+all closed. `needs you` → name the reason and stop.
 
 ## 5. Report
 
