@@ -21,4 +21,35 @@ describe("leftToSortFrom", () => {
     expect(result.open.map((g) => g.text)).toEqual(["No stay booked in Lisbon", "You owe Priya £120.00"]);
     expect(result.done.map((d) => d.text)).toEqual(["Towels"]);
   });
+
+  it("stops asking who brings what once the trip is over, and still shows what you owe", () => {
+    const result = leftToSortFrom({
+      trip: { startDate: "2026-10-24", endDate: "2026-10-30" },
+      today: "2026-11-04",
+      viewerId: "me",
+      members: [{ userId: "me", name: "Dev" }, { userId: "priya", name: "Priya" }],
+      markedUserIds: [],
+      ideas: [],
+      settle: [{ payer: "me", payee: "priya", currency: "GBP", amountMinor: 12000, netted: false, parts: [] }],
+      shared: [{ label: "Speaker", claimed: false }, { label: "Towels", claimed: true }],
+      legs: [],
+    });
+    expect(result.open.map((g) => g.text)).toEqual(["You owe Priya £120.00"]);
+    expect(result.done).toEqual([]);
+  });
+
+  it("still asks who brings what on the trip's last day", () => {
+    const result = leftToSortFrom({
+      trip: { startDate: "2026-10-24", endDate: "2026-10-30" },
+      today: "2026-10-30",
+      viewerId: "me",
+      members: [{ userId: "me", name: "Dev" }],
+      markedUserIds: [],
+      ideas: [],
+      settle: [],
+      shared: [{ label: "Speaker", claimed: false }],
+      legs: [],
+    });
+    expect(result.open.map((g) => g.text)).toEqual(["Speaker is up for grabs"]);
+  });
 });

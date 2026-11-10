@@ -84,13 +84,13 @@ export default async function FriendsPage() {
                 <FriendRow key={requesterId} person={person} note="Wants to be friends">
                   <form action={acceptFriend}>
                     <input type="hidden" name="requesterId" value={requesterId} />
-                    <SubmitButton variant="primary" pendingLabel="Accepting…" className={SMALL}>
+                    <SubmitButton variant="primary" className={SMALL}>
                       Accept
                     </SubmitButton>
                   </form>
                   <form action={declineFriend}>
                     <input type="hidden" name="requesterId" value={requesterId} />
-                    <SubmitButton variant="secondary" pendingLabel="Declining…" className={SMALL}>
+                    <SubmitButton variant="secondary" className={SMALL}>
                       Decline
                     </SubmitButton>
                   </form>
@@ -100,7 +100,7 @@ export default async function FriendsPage() {
                 <FriendRow key={targetId} person={person} note="Requested · pending">
                   <form action={cancelRequest}>
                     <input type="hidden" name="targetId" value={targetId} />
-                    <SubmitButton variant="secondary" pendingLabel="Cancelling…" className={SMALL}>
+                    <SubmitButton variant="secondary" className={SMALL}>
                       Cancel
                     </SubmitButton>
                   </form>

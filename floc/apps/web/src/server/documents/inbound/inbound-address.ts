@@ -3,12 +3,12 @@
  *
  * Why signed, not stored: the trip number alone would let anyone post files
  * at any trip, and a column would need a migration and a reset path for a
- * secret nobody has asked to reset. Signed with the session secret, like
- * `calendar-link`; rotating it changes every trip's address.
+ * secret nobody has asked to reset. Signed with `linkKey("inbound-address")`;
+ * rotating that changes every trip's address.
  */
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-import { requireInProduction } from "@/lib/env";
+import { linkKey } from "@/server/auth/links/link-key";
 
 import { documentsEnabled } from "../document-store";
 
@@ -20,8 +20,7 @@ function domain(): string | null {
 }
 
 function sign(tripId: number): string {
-  const secret = requireInProduction("BETTER_AUTH_SECRET", "dev-only-secret-change-me");
-  return createHmac("sha256", secret)
+  return createHmac("sha256", linkKey("inbound-address"))
     .update(`inbound:${tripId}`)
     .digest("hex")
     .slice(0, SIGNATURE_LENGTH);

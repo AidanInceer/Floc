@@ -289,7 +289,7 @@ export function ExpenseForm({
             </div>
           </FieldGroup>
           <Field label="Which day">
-            <Select name="dayId" defaultValue={expense?.dayId ?? days[0]?.id ?? ""}>
+            <Select name="dayId" defaultValue={expense?.dayId ?? ""}>
               <option value="">—</option>
               {days.map((d) => (
                 <option key={d.id} value={d.id}>
@@ -478,7 +478,7 @@ export function ExpenseForm({
               Cancel
             </Button>
           ) : null}
-          <SubmitButton pendingLabel="Saving…" disabled={unbalanced}>
+          <SubmitButton disabled={unbalanced}>
             {expense ? "Save changes" : "Add expense"}
           </SubmitButton>
         </div>

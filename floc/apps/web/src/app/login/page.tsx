@@ -6,6 +6,7 @@ import Link from "next/link";
 import { AuthForm } from "@/components/auth/auth-form";
 import { AuthShell, authLinkClass } from "@/components/auth/auth-shell";
 import { DevSignInButton } from "@/components/auth/dev-sign-in-button";
+import { authSwitchHref } from "@/lib/auth/auth-switch";
 import { requireGuest } from "@/server/access";
 import { enabledProviders } from "@/server/auth/auth";
 import { listDevAccounts } from "@/server/auth/dev-accounts";
@@ -18,7 +19,8 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ redirect?: string }>;
 }) {
-  await requireGuest((await searchParams).redirect);
+  const { redirect } = await searchParams;
+  await requireGuest(redirect);
   const devAccounts = await listDevAccounts();
 
   return (
@@ -28,7 +30,7 @@ export default async function LoginPage({
       footer={
         <>
           New to Floc?{" "}
-          <Link href="/signup" className={authLinkClass}>
+          <Link href={authSwitchHref("/signup", redirect)} className={authLinkClass}>
             Create an account
           </Link>
           {devAccounts.length > 0 ? (

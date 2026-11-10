@@ -16,6 +16,7 @@ import { CURRENCIES } from "@floc/core/money/currency";
 import { EXPENSE_CATEGORIES } from "@floc/core/money/expense-category";
 import { NO_AMOUNT, NO_DESCRIPTION, NO_PAYER, NO_SHARES } from "@floc/core/money/expense-rules";
 import { WRITABLE_SPLIT_TYPES } from "@floc/core/money/money";
+import { TEXT_CAPS } from "@floc/core/text/text";
 import { z } from "zod";
 
 import { router, tripProcedure } from "../trpc";
@@ -41,7 +42,7 @@ export const moneyRouter = router({
       z.object({
         /** Absent creates; present rewrites that expense and its whole split set. */
         expenseId: z.number().int().positive().optional(),
-        description: z.string().trim().min(1, NO_DESCRIPTION).max(200),
+        description: z.string().trim().min(1, NO_DESCRIPTION).max(TEXT_CAPS.expenseDescription),
         amountMinor: minorUnits.positive(NO_AMOUNT),
         currency: z.enum(CURRENCIES),
         category: z.enum(EXPENSE_CATEGORIES),
@@ -51,7 +52,7 @@ export const moneyRouter = router({
         paidBy: z.string().min(1, NO_PAYER),
         /** Filed under an itinerary day, or under none. Never a timestamp (rule 10). */
         dayId: z.number().int().positive().nullable().default(null),
-        notes: z.string().max(2000).nullable().default(null),
+        notes: z.string().max(TEXT_CAPS.expenseNotes).nullable().default(null),
         splits: z.array(splitRow).min(1, NO_SHARES).max(100),
       }),
     )

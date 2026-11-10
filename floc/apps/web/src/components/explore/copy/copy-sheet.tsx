@@ -48,7 +48,7 @@ function CopyForm({ trip }: { trip: PresetTrip }) {
     moved.current = true;
   }, [step]);
   const backButton = <Button type="button" variant="ghost" onClick={back}>Back</Button>;
-  const start_ = <SubmitButton pendingLabel="Starting…" className="whitespace-nowrap">Start trip</SubmitButton>;
+  const start_ = <SubmitButton className="whitespace-nowrap">Start trip</SubmitButton>;
   const footer: Record<CopyStep, ReactNode> = {
     ask: null,
     when: (

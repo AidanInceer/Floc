@@ -189,13 +189,13 @@ function InviteList({ invites }: { invites: PendingInvite[] }) {
             <div className="flex gap-2">
               <form action={acceptTripInvite}>
                 <input type="hidden" name="tripId" value={invite.tripId} />
-                <SubmitButton variant="primary" pendingLabel="Joining…">
+                <SubmitButton variant="primary">
                   Join
                 </SubmitButton>
               </form>
               <form action={declineTripInvite}>
                 <input type="hidden" name="tripId" value={invite.tripId} />
-                <SubmitButton variant="ghost" pendingLabel="Declining…">
+                <SubmitButton variant="ghost">
                   Decline
                 </SubmitButton>
               </form>

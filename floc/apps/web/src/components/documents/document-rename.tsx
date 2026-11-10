@@ -45,7 +45,7 @@ export function DocumentRenameForm({
               Cancel
             </Button>
           ) : null}
-          <SubmitButton pendingLabel="Saving…">Save</SubmitButton>
+          <SubmitButton>Save</SubmitButton>
         </div>
       </Stack>
     </form>

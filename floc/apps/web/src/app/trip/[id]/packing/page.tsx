@@ -198,7 +198,7 @@ export default async function PackingPage({
             <form action={addPackingLine.bind(null, tripId)} className="flex flex-wrap items-stretch gap-2">
               {addBox("Add something for everyone", true)}
               <CategorySelect />
-              <SubmitButton pendingLabel="Adding…" className="shrink-0 !px-3">Add to group</SubmitButton>
+              <SubmitButton className="shrink-0 !px-3">Add to group</SubmitButton>
             </form>
           }>
             {lanes.open.map((line) => (

@@ -57,7 +57,6 @@ export function TripMenu({
           variant="ghost"
           message={leaveWarning}
           confirmLabel="Leave the trip"
-          pendingLabel="…"
           className={menuItemClass}
         >
           Leave trip
@@ -73,7 +72,6 @@ export function TripMenu({
             confirmVariant="danger"
             message="Reset the invite link? The old link stops working for anyone still holding it. Everyone already on the trip stays."
             confirmLabel="Reset the link"
-            pendingLabel="…"
             className={menuItemClass}
           >
             Reset invite link
@@ -91,7 +89,6 @@ export function TripMenu({
             variant="ghost"
             message={`Archive "${tripName}"? It comes off everyone's list and stays readable — any admin can bring it back from Archived.`}
             confirmLabel="Archive it"
-            pendingLabel="…"
             className={menuItemClass}
           >
             Archive trip
@@ -107,7 +104,6 @@ export function TripMenu({
             variant="ghost"
             message={`Delete "${tripName}" for everyone? Nobody will be able to reopen it from the app — archive it instead if you might want it back.`}
             confirmLabel="Delete it"
-            pendingLabel="…"
             className={menuDangerItemClass}
           >
             Delete trip

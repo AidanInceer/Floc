@@ -3,6 +3,7 @@
  * its *when*. Undated opens here and is never an error (rules 4 and 9), and a
  * stop is derived from the days, never stored (rule 3).
  */
+import { markedUserIds } from "@floc/core/dates/availability";
 import { nightsBetween } from "@floc/core/dates/dates";
 import { yourPosition } from "@floc/core/money/position";
 import { today } from "@floc/core/dates/dates";
@@ -217,13 +218,13 @@ function SortLine({
     today: today(),
     viewerId: session.user.id,
     members: trip.members,
-    markedUserIds: availability.data.filter((r) => r.available).map((r) => r.userId),
+    markedUserIds: markedUserIds(availability.data),
     ideas: ideas.data,
     settle: pairs.data.rows,
     shared: packing.data.shared.map((l) => ({ label: l.label, claimed: l.claims.length > 0 })),
     legs,
   });
-  // Overview and Ideas are this screen; their gaps are already in view below.
-  const go = (gap: Gap) => (gap.tab === "overview" || gap.tab === "ideas" ? undefined : onGo(gap.tab));
+  // Overview, with its ideas, is this screen; those gaps are already in view below.
+  const go = (gap: Gap) => (gap.tab === "overview" ? undefined : onGo(gap.tab));
   return <LeftToSort list={list} onGo={go} />;
 }

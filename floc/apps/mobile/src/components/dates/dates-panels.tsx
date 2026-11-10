@@ -82,9 +82,14 @@ export function TripBlock({ start, end, onClear }: { start: IsoDate | null; end:
   );
 }
 
-export function WhoAnswered({ people }: { people: { id: string; name: string; days: number; guest: boolean }[] }) {
+function daysWord(days: number | null): string {
+  if (days === null) return "Waiting";
+  return days === 0 ? "No days" : plural(days, "day");
+}
+
+export function WhoAnswered({ people }: { people: Person[] }) {
   const { c } = useTheme();
-  const answered = people.filter((p) => p.days > 0).length;
+  const answered = people.filter((p) => p.days !== null).length;
   return (
     <View style={{ padding: space.lg, gap: space.sm, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.rule }}>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
@@ -99,8 +104,8 @@ export function WhoAnswered({ people }: { people: { id: string; name: string; da
             <Text numberOfLines={1} style={{ flex: 1, color: c.ink, fontFamily: fonts.sans, fontSize: size.small }}>
               {p.guest ? `${p.name} · guest` : p.name}
             </Text>
-            <Text style={{ color: p.days > 0 ? c["ink-3"] : c["highlight-ink"], fontFamily: fonts.type, fontSize: size.label + 1, fontVariant: ["tabular-nums"] }}>
-              {p.days > 0 ? plural(p.days, "day") : "Waiting"}
+            <Text style={{ color: p.days !== null ? c["ink-3"] : c["highlight-ink"], fontFamily: fonts.type, fontSize: size.label + 1, fontVariant: ["tabular-nums"] }}>
+              {daysWord(p.days)}
             </Text>
           </View>
         );
@@ -109,7 +114,8 @@ export function WhoAnswered({ people }: { people: { id: string; name: string; da
   );
 }
 
-type Person = { id: string; name: string; days: number; guest: boolean };
+/** `days` is null until the person answers; only "no" is 0 (#572). */
+type Person = { id: string; name: string; days: number | null; guest: boolean };
 
 /** What sits under the month for the open view, as the web's right-hand panel. */
 export function DatesPanel(p: {

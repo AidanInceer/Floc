@@ -97,7 +97,7 @@ export function FaceEditor({ name }: { name: string }) {
               <Button variant="ghost" onClick={cancel}>
                 Cancel
               </Button>
-              <SubmitButton variant="primary" pendingLabel="Saving…">
+              <SubmitButton variant="primary">
                 Save
               </SubmitButton>
             </div>

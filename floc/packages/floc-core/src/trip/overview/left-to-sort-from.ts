@@ -21,6 +21,7 @@ export type LeftToSortSource = {
 export function leftToSortFrom(source: LeftToSortSource): LeftToSort {
   const nameOf = new Map(source.members.map((m) => [m.userId, m.name]));
   const owe = source.settle.filter((r) => r.payer === source.viewerId);
+  const over = source.trip.endDate !== null && source.today > source.trip.endDate;
   return leftToSort({
     moment: datesMoment(source.trip, source.today),
     today: source.today,
@@ -29,7 +30,8 @@ export function leftToSortFrom(source: LeftToSortSource): LeftToSort {
     markedUserIds: source.markedUserIds,
     ideas: source.ideas,
     owe: owe.map((r) => ({ to: nameOf.get(r.payee) ?? "a former member", amountMinor: r.amountMinor, currency: r.currency })),
-    shared: source.shared,
+    // Why: nobody can bring a speaker to a trip that has ended (rule 4, #572).
+    shared: over ? [] : source.shared,
     legs: source.legs.map((l, i) => ({ ...l, hasStay: l.stay !== null, hasTravel: i === 0 || l.mode !== null })),
   });
 }

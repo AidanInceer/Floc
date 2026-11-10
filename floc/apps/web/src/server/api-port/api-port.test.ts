@@ -32,6 +32,20 @@ describe("who can see a trip (rule 5)", () => {
     expect(trip?.role).toBe("member");
   });
 
+  it("gives a trip's name capitals when it is made and when it is renamed, as the web does (#573)", async () => {
+    const { id } = await webPort.createTrip(world.member, { name: "lake district", startDate: null, endDate: null });
+    expect((await webPort.loadTrip(world.member, id))?.name).toBe("Lake District");
+    await webPort.updateTrip(world.member, id, { name: "  isle of skye " });
+    expect((await webPort.loadTrip(world.member, id))?.name).toBe("Isle Of Skye");
+    await expect(webPort.updateTrip(world.member, id, { name: "   " })).rejects.toThrow("A trip needs a name.");
+  });
+
+  it("names the members without their email addresses (#582)", async () => {
+    const trip = await webPort.loadTrip(world.member, world.ours.id);
+    expect(trip?.members.length).toBeGreaterThan(1);
+    expect(JSON.stringify(trip)).not.toContain("@example.test");
+  });
+
   it("says whether booking links come filled in, which is Pro", async () => {
     expect((await webPort.loadTrip(world.member, world.ours.id))?.bookingPrefill).toBe(false);
 

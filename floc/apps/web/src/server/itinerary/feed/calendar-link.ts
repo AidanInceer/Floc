@@ -4,12 +4,11 @@
  * A calendar app polls the feed with no session, so the permission rides in the
  * URL. It names one member on one trip and the link's number. It never runs out,
  * but "Reset link" raises the member's number, which ends every older link;
- * leaving the trip ends it too. Signed with the session secret, same as
- * `documents/view-link`.
+ * leaving the trip ends it too. Signed with `linkKey("calendar-feed")`.
  */
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-import { requireInProduction } from "@/lib/env";
+import { linkKey } from "@/server/auth/links/link-key";
 
 export type CalendarHolder = { tripId: number; userId: string; epoch: number };
 
@@ -18,8 +17,7 @@ const CURRENT = "calendar-feed";
 const LEGACY = "calendar";
 
 function sign(domain: string, payload: string): string {
-  const secret = requireInProduction("BETTER_AUTH_SECRET", "dev-only-secret-change-me");
-  return createHmac("sha256", secret).update(`${domain}:${payload}`).digest("base64url");
+  return createHmac("sha256", linkKey("calendar-feed")).update(`${domain}:${payload}`).digest("base64url");
 }
 
 function signedAs(domain: string, payload: string, signature: string): boolean {

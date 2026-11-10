@@ -63,7 +63,7 @@ function EditForm({ tripId, note, onDone }: { tripId: number; note: NoteRow; onD
         <button type="button" onClick={onDone} className="px-0.5 py-1 text-xs font-medium text-ink-soft transition-colors hover:text-pen max-sm:h-9">
           Cancel
         </button>
-        <SubmitButton variant="primary" pendingLabel="Saving…">
+        <SubmitButton variant="primary">
           Save
         </SubmitButton>
       </div>

@@ -11,7 +11,7 @@ import type { ReactNode } from "react";
 
 import Link from "next/link";
 
-import { Button, ErrorText, cx } from "@/components/system/ui";
+import { Button, ErrorText, busyMark, cx } from "@/components/system/ui";
 import { formatMoney } from "@floc/core/money/money";
 import { yearlySaving } from "@floc/core/billing/subscription-copy";
 import type { Currency } from "@floc/core/money/currency";
@@ -57,17 +57,18 @@ export function BillingAction({
     }
   }
 
-  const label = busy ? "One moment…" : children;
 
   return (
     <span className={cx("flex flex-col gap-1", className ? "w-full" : "inline-flex")}>
       {className ? (
-        <button type="button" onClick={go} disabled={busy} className={className}>
-          {label}
+        // Why still a swap: this face is two stacked lines, and a mark beside them would sit off the words.
+        <button type="button" onClick={go} disabled={busy} aria-busy={busy || undefined} className={className}>
+          {busy ? "One moment…" : children}
         </button>
       ) : (
-        <Button variant={variant} onClick={go} disabled={busy}>
-          {label}
+        <Button variant={variant} onClick={go} disabled={busy} aria-busy={busy || undefined}>
+          {children}
+          {busyMark(busy)}
         </Button>
       )}
       {error ? <ErrorText>{error}</ErrorText> : null}
