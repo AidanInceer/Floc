@@ -1,5 +1,5 @@
 /**
- * A copy of an Explore listing (ADR-025): a new trip, its highlights page, and — with a start month — its dates, days,
+ * A copy of an Explore listing (ADR-025): a new trip, its highlights page, and — with a start day — its dates, days,
  * stops, travel, events and Ideas page. One transaction, so a half-copied trip never shows. A snapshot: nothing points
  * back at the listing.
  */
@@ -11,7 +11,7 @@ import { capRequiredText, capText } from "@floc/core/text/text";
 import type { CopyChoice } from "@floc/core/trip/explore/copy/copy-choice";
 import { copyPlan, type CopyPlan } from "@floc/core/trip/explore/copy/copy-plan";
 import { IDEAS_PAGE_TITLE, ideasPage } from "@floc/core/trip/explore/copy/ideas-page";
-import { copyWindow } from "@floc/core/trip/explore/copy/start-months";
+import { windowOf } from "@floc/core/trip/explore/copy/start-months";
 import { presetDetail } from "@floc/core/trip/explore/detail/preset-details";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 
@@ -49,8 +49,8 @@ export async function copyListing(viewerId: string, choice: CopyChoice, today: I
   const listing = PRESET_TRIPS.find((p) => p.id === choice.presetId);
   if (!listing) return null;
   const detail = presetDetail(listing.id);
-  // A month the listing does not name only comes from a hand-made request: copy it undated rather than refuse.
-  const window = choice.month === null ? null : copyWindow(listing, choice.month, today);
+  // A day gone, or a month the listing does not name, only comes from a stale or hand-made request: copy it undated rather than refuse.
+  const window = windowOf(listing, choice, today);
 
   return db.transaction(async (tx) => {
     const tripId = await insertTripWithAdmin(tx, {

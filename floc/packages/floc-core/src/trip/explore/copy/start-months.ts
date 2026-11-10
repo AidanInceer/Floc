@@ -27,3 +27,13 @@ export function copyWindow(listing: Listing, month: number, today: IsoDate): { s
   const hit = startMonths(listing, today).find((m) => m.month === month);
   return hit ? { startDate: hit.startDate, endDate: hit.endDate } : null;
 }
+
+/** The dates a copy gets: the picked start day while it is still ahead, else an older app's best month, else none. */
+export function windowOf(
+  listing: Listing,
+  pick: { startDate: IsoDate | null; month: number | null },
+  today: IsoDate,
+): { startDate: IsoDate; endDate: IsoDate } | null {
+  if (pick.startDate !== null) return pick.startDate > today ? { startDate: pick.startDate, endDate: addDays(pick.startDate, listing.nights) } : null;
+  return pick.month === null ? null : copyWindow(listing, pick.month, today);
+}
