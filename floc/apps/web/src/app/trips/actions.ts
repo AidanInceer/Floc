@@ -8,7 +8,7 @@ import { readOptionalIsoDate } from "@floc/core/dates/dates";
 import { localPath } from "@floc/core/text/local-path";
 import { renameTrip as validateAndRenameTrip } from "@/app/trip/[id]/overview/actions";
 import { assertAdmin, requireTripAccess, requireUser } from "@/server/access";
-import { acceptInvite, declineInvite, inviteToTrip } from "@/server/trips/invites";
+import { acceptInvite, declineInvite } from "@/server/trips/invites";
 import { saveTrip, startTrip } from "@/server/trips/trip-save";
 import {
   setTripArchived,
@@ -16,7 +16,7 @@ import {
   setTripStarred,
   softDeleteTrip,
 } from "@/server/trips/trips";
-import { LIMITS } from "@/server/limits";
+import { GROUP_CAP, TRIP_INVITE_CAP } from "@floc/core/people/group-ticks";
 import { refresh } from "@/server/freshness";
 
 // Smallest thing at creation: a name and the creator as admin. Dates are
@@ -32,14 +32,10 @@ export async function createTrip(formData: FormData): Promise<void> {
     throw new Error("Those dates aren't days");
   }
 
-  const tripId = await startTrip(viewer.id, { name: formData.get("name"), startDate, endDate });
-
-  // Optional; `inviteToTrip` decides who's really invitable — this only
-  // passes on what was ticked.
-  const friendIds = readFriendIds(formData);
-  if (friendIds.length > 0) {
-    await inviteToTrip({ tripId, fromUserId: viewer.id, toUserIds: friendIds });
-  }
+  const tripId = await startTrip(viewer.id, {
+    name: formData.get("name"), startDate, endDate, friendIds: readFriendIds(formData),
+    groupIds: [...new Set(formData.getAll("groupIds").map(Number))].filter((id) => Number.isSafeInteger(id) && id > 0).slice(0, GROUP_CAP),
+  });
 
   redirect(`/trip/${tripId}/overview`);
 }
@@ -55,7 +51,7 @@ function readFriendIds(formData: FormData): string[] {
         .map((v) => String(v))
         .filter((v) => v.length > 0 && v.length <= 64),
     ),
-  ].slice(0, LIMITS.members);
+  ].slice(0, TRIP_INVITE_CAP);
 }
 
 // Accepting a named invite. `acceptInvite` is gated on a live pending row, so

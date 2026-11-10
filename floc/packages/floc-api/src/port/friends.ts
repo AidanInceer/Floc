@@ -39,6 +39,20 @@ export type FriendSearch =
   | { kind: "code"; code: string; person: FoundFriend | null; limited?: true }
   | { kind: "invalid" };
 
+/** The maker's own shortcut for ticking people on a new trip (#545). Nobody in it is told. */
+export type FriendGroup = { id: number; name: string; members: FriendPerson[] };
+
+/** A trip that has ended, with the people on it the viewer can still ask (#545). */
+export type PastTripPeople = {
+  id: number;
+  name: string;
+  startDate: string | null;
+  endDate: string;
+  people: FriendPerson[];
+};
+
+export type GroupInput = { name: string; memberIds: string[] };
+
 export type FriendsPort = {
   /** All three lists in one read; the screen draws all three, and asking thrice is three round trips. */
   loadFriends(viewerId: string): Promise<FriendsBoard>;
@@ -63,4 +77,18 @@ export type FriendsPort = {
   cancelFriendRequest(viewerId: string, targetId: string): Promise<void>;
 
   removeFriend(viewerId: string, otherId: string): Promise<void>;
+
+  /** Last changed first. Members who can no longer be asked are left out at read time (rule 4). */
+  loadGroups(viewerId: string): Promise<FriendGroup[]>;
+
+  loadPastTripPeople(viewerId: string): Promise<PastTripPeople[]>;
+
+  /** Members must be friends or people on a live trip with the viewer; anyone else is refused (#545). */
+  createGroup(viewerId: string, input: GroupInput): Promise<number>;
+
+  saveGroup(viewerId: string, groupId: number, input: GroupInput): Promise<void>;
+
+  setGroupMember(viewerId: string, groupId: number, userId: string, on: boolean): Promise<void>;
+
+  deleteGroup(viewerId: string, groupId: number): Promise<void>;
 };

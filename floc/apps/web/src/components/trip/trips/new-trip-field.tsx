@@ -8,6 +8,7 @@ import { PlusIcon } from "@/components/system/icons";
 import { cx } from "@/components/system/ui";
 import { NewTripForm } from "@/components/trip/new-trip-form";
 import type { Person } from "@/server/social/friends";
+import type { Group } from "@/server/social/groups";
 
 /**
  * The top of My trips: name the trip here, then New trip opens the Start a trip sheet with that name in.
@@ -16,10 +17,12 @@ import type { Person } from "@/server/social/friends";
 export function NewTripField({
   action,
   friends,
+  groups,
   asked,
 }: {
   action: (formData: FormData) => Promise<void>;
   friends: Person[];
+  groups: Group[];
   asked: string | null;
 }) {
   const [name, setName] = useState(asked ?? "");
@@ -62,10 +65,10 @@ export function NewTripField({
             ready && "hover:shadow-none",
           )}
           title="Start a trip"
-          body="split"
+          body="flush"
           defaultOpen={asked !== null}
         >
-          <NewTripForm action={action} friends={friends} name={name.trim()} />
+          <NewTripForm action={action} friends={friends} groups={groups} name={name.trim()} />
         </Sheet>
       </div>
     </div>

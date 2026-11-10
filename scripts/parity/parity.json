@@ -105,6 +105,24 @@
     "friends.requestByCode": {
       "mobile": "yes"
     },
+    "groups.create": {
+      "mobile": "yes"
+    },
+    "groups.delete": {
+      "mobile": "yes"
+    },
+    "groups.list": {
+      "mobile": "yes"
+    },
+    "groups.pastTrips": {
+      "mobile": "yes"
+    },
+    "groups.save": {
+      "mobile": "yes"
+    },
+    "groups.setMember": {
+      "mobile": "yes"
+    },
     "ideas.add": {
       "mobile": "yes"
     },

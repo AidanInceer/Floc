@@ -13,17 +13,16 @@
  * of your rings, and that profile answers null.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
-import { Alert, Pressable, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 
 import { FindFriend } from "@/components/social/find-friend";
+import { FriendsBoard } from "@/components/social/friends-board";
 import { PersonRow } from "@/components/trip/person-row";
-import { Body, Button, Empty, Failed, Loading, SectionTitle } from "@/components/system/ui";
+import { Button, Empty, Failed, Loading, SectionTitle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 
 export default function Friends() {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const board = useQuery(trpc.friends.list.queryOptions());
 
@@ -37,7 +36,6 @@ export default function Friends() {
   const accept = useMutation({ ...trpc.friends.accept.mutationOptions(), ...settled });
   const decline = useMutation({ ...trpc.friends.decline.mutationOptions(), ...settled });
   const cancel = useMutation({ ...trpc.friends.cancel.mutationOptions(), ...settled });
-  const remove = useMutation({ ...trpc.friends.remove.mutationOptions(), ...settled });
 
   if (board.isPending) return <Loading />;
   if (board.isError) return <Failed onRetry={() => board.refetch()} />;
@@ -87,43 +85,7 @@ export default function Friends() {
 
       <FindFriend tag={code} />
 
-      <View style={{ gap: space.sm }}>
-        <SectionTitle>Friends</SectionTitle>
-        {friends.length === 0 ? (
-          <Empty>Share a trip with somebody and they will turn up here.</Empty>
-        ) : (
-          friends.map((person) => (
-            <Pressable
-              key={person.id}
-              accessibilityRole="button"
-              accessibilityLabel={`Open ${person.name}'s profile`}
-              onPress={() =>
-                router.push({ pathname: "/person/[userId]", params: { userId: person.id } })
-              }
-            >
-              <PersonRow name={person.name}>
-                <Button
-                  label="Remove"
-                  variant="danger"
-                  busy={remove.isPending}
-                  onPress={() =>
-                    Alert.alert(`Remove ${person.name} as a friend?`, undefined, [
-                      { text: "Cancel", style: "cancel" },
-                      {
-                        text: "Remove friend",
-                        style: "destructive",
-                        onPress: () => remove.mutate({ userId: person.id }),
-                      },
-                    ])
-                  }
-                />
-              </PersonRow>
-            </Pressable>
-          ))
-        )}
-      </View>
-
-      <Body tone="ink-3">People you finish a trip with become friends on their own.</Body>
+      <FriendsBoard friends={friends} />
     </ScrollView>
   );
 }

@@ -3,6 +3,7 @@
  * the screen's whole problem, and "ask the group" is a real answer — it opens Dates after (rule 9).
  */
 import { formatDateRange } from "@floc/core/dates/dates";
+import { peopleCount, toggleTripPeople, type TripPeopleSelection } from "@floc/core/people/group-ticks";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -10,6 +11,7 @@ import { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 
 import { RangePicker } from "@/components/days/range-picker";
+import { TripPeoplePicker } from "@/components/social/trip-people-picker";
 import { Body, Button, Field, Figure, SectionTitle, Segmented } from "@/components/system/ui";
 import { useTheme } from "@/components/system/theme";
 import { trpc } from "@/lib/api";
@@ -34,11 +36,14 @@ export default function NewTrip() {
   const [name, setName] = useState((asked ?? "").trim().slice(0, TEXT_CAPS.tripName));
   const [when, setWhen] = useState<When>("pick");
   const [range, setRange] = useState<DateRange | null>(null);
+  const [selection, setSelection] = useState<TripPeopleSelection>(() => ({ ticked: new Set(), groups: new Set() }));
+  const { ticked } = selection;
 
   const create = useMutation({
     ...trpc.trips.create.mutationOptions(),
     onSuccess: (trip) => {
       queryClient.invalidateQueries({ queryKey: trpc.trips.list.queryKey() });
+      void queryClient.invalidateQueries({ queryKey: trpc.groups.list.queryKey() });
       const section = when === "group" ? "/dates" : "";
       router.replace(`/trip/${trip.id}${section}` as never);
       void askForPushOnce();
@@ -57,6 +62,8 @@ export default function NewTrip() {
       >
         <Field label="Name" value={name} onChangeText={setName} maxLength={TEXT_CAPS.tripName} autoFocus />
 
+        <TripPeoplePicker ticked={ticked} onToggle={(ids, groupId) => setSelection((now) => toggleTripPeople(now, ids, groupId))} />
+
         <View style={{ gap: space.sm }}>
           <SectionTitle>When?</SectionTitle>
           <Segmented options={WHEN_OPTIONS} value={when} onChange={setWhen} />
@@ -71,6 +78,7 @@ export default function NewTrip() {
 
         {create.isError ? <Body tone="red">{create.error.message}</Body> : null}
 
+        <Figure tone="ink-2">{ticked.size ? `${peopleCount(ticked.size)} asked along` : "Friends can join later"}</Figure>
         <Button
           label="Create trip"
           busy={create.isPending}
@@ -80,6 +88,8 @@ export default function NewTrip() {
               name: name.trim(),
               startDate: dated ? range.start : null,
               endDate: dated ? range.end : null,
+              friendIds: [...ticked],
+              groupIds: [...selection.groups],
             })
           }
         />

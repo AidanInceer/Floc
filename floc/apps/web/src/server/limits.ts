@@ -44,6 +44,10 @@ export const LIMITS = {
   commentsPerThread: 500,
   /** Nudges one person sends on one trip in a day. */
   nudgesPerDay: 20,
+  /** Named groups one account keeps (#545). A handful of crews, not a contact book. */
+  friendGroups: 20,
+  /** People in one named group (#545). A trip-sized crowd. */
+  friendGroupMembers: 20,
 } as const;
 
 export type LimitKey = keyof typeof LIMITS;
@@ -72,6 +76,8 @@ const FULL: Partial<Record<LimitKey, string>> = {
   availabilityPerPerson: "That is more dates than one trip can hold.",
   commentsPerThread: "This thread holds as many comments as it can.",
   nudgesPerDay: "That is enough nudges for today. Try again tomorrow.",
+  friendGroups: "You can keep 20 groups at most. Delete one first.",
+  friendGroupMembers: "A group holds 20 people at most.",
 };
 
 // Why: the ceilings above bound what a page reads; without the same bound on the write, one script fills a trip
