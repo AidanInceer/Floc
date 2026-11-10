@@ -1,79 +1,87 @@
 "use client";
 
-import { formatDateRange, today } from "@floc/core/dates/dates";
-import { startMonths, type StartMonth } from "@floc/core/trip/explore/copy/start-months";
-import { MONTH_SHORT } from "@floc/core/trip/explore/finder/finder-words";
+import { monthOf, thisMonth } from "@floc/core/dates/availability";
+import { today, type IsoDate } from "@floc/core/dates/dates";
+import { copySteps, stepBack, stepOn, type CopyStep, type HasDates } from "@floc/core/trip/explore/copy/copy-steps";
+import { startMonths } from "@floc/core/trip/explore/copy/start-months";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { startTripFromPreset } from "@/app/explore/actions";
-import { ToggleRow } from "@/components/auth/account-ui";
+import { AskStep } from "@/components/explore/copy/ask-step";
+import { ExtrasStep } from "@/components/explore/copy/extras-step";
+import { UndatedStep } from "@/components/explore/copy/undated-step";
+import { WhenStep } from "@/components/explore/copy/when-step";
 import { Sheet, SubmitButton } from "@/components/system/client-ui";
-import { SheetFooter, cx } from "@/components/system/ui";
+import { Button, SheetFooter, cx } from "@/components/system/ui";
 
-const LATER = "later";
-
-const chip = cx(
-  "grid min-w-[4.25rem] place-items-center rounded-sm border border-rule-strong bg-sheet px-2.5 py-1.5 text-ink-soft",
-  "peer-checked:border-ink peer-checked:bg-ink peer-checked:text-sheet hover:border-ink-faint",
-  "peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-pen",
-);
-
-function MonthChip({ month, picked, onPick }: { month: StartMonth; picked: boolean; onPick: () => void }) {
+function StepBar({ at, of }: { at: number; of: number }) {
   return (
-    <label className="cursor-pointer">
-      <input type="radio" name="month" value={month.month} checked={picked} onChange={onPick} className="peer sr-only" />
-      <span className={chip}>
-        <b className="text-sm font-semibold">{MONTH_SHORT[month.month - 1]}</b>
-        <span className="nums text-[11px] opacity-75">{month.year}</span>
+    <div className="flex items-center gap-2 px-4 pt-3">
+      {Array.from({ length: of }, (_, i) => (
+        <i key={i} className={cx("h-[3px] flex-1 rounded-full", i <= at ? "bg-pen" : "bg-rule-strong")} />
+      ))}
+      <span className="nums text-[11px] text-ink-faint">
+        {at + 1} of {of}
       </span>
-    </label>
+    </div>
   );
 }
 
 function CopyForm({ trip }: { trip: PresetTrip }) {
   const months = startMonths(trip, today());
-  // Undefined until the person chooses: a month, or null for "Decide later".
-  const [picked, setPicked] = useState<number | null | undefined>(undefined);
-  const chosen = months.find((m) => m.month === picked);
+  const [has, setHas] = useState<HasDates>(null);
+  const [step, setStep] = useState<CopyStep>("ask");
+  const [start, setStart] = useState<IsoDate | null>(null);
+  const [month, setMonth] = useState(months[0] ? monthOf(months[0].startDate) : thisMonth());
+  const steps = copySteps(has);
+  const back = () => setStep(stepBack(step, has));
+  const answer = (yes: boolean) => {
+    setHas(yes);
+    setStep(stepOn("ask", yes));
+  };
+  const body = useRef<HTMLDivElement>(null);
+  const moved = useRef(false);
+  useEffect(() => {
+    // Why: the pressed control hides with its step, so focus would fall to the page; land it on the new step's question.
+    if (moved.current) body.current?.querySelector<HTMLElement>(`[data-step="${step}"] h3`)?.focus();
+    moved.current = true;
+  }, [step]);
+  const backButton = <Button type="button" variant="ghost" onClick={back}>Back</Button>;
+  const start_ = <SubmitButton className="whitespace-nowrap">Start trip</SubmitButton>;
+  const footer: Record<CopyStep, ReactNode> = {
+    ask: null,
+    when: (
+      <span className="flex gap-2">
+        {backButton}
+        <Button type="button" variant="primary" disabled={!start} onClick={() => setStep("extras")}>Next</Button>
+      </span>
+    ),
+    extras: <span className="flex gap-2">{backButton}{start_}</span>,
+    undated: <span className="flex gap-2">{backButton}{start_}</span>,
+  };
 
   return (
     <form action={startTripFromPreset} className="flex min-h-0 flex-1 flex-col">
       <input type="hidden" name="presetId" value={trip.id} />
-      <div className="grid gap-5 p-4">
-        <fieldset>
-          <legend className="typed">Start on the 1st of</legend>
-          <div className="mt-2.5 flex flex-wrap gap-1.5">
-            {months.map((m) => (
-              <MonthChip key={m.month} month={m} picked={picked === m.month} onPick={() => setPicked(m.month)} />
-            ))}
-            <label className="cursor-pointer">
-              <input type="radio" name="month" value={LATER} checked={picked === null} onChange={() => setPicked(null)} className="peer sr-only" />
-              <span className={cx(chip, "h-full px-3 text-sm")}>Decide later</span>
-            </label>
-          </div>
-          <p className="nums mt-2.5 min-h-10 text-sm text-ink-soft sm:min-h-5">
-            {chosen
-              ? `${formatDateRange(chosen.startDate, chosen.endDate)} · ${trip.nights} nights`
-              : picked === null
-                ? "No dates yet, so only the highlights come across. Days and events need dates."
-                : null}
-          </p>
-        </fieldset>
-        <fieldset className="grid gap-3.5 border-t border-dashed border-rule-strong pt-4">
-          <legend className="sr-only">Also bring</legend>
-          <ToggleRow name="ideas" label="Add ideas" hint="Other things to do at each stop, and other stops to swap in." defaultChecked disabled={!chosen} />
-          <ToggleRow name="events" label="Add events to the calendar" hint="Each day's plan, with times." defaultChecked disabled={!chosen} />
-        </fieldset>
+      {has && start ? <input type="hidden" name="start" value={start} /> : null}
+      <StepBar at={steps.indexOf(step)} of={steps.length} />
+      <div ref={body} className="scroll-thin min-h-0 flex-1 overflow-y-auto p-4">
+        <div data-step="ask" hidden={step !== "ask"}><AskStep nights={trip.nights} onAnswer={answer} /></div>
+        <div data-step="when" hidden={step !== "when"}>
+          <WhenStep months={months} nights={trip.nights} start={start} month={month} onStart={setStart} onMonth={setMonth} />
+        </div>
+        <div data-step="extras" hidden={step !== "extras"}><ExtrasStep start={start} nights={trip.nights} onChange={back} /></div>
+        <div data-step="undated" hidden={step !== "undated"}><UndatedStep highlights={trip.highlights} /></div>
       </div>
-      <SheetFooter note="You can change all of it later.">
-        <SubmitButton disabled={picked === undefined}>Start trip</SubmitButton>
-      </SheetFooter>
+      <div className={step === "ask" ? "max-sm:hidden" : undefined}>
+        <SheetFooter note={step === "when" ? null : <span className="max-sm:hidden">You can change all of it later.</span>}>{footer[step]}</SheetFooter>
+      </div>
     </form>
   );
 }
 
-/** "Start this trip" on Explore (ADR-025): pick a best month, or decide later, then what else comes across. */
+/** "Start this trip" on Explore (ADR-025): do you have dates yet, then when, then what else comes across. */
 export function CopySheet({
   trip,
   children,

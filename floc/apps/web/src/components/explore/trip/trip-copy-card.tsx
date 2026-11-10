@@ -108,7 +108,7 @@ export function TripCopyCard({
             </li>
           ))}
         </ul>
-        <p className="mt-2 text-xs text-ink-faint">Pick &ldquo;Decide later&rdquo; and only the name and highlights come across. You bring the people and the money.</p>
+        <p className="mt-2 text-xs text-ink-faint">With no dates yet, only the name and highlights come across. You bring the people and the money.</p>
       </details>
     </aside>
   );
