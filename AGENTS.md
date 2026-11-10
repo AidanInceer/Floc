@@ -10,7 +10,7 @@ Next.js App Router, Turso (libSQL), Drizzle, Better Auth; Expo for the phone. **
 
 ## Environment
 
-Windows 11, **Windows PowerShell 5.1** — not pwsh 7, not bash. No `&&`: chain with `;`. Give the user PowerShell, never Unix commands. No `python`, no `sqlite3`: script in `node`.
+Windows 11. Agent shells: PowerShell 7 and Git Bash. Create and change files with Write or Edit, not shell heredocs or string-replace scripts. Give the user PowerShell, never Unix commands. No `python`, no `sqlite3`: script in `node`.
 
 ## Commands
 
@@ -42,6 +42,7 @@ Before any UI work — web, phone, mockup or marketing — read the [design card
 
 ## Workflow
 
+- **Mock-ups, variants, options → `/floc:prototype`**, whatever the wording.
 - **One task, one worktree.** Shape (`/floc:grill`, tickets, `/floc:prototype`) in the main checkout; build only in `pnpm workspace:new <name>`. Preview it: `pnpm workspace:start web` in the background, then `preview_start` with the `url` from `pnpm workspace:status`. Never edit the main checkout's `.claude/launch.json`.
 - **Branches:** `feature/*`, `fix/*`, `chore/*` → PR to `develop`; `develop` → `main` only through `/floc:release`; `hotfix/*` from and to `main`. Never push to either directly; merge conflicts in, never rebase.
 - **Ship** with `/floc:push`: commit, PR to `develop`, then the `floc:ci-watch` agent in the background. It reports red (you fix and push again) or merged (then `pnpm delivery finish`: docs, worktree closed, summary). Never push when asked for local review only. Docs are written with the code (`/floc:sync-docs`) and pushed after the merge.
@@ -72,6 +73,6 @@ No secrets in the repo; env vars live in Railway. Never log PII or tokens. Flag 
 
 ## Agent skills
 
-Skills are the `floc` plugin in [`plugins/floc/`](plugins/floc/). Claude reads a cached copy: after editing a skill, bump `version` in `plugins/floc/.claude-plugin/plugin.json`, run `claude plugin update floc@floc --scope project`, restart the session.
+Skills are the `floc` plugin in [`plugins/floc/`](plugins/floc/). Claude reads a cached copy: `pnpm delivery publish` bumps its `version`; once the change is on develop, run `claude plugin update floc@floc --scope project` and restart the session.
 
 Loop: `/floc:grill` → `/floc:to-tickets` → `/floc:prioritise-tickets` → `/floc:pickup-ticket` → `/floc:push` → `/floc:release`. The `Priority` stack runs in phases (`phase:N`); one finishes before the next. `grilling` is intentional — never skip it.

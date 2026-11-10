@@ -27,8 +27,8 @@ Never push when the user asked for local review only.
   They are pushed after the merge, in step 5.
 - **Schema** → the new `drizzle/*.sql` is applied to this worktree's database.
   **API procedure** → its `scripts/parity/parity.json` line (`pnpm parity --fix`
-  writes the boring half). **Plugin** → bump `version` in
-  `plugins/floc/.claude-plugin/plugin.json` and run `pnpm plugins:sync`.
+  writes the boring half). **Plugin** → run `pnpm plugins:sync`;
+  publish bumps the version.
 
 Do not run `pnpm checks` here. The pre-commit hook is the local gate; CI is the real one.
 
