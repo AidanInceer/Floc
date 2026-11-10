@@ -54,7 +54,6 @@ export type TripMember = {
   userId: string;
   role: TripRole;
   name: string;
-  email: string;
   avatarIcon: AvatarIcon | null;
   /** Roster seat colour, assigned from the name — a token name, not a hex. */
   tone: string;

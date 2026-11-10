@@ -13,4 +13,6 @@ export function readEpoch(doc: Y.Doc): string | null {
   return typeof epoch === "string" ? epoch : null;
 }
 
-export const liveCacheName = (documentName: string, epoch: string) => `floc-notes:${documentName}:${epoch}`;
+export const LIVE_CACHE_PREFIX = "floc-notes:";
+
+export const liveCacheName = (documentName: string, epoch: string) => `${LIVE_CACHE_PREFIX}${documentName}:${epoch}`;

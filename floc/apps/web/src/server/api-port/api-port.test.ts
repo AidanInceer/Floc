@@ -32,6 +32,12 @@ describe("who can see a trip (rule 5)", () => {
     expect(trip?.role).toBe("member");
   });
 
+  it("names the members without their email addresses (#582)", async () => {
+    const trip = await webPort.loadTrip(world.member, world.ours.id);
+    expect(trip?.members.length).toBeGreaterThan(1);
+    expect(JSON.stringify(trip)).not.toContain("@example.test");
+  });
+
   it("says whether booking links come filled in, which is Pro", async () => {
     expect((await webPort.loadTrip(world.member, world.ours.id))?.bookingPrefill).toBe(false);
 

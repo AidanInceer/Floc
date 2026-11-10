@@ -24,7 +24,6 @@ const TRIP: TripDetail = {
       userId: "u1",
       role: "member",
       name: "Ana",
-      email: "ana@example.com",
       avatarIcon: null,
       tone: "who-1",
     },

@@ -29,6 +29,16 @@ describe("the write limiter", () => {
     for (const key of ["a", "b", "c", "d"]) limiter.allow(key, 0);
     expect(limiter.size()).toBeLessThanOrEqual(2);
   });
+
+  it("never forgets a caller it is refusing while it can forget one in credit (#582)", () => {
+    const limiter = writeLimiter({ capacity: 2, perSecond: 0.001, maxKeys: 2 });
+    limiter.allow("flood", 0);
+    limiter.allow("flood", 0);
+    expect(limiter.allow("flood", 0)).toBe(false);
+    limiter.allow("quiet", 0);
+    limiter.allow("new", 0);
+    expect(limiter.allow("flood", 0)).toBe(false);
+  });
 });
 
 describe("which requests count", () => {
@@ -52,6 +62,12 @@ describe("which requests count", () => {
 describe("who is calling", () => {
   it("is the address Railway's edge saw", () => {
     expect(clientKey("203.0.113.7", "10.0.0.2")).toBe("203.0.113.7");
+  });
+
+  it("counts one IPv6 network as one caller, since a caller owns the whole /64 (#582)", () => {
+    expect(clientKey("2001:db8:1:2:aaaa:bbbb:cccc:dddd", undefined)).toBe(clientKey("2001:db8:1:2::1", undefined));
+    expect(clientKey("2001:db8:1:3::1", undefined)).not.toBe(clientKey("2001:db8:1:2::1", undefined));
+    expect(clientKey("2001:db8::1", undefined)).toBe(clientKey("2001:db8:0:0:ffff::9", undefined));
   });
 
   it("falls back to the socket's address", () => {

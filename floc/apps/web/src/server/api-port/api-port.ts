@@ -121,7 +121,6 @@ function toDetail(access: TripAccess, bookingPrefill: boolean): TripDetail {
       userId: m.userId,
       role: m.role,
       name: m.name,
-      email: m.email,
       avatarIcon: m.avatarIcon,
       tone: m.tone,
     })),
