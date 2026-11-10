@@ -1,6 +1,7 @@
 import { existsSync, lstatSync, renameSync, unlinkSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { git } from "../delivery/process.mjs";
+import { stopServers } from "./servers.mjs";
 
 export const TASK_BRANCH = /^(feature|fix|chore|hotfix|release)\/[a-z0-9][a-z0-9._-]*$/;
 
@@ -105,6 +106,7 @@ function assertNotInUse(path) {
 
 /** Never forced: git refuses a dirty worktree, and that refusal means keep it. */
 export function removeWorktree(main, path, branch) {
+  stopServers(path);
   assertNotInUse(path);
   const docs = join(path, "docs");
   if (existsSync(docs) && lstatSync(docs).isSymbolicLink()) unlinkSync(docs);

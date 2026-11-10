@@ -2,7 +2,7 @@ import { join, resolve } from "node:path";
 import { command, git } from "./process.mjs";
 import { afterRelease, closedBy, json, markLanded, repository, viewPull } from "./github.mjs";
 import { deploymentStatus } from "./deployment.mjs";
-import { commitDocs } from "./docs.mjs";
+import { commitDocs, sharedDocs } from "./docs.mjs";
 import { isAncestor } from "./sync.mjs";
 import { listWorktrees, mainCheckout, removeWorktree } from "../workspace/worktrees.mjs";
 
@@ -75,7 +75,9 @@ export async function finish(root, { pr: number, docs = [] }) {
     markLanded(main, issues, join(resolve(main), ".floc/tmp"));
     if (issues.length) result.onDevelop = issues;
   }
+  const shared = docs.length ? sharedDocs(main, pr.headRefName, docs) : {};
   result.docs = docs.length ? commitDocs(main, docs, pr.title) : [];
+  if (result.docs.length && Object.keys(shared).length) result.docsAlsoCarry = shared;
   if (!pr.headRefName.startsWith("release/")) result.worktree = closeWorktree(main, pr.headRefName, target);
   return { ...result, state: "done" };
 }

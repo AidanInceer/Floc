@@ -83,4 +83,4 @@ check, not in the implementation agent's rules.
 - Skills (`plugins/floc/skills/`): a skill's description goes into every
   session's context, so keep it short. Use a skill for a reference doc or a
   user-run command. A change to a skill follows the cache steps in AGENTS.md
-  (bump the plugin version, update the plugin, restart the session).
+  (publish bumps the version; update the plugin, restart the session).

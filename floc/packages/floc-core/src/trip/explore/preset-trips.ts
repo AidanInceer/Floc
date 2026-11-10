@@ -1,5 +1,5 @@
 // Static listings for Explore, one file per trip in `listings/<region>/` (`pnpm explore:new` adds one): no partner backend; operator names are illustrative.
-// See docs/product/explore/partner-trips.html. Money is minor units (rule 1); format with `formatMoney`.
+// See docs/product/explore/index.html. Money is minor units (rule 1); format with `formatMoney`.
 import { AFRICA } from "./listings/africa/index";
 import { AMERICAS } from "./listings/americas/index";
 import { ASIA } from "./listings/asia/index";

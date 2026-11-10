@@ -24,3 +24,15 @@ test("every check runs through node directly, never a pnpm or cmd.exe shim", () 
     assert.ok(entry.startsWith("scripts/") || entry.startsWith("node_modules/"));
   }
 });
+
+test("the docs step runs only when the commit changes what it reads", () => {
+  assert.ok(!labels(["floc/apps/web/src/a.ts"]).includes("docs"));
+  assert.ok(labels(["floc/apps/web/src/db/schema.ts"]).includes("docs"));
+  assert.ok(labels(["scripts/parity/parity.json"]).includes("docs"));
+  assert.ok(labels(["AGENTS.md"]).includes("docs"));
+});
+
+test("the repo rules leave the docs step to the plan", () => {
+  const [, command] = planPreCommit(["a.ts"]).find(([label]) => label === "repo rules");
+  assert.deepEqual(command.slice(-2), ["--without", "docs"]);
+});

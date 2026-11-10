@@ -9,7 +9,7 @@ function run(env) {
   const root = mkdtempSync(join(tmpdir(), "floc-docs-test-"));
   try {
     mkdirSync(join(root, "scripts"));
-    copyFileSync(new URL("./check-docs.mjs", import.meta.url), join(root, "scripts/check-docs.mjs"));
+    for (const file of ["check-docs.mjs", "docs-links.mjs"]) copyFileSync(new URL(`./${file}`, import.meta.url), join(root, "scripts", file));
     return spawnSync(process.execPath, ["scripts/check-docs.mjs"], { cwd: root, encoding: "utf8", env: { ...process.env, CI: "", ...env } });
   } finally {
     rmSync(root, { recursive: true, force: true });
