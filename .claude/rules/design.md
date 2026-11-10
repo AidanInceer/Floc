@@ -61,6 +61,8 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 
 ## Layout
 
+- On desktop web, New group and Edit group use the centred dialog. In the trip picker, each group shows its faces first. A separate chevron reveals the members without changing who is ticked.
+
 - One main action per screen. One visible action per row; more verbs go behind a `…` menu.
   - One exception: a Saved tile on Lists shows Start trip beside its heart (#467). It is a quiet pen word with an arrow at the right end of the tile's last line, sharing that line with the figures (nights and price, or Explore trips); below sm only the arrow shows, and a trip's nights sit over its price. A compact country tile keeps the house heart size, larger than the mockup's, so its press target stays full size.
   - One exception: a My trips card shows two toggles beside its `…`, star and mute (a bell, slashed when muted). Each says its state in its label (`aria-pressed`, Mute/Unmute). Every other verb stays in the menu.

@@ -27,7 +27,7 @@ import { GroupPeoplePicker, peopleWithTicked } from "./group-people-picker";
 import { PastTripRows, tripsWithPeople } from "./past-trip-rows";
 
 const DIALOG =
-  "m-0 ml-auto h-dvh max-h-dvh w-full max-w-lg overflow-y-auto border-l border-rule bg-sheet p-0 text-ink shadow-lifted backdrop:bg-black/40 max-sm:top-auto max-sm:h-fit max-sm:max-h-[92dvh] max-sm:max-w-full max-sm:rounded-t-md max-sm:border-l-0";
+  "m-auto max-h-[calc(100dvh-48px)] w-full max-w-lg overflow-y-auto rounded-md border border-rule bg-sheet p-0 text-ink shadow-lifted backdrop:bg-black/40 max-sm:mb-0 max-sm:max-h-[92dvh] max-sm:max-w-full max-sm:rounded-b-none";
 
 const TAB = "rounded-sm px-2 py-1.5 text-sm font-medium transition-colors sm:px-4";
 const TAB_ON = "bg-pen-soft text-pen-deep";
@@ -156,7 +156,7 @@ function NewGroupSteps({ sheet, step, setStep }: { sheet: Sheet; step: 1 | 2; se
   }
   return (
     <>
-      <div className={cx(panelBandClass, "flex flex-col border-t-0 max-sm:h-[min(23rem,52dvh)]")}>
+      <div className={cx(panelBandClass, "flex h-[min(20rem,52dvh)] flex-col border-t-0")}>
         <div className={cx(segmentTrack, "mb-3 flex w-fit shrink-0 items-center gap-1")}>
           <SourceTab on={source === "friends"} onClick={() => setSource("friends")}>
             Pick friends
