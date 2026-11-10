@@ -19,7 +19,7 @@ export function taskBranch(root) {
   return branch;
 }
 
-const PR_FIELDS = "number,url,state,isDraft,baseRefName,headRefName,headRefOid,mergeCommit,mergeable,autoMergeRequest,statusCheckRollup,title";
+const PR_FIELDS = "number,url,state,isDraft,baseRefName,headRefName,headRefOid,isCrossRepository,mergeCommit,mergeable,autoMergeRequest,statusCheckRollup,title";
 
 export function pullRequest(root, branch, state = "all") {
   return json(root, "pr", "list", "--head", branch, "--state", state, "--json", PR_FIELDS)
