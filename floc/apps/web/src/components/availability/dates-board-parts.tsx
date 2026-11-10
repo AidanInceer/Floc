@@ -93,10 +93,10 @@ export function CommitBar({ pick, dated, problem, pending, onCommit, onDiscard }
 
 // In the order a group books: who can, then the trip.
 export function DatesKey() {
-  const swatch = (cls: string) => <span aria-hidden className={cx("size-3 rounded-[4px]", cls)} />;
+  const swatch = (cls: string) => <span aria-hidden className={cx("size-3 rounded-[4px] max-sm:size-2", cls)} />;
   const item = "flex items-center gap-1.5";
   return (
-    <div className="flex flex-wrap gap-x-[18px] gap-y-2 py-3 text-xs text-ink-soft">
+    <div className="flex flex-wrap gap-x-[18px] gap-y-2 py-3 text-xs text-ink-soft max-sm:flex-nowrap max-sm:justify-between max-sm:gap-x-2 max-sm:whitespace-nowrap max-sm:text-[11px] max-sm:[&>span]:gap-1 max-sm:[&>span]:text-[11px]">
       <span className={item}>
         <span aria-hidden className="size-3.5 rounded-full bg-ink-soft/20" />
         You can do
@@ -154,7 +154,7 @@ export function tabStubs(p: {
       key: "mine",
       label: "Your days",
       glyph: <CheckIcon />,
-      summary: yourDaysTab(p.mine, p.unsaved),
+      summary: yourDaysTab(p.mine, p.unsaved, p.group.some((g) => g.id === p.viewerId && g.answered)),
       corner: p.unsaved ? <span className="whitespace-nowrap rounded-full bg-highlight px-2 text-[11px] font-medium text-highlight-ink">Not saved</span> : null,
     },
     { key: "group", label: "The group", glyph: <NavGlyph name="friends" />, summary: groupTab(p.group, p.viewerId), corner: p.faces },

@@ -92,7 +92,7 @@ export type LivePage = { name: string; doc: Y.Doc; provider: HocuspocusProvider;
 
 export function useLivePage(socket: HocuspocusProviderWebsocket | null, tripId: number, pageId: number | null): LivePage | null {
   const [live, setLive] = useState<{ name: string; doc: Y.Doc; provider: HocuspocusProvider } | null>(null);
-  const [state, setState] = useState<LivePageState>({ status: "saving", people: [] });
+  const [state, setState] = useState<LivePageState>({ status: "opening", people: [] });
 
   useEffect(() => {
     if (!socket || pageId === null) return;

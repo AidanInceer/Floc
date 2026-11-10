@@ -577,7 +577,7 @@ export function PillToggle<T extends string>({
       {indicator ? (
         <span
           aria-hidden
-          className="pointer-events-none absolute left-0 top-1 bottom-1 rounded-sm bg-ink transition-[transform,width] duration-200 ease-[cubic-bezier(0.2,0.85,0.3,1)] motion-reduce:transition-none"
+          className="pointer-events-none absolute left-0 top-1 bottom-1 rounded-sm bg-pen-soft transition-[transform,width] duration-200 ease-[cubic-bezier(0.2,0.85,0.3,1)] motion-reduce:transition-none"
           style={{ width: indicator.width, transform: `translateX(${indicator.left}px)` }}
         />
       ) : null}
@@ -595,7 +595,7 @@ export function PillToggle<T extends string>({
             onClick={() => onChange(opt.value)}
             className={cx(
               "relative z-10 flex-1 whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium transition-colors",
-              active ? "text-sheet" : "text-ink-soft hover:text-ink",
+              active ? "text-pen-deep" : "text-ink-soft hover:text-ink",
             )}
           >
             {opt.label}

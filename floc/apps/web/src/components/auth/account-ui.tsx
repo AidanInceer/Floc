@@ -123,7 +123,7 @@ const pillShape =
   "block cursor-pointer rounded-sm px-4 py-1.5 text-center text-sm font-medium transition-colors";
 const pillOff = "text-ink-soft hover:bg-sheet hover:text-ink";
 const pillOn =
-  "peer-checked:bg-ink peer-checked:text-sheet peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-pen";
+  "peer-checked:bg-pen-soft peer-checked:text-pen-deep peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-pen";
 
 export function PillChoice<T extends string>({
   name,

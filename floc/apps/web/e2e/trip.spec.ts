@@ -52,8 +52,8 @@ test("somebody else's trip looks the same as one that does not exist", async ({ 
   const mine = await browser.newContext({ storageState: priya.state });
   const page = await mine.newPage();
   await page.goto(trip);
-  await expect(page.getByText("Nothing here")).toBeVisible();
+  await expect(page.getByText("This page has no answer for you")).toBeVisible();
   await page.goto("/trip/999999");
-  await expect(page.getByText("Nothing here")).toBeVisible();
+  await expect(page.getByText("This page has no answer for you")).toBeVisible();
   await mine.close();
 });

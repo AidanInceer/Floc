@@ -21,3 +21,10 @@ export function guestCutoff(now: Date): Date {
 export function guestName(value: unknown): string | null {
   return capText(value, "displayName");
 }
+
+/** What the invite asks a visitor for, read from the trip: no vote without ideas, no open calendar once dates are set (rule 4). */
+export function guestAsk({ dated, ideas }: { dated: boolean; ideas: number }): string {
+  const days = dated ? "say if you can make the dates" : "mark the days you can make";
+  const ask = ideas > 0 ? `vote on the ideas and ${days}` : days;
+  return `${ask.charAt(0).toUpperCase()}${ask.slice(1)}.`;
+}

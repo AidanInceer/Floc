@@ -57,6 +57,9 @@ import { VibePicker } from "@/components/trip/vibe-picker";
 import { AccountTabs } from "@/components/chrome/account-tabs";
 import { PACK_TIERS, PACK_TIER_LABELS } from "@floc/core/packing/packing";
 import { readVibeTags } from "@floc/core/trip/vibe-tags";
+import { currencyOptionLabel, type Currency } from "@floc/core/money/currency";
+
+const HOME_CURRENCIES: Currency[] = ["GBP", "EUR", "USD"];
 
 const SECTIONS = [
   { id: "privacy", label: "Privacy" },
@@ -153,7 +156,7 @@ export default async function SettingsPage({
 
                   <div className="flex justify-end">
                     <SubmitButton variant="primary">
-                      Save privacy
+                      Save
                     </SubmitButton>
                   </div>
                 </Stack>
@@ -168,7 +171,7 @@ export default async function SettingsPage({
                   <VibePicker selected={vibeTags} />
                   <div>
                     <SubmitButton variant="primary">
-                      Save vibe tags
+                      Save
                     </SubmitButton>
                   </div>
                 </Stack>
@@ -202,7 +205,7 @@ export default async function SettingsPage({
                     />
                     <div>
                       <SubmitButton variant="primary">
-                        Save packing
+                        Save
                       </SubmitButton>
                     </div>
                   </Stack>
@@ -221,9 +224,9 @@ export default async function SettingsPage({
                           name="homeCurrency"
                           defaultValue={profile.homeCurrency}
                         >
-                          <option value="GBP">GBP — £</option>
-                          <option value="EUR">EUR — €</option>
-                          <option value="USD">USD — $</option>
+                          {HOME_CURRENCIES.map((c) => (
+                            <option key={c} value={c}>{currencyOptionLabel(c)}</option>
+                          ))}
                         </Select>
                       </Field>
                     </div>
@@ -262,7 +265,7 @@ export default async function SettingsPage({
                   ))}
                   <div>
                     <SubmitButton variant="primary">
-                      Save preferences
+                      Save
                     </SubmitButton>
                   </div>
                 </Stack>
@@ -273,7 +276,7 @@ export default async function SettingsPage({
           {current === "account" ? (
             <Panel
               title="Account"
-              hint="Your email comes from whichever provider signed you in, and can't be changed here."
+              hint="Your email can't be changed here."
             >
               <Stack gap={4}>
                 <Field label="Email">
@@ -290,19 +293,15 @@ export default async function SettingsPage({
                         <span className="text-sm">
                           {PROVIDER_LABELS[a.providerId] ?? a.providerId}
                         </span>
-                        <ActionForm action={unlinkAccount}>
-                          <input type="hidden" name="accountId" value={a.id} />
-                          <SubmitButton
-                            variant="ghost"
-                            className={
-                              linkedAccounts.length <= 1
-                                ? "opacity-50"
-                                : undefined
-                            }
-                          >
-                            Unlink
-                          </SubmitButton>
-                        </ActionForm>
+                        {/* Why: the last method cannot be unlinked (you would lose access), so it shows no button. */}
+                        {linkedAccounts.length > 1 ? (
+                          <ActionForm action={unlinkAccount}>
+                            <input type="hidden" name="accountId" value={a.id} />
+                            <SubmitButton variant="ghost">
+                              Unlink
+                            </SubmitButton>
+                          </ActionForm>
+                        ) : null}
                       </PersonRow>
                     ))}
                     {calendarGranted ? (
@@ -320,10 +319,6 @@ export default async function SettingsPage({
                       </PersonRow>
                     ) : null}
                   </ul>
-                  <p className="mt-2 text-xs text-ink-faint">
-                    Unlinking your last remaining method is refused —
-                    you&rsquo;d lose access.
-                  </p>
                 </div>
               </Stack>
             </Panel>
@@ -346,7 +341,7 @@ export default async function SettingsPage({
                   >
                     support@floc.live
                   </a>{" "}
-                  — there&rsquo;s no self-serve export in v1.
+                  and we will send it to you.
                 </p>
               </Stack>
             </Panel>
@@ -428,7 +423,7 @@ function BillingPanel({
   return (
     <Panel
       title="Floc Pro"
-      hint="Pro covers everyone on a trip you're in — one of you paying is enough."
+      hint="Pro adds extras to your own screen. The trip stays free for everyone on it."
     >
       <Stack gap={4}>
         {billing === "cancelled" ? (

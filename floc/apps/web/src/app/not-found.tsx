@@ -13,8 +13,7 @@ import { ButtonLink, PageTitle } from "@/components/system/ui";
 export default function NotFound() {
   return (
     <div className="mx-auto w-full max-w-[42rem] px-4 pb-20 pt-16 text-center sm:px-6">
-      <p className="typed">Nothing here</p>
-      <PageTitle className="mt-3">
+      <PageTitle>
         This page has no answer for you
       </PageTitle>
       <p className="mx-auto mt-4 max-w-[48ch] text-sm text-ink-soft">

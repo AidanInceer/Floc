@@ -48,8 +48,7 @@ export function TripHero({ trip, figures, rates }: { trip: PresetTrip; figures: 
             <dd>{trip.bestMonths}</dd>
           </div>
         </dl>
-        <p className="typed mt-5">In the plan</p>
-        <ul className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <ul className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
           {figures.map((f) => (
             <li key={f.label} className="grid content-start gap-0.5 rounded-md bg-sheet-2 px-3.5 py-3">
               <b className="nums font-display text-[length:var(--text-2xl)] font-semibold leading-tight tracking-[-0.02em]">{f.value}</b>

@@ -12,7 +12,7 @@ import {
   sanitizeAmountInput,
   toMajorInput,
 } from "@floc/core/money/money";
-import { CURRENCIES, currencySymbol } from "@floc/core/money/currency";
+import { CURRENCIES, currencyOptionLabel } from "@floc/core/money/currency";
 import { previewExpenseSplit } from "@floc/core/money/expense/expense-preview";
 import { editStart } from "@floc/core/money/edit-start";
 import { SPLIT_MODES, splitBox, type SplitMode } from "@floc/core/money/expense/expense-form";
@@ -257,7 +257,7 @@ export function ExpenseForm({
                 >
                   {CURRENCIES.map((c) => (
                     <option key={c} value={c}>
-                      {c}{currencySymbol(c) ? ` (${currencySymbol(c)})` : ""}
+                      {currencyOptionLabel(c)}
                     </option>
                   ))}
                 </select>
@@ -467,11 +467,12 @@ export function ExpenseForm({
           />
         </Field>
 
-        <ErrorText>{state.error}</ErrorText>
-
-        <div className="flex flex-wrap items-center justify-end gap-2">
+        {/* Why: the form is taller than a short window; the actions and any refusal stay in reach while the fields scroll. */}
+        <div className="sticky bottom-0 -mx-4 -mb-4 flex flex-wrap items-center justify-end gap-2 border-t border-rule bg-sheet-2 px-4 py-3 sm:rounded-b-md">
           {unbalanced ? (
             <span className="mr-auto text-xs text-ink-soft">Split must add up to the amount</span>
+          ) : state.error ? (
+            <span className="mr-auto min-w-0"><ErrorText>{state.error}</ErrorText></span>
           ) : null}
           {done ? (
             <Button type="button" variant="ghost" onClick={done}>

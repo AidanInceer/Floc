@@ -87,7 +87,7 @@ export default function Notes() {
 
   return (
     <View style={{ flex: 1, backgroundColor: c.sheet }}>
-      <NotesBar pageCount={data.list.data.pages.length} status={live?.status ?? "saving"} people={live?.people ?? []} onPages={() => setSheet(true)} />
+      <NotesBar pageCount={data.list.data.pages.length} status={live?.status ?? "opening"} people={live?.people ?? []} onPages={() => setSheet(true)} />
       {live ? (
         <HeldPage
           held={!focused}
