@@ -9,6 +9,7 @@
  */
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { isIsoDate } from "@floc/core/dates/dates";
+import { NO_TRIP_NAME, TRIP_NAME_TOO_LONG } from "@floc/core/trip/trip-name";
 import { z } from "zod";
 
 import { protectedProcedure, router, tripProcedure } from "../trpc";
@@ -17,7 +18,7 @@ import { protectedProcedure, router, tripProcedure } from "../trpc";
 const isoDate = z.string().refine(isIsoDate, "Use a real YYYY-MM-DD date.");
 const optionalDate = isoDate.nullable();
 
-const tripName = z.string().trim().min(1, "Give the trip a name.").max(TEXT_CAPS.tripName, "That name is too long.");
+const tripName = z.string().trim().min(1, NO_TRIP_NAME).max(TEXT_CAPS.tripName, TRIP_NAME_TOO_LONG);
 
 export const tripsRouter = router({
   list: protectedProcedure
