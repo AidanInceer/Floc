@@ -372,6 +372,13 @@
       "when": 1794340690289,
       "tag": "0052_late_taskmaster",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "6",
+      "when": 1794342695756,
+      "tag": "0053_friend_group",
+      "breakpoints": true
     }
   ]
 }

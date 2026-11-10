@@ -43,7 +43,7 @@ Before any UI work — web, phone, mockup or marketing — read the [design card
 ## Workflow
 
 - **Mock-ups, variants, options → `/floc:prototype`**, whatever the wording.
-- **One task, one worktree.** Shape (`/floc:grill`, tickets, `/floc:prototype`) in the main checkout; build only in `pnpm workspace:new <name>`. Preview it: `pnpm workspace:start web` in the background, then `preview_start` with the `url` from `pnpm workspace:status`. Never edit the main checkout's `.claude/launch.json`.
+- **One task, one worktree.** Shape decisions and tickets in the main checkout. Edit tracked code, including wireframes, in `pnpm workspace:new <name>`. Preview with `pnpm workspace:start web` or `pnpm workspace:start wireframes` and the address from `pnpm workspace:status`. Never edit the main checkout's `.claude/launch.json`.
 - **Branches:** `feature/*`, `fix/*`, `chore/*` → PR to `develop`; `develop` → `main` only through `/floc:release`; `hotfix/*` from and to `main`. Never push to either directly; merge conflicts in, never rebase.
 - **Ship** with `/floc:push`: commit, PR to `develop`, then the `floc:ci-watch` agent in the background. It reports red (you fix and push again) or merged (then `pnpm delivery finish`: docs, worktree closed, summary). Never push when asked for local review only. Docs are written with the code (`/floc:sync-docs`) and pushed after the merge.
 - **Commit subject:** `#<issue|no-ticket>: <feat|fix|docs|refactor|chore|test>: <description>`. Only a ticket picked up this session or given in chat; it needs a `Closes AidanInceer/Floc#<issue>` line.
@@ -72,6 +72,8 @@ Production has real test users. **Never delete, wipe or overwrite trip or user d
 No secrets in the repo; env vars live in Railway. Never log PII or tokens. Flag anything touching auth, encryption, PII or compliance.
 
 ## Agent skills
+
+Wireframe source goes through Git. At implementation handoff, `/floc:prototype` deletes discarded options and keeps the pick and explicit experiments. Wireframes get a manual preview check and secret scanning. Product lint, unit tests, coverage and quality gates apply to the implementation.
 
 Skills are the `floc` plugin in [`plugins/floc/`](plugins/floc/). Claude reads a cached copy: `pnpm delivery publish` bumps its `version`; once the change is on develop, run `claude plugin update floc@floc --scope project` and restart the session.
 

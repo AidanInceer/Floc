@@ -9,6 +9,7 @@
  */
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { isIsoDate } from "@floc/core/dates/dates";
+import { GROUP_CAP, TRIP_INVITE_CAP } from "@floc/core/people/group-ticks";
 import { NO_TRIP_NAME, TRIP_NAME_TOO_LONG } from "@floc/core/trip/trip-name";
 import { z } from "zod";
 
@@ -34,6 +35,8 @@ export const tripsRouter = router({
         name: tripName,
         startDate: optionalDate.default(null),
         endDate: optionalDate.default(null),
+        friendIds: z.array(z.string().min(1).max(64)).max(TRIP_INVITE_CAP).optional(),
+        groupIds: z.array(z.number().int().positive()).max(GROUP_CAP).optional(),
       }),
     )
     .mutation(({ ctx, input }) => ctx.port.createTrip(ctx.viewer.id, input)),

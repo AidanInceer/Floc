@@ -4,7 +4,7 @@ import { afterRelease, closedBy, json, markLanded, repository, viewPull } from "
 import { deploymentStatus } from "./deployment.mjs";
 import { commitDocs, sharedDocs } from "./docs.mjs";
 import { isAncestor } from "./sync.mjs";
-import { listWorktrees, mainCheckout, removeWorktree } from "../workspace/worktrees.mjs";
+import { listWorktrees, mainCheckout, removeWorktree, TASK_BRANCH } from "../workspace/worktrees.mjs";
 
 const MINUTE = 60_000;
 const DEPLOY_WITHIN = 45 * MINUTE;
@@ -16,17 +16,25 @@ export function worktreeVerdict({ dirty, contained }) {
   return { remove: true };
 }
 
-function closeWorktree(main, branch, target) {
+export function cleanLocalBranch(main, { headRefName: branch, baseRefName: target, isCrossRepository }) {
+  if (isCrossRepository !== false || !TASK_BRANCH.test(branch) || !["develop", "main"].includes(target)) return "local cleanup skipped";
+  const ref = `refs/heads/${branch}`;
+  const refs = git(main, "for-each-ref", "--format=%(refname)", ref).split(/\r?\n/);
+  if (!refs.includes(ref)) return "no local branch";
   const worktree = listWorktrees(main).find((w) => w.branch === branch);
-  if (!worktree) return "no worktree";
-  git(main, "fetch", "--quiet", "origin", target);
+  if (worktree?.path === main || worktree?.locked) return "worktree kept: primary or locked checkout";
   const verdict = worktreeVerdict({
-    dirty: Boolean(git(worktree.path, "status", "--porcelain")),
-    contained: isAncestor(worktree.path, "HEAD", `origin/${target}`),
+    dirty: Boolean(worktree && git(worktree.path, "status", "--porcelain")),
+    contained: isAncestor(main, ref, `origin/${target}`),
   });
-  if (!verdict.remove) return verdict.reason;
-  try { removeWorktree(main, worktree.path, branch); return "worktree removed"; }
-  catch { return "worktree folder is in use; the next sweep removes it"; }
+  if (!verdict.remove) return worktree ? verdict.reason : "branch kept: it has commits that did not land";
+  try {
+    if (worktree) removeWorktree(main, worktree.path, branch);
+    else git(main, "branch", "-D", "--", branch);
+    return worktree ? "worktree and branch removed" : "local branch removed";
+  } catch (error) {
+    return `local cleanup incomplete: ${error.message}`;
+  }
 }
 
 function githubDeployment(main, sha) {
@@ -46,14 +54,13 @@ async function waitForDeploy(main, sha) {
 }
 
 function released(main, mergeSha) {
-  git(main, "fetch", "--quiet", "origin", "main");
   return closedBy(git(main, "log", `${mergeSha}^1..${mergeSha}^2`, "--format=%B"));
 }
 
 /**
  * After the merge, never before: label and pop the tickets, push this task's
  * doc pages, close its worktree. For main, first wait until production serves
- * the merge, then close split parents and move prototype tags.
+ * the merge, then close split parents.
  */
 export async function finish(root, { pr: number, docs = [] }) {
   const main = mainCheckout(root);
@@ -62,22 +69,25 @@ export async function finish(root, { pr: number, docs = [] }) {
   const target = pr.baseRefName;
   const sha = pr.mergeCommit.oid;
   const result = { pr: pr.url, target, sha };
+  git(main, "fetch", "--quiet", "--prune", "origin");
   if (target === "main") {
     const deploy = await waitForDeploy(main, sha);
     if (deploy.state === "failed") return { ...result, state: "needs you", reason: deploy.reason };
     result.live = true;
     const open = afterRelease(main, released(main, sha));
     if (open.length) result.stillOpen = open;
-    try { command(process.execPath, ["scripts/wireframe-tags.mjs", "--write"], { cwd: main }); } catch { result.tags = "prototype tags not updated"; }
   } else {
     const body = json(main, "pr", "view", String(number), "--json", "body").body;
-    const issues = closedBy([body, git(main, "log", "-1", "--format=%B", pr.headRefOid)].join("\n"));
+    let message;
+    try { message = git(main, "log", "-1", "--format=%B", pr.headRefOid); }
+    catch { message = git(main, "log", "-1", "--format=%B", sha); }
+    const issues = closedBy([body, message].join("\n"));
     markLanded(main, issues, join(resolve(main), ".floc/tmp"));
     if (issues.length) result.onDevelop = issues;
   }
   const shared = docs.length ? sharedDocs(main, pr.headRefName, docs) : {};
   result.docs = docs.length ? commitDocs(main, docs, pr.title) : [];
   if (result.docs.length && Object.keys(shared).length) result.docsAlsoCarry = shared;
-  if (!pr.headRefName.startsWith("release/")) result.worktree = closeWorktree(main, pr.headRefName, target);
+  result.worktree = cleanLocalBranch(main, pr);
   return { ...result, state: "done" };
 }

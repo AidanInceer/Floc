@@ -4,13 +4,14 @@
 import { chromium } from "playwright";
 
 const [, , path, out, theme = "light", width = "1280", height = "900", full = ""] = process.argv;
+const port = process.env.FLOC_WIREFRAME_PORT ?? "4100";
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: +width, height: +height }, deviceScaleFactor: 1, hasTouch: +width < 700 });
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
 page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
 await page.addInitScript(() => localStorage.setItem("wf-variants-open", "0"));
-await page.goto(`http://localhost:4100${path}`, { waitUntil: "networkidle" });
+await page.goto(`http://localhost:${port}${path}`, { waitUntil: "networkidle" });
 if (theme === "dark") await page.click('.wf-theme button[data-theme="dark"]');
 const centre = async (sel) => { const el = page.locator(sel).first(); await el.scrollIntoViewIfNeeded(); const b = await el.boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
 for (const step of (process.env.STEPS || "").split(";;").filter(Boolean)) {

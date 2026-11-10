@@ -35,6 +35,8 @@ export type NewTrip = {
   name: string;
   startDate: string | null;
   endDate: string | null;
+  friendIds?: string[] | undefined;
+  groupIds?: number[] | undefined;
 };
 
 /** Every field is optional and may arrive as an explicit `undefined` — the wire omits what it isn't changing. */

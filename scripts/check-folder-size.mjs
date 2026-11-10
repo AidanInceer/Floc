@@ -27,8 +27,9 @@ const failures = [];
 let checked = 0;
 
 function walk(dir) {
-  const entries = readdirSync(dir, { withFileTypes: true });
   const posix = relative(ROOT, dir).split(sep).join("/");
+  if (posix === "floc/wireframe") return;
+  const entries = readdirSync(dir, { withFileTypes: true });
 
   // A prototype subfolder is skipped with its parent, not listed one by one.
   if (posix && [...ALLOWLIST].some((a) => posix === a || posix.startsWith(`${a}/`))) {

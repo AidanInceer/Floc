@@ -41,7 +41,7 @@ export function TripMenu({
     <Menu
       label="Trip settings"
       trigger={<CogIcon size={14} />}
-      triggerClassName="flex size-8 items-center justify-center rounded-sm text-ink-faint hover:bg-sheet-3 hover:text-ink-soft data-[open=true]:bg-pen-soft data-[open=true]:text-pen-deep sm:size-6"
+      triggerClassName="flex size-8 items-center justify-center rounded-sm text-ink-faint hover:bg-sheet-3 hover:text-ink-soft data-[open=true]:bg-pen-soft data-[open=true]:text-pen-deep sm:size-[26px]"
     >
       {/* The trip's colour and mark — any member, same as rename and tags
           (ticket 213, #318). */}

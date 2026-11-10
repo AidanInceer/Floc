@@ -4,7 +4,8 @@
  *
  * ONE PERMISSION MODEL, NOT TWO. Every decision about who may see or ask what
  * is delegated: `relationTo` and `requireProfileView` for profiles,
- * `scoped` for inviting (any member, #312), `listFriendsFor` for who may be offered. Restating
+ * `scoped` for inviting (any member, #312), `listFriendsFor` for who may be offered,
+ * `invitableIdsOf` (inside `server/social/groups`) for who may be in a group (#545). Restating
  * any of them here is how the phone quietly grows a looser set of rules than
  * the browser has.
  *
@@ -17,10 +18,12 @@ import "server-only";
 
 import type {
   FlocPort,
+  FriendGroup,
   FriendPerson,
   FriendSearch,
   FriendsBoard,
   InvitePreview,
+  PastTripPeople,
   PendingTripInvite,
   PublicProfileView,
   TripInvites,
@@ -45,7 +48,16 @@ import {
 import { mayAskToBeFriends } from "@/server/social/find-friends";
 import { friendCodeFor, requestByCode } from "@/server/social/friend-code";
 import { searchFriends } from "@/server/social/friend-search";
+import {
+  createGroup,
+  deleteGroup,
+  listGroupsFor,
+  listPastTripsFor,
+  saveGroup,
+  setGroupMember,
+} from "@/server/social/groups";
 import { refresh } from "@/server/freshness";
+import { today } from "@floc/core/dates/dates";
 import {
   acceptInvite,
   declineInvite,
@@ -66,6 +78,12 @@ type SocialPort = Pick<
   | "declineFriend"
   | "cancelFriendRequest"
   | "removeFriend"
+  | "loadGroups"
+  | "loadPastTripPeople"
+  | "createGroup"
+  | "saveGroup"
+  | "setGroupMember"
+  | "deleteGroup"
   | "loadProfileOf"
   | "loadTripInvites"
   | "inviteToTrip"
@@ -152,6 +170,37 @@ export const socialPort: SocialPort = {
   async removeFriend(viewerId, otherId) {
     await dropFriendship(viewerId, otherId);
     refresh({ kind: "friendship", otherId });
+  },
+
+  async loadGroups(viewerId): Promise<FriendGroup[]> {
+    const groups = await listGroupsFor(viewerId);
+    return groups.map((g) => ({ id: g.id, name: g.name, members: g.members.map(toPerson) }));
+  },
+
+  async loadPastTripPeople(viewerId): Promise<PastTripPeople[]> {
+    const trips = await listPastTripsFor(viewerId, today());
+    return trips.map((t) => ({ ...t, people: t.people.map(toPerson) }));
+  },
+
+  async createGroup(viewerId, input) {
+    const id = await createGroup(viewerId, input);
+    refresh({ kind: "friendGroups" });
+    return id;
+  },
+
+  async saveGroup(viewerId, groupId, input) {
+    await saveGroup(viewerId, groupId, input);
+    refresh({ kind: "friendGroups" });
+  },
+
+  async setGroupMember(viewerId, groupId, userId, on) {
+    await setGroupMember(viewerId, groupId, userId, on);
+    refresh({ kind: "friendGroups" });
+  },
+
+  async deleteGroup(viewerId, groupId) {
+    await deleteGroup(viewerId, groupId);
+    refresh({ kind: "friendGroups" });
   },
 
   async loadProfileOf(viewerId, userId): Promise<PublicProfileView | null> {

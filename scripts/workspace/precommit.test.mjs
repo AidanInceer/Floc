@@ -6,6 +6,7 @@ const labels = (staged) => planPreCommit(staged).map(([label]) => label);
 
 test("a docs-only commit runs the repo rules and the staged-file checks, no source analysis", () => {
   assert.deepEqual(labels(["floc/FILES.md"]), ["repo rules", "staged files"]);
+  assert.deepEqual(labels(["floc/wireframe/pick-a/tui.ts"]), ["repo rules", "staged files"]);
 });
 
 test("a source change adds the quality lint CI runs", () => {

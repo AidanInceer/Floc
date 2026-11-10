@@ -70,5 +70,5 @@ human-*.md
 # Firebase config for Android push (#345). On EAS it comes from the GOOGLE_SERVICES_JSON file variable.
 floc/apps/mobile/google-services.json
 
-# Prototypes: local only, served on :4100 by scripts/wireframe-server.mjs.
-floc/wireframe/
+# Wireframe screenshots are local. The source is tracked.
+/floc/wireframe/**/_shots/

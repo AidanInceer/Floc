@@ -15,7 +15,7 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text-summary", "html", "lcov"],
       include: ["src/**/*.ts"],
-      exclude: ["src/**/*.test.ts", "src/router.ts"],
+      exclude: ["src/**/*.test.ts"],
       thresholds: { lines: 80, functions: 80, branches: 80, statements: 80 },
     },
   },

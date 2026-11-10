@@ -23,9 +23,10 @@ detail blocks correct work.
 `pnpm workspace:start web` in the background and `preview_start` on the URL from
 `pnpm workspace:status`. Parallel changes never share one.
 
-Built from a prototype? Make sure its `wf-status` reads `Chosen: <key>` before you
-start. Set it now if the user picked in chat
-([the tag follows the work](../prototype/SKILL.md#the-tag-follows-the-work)).
+Built from a prototype? Record the pick and prune the rejected variants before
+building. Keep the chosen variant and explicit experiments. Follow
+[Close a round](../prototype/SKILL.md#close-a-round) and include the deletions
+in the implementation PR.
 
 ## 2. Both surfaces running
 

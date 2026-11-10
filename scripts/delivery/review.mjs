@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { digest } from "../checks/receipts.mjs";
 import { git } from "./process.mjs";
 
-const UI = /^floc\/.*\.(tsx|css)$/;
+const UI = /^floc\/(?!wireframe\/).*\.(tsx|css)$/;
 const RULES = ".claude/rules/design.md";
 
 /** A review covers one exact UI diff plus the design card it was judged against. */

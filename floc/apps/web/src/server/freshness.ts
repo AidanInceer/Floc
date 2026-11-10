@@ -39,6 +39,7 @@ export type Fact =
   | { kind: "profileTrips" }
   | { kind: "packingKits" }
   | { kind: "friendship"; otherId: string }
+  | { kind: "friendGroups" }
   | { kind: "inbox" }
   | { kind: "bell" }
   | { kind: "explore" }
@@ -91,6 +92,8 @@ const PAGES: Pages = {
   profileTrips: () => [{ path: "/profile" }],
   packingKits: () => [{ path: "/lists/packing" }],
   friendship: ({ otherId }) => [{ path: "/friends" }, { path: `/profile/${otherId}` }],
+  // Why: the new-trip sheet on /trips ticks people by group (#545).
+  friendGroups: () => [{ path: "/friends" }, { path: "/trips" }],
   inbox: () => [{ path: "/inbox" }],
   // The bell hangs off the root layout, so it is stale on every page at once.
   bell: () => [{ path: "/", type: "layout" }],

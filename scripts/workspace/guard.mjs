@@ -61,7 +61,7 @@ if (process.argv[1] && resolve(process.argv[1]).toLowerCase() === resolve(fileUR
       process.exitCode = 2;
     } else if (!verdict.allow) {
       process.stderr.write(`Blocked: ${verdict.rel} is a repo file in the main checkout (${verdict.top}). `
-        + "The main checkout only shapes work (floc/wireframe, docs, mockups). Build in a task worktree: "
+        + "Edit tracked source, including wireframes, in a task worktree: "
         + "pnpm workspace:new <name>, then work in that folder.\n");
       process.exitCode = 2;
     }
