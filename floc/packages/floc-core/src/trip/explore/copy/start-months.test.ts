@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { copyWindow, startMonths } from "./start-months";
+import { copyWindow, startMonths, windowOf } from "./start-months";
 
 const listing = { nights: 12, bestMonths: "March to May, September to November" };
 
@@ -32,5 +32,29 @@ describe("copyWindow", () => {
 
   it("answers null for a month the listing does not name", () => {
     expect(copyWindow(listing, 7, "2026-10-22")).toBeNull();
+  });
+});
+
+describe("windowOf", () => {
+  const pick = (startDate: string | null, month: number | null = null) => ({ startDate, month });
+
+  it("runs a picked start day for the listing's nights", () => {
+    expect(windowOf(listing, pick("2027-06-12"), "2026-10-22")).toEqual({ startDate: "2027-06-12", endDate: "2027-06-24" });
+  });
+
+  it("takes the start day over a month when a request sends both", () => {
+    expect(windowOf(listing, pick("2027-06-12", 4), "2026-10-22")?.startDate).toBe("2027-06-12");
+  });
+
+  it.each(["2026-10-22", "2026-10-01"])("reads a start day of %s, today or gone, as no dates", (day) => {
+    expect(windowOf(listing, pick(day), "2026-10-22")).toBeNull();
+  });
+
+  it("still dates a best month from an older app that sends only the month", () => {
+    expect(windowOf(listing, pick(null, 4), "2026-10-22")).toEqual({ startDate: "2027-04-01", endDate: "2027-04-13" });
+  });
+
+  it("answers null when nothing is picked", () => {
+    expect(windowOf(listing, pick(null), "2026-10-22")).toBeNull();
   });
 });

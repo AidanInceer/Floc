@@ -66,6 +66,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - Rows on one surface beat cards for everything. No borders around borders, no boxes inside boxes.
 - Below a panel's coloured head, every part — a field or a section — takes one title style and is ruled off edge to edge from the part above (`panelTitleClass`, `panelBandClass` in `ui.tsx`). A part whose controls name themselves (the event type tiles) needs no title. An empty part shows its button, not a sentence about being empty.
 - A field draws one focus ring: the outline sits on the border, never a blue border plus an outline outside it.
+- A date is picked on Floc's own month calendar (the Dates grid), never the browser's or the phone's native date picker.
 - A text field is the house field (`Input`, `Textarea`): mono, hover to a darker border. Inside a panel, a field that holds prose — a place name, a note — is the same field in sans (`panelFieldClass`). No third field style.
   - One exception: the top of My trips joins a house field, its mono label inside in `ink-2`, to New trip. The pair is one control: the button turns pen once a name is typed and shows hover in colour only, never a lift (`new-trip-field.tsx`).
 - Text never overlaps or clips. Test long names (South Africa, Bosnia and Herzegovina), many items and empty states. A chip fits its slot unless the name is long, then it wraps cleanly.
@@ -91,6 +92,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - Start a round close to the current design, cleaner and simpler. Show neighbouring sections as ghosts so a variant is never judged alone.
 - Mockups open in light with a light/dark switch, and use the kit's real tokens (`/_house/`).
 - `frontend-design` helps with craft; this card and the visual language win over its defaults. No gradients, glow or novelty.
+- A mockup copies the live site's type: sheet title, part titles, row labels and hints at the web's sizes and weights, so a round is judged on structure, not on drifted type.
 - A build matches the chosen mockup. Put them side by side at 1280 and 375 before calling it done.
 
 ## Before you say done

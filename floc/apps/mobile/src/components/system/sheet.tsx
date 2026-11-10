@@ -30,10 +30,13 @@ export function Sheet({
   open,
   onClose,
   children,
+  footer,
 }: {
   open: boolean;
   onClose: () => void;
   children: ReactNode;
+  /** Pinned under the scrolling body, so its buttons stay in reach. */
+  footer?: ReactNode;
 }) {
   const { c } = useTheme();
   const reducedMotion = useReducedMotion();
@@ -63,6 +66,7 @@ export function Sheet({
           }}
         >
           <ScrollView>{children}</ScrollView>
+          {footer}
         </View>
       </View>
     </Modal>

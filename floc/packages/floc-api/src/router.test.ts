@@ -1,5 +1,5 @@
 /**
- * What this router is *for* is the gate, so that is what is tested: who gets
+ * Why: what this router is *for* is the gate, so that is what is tested: who gets
  * refused, and what a refusal gives away. The data behind it is a port, driven
  * here by a fake — asserting the query would be asserting the web app's
  * `server/` modules a second time, which their own tests already do.
@@ -126,13 +126,24 @@ describe("starting a trip from a listing", () => {
   it("reads a bare listing id as the undated copy an older app asks for", async () => {
     const { caller: ana, port } = caller("u1");
     await ana.trips.startFromPreset({ presetId: "japan-golden-route" });
-    expect(port.startTripFromPreset).toHaveBeenCalledWith("u1", { presetId: "japan-golden-route", month: null, ideas: true, events: true });
+    expect(port.startTripFromPreset).toHaveBeenCalledWith("u1", { presetId: "japan-golden-route", month: null, startDate: null, ideas: true, events: true });
   });
 
-  it("passes the month and both switches through", async () => {
+  it("passes an older app's month and both switches through", async () => {
     const { caller: ana, port } = caller("u1");
     await ana.trips.startFromPreset({ presetId: "japan-golden-route", month: 4, ideas: false, events: true });
-    expect(port.startTripFromPreset).toHaveBeenCalledWith("u1", { presetId: "japan-golden-route", month: 4, ideas: false, events: true });
+    expect(port.startTripFromPreset).toHaveBeenCalledWith("u1", { presetId: "japan-golden-route", month: 4, startDate: null, ideas: false, events: true });
+  });
+
+  it("passes a start day through", async () => {
+    const { caller: ana, port } = caller("u1");
+    await ana.trips.startFromPreset({ presetId: "japan-golden-route", startDate: "2027-06-12" });
+    expect(port.startTripFromPreset).toHaveBeenCalledWith("u1", { presetId: "japan-golden-route", month: null, startDate: "2027-06-12", ideas: true, events: true });
+  });
+
+  it("refuses a start day that is not a date", async () => {
+    const { caller: ana } = caller("u1");
+    await expect(ana.trips.startFromPreset({ presetId: "x", startDate: "12/06/2027" })).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
   it("refuses a month that is not one", async () => {

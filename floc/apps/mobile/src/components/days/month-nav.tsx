@@ -7,11 +7,11 @@ import { IconButton } from "../system/ui";
 import { fonts, size, space } from "@/lib/theme";
 
 /** The month, with a square step either side — a rounded-square control, never a text "‹" in an oval. */
-export function MonthNav({ month, onChange }: { month: IsoMonth; onChange: (month: IsoMonth) => void }) {
+export function MonthNav({ month, onChange, min }: { month: IsoMonth; onChange: (month: IsoMonth) => void; min?: IsoMonth }) {
   const { c } = useTheme();
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
-      <IconButton label="Previous month" onPress={() => onChange(addMonths(month, -1))}>
+      <IconButton label="Previous month" disabled={min !== undefined && month <= min} onPress={() => onChange(addMonths(month, -1))}>
         {(ink) => (
           <View style={{ transform: [{ rotate: "90deg" }] }}>
             <ChevronGlyph color={ink} />
