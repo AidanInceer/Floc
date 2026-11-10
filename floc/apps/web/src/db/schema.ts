@@ -269,6 +269,40 @@ export const friendship = sqliteTable(
   ],
 );
 
+/**
+ * A named group of people to start a trip with (#545). Private to its owner: members are never
+ * told. Who may still be in it is worked out at read time (rule 4), so a member who drops out
+ * keeps their row and is filtered, not deleted.
+ */
+export const friendGroup = sqliteTable(
+  "friend_group",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    ownerUserId: text("owner_user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    ...audit,
+  },
+  (t) => [index("friend_group_owner_idx").on(t.ownerUserId)],
+);
+
+// Why unique with no `deleted_at` in it: re-adding someone revives their row, as trip invites do.
+export const friendGroupMember = sqliteTable(
+  "friend_group_member",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    groupId: integer("group_id")
+      .notNull()
+      .references(() => friendGroup.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    ...audit,
+  },
+  (t) => [uniqueIndex("friend_group_member_pair_idx").on(t.groupId, t.userId)],
+);
+
 export const trip = sqliteTable(
   "trip",
   {

@@ -11,6 +11,7 @@ import { commentsRouter } from "./routers/comments";
 import { exploreRouter } from "./routers/explore";
 import { filesRouter } from "./routers/files";
 import { friendsRouter } from "./routers/friends";
+import { groupsRouter } from "./routers/groups";
 import { ideasRouter } from "./routers/itinerary/ideas";
 import { invitesRouter } from "./routers/invites";
 import { itineraryRouter } from "./routers/itinerary/itinerary";
@@ -40,6 +41,7 @@ export const appRouter = router({
   money: moneyRouter,
   roster: rosterRouter,
   friends: friendsRouter,
+  groups: groupsRouter,
   people: peopleRouter,
   invites: invitesRouter,
   files: filesRouter,

@@ -94,6 +94,38 @@ describe("asking someone by name", () => {
     expect(await invitesFor(world.ours.id)).toEqual([]);
   });
 
+  describe("someone on a trip with you who is not a friend (#545)", () => {
+    const askOntoNext = async (toUserId: string) => {
+      const next = await db
+        .insert(schema.trip)
+        .values({ name: "Next", createdBy: world.admin, inviteToken: "t-next" })
+        .returning({ id: schema.trip.id })
+        .get();
+      await db.insert(schema.tripMembership).values({ tripId: next.id, userId: world.admin, role: "admin" });
+      return inviteToTrip({ tripId: next.id, fromUserId: world.admin, toUserIds: [toUserId] });
+    };
+
+    it("is asked while the trip you share is live", async () => {
+      expect(await askOntoNext(world.member)).toBe(1);
+    });
+
+    it("is not asked once the trip you share is deleted", async () => {
+      await softDeleteTrip(world.ours.id);
+      expect(await askOntoNext(world.member)).toBe(0);
+    });
+
+    it("is not asked once they are off the trip you share", async () => {
+      await removeMembership(world.ours.id, world.member, world.admin);
+      expect(await askOntoNext(world.member)).toBe(0);
+    });
+  });
+
+  it("never asks a guest, even a friend (ADR-029)", async () => {
+    await db.insert(schema.user).values({ id: "u-guest", name: "Guest", email: "u-guest@example.test", isAnonymous: true });
+    await befriend(world.admin, "u-guest");
+    expect(await ask(["u-guest"])).toBe(0);
+  });
+
   it("skips people already on the roster, and yourself", async () => {
     const n = await ask([world.admin, world.member, world.outsider, world.outsider]);
     expect(n).toBe(1);

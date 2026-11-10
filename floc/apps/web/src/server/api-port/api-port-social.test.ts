@@ -15,6 +15,8 @@
  */
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
+import { eq } from "drizzle-orm";
+
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { webPort } from "@/server/api-port/api-port";
@@ -204,5 +206,37 @@ describe("deleting a trip (rule 6, rule 8)", () => {
     expect(await webPort.loadTrip(world.admin, world.ours.id)).toBeNull();
     expect(await webPort.loadTrip(world.member, world.ours.id)).toBeNull();
     expect(await webPort.listTrips(world.member, { archived: false })).toEqual([]);
+  });
+});
+
+describe("groups through the port (#545)", () => {
+  it("creates a group of a co-traveller and reads it back", async () => {
+    const id = await webPort.createGroup(world.admin, { name: "Uni lot", memberIds: [world.member] });
+    expect(await webPort.loadGroups(world.admin)).toMatchObject([
+      { id, name: "Uni lot", members: [{ id: world.member, name: "Mo" }] },
+    ]);
+  });
+
+  it("refuses a stranger, so a group is no backdoor to anyone", async () => {
+    await expect(
+      webPort.createGroup(world.admin, { name: "Nope", memberIds: [world.outsider] }),
+    ).rejects.toThrow("You can only add friends and people on a trip with you.");
+  });
+
+  it("hides a deleted group, and only its maker sees one", async () => {
+    const id = await webPort.createGroup(world.admin, { name: "Uni lot", memberIds: [world.member] });
+    expect(await webPort.loadGroups(world.member)).toEqual([]);
+    await webPort.deleteGroup(world.admin, id);
+    expect(await webPort.loadGroups(world.admin)).toEqual([]);
+  });
+
+  it("lists an ended trip with its people", async () => {
+    await db
+      .update(schema.trip)
+      .set({ startDate: "2026-02-01", endDate: "2026-02-05" })
+      .where(eq(schema.trip.id, world.ours.id));
+    expect(await webPort.loadPastTripPeople(world.admin)).toMatchObject([
+      { id: world.ours.id, name: "Ours", people: [{ id: world.member }] },
+    ]);
   });
 });

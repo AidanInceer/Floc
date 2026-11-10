@@ -3,7 +3,8 @@
  * act on, outgoing requests still pending, and finding someone new by name or
  * full friend tag — never by email address.
  */
-import { acceptFriend, declineFriend, cancelRequest, removeFriend } from "./actions";
+import { acceptFriend, declineFriend, cancelRequest } from "./actions";
+import { today } from "@floc/core/dates/dates";
 import { requireUser } from "@/server/access";
 import {
   coTripNameFor,
@@ -13,11 +14,13 @@ import {
   syncCompletedCoTripFriendships,
   type Person,
 } from "@/server/social/friends";
-import { Avatar, EmptyState, PageTitle, menuDangerItemClass } from "@/components/system/ui";
-import { ConfirmSubmit, CopyLink, Menu, SubmitButton } from "@/components/system/client-ui";
-import { PersonLink } from "@/components/social/person-link";
+import { PageTitle } from "@/components/system/ui";
+import { CopyLink, SubmitButton } from "@/components/system/client-ui";
+import { FriendRow } from "@/components/social/friend-row";
+import { FriendsBoard } from "@/components/social/groups/friends-board";
 import { FindFriend } from "@/components/social/find-friend";
 import { friendCodeFor } from "@/server/social/friend-code";
+import { listGroupsFor, listPastTripsFor } from "@/server/social/groups";
 
 const UNKNOWN = (id: string): Person => ({
   id,
@@ -34,7 +37,12 @@ export default async function FriendsPage() {
   // into a friendship the next time either party loads this page.
   await syncCompletedCoTripFriendships(viewer.id);
 
-  const [rows, tag] = await Promise.all([listFriendshipsFor(viewer.id), friendCodeFor(viewer.id)]);
+  const [rows, tag, groups, pastTrips] = await Promise.all([
+    listFriendshipsFor(viewer.id),
+    friendCodeFor(viewer.id),
+    listGroupsFor(viewer.id),
+    listPastTripsFor(viewer.id, today()),
+  ]);
   const { accepted, incoming, outgoing } = splitFriendships(rows, viewer.id);
 
   const otherIdOf = (r: (typeof rows)[number]) => (r.userId === viewer.id ? r.friendId : r.userId);
@@ -119,73 +127,10 @@ export default async function FriendsPage() {
           </div>
         </div>
 
-        <div className="mt-7 flex items-baseline justify-between gap-3">
-          <h2 className="text-[0.95rem] font-semibold">Your friends</h2>
-          <span className="nums font-mono text-xs text-ink-soft">{acceptedPeople.length}</span>
-        </div>
-        {acceptedPeople.length === 0 ? (
-          <EmptyState title="No friends yet" />
-        ) : (
-          <ul className="mt-2.5 border-t border-rule">
-            {acceptedPeople.map(({ person, metOn }) => (
-              // Accepted friends only link through — a pending request doesn't put you in anyone's ring yet (ticket 46).
-              <FriendRow
-                key={person.id}
-                person={person}
-                note={metOn ? `Met on ${metOn}` : null}
-                linked
-              >
-                <Menu label={`More for ${person.name}`}>
-                  <form action={removeFriend}>
-                    <input type="hidden" name="otherId" value={person.id} />
-                    <ConfirmSubmit
-                      variant="ghost"
-                      message={`Remove ${person.name} as a friend?`}
-                      confirmLabel="Remove friend"
-                      className={menuDangerItemClass}
-                    >
-                      Remove friend
-                    </ConfirmSubmit>
-                  </form>
-                </Menu>
-              </FriendRow>
-            ))}
-          </ul>
-        )}
+        <FriendsBoard friends={acceptedPeople} groups={groups} pastTrips={pastTrips} />
       </div>
     </div>
   );
 }
 
 const SMALL = "!min-h-0 !px-2.5 !py-1 !text-xs";
-
-function FriendRow({
-  person,
-  note,
-  linked,
-  children,
-}: {
-  person: Person;
-  note?: string | null;
-  linked?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <li className="flex min-h-15 items-center gap-3 border-b border-rule px-1 py-2">
-      {linked ? (
-        <PersonLink
-          userId={person.id}
-          name={person.name}
-          size={34}
-        />
-      ) : (
-        <Avatar name={person.name} size={34} />
-      )}
-      <div className="flex min-w-0 flex-1 flex-col leading-snug">
-        <span className="truncate text-sm font-medium">{person.name}</span>
-        {note ? <span className="text-xs text-ink-soft">{note}</span> : null}
-      </div>
-      <div className="flex shrink-0 items-center gap-1.5">{children}</div>
-    </li>
-  );
-}

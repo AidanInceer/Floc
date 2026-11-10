@@ -367,10 +367,12 @@ export function Segmented<T extends string>({
   options,
   value,
   onChange,
+  soft,
 }: {
   options: readonly { value: T; label: string; icon?: (color: string) => ReactNode }[];
   value: T;
   onChange: (value: T) => void;
+  soft?: boolean;
 }) {
   const { c } = useTheme();
   return (
@@ -399,15 +401,15 @@ export function Segmented<T extends string>({
               gap: space.xs,
               paddingVertical: space.sm,
               borderRadius: radius.sm,
-              backgroundColor: on ? c.sheet : "transparent",
-              borderWidth: on ? StyleSheet.hairlineWidth : 0,
+              backgroundColor: on ? c[soft ? "pen-2" : "sheet"] : "transparent",
+              borderWidth: on && !soft ? StyleSheet.hairlineWidth : 0,
               borderColor: c.rule,
             }}
           >
             {option.icon?.(on ? c.ink : c["ink-2"])}
             <Text
               style={{
-                color: on ? c.ink : c["ink-2"],
+                color: on ? c[soft ? "pen-deep" : "ink"] : c["ink-2"],
                 fontFamily: on ? fonts.sansBold : fonts.sans,
                 fontSize: size.small,
               }}

@@ -26,10 +26,8 @@ import { touch } from "@/server/audit";
 import { refresh } from "@/server/freshness";
 import { ensureProfile } from "@/server/auth/profile";
 import { addMember, countMembers, isLiveMember } from "@/server/trips/roster";
-import { acceptedFriendIdsOf } from "@/server/social/friends";
+import { invitableIdsOf } from "@/server/social/groups";
 import { recordActivity } from "@/server/notifications/activity";
-
-/* --------------------------------------------------------- the share link */
 
 /** Pre-auth teaser fields only (ticket 118) — no roster/money/notes; host name only, not email/id (ticket 147). */
 export type InviteTrip = {
@@ -69,8 +67,6 @@ export async function findTripByInviteToken(
   };
 }
 
-/* -------------------------------------------------------- the named invite */
-
 /** One open invite, as the invitee's own /trips banner needs to render it. */
 export type PendingInvite = {
   tripId: number;
@@ -83,7 +79,7 @@ export type PendingInvite = {
   invitedAt: Date;
 };
 
-/** Anyone not a friend, or already on the roster, is dropped, not rejected — not worth failing the others over. */
+/** Anyone you could not ask, or already on the roster, is dropped, not rejected — not worth failing the others over. */
 export async function inviteToTrip(args: {
   tripId: number;
   fromUserId: string;
@@ -91,9 +87,10 @@ export async function inviteToTrip(args: {
 }): Promise<number> {
   const { tripId, fromUserId } = args;
 
-  // Why friends only: the picker offers friends, and a crafted id must not reach a stranger's inbox.
-  const friends = new Set(await acceptedFriendIdsOf(fromUserId));
-  const wanted = [...new Set(args.toUserIds)].filter((id) => id !== fromUserId && friends.has(id));
+  // Why: a crafted id must not reach a stranger's inbox. Friends and people on a live trip with you only, never a guest (#545, ADR-029).
+  const requested = [...new Set(args.toUserIds)];
+  const invitable = await invitableIdsOf(fromUserId, requested);
+  const wanted = requested.filter((id) => invitable.has(id));
   if (wanted.length === 0) return 0;
 
   const alreadyIn = await db
@@ -297,13 +294,9 @@ async function settleInvite(
     );
 }
 
-/* ------------------------------------------------------ walking in the door */
-
 /**
- * Everything joining a trip means, whichever door was used. The profile is
- * lazy for anyone who joined by link before signup wired one up; settling
- * covers somebody asked by name who used the link instead — a pending row left
- * behind would keep badging the chrome for a trip they are already on.
+ * Why: settling covers somebody asked by name who used the link instead — a pending
+ * row left behind would keep badging the chrome for a trip they are already on.
  */
 async function admit(tripId: number, userId: string): Promise<void> {
   // Why: every roster read stops at the ceiling, so a member past it would silently vanish.

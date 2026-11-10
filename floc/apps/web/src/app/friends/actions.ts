@@ -19,7 +19,9 @@ import {
 import { mayAskToBeFriends } from "@/server/social/find-friends";
 import { requestByCode } from "@/server/social/friend-code";
 import { searchFriends } from "@/server/social/friend-search";
+import { createGroup, deleteGroup, saveGroup, setGroupMember, type GroupInput } from "@/server/social/groups";
 import { refresh } from "@/server/freshness";
+import { isRefusal } from "@floc/core/errors/refusal";
 
 /**
  * Opens a request by id (ticket 96). The id is never trusted alone: the
@@ -94,4 +96,34 @@ export async function removeFriend(formData: FormData): Promise<void> {
   await dropFriendship(viewer.id, otherId);
 
   refresh({ kind: "friendship", otherId });
+}
+
+type Outcome = { error?: string; id?: number };
+
+async function asGroupWrite(write: (viewerId: string) => Promise<number | void>): Promise<Outcome> {
+  const viewer = await requireUser();
+  try {
+    const id = await write(viewer.id);
+    refresh({ kind: "friendGroups" });
+    return typeof id === "number" ? { id } : {};
+  } catch (error) {
+    if (isRefusal(error)) return { error: error.message };
+    throw error;
+  }
+}
+
+export async function createGroupAction(input: GroupInput): Promise<Outcome> {
+  return asGroupWrite((viewerId) => createGroup(viewerId, input));
+}
+
+export async function saveGroupAction(groupId: number, input: GroupInput): Promise<Outcome> {
+  return asGroupWrite((viewerId) => saveGroup(viewerId, groupId, input));
+}
+
+export async function setGroupMemberAction(groupId: number, userId: string, on: boolean): Promise<Outcome> {
+  return asGroupWrite((viewerId) => setGroupMember(viewerId, groupId, userId, on));
+}
+
+export async function deleteGroupAction(groupId: number): Promise<Outcome> {
+  return asGroupWrite((viewerId) => deleteGroup(viewerId, groupId));
 }

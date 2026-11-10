@@ -9,7 +9,7 @@
  * A rule with two enforcement paths needs a test on both.
  */
 import { parseTagNames } from "@floc/core/trip/tags";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
@@ -30,6 +30,26 @@ describe("who can see a trip (rule 5)", () => {
     const trip = await webPort.loadTrip(world.member, world.ours.id);
     expect(trip?.name).toBe("Ours");
     expect(trip?.role).toBe("member");
+  });
+
+  it("sends one invite to a selected co-member when the phone creates a trip (#545)", async () => {
+    const input = { name: "Next trip", startDate: null, endDate: null, friendIds: [world.member, world.member, world.outsider] };
+    const { id } = await webPort.createTrip(world.admin, input);
+    const { pending } = await webPort.loadTripInvites(world.admin, id);
+    expect(pending.map((person) => person.id)).toEqual([world.member]);
+    expect(await webPort.loadTrip(world.member, id)).toBeNull();
+  });
+
+  it("brings a used group to the front of the picker (#545)", async () => {
+    const first = await webPort.createGroup(world.admin, { name: "First", memberIds: [world.member] });
+    const second = await webPort.createGroup(world.admin, { name: "Second", memberIds: [world.member] });
+    await db.update(schema.friendGroup).set({ lastModifiedAt: new Date("2026-01-01") }).where(eq(schema.friendGroup.id, second));
+    await db.update(schema.friendGroup).set({ lastModifiedAt: new Date("2025-01-01") }).where(eq(schema.friendGroup.id, first));
+
+    await webPort.createTrip(world.admin, {
+      name: "Next trip", startDate: null, endDate: null, friendIds: [world.member], groupIds: [first],
+    });
+    expect((await webPort.loadGroups(world.admin)).map(({ id }) => id)).toEqual([first, second]);
   });
 
   it("gives a trip's name capitals when it is made and when it is renamed, as the web does (#573)", async () => {

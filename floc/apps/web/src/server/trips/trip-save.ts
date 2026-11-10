@@ -14,6 +14,9 @@ import type { TripAccess } from "@/server/access";
 import { ensureProfile } from "@/server/auth/profile";
 import { refresh } from "@/server/freshness";
 import { setTripWindow } from "@/server/itinerary/itinerary";
+import { touchUsedGroups } from "@/server/social/groups";
+import type { NewTrip } from "@floc/api/port";
+import { inviteToTrip } from "./invites";
 import { createTripWithAdmin, tripsHeldBy, updateTrip, type TripPatch } from "./trips";
 
 function nameOrRefuse(raw: unknown): string {
@@ -25,13 +28,21 @@ function nameOrRefuse(raw: unknown): string {
 /** A new trip with its maker as admin. The lazy profile row comes first: without it the roster shows a nameless admin. */
 export async function startTrip(
   viewerId: string,
-  input: { name: unknown; startDate: string | null; endDate: string | null },
+  input: Omit<NewTrip, "name"> & { name: unknown },
 ): Promise<number> {
   const name = nameOrRefuse(input.name);
   // Why together: the count is for the trips cap, and reading it beside the profile saves a round trip.
   const [, held] = await Promise.all([ensureProfile(viewerId), tripsHeldBy(viewerId)]);
   const id = await createTripWithAdmin({ name, startDate: input.startDate, endDate: input.endDate, createdBy: viewerId }, held);
   refresh({ kind: "tripList" });
+  if (input.friendIds?.length) {
+    const sent = await inviteToTrip({ tripId: id, fromUserId: viewerId, toUserIds: input.friendIds });
+    if (sent && input.groupIds?.length) {
+      await touchUsedGroups(viewerId, input.groupIds, input.friendIds);
+      refresh({ kind: "friendGroups" });
+    }
+    refresh({ kind: "invites" });
+  }
   return id;
 }
 
