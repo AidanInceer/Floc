@@ -6,22 +6,16 @@ import { redirect } from "next/navigation";
 
 import { readOptionalIsoDate } from "@floc/core/dates/dates";
 import { localPath } from "@floc/core/text/local-path";
-import { capRequiredText, properCase } from "@floc/core/text/text";
-import { isTripColor } from "@floc/core/trip/trip-color";
-import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import { renameTrip as validateAndRenameTrip } from "@/app/trip/[id]/overview/actions";
 import { assertAdmin, requireTripAccess, requireUser } from "@/server/access";
 import { acceptInvite, declineInvite, inviteToTrip } from "@/server/trips/invites";
+import { saveTrip, startTrip } from "@/server/trips/trip-save";
 import {
-  createTripWithAdmin,
-  tripsHeldBy,
   setTripArchived,
   setTripMuted,
   setTripStarred,
   softDeleteTrip,
-  updateTrip,
 } from "@/server/trips/trips";
-import { ensureProfile } from "@/server/auth/profile";
 import { LIMITS } from "@/server/limits";
 import { refresh } from "@/server/freshness";
 
@@ -29,8 +23,6 @@ import { refresh } from "@/server/freshness";
 // optional and never guessed at.
 export async function createTrip(formData: FormData): Promise<void> {
   const viewer = await requireUser("/trips");
-  const name = properCase(capRequiredText(formData.get("name"), "tripName"));
-  if (!name) throw new Error("A trip needs a name");
 
   // Empty is fine (rule 9), but unparseable is not — creating the trip
   // undated would quietly discard what was typed.
@@ -40,14 +32,7 @@ export async function createTrip(formData: FormData): Promise<void> {
     throw new Error("Those dates aren't days");
   }
 
-  const [, held] = await Promise.all([ensureProfile(viewer.id), tripsHeldBy(viewer.id)]);
-
-  const tripId = await createTripWithAdmin({
-    name,
-    startDate,
-    endDate,
-    createdBy: viewer.id,
-  }, held);
+  const tripId = await startTrip(viewer.id, { name: formData.get("name"), startDate, endDate });
 
   // Optional; `inviteToTrip` decides who's really invitable — this only
   // passes on what was ticked.
@@ -56,7 +41,6 @@ export async function createTrip(formData: FormData): Promise<void> {
     await inviteToTrip({ tripId, fromUserId: viewer.id, toUserIds: friendIds });
   }
 
-  refresh({ kind: "tripList" });
   redirect(`/trip/${tripId}/overview`);
 }
 
@@ -113,36 +97,13 @@ export async function renameTripFromMenu(formData: FormData): Promise<void> {
 // and tags (rule 6) — not one of the admin powers. An unknown value clears
 // it back to the id-rotation default rather than throwing (rule 11).
 export async function setTripColor(formData: FormData): Promise<void> {
-  const tripId = Number(formData.get("tripId"));
-  const raw = String(formData.get("color") ?? "");
-  const color = isTripColor(raw) ? raw : null;
-
-  const access = await requireTripAccess(tripId);
-
-  await updateTrip(access.trip.id, { colorKey: color });
-
-  refresh(
-    { kind: "tripList" },
-    { kind: "tripHeader", tripId: access.trip.id },
-    { kind: "tripOverview", tripId: access.trip.id },
-  );
+  await saveTrip(await requireTripAccess(Number(formData.get("tripId"))), { colorKey: String(formData.get("color") ?? "") });
 }
 
 // The trip's mark (#318). Cosmetic, so open to any member like the colour it
 // sits beside. An unknown value clears it, leaving the pastel alone (rule 11).
 export async function setTripMark(formData: FormData): Promise<void> {
-  const tripId = Number(formData.get("tripId"));
-  const mark = readTripMark(formData.get("mark"));
-
-  const access = await requireTripAccess(tripId);
-
-  await updateTrip(access.trip.id, { mark });
-
-  refresh(
-    { kind: "tripList" },
-    { kind: "tripHeader", tripId: access.trip.id },
-    { kind: "tripOverview", tripId: access.trip.id },
-  );
+  await saveTrip(await requireTripAccess(Number(formData.get("tripId"))), { mark: String(formData.get("mark") ?? "") });
 }
 
 // Your own star. Any member, not an admin power (rule 6).

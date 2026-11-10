@@ -74,9 +74,11 @@ export default async function FilesPage({
 
           <div className="mt-5 flex items-center justify-between gap-3">
             <div className="scroll-x-bare flex min-w-0 flex-1 items-center gap-1">
-              <FilterPill href={href("all")} on={category === "all"}>
-                All
-              </FilterPill>
+              {docs.length > 0 || category !== "all" ? (
+                <FilterPill href={href("all")} on={category === "all"}>
+                  All
+                </FilterPill>
+              ) : null}
               {DOC_CATEGORIES.map((c) => {
                 const n = docs.filter((d) => d.category === c).length;
                 // A heading nothing is filed under is a control that does
@@ -214,7 +216,7 @@ function FilterPill({
       className={cx(
         "shrink-0 whitespace-nowrap rounded-sm border px-3 py-1.5 text-xs transition-colors",
         on
-          ? "border-ink bg-ink text-sheet"
+          ? "border-transparent bg-pen-soft text-pen-deep"
           : "border-transparent text-ink-soft hover:border-rule-strong hover:text-ink",
       )}
     >

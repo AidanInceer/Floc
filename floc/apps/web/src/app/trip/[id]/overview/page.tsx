@@ -19,6 +19,7 @@ import { tripStateFor } from "@floc/core/trip/trip-state";
 import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
 import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import { readTags } from "@floc/core/trip/tags";
+import { markedUserIds } from "@floc/core/dates/availability";
 import { hasEnded, nightsBetween, today, underway } from "@floc/core/dates/dates";
 import { tripLegs } from "@floc/core/trip/overview/legs";
 import { ideasTucked } from "@floc/core/trip/ideas";
@@ -102,7 +103,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
     today: now,
     viewerId: viewer.id,
     members: members.map((m) => ({ userId: m.userId, name: m.name })),
-    markedUserIds: [...new Set(availabilityRows.filter((r) => r.available).map((r) => r.userId))],
+    markedUserIds: markedUserIds(availabilityRows),
     ideas,
     settle: settle.rows,
     legs,

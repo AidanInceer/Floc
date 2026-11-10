@@ -63,7 +63,6 @@ export function PackingAddField({ add }: { add: (formData: FormData) => Promise<
       </label>
       <SubmitButton
         variant={filled ? "primary" : "secondary"}
-        pendingLabel="Adding…"
         disabled={!filled}
         className="shrink-0 !px-3 !py-1.5 max-sm:h-10"
       >

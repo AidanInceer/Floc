@@ -4,20 +4,19 @@
  * decision rather than making one.
  *
  * Why: the phone signs in with a bearer token and cannot put its header on a link, so a browser
- * handed the raw path lands on sign-in instead of the file. Signed with the session secret — no
- * second secret to leak, and rotating it kills every live link. `timingSafeEqual` because a check
- * that returns early tells an attacker how much of a guess was right.
+ * handed the raw path lands on sign-in instead of the file. Signed with `linkKey("file-view")`;
+ * rotating that kills every live link. `timingSafeEqual` because a check that returns early tells
+ * an attacker how much of a guess was right.
  */
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-import { requireInProduction } from "@/lib/env";
+import { linkKey } from "@/server/auth/links/link-key";
 
 // Two minutes: long enough to open a browser, short enough that a shared URL is dead.
 const LIFETIME_MS = 2 * 60 * 1000;
 
 function sign(documentId: number, expiresAt: number): string {
-  const secret = requireInProduction("BETTER_AUTH_SECRET", "dev-only-secret-change-me");
-  return createHmac("sha256", secret)
+  return createHmac("sha256", linkKey("file-view"))
     .update(`document:${documentId}:${expiresAt}`)
     .digest("base64url");
 }

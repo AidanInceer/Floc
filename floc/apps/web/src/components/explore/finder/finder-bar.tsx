@@ -21,7 +21,7 @@ function Pill({ dark = false, onClick, children }: { dark?: boolean; onClick: ()
       onClick={onClick}
       className={cx(
         "group inline-flex min-h-7 items-center gap-1.5 rounded-full pl-[11px] pr-2 text-[12.5px]",
-        dark ? "bg-ink text-paper" : "bg-sheet-3 text-ink",
+        dark ? "bg-pen-soft text-pen-deep" : "bg-sheet-3 text-ink",
       )}
     >
       {children}
@@ -80,7 +80,7 @@ export function SortPicker({ sort, onSort }: { sort: FinderSort; onSort: (sort: 
           onClick={() => onSort(key)}
           className={cx(
             "grid size-8 place-items-center rounded-sm transition-colors",
-            sort === key ? "bg-ink text-paper" : "text-ink-soft hover:bg-sheet-2 hover:text-ink",
+            sort === key ? "bg-pen-soft text-pen-deep" : "text-ink-soft hover:bg-sheet-2 hover:text-ink",
           )}
         >
           <LineIcon size={14}>{SORT_ICONS[key]}</LineIcon>

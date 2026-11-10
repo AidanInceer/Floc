@@ -29,7 +29,7 @@ function FoundRow({
       </div>
       {person.state === "none" ? (
         <form action={ask}>
-          <SubmitButton variant="secondary" pendingLabel="Asking…">
+          <SubmitButton variant="secondary">
             Add friend
           </SubmitButton>
         </form>

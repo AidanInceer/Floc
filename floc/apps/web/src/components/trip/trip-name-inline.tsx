@@ -96,7 +96,7 @@ export function TripNameInline({
             if (e.key === "Escape") setEditing(false);
           }}
         />
-        <SubmitButton variant="secondary" pendingLabel="Saving…">
+        <SubmitButton variant="secondary">
           Save
         </SubmitButton>
         <Button type="button" variant="ghost" onClick={() => setEditing(false)}>

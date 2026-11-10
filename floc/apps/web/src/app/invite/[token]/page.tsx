@@ -16,6 +16,7 @@ import { monthOf, thisMonth } from "@floc/core/dates/availability";
 import { formatDateRange } from "@floc/core/dates/dates";
 import { PageTitle } from "@/components/system/ui";
 import { DeadLink } from "@/components/guest/dead-link";
+import { guestAsk } from "@floc/core/people/guests";
 import { JoinControls } from "@/components/guest/join-controls";
 import { inviteAuthHrefs, inviteTrip, inviteViewer } from "./invite-access";
 
@@ -74,7 +75,7 @@ export default async function InvitePage({
       tripName={trip.name}
       hostName={trip.hostName}
       open={viewer.kind !== "guest"}
-      blurb={viewer.kind === "canJoin" ? "Join to plan with the group." : "Vote on the ideas and mark the days you can make."}
+      blurb={viewer.kind === "canJoin" ? "Join to plan with the group." : guestAsk({ dated: Boolean(dated), ideas: ideas.length })}
       actions={viewer.kind === "stranger" ? <GuestStart token={token}>{controls}</GuestStart> : controls}
     >
       <div className="mx-auto w-full max-w-[60rem] px-4 pb-20 pt-6 sm:px-6">

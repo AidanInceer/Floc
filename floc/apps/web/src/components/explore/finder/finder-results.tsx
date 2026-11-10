@@ -10,6 +10,7 @@ import { linkClass } from "@/components/explore/finder/finder-chip";
 import { CheckIcon } from "@/components/system/icons";
 import { ChevronIcon } from "@/components/system/icons";
 import { ButtonLink, cx } from "@/components/system/ui";
+import { startTripHref } from "@/lib/landing/start-trip";
 
 // Twelve tiles fill four rows of three, or six of two.
 const TILE_LIMIT = 12;
@@ -48,13 +49,12 @@ function Tags({ on = [], off = [], plain = [] }: { on?: TripTag[]; off?: TripTag
 
 /** A blank trip; from a want-to-go country on Lists it starts named after that country (#467). */
 function OwnTile({ signedIn, name }: { signedIn: boolean; name: string | null }) {
-  const start = name ? `/trips?new=${encodeURIComponent(name)}` : "/trips";
   return (
     <li className="col-span-full flex min-h-32 flex-col items-center justify-center text-center gap-1.5 rounded-md border-[1.5px] border-dashed border-rule-strong p-4">
       <span className={cx(tagClass, "border border-dashed border-rule-strong text-ink-soft")}>{name ?? "Anywhere"}</span>
       <strong className="font-display text-base font-semibold tracking-[-0.02em]">Your own</strong>
       <p className="text-[13px] text-ink-soft">{name ? "No dates yet. See who agrees." : "No dates, no destination. See who agrees."}</p>
-      <ButtonLink href={signedIn ? start : "/signup"} className="mt-2">
+      <ButtonLink href={name ? startTripHref(signedIn, name) : signedIn ? "/trips" : "/signup"} className="mt-2">
         Start blank
       </ButtonLink>
     </li>

@@ -24,7 +24,7 @@ export function FinderChip({
       className={cx(
         "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border transition-colors",
         small ? "min-h-7 px-2.5 text-xs" : "min-h-8 px-3 text-[13px]",
-        on ? "border-ink bg-ink text-paper" : "border-rule-strong bg-sheet text-ink hover:border-ink-faint",
+        on ? "border-transparent bg-pen-soft text-pen-deep" : "border-rule-strong bg-sheet text-ink hover:border-ink-faint",
         !on && count === 0 && "border-dashed text-ink-faint",
       )}
     >

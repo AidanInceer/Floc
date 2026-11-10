@@ -233,7 +233,7 @@ function SettleUpPanel({
           <span className="text-[15px]">{label(other)}</span>
         </span>
         <span className="flex items-center gap-3">
-          <span className="nums font-display text-xl tracking-tight">{formatMoney(r.amountMinor, r.currency)}</span>
+          <span className="nums text-xl tracking-tight">{formatMoney(r.amountMinor, r.currency)}</span>
           <Sheet trigger="Settle up" title="Settle up" triggerVariant={paying ? "primary" : "secondary"} keepOpenOnSubmit>
             {r.netted ? (
               <PairSettleForm
@@ -319,7 +319,7 @@ function PairSummary({ row, viewerId, rateDate, label }: { row: SettleRow; viewe
   return (
     <div className="flex flex-col gap-5">
       <div className="text-center">
-        <p className="nums font-display text-4xl tracking-tight">{formatMoney(row.amountMinor, row.currency)}</p>
+        <p className="nums text-4xl tracking-tight">{formatMoney(row.amountMinor, row.currency)}</p>
         <p className="mt-1 text-sm text-ink-soft">{youPay ? `from you to ${other}` : `from ${other} to you`}</p>
       </div>
       <dl className="rounded-md bg-sheet-2 px-4 py-1 text-sm">

@@ -78,6 +78,15 @@ export function CheckIcon(props: IconProps) {
   );
 }
 
+export function ClockIcon(props: IconProps) {
+  return (
+    <LineIcon {...props}>
+      <circle cx="7" cy="7" r="5.2" />
+      <path d="M7 4v3.2l2 1.2" />
+    </LineIcon>
+  );
+}
+
 export function PencilIcon(props: IconProps) {
   return (
     <LineIcon {...props}>

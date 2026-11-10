@@ -5,6 +5,7 @@ import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import { CopySheet } from "@/components/explore/copy/copy-sheet";
 import { PostcardStamp } from "@/components/explore/postcard-stamp";
 import { ButtonLink } from "@/components/system/ui";
+import { listingStartHref } from "@/lib/landing/start-trip";
 import "./explore-postcard.css";
 import { listingPrice } from "@floc/core/trip/explore/listing-price";
 import { useListingRates } from "@/components/explore/listing-rates";
@@ -48,7 +49,7 @@ export function ExplorePostcard({ trip, signedIn }: { trip: PresetTrip; signedIn
         {signedIn ? (
           <CopySheet trip={trip}>Start this trip</CopySheet>
         ) : (
-          <ButtonLink href="/signup" variant="primary">
+          <ButtonLink href={listingStartHref(false, trip.id)} variant="primary">
             Sign up to start
           </ButtonLink>
         )}

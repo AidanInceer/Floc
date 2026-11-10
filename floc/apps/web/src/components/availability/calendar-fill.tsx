@@ -50,12 +50,9 @@ function CalendarChoice({ state, onFill }: { state: CalendarFillState; onFill: (
     <div className="grid gap-2.5 p-4">
       <GoogleCalendarButton reading={state.kind === "reading"} onClick={onFill} />
       {state.kind === "error" ? <CalendarNote state={state} /> : null}
-      <div className="flex items-start gap-2.5 border-t border-rule pt-2.5 text-ink">
-        <PencilIcon className="mt-1 size-[14px] shrink-0 text-ink-soft" />
-        <p className="grid gap-0.5">
-          <span className="text-sm font-medium">Or mark them by hand</span>
-          <span className="text-[13px] text-ink-faint">Drag across the days you can do</span>
-        </p>
+      <div className="flex items-center gap-2.5 border-t border-rule pt-2.5 text-ink">
+        <PencilIcon className="size-[14px] shrink-0 text-ink-soft" />
+        <p className="text-sm font-medium">Or mark them by hand</p>
       </div>
     </div>
   );

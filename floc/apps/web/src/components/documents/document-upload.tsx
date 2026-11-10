@@ -87,7 +87,7 @@ function UploadForm({ tripId, dayEventId, dayId, children }: { tripId: number; d
       errorClassName="px-5 pb-4"
       footer={
         <SheetFooter>
-          <SubmitButton pendingLabel="Uploading…">Upload</SubmitButton>
+          <SubmitButton>Upload</SubmitButton>
         </SheetFooter>
       }
     >

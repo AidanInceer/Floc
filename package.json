@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "description": "Floc: group trip planning. Web, phone, shared packages and marketing in one workspace.",
-  "packageManager": "pnpm@9.15.9",
+  "packageManager": "pnpm@10.34.9",
   "engines": {
     "node": ">=22"
   },
@@ -62,42 +62,5 @@
     "eslint-plugin-security": "4.2.0",
     "eslint-plugin-sonarjs": "4.2.2",
     "typescript-eslint": "8.70.0"
-  },
-  "pnpm": {
-    "neverBuiltDependencies": [
-      "esbuild"
-    ],
-    "//": "Security gates are fixed, never weakened, so advisories reached through a transitive dep are pinned forward here rather than muted in the audit step. Each entry is a `pnpm audit --audit-level=high` finding on the patched floor the advisory names.",
-    "overrides": {
-      "vitest": "^3.2.6",
-      "vite": "^6.4.4",
-      "sharp": "^0.35.5",
-      "postcss": "^8.5.18",
-      "js-yaml": "^4.3.2",
-      "nanoid": "^3.3.17",
-      "brace-expansion": "^5.0.11",
-      "glob>minimatch": "^10.0.1",
-      "esbuild": "^0.25.0",
-      "uuid": "^11.1.1",
-      "decode-uri-component": "^0.5.1",
-      "source-map-js": "^1.2.2",
-      "compression": "^1.8.2",
-      "tinypool": "^2.1.2",
-      "shell-quote": "^1.11.0",
-      "next": "^15.5.28",
-      "zod@^4.0.0": "^4.6.6",
-      "undici": "^7.30.1",
-      "node-forge": "^1.4.1"
-    },
-    "auditConfig": {
-      "//": "image-size has NO patched version (advisories say '<0.0.0') and is reached only through Metro, Expo's bundler — a developer-machine build tool, not the shipped app or any server. Scoped to these GHSAs so every other finding still fails the gate. Revisit when image-size publishes a fix; see pnpm-workspace.yaml. node-forge (via @expo/cli) and braces (via Metro and eslint-config-next) are the same case: no patched version, not in the built web app. zod 3 (via @expo/cli) too: the fix starts at 4.6.6, and every zod 4 copy is pinned there.",
-      "ignoreGhsas": [
-        "GHSA-w3rx-r6r6-pgpr",
-        "GHSA-5p2g-fcmc-qvqq",
-        "GHSA-86w9-cpqp-85rv",
-        "GHSA-vfj7-8cjw-p6xm",
-        "GHSA-mrhx-c7xc-m3w5"
-      ]
-    }
   }
 }

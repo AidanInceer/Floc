@@ -100,11 +100,11 @@ export type TripAccess = {
   document: (documentId: number) => Promise<typeof document.$inferSelect>;
 };
 
+/** No email: the roster goes to every member's browser and phone, and no screen shows an address (#582). */
 export type TripMember = {
   userId: string;
   role: TripRole;
   name: string;
-  email: string;
   avatarIcon: AvatarIcon | null;
   joinedAt: Date;
   /** Roster-position colour (ticket 11) — pass through rather than letting `Avatar` hash the name. */
@@ -351,7 +351,6 @@ function memberQuery() {
       role: tripMembership.role,
       joinedAt: tripMembership.createdAt,
       name: user.name,
-      email: user.email,
       image: user.image,
       displayName: userProfile.displayName,
       avatarIcon: userProfile.avatarIcon,
@@ -370,7 +369,6 @@ function toRoster(rows: MemberRow[]): TripMember[] {
       userId: r.userId,
       role: r.role,
       name: r.displayName ?? r.name,
-      email: r.email,
       avatarIcon: r.avatarIcon,
       joinedAt: r.joinedAt,
     }))

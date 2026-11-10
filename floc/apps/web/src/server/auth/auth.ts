@@ -18,6 +18,7 @@ import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { requireInProduction } from "@/lib/env";
 import { dropUnprovenPassword } from "@/server/auth/link-guard";
+import { accountMail } from "@/server/auth/mail/mail-cap";
 
 const googleConfigured =
   !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET;
@@ -94,6 +95,7 @@ export const auth = betterAuth({
     // since it is a bearer credential for the account.
     resetPasswordTokenExpiresIn: 60 * 60,
     async sendResetPassword({ user, url }) {
+      if (!accountMail.allow("reset", user.email)) return;
       const { sendEmails, emails } = await import("@/server/auth/email");
       await sendEmails([emails.resetPassword({ to: user.email, url })]);
     },
@@ -106,6 +108,7 @@ export const auth = betterAuth({
     // and time-boxed so a leaked link stops working. 1 hour.
     expiresIn: 60 * 60,
     async sendVerificationEmail({ user, url }) {
+      if (!accountMail.allow("verify", user.email)) return;
       const { sendEmails, emails } = await import("@/server/auth/email");
       await sendEmails([emails.verifyEmail({ to: user.email, url })]);
     },
@@ -139,6 +142,15 @@ export const auth = betterAuth({
           await dropUnprovenPassword(created.userId, created.providerId);
         },
       },
+    },
+  },
+  // Why: Better Auth's own rule is 3 sign-ups per 10 s, which still lets one address test about 26,000 emails a
+  // day for an account, and 3 mails a minute to strangers (#582). Counted per caller, on in production only.
+  rateLimit: {
+    customRules: {
+      "/sign-up/email": { window: 60 * 60, max: 10 },
+      "/request-password-reset": { window: 60 * 60, max: 5 },
+      "/send-verification-email": { window: 60 * 60, max: 5 },
     },
   },
   advanced: {

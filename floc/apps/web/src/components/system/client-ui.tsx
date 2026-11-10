@@ -15,7 +15,7 @@ import type { ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { usePathname, useSearchParams } from "next/navigation";
 
-import { Button, Card, ErrorText, cx, iconButtonClass, segmentTrack } from "./ui";
+import { Button, Card, ErrorText, busyMark, cx, iconButtonClass, segmentTrack } from "./ui";
 
 // Server-rendered children can't take a close callback as a prop — a form
 // that wants to close only on successful submit reads it from here instead.
@@ -87,16 +87,14 @@ export function useFormPending(): boolean {
   return status.pending || posting;
 }
 
-/** Disables itself while its parent server action is in flight. */
+/** Disables itself while its parent server action is in flight. It keeps its own words, so the action stays named (#572). */
 export function SubmitButton({
   children,
-  pendingLabel,
   variant = "primary",
   className,
   disabled,
 }: {
   children: ReactNode;
-  pendingLabel?: string;
   variant?: "primary" | "secondary" | "ghost" | "danger";
   className?: string;
   /** Verb stays shown but not always available (ticket 133). */
@@ -108,9 +106,11 @@ export function SubmitButton({
       type="submit"
       variant={variant}
       disabled={pending || disabled}
+      aria-busy={pending || undefined}
       className={className}
     >
-      {pending ? (pendingLabel ?? "Saving…") : children}
+      {children}
+      {busyMark(pending)}
     </Button>
   );
 }
@@ -258,7 +258,6 @@ export function ConfirmSubmit({
   confirmLabel = "Yes, do it",
   variant = "danger",
   confirmVariant,
-  pendingLabel,
   className,
   label,
 }: {
@@ -269,7 +268,6 @@ export function ConfirmSubmit({
   variant?: "primary" | "secondary" | "ghost" | "danger";
   /** The panel's own verb, when the trigger is quieter than what it does — an icon-only X still confirms in red. */
   confirmVariant?: "primary" | "secondary" | "ghost" | "danger";
-  pendingLabel?: string;
   className?: string;
   /** Accessible name/tooltip for an icon-only trigger (ticket 38). */
   label?: string;
@@ -289,12 +287,13 @@ export function ConfirmSubmit({
         type="button"
         variant={variant}
         disabled={pending}
+        aria-busy={pending || undefined}
         className={className}
         aria-label={label}
         title={label}
         onClick={() => ref.current?.showModal()}
       >
-        {pending ? (pendingLabel ?? "Working…") : children}
+        {children}
       </Button>
       <dialog
         ref={ref}
@@ -322,8 +321,9 @@ export function ConfirmSubmit({
               Cancel
             </Button>
             {/* Stays open until the action settles, so a slow or failed one is seen. */}
-            <Button type="submit" variant={confirmVariant ?? variant} disabled={pending}>
-              {pending ? (pendingLabel ?? "Working…") : confirmLabel}
+            <Button type="submit" variant={confirmVariant ?? variant} disabled={pending} aria-busy={pending || undefined}>
+              {confirmLabel}
+              {busyMark(pending)}
             </Button>
           </div>
         </div>
@@ -577,7 +577,7 @@ export function PillToggle<T extends string>({
       {indicator ? (
         <span
           aria-hidden
-          className="pointer-events-none absolute left-0 top-1 bottom-1 rounded-sm bg-ink transition-[transform,width] duration-200 ease-[cubic-bezier(0.2,0.85,0.3,1)] motion-reduce:transition-none"
+          className="pointer-events-none absolute left-0 top-1 bottom-1 rounded-sm bg-pen-soft transition-[transform,width] duration-200 ease-[cubic-bezier(0.2,0.85,0.3,1)] motion-reduce:transition-none"
           style={{ width: indicator.width, transform: `translateX(${indicator.left}px)` }}
         />
       ) : null}
@@ -595,7 +595,7 @@ export function PillToggle<T extends string>({
             onClick={() => onChange(opt.value)}
             className={cx(
               "relative z-10 flex-1 whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium transition-colors",
-              active ? "text-sheet" : "text-ink-soft hover:text-ink",
+              active ? "text-pen-deep" : "text-ink-soft hover:text-ink",
             )}
           >
             {opt.label}

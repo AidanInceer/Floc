@@ -93,3 +93,9 @@ const SYMBOLS: Partial<Record<Currency, string>> = {
 export function currencySymbol(currency: Currency): string | null {
   return SYMBOLS[currency] ?? null;
 }
+
+/** How a picker names a currency: the code, and its symbol only where that symbol is unambiguous. */
+export function currencyOptionLabel(currency: Currency): string {
+  const symbol = currencySymbol(currency);
+  return symbol ? `${currency} (${symbol})` : currency;
+}

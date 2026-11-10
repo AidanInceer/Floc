@@ -68,7 +68,7 @@ export default async function FriendsPage() {
 
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
-      <PageTitle>Friends</PageTitle>
+      <PageTitle className="sr-only">Friends</PageTitle>
       <div className="mx-auto max-w-[41.25rem]">
         {/* Requests lead because they are the only thing here waiting on you; none, no strip. */}
         {requests > 0 ? (
@@ -84,13 +84,13 @@ export default async function FriendsPage() {
                 <FriendRow key={requesterId} person={person} note="Wants to be friends">
                   <form action={acceptFriend}>
                     <input type="hidden" name="requesterId" value={requesterId} />
-                    <SubmitButton variant="primary" pendingLabel="Accepting…" className={SMALL}>
+                    <SubmitButton variant="primary" className={SMALL}>
                       Accept
                     </SubmitButton>
                   </form>
                   <form action={declineFriend}>
                     <input type="hidden" name="requesterId" value={requesterId} />
-                    <SubmitButton variant="secondary" pendingLabel="Declining…" className={SMALL}>
+                    <SubmitButton variant="secondary" className={SMALL}>
                       Decline
                     </SubmitButton>
                   </form>
@@ -100,7 +100,7 @@ export default async function FriendsPage() {
                 <FriendRow key={targetId} person={person} note="Requested · pending">
                   <form action={cancelRequest}>
                     <input type="hidden" name="targetId" value={targetId} />
-                    <SubmitButton variant="secondary" pendingLabel="Cancelling…" className={SMALL}>
+                    <SubmitButton variant="secondary" className={SMALL}>
                       Cancel
                     </SubmitButton>
                   </form>

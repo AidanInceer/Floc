@@ -38,7 +38,7 @@ Bookings and site links: `floc/apps/web/src/components/booking/`,
 | Friends, inbox | `floc/apps/web/src/components/social/`, `floc/apps/web/src/components/notifications/` | `floc/apps/mobile/src/components/social/` |
 | Sign in, invites, guests | `floc/apps/web/src/server/auth/`, `floc/apps/web/src/server/guests/`, `floc/apps/web/src/components/guest/` | `floc/apps/mobile/src/components/auth/` |
 | Landing page | `floc/apps/web/src/app/page.tsx`, `floc/apps/web/src/components/landing/` | — |
-| Settings, Pro | `floc/apps/web/src/app/settings/`, `floc/apps/web/src/server/billing/` | `floc/apps/mobile/src/components/settings/` |
+| Settings, Pro | `floc/apps/web/src/app/settings/`, `floc/apps/web/src/components/settings/`, `floc/apps/web/src/server/billing/` | `floc/apps/mobile/src/components/settings/` |
 
 ## Design system
 

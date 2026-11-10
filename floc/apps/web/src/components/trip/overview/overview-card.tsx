@@ -57,54 +57,57 @@ export function OverviewCard({
   const soon = countdownLabel(trip.startDate);
   return (
     <aside className={cx("relative flex min-w-0 flex-col gap-1.5 rounded-[inherit] border-t-[6px] p-6 pt-5", BAND[trip.tone])}>
-      <div className="absolute right-5 top-5">
-        <Menu
-          label="Colour and mark"
-          trigger={<Stamp trip={trip} />}
-          triggerClassName={cx(
-            "group/stamp relative grid h-[70px] w-[60px] rotate-[4deg] place-items-center content-center gap-1 rounded-md outline-2 outline-offset-[3px] outline-dotted transition-transform duration-200 hover:rotate-0 hover:scale-105 hover:outline-solid focus-visible:rotate-0 data-[open=true]:rotate-0",
-            PASTEL_BY_KEY[trip.tone],
-            EDGE[trip.tone],
+      {/* Why: the stamp floats, so a short name leaves the date line under it, never behind it. */}
+      <div>
+        <div className="relative float-right -mr-1 mb-1.5 ml-6">
+          <Menu
+            label="Colour and mark"
+            trigger={<Stamp trip={trip} />}
+            triggerClassName={cx(
+              "group/stamp relative grid h-[70px] w-[60px] rotate-[4deg] place-items-center content-center gap-1 rounded-md outline-2 outline-offset-[3px] outline-dotted transition-transform duration-200 hover:rotate-0 hover:scale-105 hover:outline-solid focus-visible:rotate-0 data-[open=true]:rotate-0",
+              PASTEL_BY_KEY[trip.tone],
+              EDGE[trip.tone],
+            )}
+          >
+            <TripColorPicker tripId={trip.id} current={trip.color} />
+            <TripMarkPicker tripId={trip.id} current={trip.mark} tone={trip.tone} />
+          </Menu>
+        </div>
+
+        <div className="flow-root min-w-0">
+          <TripNameInline tripId={trip.id} name={trip.name} rename={renameTrip} />
+        </div>
+        {trip.archived ? (
+          <span className="mt-1.5 block">
+            <Badge tone="neutral">Archived</Badge>
+          </span>
+        ) : null}
+
+        <p className="nums mt-1.5 flex clear-right flex-wrap items-center gap-x-1.5 text-sm text-ink-soft">
+          {trip.startDate ? (
+            <>
+              <span className="whitespace-nowrap">{formatDateRange(trip.startDate, trip.endDate)}</span>
+              <span aria-hidden>·</span>
+              <span className="flex items-center gap-1 whitespace-nowrap">
+                <span aria-hidden>{trip.nights}</span>
+                <MoonIcon size={12} />
+                <span className="sr-only">{trip.nights === 1 ? "1 night" : `${trip.nights} nights`}</span>
+              </span>
+            </>
+          ) : (
+            "Dates not set"
           )}
-        >
-          <TripColorPicker tripId={trip.id} current={trip.color} />
-          <TripMarkPicker tripId={trip.id} current={trip.mark} tone={trip.tone} />
-        </Menu>
+          {/* Deciding dates is the Dates tab's job, where the group's availability is. */}
+          <Link
+            href={`/trip/${trip.id}/dates`}
+            aria-label={trip.startDate ? "Change dates" : "Pick dates"}
+            title={trip.startDate ? "Change dates" : "Pick dates"}
+            className="grid size-6 place-items-center rounded-sm text-ink-faint hover:bg-sheet-2 hover:text-ink"
+          >
+            <PencilIcon size={12} />
+          </Link>
+        </p>
       </div>
-
-      <div className="min-w-0 pr-20">
-        <TripNameInline tripId={trip.id} name={trip.name} rename={renameTrip} />
-      </div>
-      {trip.archived ? (
-        <span>
-          <Badge tone="neutral">Archived</Badge>
-        </span>
-      ) : null}
-
-      <p className="nums flex flex-wrap items-center gap-x-1.5 text-sm text-ink-soft">
-        {trip.startDate ? (
-          <>
-            <span className="whitespace-nowrap">{formatDateRange(trip.startDate, trip.endDate)}</span>
-            <span aria-hidden>·</span>
-            <span className="flex items-center gap-1 whitespace-nowrap">
-              <span aria-hidden>{trip.nights}</span>
-              <MoonIcon size={12} />
-              <span className="sr-only">{trip.nights === 1 ? "1 night" : `${trip.nights} nights`}</span>
-            </span>
-          </>
-        ) : (
-          "Dates not set"
-        )}
-        {/* Deciding dates is the Dates tab's job, where the group's availability is. */}
-        <Link
-          href={`/trip/${trip.id}/dates`}
-          aria-label={trip.startDate ? "Change dates" : "Pick dates"}
-          title={trip.startDate ? "Change dates" : "Pick dates"}
-          className="grid size-6 place-items-center rounded-sm text-ink-faint hover:bg-sheet-2 hover:text-ink"
-        >
-          <PencilIcon size={12} />
-        </Link>
-      </p>
       {soon ? <p className="font-display text-lg text-pastel-blue-ink">{soon.charAt(0).toUpperCase() + soon.slice(1)}</p> : null}
 
       <div className="mt-2">

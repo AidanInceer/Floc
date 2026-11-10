@@ -1,14 +1,10 @@
 import type { NextConfig } from "next";
 
-// Why: scripts only from Floc itself, so an injected <script src> or a form posting elsewhere cannot run.
-// 'unsafe-inline' stays because Next's own boot scripts and the theme script are inline; dev also needs eval.
-const CSP = [
-  "frame-ancestors 'none'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  "form-action 'self'",
-  `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'"}`,
-].join("; ");
+import { contentSecurityPolicy } from "./src/lib/http/csp";
+
+// Why: the policy for answers the middleware does not see (files, API). A page gets the nonce policy from
+// `middleware.ts`, which replaces this one.
+const CSP = contentSecurityPolicy({ nonce: null, host: null, dev: process.env.NODE_ENV !== "production" });
 
 const config: NextConfig = {
   reactStrictMode: true,

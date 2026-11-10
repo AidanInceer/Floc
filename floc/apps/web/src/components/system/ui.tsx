@@ -92,6 +92,12 @@ const variants: Record<Variant, string> = {
 const buttonBase =
   "lift inline-flex items-center justify-center gap-2 rounded-sm border px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.06em] disabled:pointer-events-none disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none";
 
+/**
+ * Why: a busy button keeps its own words, so the action stays named, and a disabled button takes no pointer,
+ * so a cursor cannot say "busy". The mark is the status, on touch too (#572).
+ */
+export const busyMark = (busy: boolean): string | null => (busy ? "…" : null);
+
 /** The house button look, for a control that cannot be a `Button` — a menu trigger, a bare `Link`. */
 export const buttonClass = (variant: Variant = "secondary"): string => cx(buttonBase, variants[variant]);
 

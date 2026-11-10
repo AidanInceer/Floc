@@ -9,13 +9,14 @@ describe("readCopyForm", () => {
     expect(readCopyForm(form({ presetId: "japan-golden-route", month: "4", ideas: "on", events: "on" }))).toEqual({
       presetId: "japan-golden-route",
       month: 4,
+      startDate: null,
       ideas: true,
       events: true,
     });
   });
 
   it("reads Decide later, and a switch left off", () => {
-    expect(readCopyForm(form({ presetId: "x", month: "later", ideas: "on" }))).toEqual({ presetId: "x", month: null, ideas: true, events: false });
+    expect(readCopyForm(form({ presetId: "x", month: "later", ideas: "on" }))).toEqual({ presetId: "x", month: null, startDate: null, ideas: true, events: false });
   });
 
   it("reads a form that only names the listing as an undated copy", () => {
@@ -24,5 +25,13 @@ describe("readCopyForm", () => {
 
   it.each(["0", "13", "4.5", ""])("reads %j as no month", (month) => {
     expect(readCopyForm(form({ presetId: "x", month })).month).toBeNull();
+  });
+
+  it("reads a start day", () => {
+    expect(readCopyForm(form({ presetId: "x", start: "2027-06-12", ideas: "on" })).startDate).toBe("2027-06-12");
+  });
+
+  it.each(["", "2027-13-01", "12/06/2027"])("reads a start of %j as no start day", (start) => {
+    expect(readCopyForm(form({ presetId: "x", start })).startDate).toBeNull();
   });
 });

@@ -18,10 +18,9 @@ import { GuestCta } from "@/components/guest/guest-cta";
 import { JoinControls } from "@/components/guest/join-controls";
 import { inviteTrip, inviteViewer, type InviteViewer } from "./invite-access";
 
-function barText(viewer: Exclude<InviteViewer, { kind: "member" }>): string {
+function barText(viewer: Exclude<InviteViewer, { kind: "member" | "stranger" }>): string {
   if (viewer.kind === "guest") return `Answering as ${viewer.name}. Sign up to keep your answers and plan with the group.`;
-  if (viewer.kind === "canJoin") return "You are viewing this trip, not on it.";
-  return "Vote and mark your dates with just a name.";
+  return "You are viewing this trip, not on it.";
 }
 
 export default async function InviteLayout({
@@ -42,6 +41,9 @@ export default async function InviteLayout({
   // A member is on their way to the real trip; the bar would flash a
   // read-only copy of a trip they can actually edit.
   if (viewer.kind === "member") return <>{children}</>;
+
+  // Why: a stranger meets the sheet, which cannot be closed and holds the same ask and the same two buttons.
+  if (viewer.kind === "stranger") return <>{children}</>;
 
   return (
     <>

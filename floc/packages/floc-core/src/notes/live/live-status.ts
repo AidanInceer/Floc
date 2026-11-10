@@ -1,7 +1,8 @@
-export type LiveStatus = "live" | "saving" | "offline";
+export type LiveStatus = "live" | "opening" | "saving" | "offline";
 
 export const LIVE_STATUS_WORDS: Record<LiveStatus, string> = {
   live: "Live",
+  opening: "Opening",
   saving: "Saving",
   offline: "Offline",
 };
@@ -13,5 +14,6 @@ export function liveStatus(state: {
   failed: boolean;
 }): LiveStatus {
   if (state.failed || !state.connected) return "offline";
-  return state.synced && state.unsynced === 0 ? "live" : "saving";
+  if (state.unsynced > 0) return "saving";
+  return state.synced ? "live" : "opening";
 }

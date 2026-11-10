@@ -9,13 +9,7 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 
-import Link from "next/link";
-
-import { Button, ErrorText, cx } from "@/components/system/ui";
-import { formatMoney } from "@floc/core/money/money";
-import { yearlySaving } from "@floc/core/billing/subscription-copy";
-import type { Currency } from "@floc/core/money/currency";
-import type { BillingInterval } from "@floc/core/billing/plans";
+import { Button, ErrorText, busyMark, cx } from "@/components/system/ui";
 
 export function BillingAction({
   path,
@@ -57,17 +51,17 @@ export function BillingAction({
     }
   }
 
-  const label = busy ? "One moment…" : children;
-
   return (
     <span className={cx("flex flex-col gap-1", className ? "w-full" : "inline-flex")}>
       {className ? (
-        <button type="button" onClick={go} disabled={busy} className={className}>
-          {label}
+        <button type="button" onClick={go} disabled={busy} aria-busy={busy || undefined} className={className}>
+          {children}
+          {busyMark(busy)}
         </button>
       ) : (
-        <Button variant={variant} onClick={go} disabled={busy}>
-          {label}
+        <Button variant={variant} onClick={go} disabled={busy} aria-busy={busy || undefined}>
+          {children}
+          {busyMark(busy)}
         </Button>
       )}
       {error ? <ErrorText>{error}</ErrorText> : null}
@@ -79,115 +73,4 @@ function messageOf(payload: unknown): string {
   return payload && typeof payload === "object" && "error" in payload
     ? String((payload as { error: unknown }).error)
     : "That didn't work.";
-}
-
-/**
- * The Pro block's two ways in (ticket 250). One button per interval, so
- * choosing and buying are the same press — no picker to set first.
- *
- * Yearly leads because it is the better deal; monthly sits beside it in the
- * quieter skin rather than underneath, so neither reads as the small print.
- *
- * `canBuy` false — signed out, or already Pro — makes both buttons links: a
- * checkout needs an account to attach the subscription to.
- */
-export function ProUpgrade({
-  prices,
-  canBuy,
-  href,
-}: {
-  prices: { interval: BillingInterval; amountMinor: number; currency: Currency }[];
-  canBuy: boolean;
-  href: string;
-}) {
-  const monthly = prices.find((p) => p.interval === "monthly");
-  const yearly = prices.find((p) => p.interval === "yearly");
-
-  const saving =
-    monthly && yearly
-      ? yearlySaving(monthly.amountMinor, yearly.amountMinor)
-      : null;
-
-  // No prices to quote — still sell Pro, just without the figures.
-  if (!monthly && !yearly) {
-    return (
-      <Link href={href} className={cx(proButtonBase, proButtonLead)}>
-        Upgrade now
-      </Link>
-    );
-  }
-
-  return (
-    <div className="grid w-full gap-3 sm:grid-cols-2">
-      {yearly ? (
-        <ProButton
-          price={yearly}
-          caption={saving ? `a year · save ${saving}%` : "a year"}
-          skin={proButtonLead}
-          canBuy={canBuy}
-          href={href}
-        />
-      ) : null}
-      {monthly ? (
-        <ProButton
-          price={monthly}
-          caption="a month"
-          skin={proButtonQuiet}
-          canBuy={canBuy}
-          href={href}
-        />
-      ) : null}
-    </div>
-  );
-}
-
-// A fixed height, so "One moment…" — one line where the price is two — does
-// not shrink the button it replaces.
-const proButtonBase =
-  "lift flex h-[4.75rem] w-full items-center justify-center rounded-md px-6 text-center transition-colors";
-const proButtonLead = "bg-pro-mark text-pro";
-const proButtonQuiet =
-  "border border-pro-edge bg-transparent text-pro-ink hover:border-pro-mark hover:bg-pro-2";
-
-function ProButton({
-  price,
-  caption,
-  skin,
-  canBuy,
-  href,
-}: {
-  price: { interval: BillingInterval; amountMinor: number; currency: Currency };
-  caption: string;
-  skin: string;
-  canBuy: boolean;
-  href: string;
-}) {
-  const face = (
-    <span className="flex flex-col items-center gap-0.5">
-      <span className="font-display text-md font-semibold tracking-tight">
-        {formatMoney(price.amountMinor, price.currency)}
-      </span>
-      <span className="font-mono text-[10px] uppercase tracking-[0.18em] opacity-80">
-        {caption}
-      </span>
-    </span>
-  );
-
-  if (!canBuy) {
-    return (
-      <Link href={href} className={cx(proButtonBase, skin)}>
-        {face}
-      </Link>
-    );
-  }
-
-  return (
-    <BillingAction
-      path="/api/billing/checkout"
-      body={{ interval: price.interval }}
-      className={cx(proButtonBase, skin, "disabled:opacity-70")}
-    >
-      {face}
-    </BillingAction>
-  );
 }

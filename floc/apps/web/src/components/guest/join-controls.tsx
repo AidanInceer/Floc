@@ -48,7 +48,7 @@ export function JoinControls({
   return (
     <div className="flex flex-wrap items-center gap-3">
       <form action={joinTrip.bind(null, token)}>
-        <SubmitButton pendingLabel="Joining…">Join this trip</SubmitButton>
+        <SubmitButton>Join this trip</SubmitButton>
       </form>
       {compact ? null : (
         <p className="text-sm text-ink-soft">

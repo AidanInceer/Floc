@@ -115,7 +115,7 @@ function InviteSheet({ tripId, members, pendingInvitees, friends, inviteUrl }: P
             />
             <span className="flex flex-wrap justify-end gap-2">
               <CopyLink value={inviteUrl} label="Copy link" icon={<LinkIcon />} />
-              <SubmitButton pendingLabel="Inviting…">Send invites</SubmitButton>
+              <SubmitButton>Send invites</SubmitButton>
             </span>
           </Stack>
         </form>

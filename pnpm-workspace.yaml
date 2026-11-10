@@ -1,12 +1,7 @@
 # Workspace globs. Anything not matched here is NOT part of the pnpm/Turborepo
 # workspace.
-# The settings below are duplicated from the root package.json's `pnpm` field,
-# and both copies have to stay in step until `packageManager` moves off pnpm 9.
-# pnpm 9 — which is what CI installs, from `packageManager` — reads them from
-# package.json and knows nothing about them here. pnpm 10 does the opposite and
-# warns that the package.json field "is no longer read", which is how a bumped
-# override can look applied locally and silently not be in CI. Keeping both is
-# the only arrangement where every reader sees the same floors.
+# pnpm 10 (`packageManager`) reads its settings only from this file; the root
+# package.json has no `pnpm` field any more.
 packages:
   - "floc/apps/*"
   - "floc/packages/*"

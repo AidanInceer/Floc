@@ -1,34 +1,11 @@
 /**
- * Settings (ticket 07, extended by 46; redesigned 201, split by section 235):
- * the account half of the two faces — your email, who can see your profile,
- * notifications, data handling and deleting the account. Anything you
- * *curate* lives on /profile.
- *
- * One section at a time, chosen from a rail (`?section=`, so a section is
- * linkable and the page needs no JavaScript). Delete sits at the far end of
- * the rail rather than at the foot of a long scroll — it can't be reached on
- * the way to anything else.
- *
- * No locale, no timezone and no consent-capture UI. The theme choice lives in
- * localStorage, not here.
+ * Settings (ticket 07, redesigned 201, split by section 235, rows in place F3c):
+ * the account half of the two faces. Anything you *curate* lives on /profile.
+ * Four sheets of rows that open in place, several at once, like the phone's
+ * drawers. `?section=` opens one, so a link or a checkout return lands on it.
  */
-import Link from "next/link";
-
-import {
-  deleteAccount,
-  removeGoogleCalendar,
-  unlinkAccount,
-  updateNotifications,
-  updatePrivacy,
-} from "./actions";
-// Profile edits, but nothing you curate for other people to read — they belong
-// with the rest of the switches rather than on the profile page (ticket 236).
-import {
-  updateCurrency,
-  updatePacking,
-  updateVibeTags,
-} from "@/app/profile/actions";
-import type { Subscription } from "@/db/schema";
+import { deleteAccount, removeGoogleCalendar, unlinkAccount, updateNotifications, updatePrivacy } from "./actions";
+import { updateVibeTags } from "@/app/profile/actions";
 import { requireUser } from "@/server/access";
 import { proPrices, subscriptionOf } from "@/server/billing/billing";
 import type { ProPrice } from "@/server/billing/billing";
@@ -37,47 +14,27 @@ import { ensureProfile } from "@/server/auth/profile";
 import { hasCalendarAccess } from "@/server/calendar/calendar-import";
 import { GoogleCalendarIcon } from "@/components/system/icons/google-calendar";
 import { listSignInMethods } from "@/server/auth/sign-in-methods";
-import { BillingAction, ProUpgrade } from "@/components/auth/billing-buttons";
-import { PrivacyFields } from "@/components/auth/privacy-fields";
 import { isLive, renewalLabel } from "@floc/core/billing/subscription-copy";
-import {
-  AccountPage,
-  PillChoice,
-  Panel,
-  PersonRow,
-  ToggleRow,
-} from "@/components/auth/account-ui";
-import { Field, Input, Select, Stack, cx, segmentTrack } from "@/components/system/ui";
-import {
-  ActionForm,
-  ConfirmSubmit,
-  SubmitButton,
-} from "@/components/system/client-ui";
-import { VibePicker } from "@/components/trip/vibe-picker";
+import { AccountPage, ToggleRow } from "@/components/auth/account-ui";
+import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
 import { AccountTabs } from "@/components/chrome/account-tabs";
-import { PACK_TIERS, PACK_TIER_LABELS } from "@floc/core/packing/packing";
+import { AutoSaveForm } from "@/components/settings/auto-save-form";
+import { PrivacyLines } from "@/components/settings/privacy-lines";
+import { ProCompare } from "@/components/settings/pro-compare";
+import { ProStatus } from "@/components/settings/pro-status";
+import { SettingsRow, SettingsSheet } from "@/components/settings/settings-row";
+import { TravelStyle } from "@/components/settings/travel-style";
+import { TripsFields } from "@/components/settings/trips-fields";
+import { PACK_TIER_LABELS } from "@floc/core/packing/packing";
+import { notificationSummary, privacySummary, travelStyleSummary, tripsSummary } from "@floc/core/people/settings-summary";
 import { readVibeTags } from "@floc/core/trip/vibe-tags";
 
-const SECTIONS = [
-  { id: "privacy", label: "Privacy" },
-  { id: "about-you", label: "About you" },
-  { id: "trips", label: "Trips" },
-  { id: "billing", label: "Billing" },
-  { id: "notifications", label: "Notifications" },
-  { id: "account", label: "Account" },
-  { id: "data", label: "Your data" },
-  { id: "delete", label: "Delete" },
-] as const;
+const SECTIONS = ["privacy", "about-you", "trips", "billing", "notifications", "account", "data", "delete"] as const;
+type SectionId = (typeof SECTIONS)[number];
 
-type SectionId = (typeof SECTIONS)[number]["id"];
-
-/**
- * The panel to draw. With Pro switched off there is no Billing panel, so an
- * old link or a stale checkout return falls back to the first section rather
- * than rendering nothing.
- */
+/** With Pro switched off there is no Pro row, so an old billing link opens Privacy rather than nothing. */
 function sectionFor(asked: string | undefined): SectionId {
-  const found = SECTIONS.find((s) => s.id === asked)?.id;
+  const found = SECTIONS.find((s) => s === asked);
   if (!found) return "privacy";
   return found === "billing" && allFeaturesFree() ? "privacy" : found;
 }
@@ -94,11 +51,10 @@ const PROVIDER_LABELS: Record<string, string> = {
   credential: "Email & password",
 };
 
-/** Apple and Google will not let anyone but themselves cancel a store subscription. */
-const STORE_NAMES: Partial<Record<string, string>> = {
-  app_store: "the App Store",
-  play: "Google Play",
-};
+const accountLineClass = "flex flex-wrap items-center justify-between gap-3 py-2.5";
+
+const DELETE_WARNING =
+  "Delete your Floc account? Trips you're the sole admin of will hand admin to their earliest-joined remaining member. This can't be undone from the app.";
 
 export const metadata = { title: "Settings" };
 
@@ -108,387 +64,185 @@ export default async function SettingsPage({
   searchParams: Promise<{ section?: string; billing?: string }>;
 }) {
   const { section, billing } = await searchParams;
-  // Carry the section through the login round trip, so "Upgrade now" from the
-  // home page lands on Billing rather than on Privacy.
-  const viewer = await requireUser(
-    section ? `/settings?section=${section}` : "/settings",
-  );
-  // Checkout returns to `?billing=done`, so land on the panel that shows it.
-  const asked = section ?? (billing ? "billing" : undefined);
-  const current = sectionFor(asked);
+  // Carry the section through the login round trip, so "Upgrade now" lands on Pro.
+  const viewer = await requireUser(section ? `/settings?section=${section}` : "/settings");
+  // Checkout returns to `?billing=done`, so open the row that shows it.
+  const opened = sectionFor(section ?? (billing ? "billing" : undefined));
 
   const [profile, linkedAccounts, calendarGranted, subscription, prices] = await Promise.all([
     ensureProfile(viewer.id),
     listSignInMethods(viewer.id),
     hasCalendarAccess(viewer.id),
     subscriptionOf(viewer.id),
-    // Someone sent here by a locked feature arrived to find out the cost
-    // (ticket 279), so the panel quotes it rather than naming the plan.
     allFeaturesFree() ? Promise.resolve<ProPrice[]>([]) : proPrices(),
   ]);
 
   const vibeTags = readVibeTags(profile.vibeTags);
+  const row = (id: SectionId) => ({ id: `settings-${id}`, open: opened === id });
 
   return (
     <>
-    <AccountTabs current="settings" />
-    <AccountPage title="Settings" titleInBar>
-      <div className="grid gap-4 sm:grid-cols-[max-content_minmax(0,1fr)] sm:items-start">
-        <SectionRail current={current} />
+      <AccountTabs current="settings" />
+      <AccountPage title="Settings" titleInBar>
+        <div className="mx-auto flex w-full max-w-[40rem] flex-col gap-3">
+          <SettingsSheet>
+            <SettingsRow
+              {...row("privacy")}
+              title="Privacy"
+              summary={privacySummary({
+                isPrivate: profile.isPrivate,
+                rings: [profile.visibilityVibeTags, profile.visibilityTravelMap, profile.visibilityFriends],
+              })}
+            >
+              <AutoSaveForm action={updatePrivacy} className="flex flex-col gap-5">
+                <PrivacyLines
+                  isPrivate={profile.isPrivate}
+                  rings={{
+                    visibilityVibeTags: profile.visibilityVibeTags,
+                    visibilityTravelMap: profile.visibilityTravelMap,
+                    visibilityFriends: profile.visibilityFriends,
+                  }}
+                  pastTripsLatest={profile.pastTripsShow === "latest"}
+                />
+              </AutoSaveForm>
+            </SettingsRow>
 
-        <div className="min-w-0">
-          {current === "privacy" ? (
-            <Panel title="Who can see your profile">
-              <ActionForm action={updatePrivacy}>
-                <Stack gap={4}>
-                  <PrivacyFields
-                    isPrivate={profile.isPrivate}
-                    rings={{
-                      visibilityVibeTags: profile.visibilityVibeTags,
-                      visibilityTravelMap: profile.visibilityTravelMap,
-                      visibilityFriends: profile.visibilityFriends,
-                    }}
-                    pastTripsLatest={profile.pastTripsShow === "latest"}
-                  />
+            <SettingsRow {...row("about-you")} title="Your travel style" summary={travelStyleSummary(vibeTags)}>
+              <AutoSaveForm action={updateVibeTags} className="flex flex-col gap-3">
+                <TravelStyle selected={vibeTags} />
+                <p className="text-xs text-ink-faint">Shown on your profile to the people you pick in Privacy.</p>
+              </AutoSaveForm>
+            </SettingsRow>
 
-                  <div className="flex justify-end">
-                    <SubmitButton variant="primary" pendingLabel="Saving…">
-                      Save privacy
-                    </SubmitButton>
-                  </div>
-                </Stack>
-              </ActionForm>
-            </Panel>
-          ) : null}
+            <SettingsRow
+              {...row("trips")}
+              title="Trips"
+              summary={tripsSummary(PACK_TIER_LABELS[profile.packTier], profile.homeCurrency)}
+            >
+              <TripsFields
+                packTier={profile.packTier}
+                packAutoGenerate={profile.packAutoGenerate}
+                homeCurrency={profile.homeCurrency}
+              />
+            </SettingsRow>
+          </SettingsSheet>
 
-          {current === "about-you" ? (
-            <Panel title="Vibe tags">
-              <ActionForm action={updateVibeTags}>
-                <Stack gap={4}>
-                  <VibePicker selected={vibeTags} />
-                  <div>
-                    <SubmitButton variant="primary" pendingLabel="Saving…">
-                      Save vibe tags
-                    </SubmitButton>
-                  </div>
-                </Stack>
-              </ActionForm>
-            </Panel>
-          ) : null}
+          {allFeaturesFree() ? null : (
+            <SettingsSheet>
+              <ProRow {...row("billing")} subscription={subscription} prices={prices} billing={billing} />
+            </SettingsSheet>
+          )}
 
-          {current === "trips" ? (
-            <Stack gap={4}>
-              <Panel
-                title="Packing"
-                hint="Where a new trip starts. Choosing a different style on one trip stays on that trip."
-              >
-                <ActionForm action={updatePacking}>
-                  <Stack gap={4}>
-                    <PillChoice
-                      name="packTier"
-                      label="How much you pack"
-                      hint="Scales how many of each thing a generated list suggests — never what kinds of thing."
-                      value={profile.packTier}
-                      options={PACK_TIERS.map((t) => ({
-                        value: t,
-                        label: PACK_TIER_LABELS[t],
-                      }))}
-                    />
-                    <ToggleRow
-                      name="packAutoGenerate"
-                      label="Fill my bag in when I open a trip's packing"
-                      hint="Off means the list stays empty until you ask for one."
-                      defaultChecked={profile.packAutoGenerate}
-                    />
-                    <div>
-                      <SubmitButton variant="primary" pendingLabel="Saving…">
-                        Save packing
-                      </SubmitButton>
-                    </div>
-                  </Stack>
-                </ActionForm>
-              </Panel>
-
-              <Panel
-                title="Home currency"
-                hint="Defaults the currency picker in Money. Never shown on your profile."
-              >
-                <ActionForm action={updateCurrency}>
-                  <div className="flex items-end gap-3">
-                    <div className="flex-1">
-                      <Field label="Currency">
-                        <Select
-                          name="homeCurrency"
-                          defaultValue={profile.homeCurrency}
-                        >
-                          <option value="GBP">GBP — £</option>
-                          <option value="EUR">EUR — €</option>
-                          <option value="USD">USD — $</option>
-                        </Select>
-                      </Field>
-                    </div>
-                    <SubmitButton variant="primary" pendingLabel="Saving…">
-                      Save
-                    </SubmitButton>
-                  </div>
-                </ActionForm>
-              </Panel>
-            </Stack>
-          ) : null}
-
-          {current === "billing" && !allFeaturesFree() ? (
-            <BillingPanel
-              subscription={subscription}
-              billing={billing}
-              prices={prices}
-            />
-          ) : null}
-
-          {current === "notifications" ? (
-            <Panel
+          <SettingsSheet>
+            <SettingsRow
+              {...row("notifications")}
               title="Notifications"
-              hint="Mute one trip from its … menu on your trip list."
+              summary={notificationSummary({
+                push: profile.notifyPush,
+                email: profile.notifyEmail,
+                reminders: profile.notifyReminders,
+              })}
             >
-              <form action={updateNotifications}>
-                <Stack gap={3}>
-                  {NOTIFICATION_TOGGLES.map((t) => (
-                    <ToggleRow
-                      key={t.name}
-                      name={t.name}
-                      label={t.label}
-                      hint={"hint" in t ? t.hint : undefined}
-                      defaultChecked={profile[t.name]}
-                    />
-                  ))}
-                  <div>
-                    <SubmitButton variant="primary" pendingLabel="Saving…">
-                      Save preferences
-                    </SubmitButton>
-                  </div>
-                </Stack>
-              </form>
-            </Panel>
-          ) : null}
+              <AutoSaveForm action={updateNotifications} className="flex flex-col gap-4">
+                {NOTIFICATION_TOGGLES.map((t) => (
+                  <ToggleRow key={t.name} name={t.name} label={t.label} hint={t.hint} defaultChecked={profile[t.name]} />
+                ))}
+              </AutoSaveForm>
+            </SettingsRow>
 
-          {current === "account" ? (
-            <Panel
-              title="Account"
-              hint="Your email comes from whichever provider signed you in, and can't be changed here."
-            >
-              <Stack gap={4}>
-                <Field label="Email">
-                  <Input value={viewer.email} disabled readOnly />
-                </Field>
-                <div>
-                  <span className="typed mb-2 block">Sign-in methods</span>
-                  <ul className="flex flex-col divide-y divide-rule border-y border-rule">
-                    {linkedAccounts.map((a) => (
-                      <PersonRow
-                        key={a.id}
-                        className="rounded-none bg-transparent px-0"
-                      >
-                        <span className="text-sm">
-                          {PROVIDER_LABELS[a.providerId] ?? a.providerId}
-                        </span>
-                        <ActionForm action={unlinkAccount}>
-                          <input type="hidden" name="accountId" value={a.id} />
-                          <SubmitButton
-                            variant="ghost"
-                            pendingLabel="Unlinking…"
-                            className={
-                              linkedAccounts.length <= 1
-                                ? "opacity-50"
-                                : undefined
-                            }
-                          >
-                            Unlink
-                          </SubmitButton>
-                        </ActionForm>
-                      </PersonRow>
-                    ))}
-                    {calendarGranted ? (
-                      <PersonRow className="rounded-none bg-transparent px-0">
-                        <span className="inline-flex items-center gap-2 text-sm">
-                          <GoogleCalendarIcon />
-                          Google Calendar
-                          <span className="text-ink-faint">Reads when you&rsquo;re busy</span>
-                        </span>
-                        <ActionForm action={removeGoogleCalendar}>
-                          <SubmitButton variant="ghost" pendingLabel="Removing…">
-                            Remove
-                          </SubmitButton>
-                        </ActionForm>
-                      </PersonRow>
-                    ) : null}
-                  </ul>
-                  <p className="mt-2 text-xs text-ink-faint">
-                    Unlinking your last remaining method is refused —
-                    you&rsquo;d lose access.
-                  </p>
-                </div>
-              </Stack>
-            </Panel>
-          ) : null}
-
-          {current === "data" ? (
-            <Panel title="Your data">
-              <Stack gap={3}>
-                <p className="text-sm text-ink-soft">
-                  There&rsquo;s no consent banner because there&rsquo;s nothing
-                  to consent to yet — Floc sends no marketing email and runs
-                  no analytics. Notification emails are about your own trips,
-                  and switch off under Notifications.
+            <SettingsRow {...row("account")} title="Account" summary={viewer.email}>
+              <div className="mx-auto flex w-full max-w-80 flex-col items-center gap-1.5">
+                <span className="text-sm">Email</span>
+                <p className="w-full truncate rounded-sm bg-sheet-2 px-3 py-2 text-center font-mono text-[13px] text-ink-soft">
+                  {viewer.email}
                 </p>
-                <p className="text-sm text-ink-soft">
-                  Want a copy of your data? Email{" "}
-                  <a
-                    href="mailto:support@floc.live"
-                    className="text-pen underline underline-offset-2 hover:text-pen-deep"
-                  >
-                    support@floc.live
-                  </a>{" "}
-                  — there&rsquo;s no self-serve export in v1.
-                </p>
-              </Stack>
-            </Panel>
-          ) : null}
+              </div>
+              <ul className="flex flex-col divide-y divide-rule">
+                {linkedAccounts.map((a) => (
+                  <li key={a.id} className={accountLineClass}>
+                    <span className="text-sm">{PROVIDER_LABELS[a.providerId] ?? a.providerId}</span>
+                    <ActionForm action={unlinkAccount}>
+                      <input type="hidden" name="accountId" value={a.id} />
+                      <SubmitButton variant="ghost" disabled={linkedAccounts.length <= 1}>
+                        Unlink
+                      </SubmitButton>
+                    </ActionForm>
+                  </li>
+                ))}
+                {calendarGranted ? (
+                  <li className={accountLineClass}>
+                    <span className="inline-flex items-center gap-2 text-sm">
+                      <GoogleCalendarIcon />
+                      Google Calendar
+                      <span className="text-xs text-ink-faint">Reads when you&rsquo;re busy</span>
+                    </span>
+                    <ActionForm action={removeGoogleCalendar}>
+                      <SubmitButton variant="ghost">Remove</SubmitButton>
+                    </ActionForm>
+                  </li>
+                ) : null}
+              </ul>
+              {linkedAccounts.length <= 1 ? (
+                <p className="-mt-3 text-xs text-ink-faint">Unlinking your only sign-in is refused, so you keep access.</p>
+              ) : null}
+            </SettingsRow>
 
-          {current === "delete" ? (
-            <Panel
-              title="Delete account"
-              hint="Your trip content stays, attributed to “Deleted user.” Costs already logged stay on the ledger, frozen."
-              className="bg-red-soft"
-            >
-              <form action={deleteAccount}>
-                <ConfirmSubmit
-                  message="Delete your Floc account? Trips you're the sole admin of will hand admin to their earliest-joined remaining member. This can't be undone from the app."
-                  pendingLabel="Deleting…"
-                >
-                  Delete my account
-                </ConfirmSubmit>
+            <SettingsRow {...row("data")} title="Your data" summary="No analytics, no marketing email">
+              <p className="max-w-[62ch] text-sm text-ink-soft">
+                Floc sends no marketing email and runs no analytics. Notification emails are about your own trips.
+              </p>
+            </SettingsRow>
+          </SettingsSheet>
+
+          <SettingsSheet>
+            <SettingsRow {...row("delete")} title="Delete" danger>
+              <form action={deleteAccount} className="flex flex-col items-center gap-3.5 text-center">
+                <p className="max-w-[62ch] text-sm text-ink-soft">
+                  Your trip content stays, under &ldquo;Deleted user&rdquo;. Costs already logged stay on the ledger.
+                </p>
+                <ConfirmSubmit message={DELETE_WARNING}>Delete my account</ConfirmSubmit>
               </form>
-            </Panel>
-          ) : null}
+            </SettingsRow>
+          </SettingsSheet>
         </div>
-      </div>
-    </AccountPage>
+      </AccountPage>
     </>
   );
 }
 
-/**
- * Plain links, so a section is bookmarkable and works without JavaScript.
- */
-function SectionRail({ current }: { current: SectionId }) {
-  return (
-    <nav
-      aria-label="Settings sections"
-      className={cx(segmentTrack, "scroll-x-bare flex flex-row items-center gap-1 sm:flex-col sm:items-stretch sm:overflow-visible")}
-    >
-      {SECTIONS.filter((s) => s.id !== "billing" || !allFeaturesFree()).map(
-        (s) => {
-          const active = s.id === current;
-          const danger = s.id === "delete";
-          return (
-            <Link
-              key={s.id}
-              href={`/settings?section=${s.id}`}
-              aria-current={active ? "page" : undefined}
-              className={cx(
-                "shrink-0 whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium transition-colors sm:text-left",
-                active && danger
-                  ? "bg-red-soft text-red"
-                  : active
-                    ? "bg-pen-soft text-pen-deep"
-                    : danger
-                      ? "text-red hover:shadow-[inset_0_0_0_1px_var(--red-edge)]"
-                      : "text-ink-soft hover:bg-sheet hover:text-ink",
-              )}
-            >
-              {s.label}
-            </Link>
-          );
-        },
-      )}
-    </nav>
-  );
-}
-
-/**
- * Plan, date, and the one link out (ticket 247). Split from the page body
- * because the panel branches three ways — comped, paying, and neither.
- */
-function BillingPanel({
+function ProRow({
+  id,
+  open,
   subscription,
-  billing,
   prices,
+  billing,
 }: {
-  subscription: Subscription | null;
-  billing?: string;
+  id: string;
+  open: boolean;
+  subscription: Awaited<ReturnType<typeof subscriptionOf>>;
   prices: ProPrice[];
+  billing?: string;
 }) {
+  const onPro = subscription !== null && isLive(subscription);
   return (
-    <Panel
+    <SettingsRow
+      id={id}
+      open={open}
       title="Floc Pro"
-      hint="Pro covers everyone on a trip you're in — one of you paying is enough."
+      summary={onPro ? `Pro, ${renewalLabel(subscription).toLowerCase()}` : "Free"}
+      aside={onPro ? null : <span className="rounded-sm border border-ink px-2.5 py-0.5 text-[13px] font-semibold">Get Pro</span>}
     >
-      <Stack gap={4}>
-        {billing === "cancelled" ? (
-          <p className="text-sm text-ink-soft">
-            No payment was taken — you closed the checkout.
-          </p>
-        ) : null}
-
-        {subscription && isLive(subscription) ? (
-          <Stack gap={4}>
-            <p className="text-sm font-medium">You&rsquo;re on Pro.</p>
-            {STORE_NAMES[subscription.source] ? (
-              <div>
-                <p className="text-sm text-ink-soft">
-                  {renewalLabel(subscription)}
-                </p>
-                <p className="mt-1 text-sm text-ink-faint">
-                  Bought in {STORE_NAMES[subscription.source]}, so it is managed
-                  or cancelled there.
-                </p>
-              </div>
-            ) : subscription.stripeCustomerId ? (
-              /* Date and the way out on one line — the button is what
-                       the date is for, so it does not need its own row. */
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                <p className="text-sm text-ink-soft">
-                  {renewalLabel(subscription)}
-                </p>
-                <BillingAction path="/api/billing/portal">
-                  Manage or cancel
-                </BillingAction>
-              </div>
-            ) : (
-              <div>
-                <p className="text-sm text-ink-soft">
-                  {renewalLabel(subscription)}
-                </p>
-                <p className="mt-1 text-sm text-ink-faint">
-                  This one was granted rather than bought, so there is nothing
-                  to bill or cancel.
-                </p>
-              </div>
-            )}
-          </Stack>
-        ) : (
-          <Stack gap={4}>
-            <p className="text-sm text-ink-soft">
-              {subscription
-                ? renewalLabel(subscription)
-                : "You’re on the free plan."}{" "}
-              Pro adds the weather forecast on your dates, a packing list
-              filled in for you, and flight and stay searches that arrive
-              with your place and dates filled in.
-            </p>
-            <ProUpgrade prices={prices} canBuy href="/settings?section=billing" />
-          </Stack>
-        )}
-      </Stack>
-    </Panel>
+      {billing === "cancelled" ? (
+        <p className="text-sm text-ink-soft">No payment was taken — you closed the checkout.</p>
+      ) : null}
+      {onPro ? (
+        <ProStatus subscription={subscription} />
+      ) : (
+        <>
+          {subscription ? <p className="text-sm text-ink-soft">{renewalLabel(subscription)}</p> : null}
+          <ProCompare prices={prices} />
+        </>
+      )}
+    </SettingsRow>
   );
 }

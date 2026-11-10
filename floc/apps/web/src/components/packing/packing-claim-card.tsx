@@ -89,7 +89,7 @@ export function PackingClaimCard({
         </span>
         {open ? (
           <form action={actions.claim.bind(null, tripId, line.id, true)} className="shrink-0">
-            <SubmitButton variant="secondary" pendingLabel="Claiming…" className="!px-2 !py-1">
+            <SubmitButton variant="secondary" className="!px-2 !py-1">
               I’ll bring it
             </SubmitButton>
           </form>
@@ -101,7 +101,7 @@ export function PackingClaimCard({
         <Menu label={`More for ${line.label}`}>
           {!open ? (
             <form action={actions.claim.bind(null, tripId, line.id, !viewerClaim)}>
-              <SubmitButton variant="ghost" pendingLabel="…" className={menuItemClass}>
+              <SubmitButton variant="ghost" className={menuItemClass}>
                 {viewerClaim ? "Drop it" : "I'll bring one too"}
               </SubmitButton>
             </form>

@@ -244,6 +244,16 @@ export function CalendarGlyph({ color }: { color: string }) {
   );
 }
 
+/** Later, not yet — the web's `ClockIcon`. */
+export function ClockGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Circle cx={7} cy={7} r={5.2} stroke={color} strokeWidth={STROKE} />
+      <Path d="M7 4v3.2l2 1.2" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 /** Flights — the web's Overview booking tile. */
 export function PlaneGlyph({ color }: { color: string }) {
   return (
