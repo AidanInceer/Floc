@@ -1,3 +1,5 @@
+import { FLIGHT_PATH } from "./travel-mode";
+
 const PATHS = {
   explore: (
     <>
@@ -5,7 +7,7 @@ const PATHS = {
       <path d="M9.2 4.8 8 8 4.8 9.2 6 6z" />
     </>
   ),
-  trips: <path d="M1.6 4.4h10.8v7.2H1.6zM5 4.4V3a.8.8 0 0 1 .8-.8h2.4a.8.8 0 0 1 .8.8v1.4M1.6 8h10.8" />,
+  trips: <path d={FLIGHT_PATH} />,
   friends: (
     <>
       <circle cx="5" cy="5" r="1.9" />
