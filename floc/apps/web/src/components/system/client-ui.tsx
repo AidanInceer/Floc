@@ -336,11 +336,13 @@ export function ConfirmSubmit({
 export function CopyLink({
   value,
   label = "Copy invite link",
+  item = "Link",
   variant = "secondary",
   icon,
 }: {
   value: string;
   label?: string;
+  item?: string;
   variant?: "primary" | "secondary" | "ghost" | "danger";
   icon?: ReactNode;
 }) {
@@ -367,7 +369,7 @@ export function CopyLink({
         )}
       </Button>
       <span aria-live="polite" className="sr-only">
-        {status === "copied" ? "Link copied" : status === "failed" ? `Copy failed. The link is ${value}` : ""}
+        {status === "copied" ? `${item} copied` : status === "failed" ? `Copy failed. The ${item.toLowerCase()} is ${value}` : ""}
       </span>
 
     </>

@@ -1,7 +1,7 @@
 /**
  * Friends (ticket 18; redesigned 201): accepted friends, incoming requests to
  * act on, outgoing requests still pending, and finding someone new by name or
- * friend code (#360) — never by email address.
+ * full friend tag — never by email address.
  */
 import { acceptFriend, declineFriend, cancelRequest, removeFriend } from "./actions";
 import { requireUser } from "@/server/access";
@@ -34,7 +34,7 @@ export default async function FriendsPage() {
   // into a friendship the next time either party loads this page.
   await syncCompletedCoTripFriendships(viewer.id);
 
-  const [rows, code] = await Promise.all([listFriendshipsFor(viewer.id), friendCodeFor(viewer.id)]);
+  const [rows, tag] = await Promise.all([listFriendshipsFor(viewer.id), friendCodeFor(viewer.id)]);
   const { accepted, incoming, outgoing } = splitFriendships(rows, viewer.id);
 
   const otherIdOf = (r: (typeof rows)[number]) => (r.userId === viewer.id ? r.friendId : r.userId);
@@ -110,15 +110,13 @@ export default async function FriendsPage() {
           </section>
         ) : null}
 
-        <div className="my-6 flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
-          <div className="min-w-0 flex-1">
-            <FindFriend />
+        <div className="my-6 flex flex-col gap-3">
+          <FindFriend />
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="text-ink-soft">Your friend tag</span>
+            <span className="min-w-0 break-words font-mono text-ink">{tag}</span>
+            <CopyLink value={tag} label="Copy friend tag" item="Friend tag" variant="secondary" />
           </div>
-          <span className="flex h-10 shrink-0 items-center justify-end gap-2 whitespace-nowrap text-xs">
-            <span className="text-ink-soft">Your code</span>
-            <span className="font-mono text-ink">{code}</span>
-            <CopyLink value={code} label="Copy" variant="secondary" />
-          </span>
         </div>
 
         <div className="mt-7 flex items-baseline justify-between gap-3">

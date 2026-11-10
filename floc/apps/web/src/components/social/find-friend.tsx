@@ -55,13 +55,15 @@ function Results({
     return (
       <p className="text-sm text-ink-soft">
         {typedAddress
-          ? "Floc does not look people up by email address. Ask them for their friend code."
-          : "Type at least two letters of a name, or a friend code."}
+          ? "Floc does not look people up by email address. Ask them for their friend tag."
+          : "Enter at least two letters of a name or a full friend tag."}
       </p>
     );
   }
   if (result.kind === "code") {
-    if (!result.person) return <p className="text-sm text-ink-soft">Nobody has that code.</p>;
+    if (!result.person) {
+      return <p className="text-sm text-ink-soft">{result.limited ? "Too many tag searches. Try again in a minute." : "Nobody has that friend tag."}</p>;
+    }
     return (
       <ul>
         <FoundRow person={result.person} ask={askByCode(result.code)} />
@@ -103,6 +105,7 @@ export function FindFriend() {
 
   return (
     <div className="flex flex-col gap-3">
+      <label htmlFor="friend-search" className="text-sm text-ink">Name or full friend tag</label>
       {/* One field, submitted with Enter — the form's implicit submit, so there is no Find button to aim at. */}
       <form
         className="flex h-10 items-center gap-2 rounded-sm border border-rule-strong bg-sheet px-3 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-pen"
@@ -127,7 +130,7 @@ export function FindFriend() {
         </svg>
         <input
           type="search"
-          aria-label="Find someone by name or code"
+          id="friend-search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           autoComplete="off"

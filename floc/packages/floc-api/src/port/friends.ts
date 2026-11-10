@@ -23,7 +23,7 @@ export type FriendsBoard = {
   incoming: FriendPerson[];
   /** Sent by the viewer, not yet answered. `id` is the person asked. */
   outgoing: FriendPerson[];
-  /** The viewer's own friend code, to hand out (#360). */
+  /** The viewer's full friend tag, to hand out. */
   code: string;
 };
 
@@ -36,7 +36,7 @@ export type FoundFriend = FriendPerson & { state: FriendState };
  */
 export type FriendSearch =
   | { kind: "people"; people: FoundFriend[] }
-  | { kind: "code"; code: string; person: FoundFriend | null }
+  | { kind: "code"; code: string; person: FoundFriend | null; limited?: true }
   | { kind: "invalid" };
 
 export type FriendsPort = {
