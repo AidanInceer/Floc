@@ -87,16 +87,14 @@ export function useFormPending(): boolean {
   return status.pending || posting;
 }
 
-/** Disables itself while its parent server action is in flight. */
+/** Disables itself while its parent server action is in flight. It keeps its own words, so the action stays named (#572). */
 export function SubmitButton({
   children,
-  pendingLabel,
   variant = "primary",
   className,
   disabled,
 }: {
   children: ReactNode;
-  pendingLabel?: string;
   variant?: "primary" | "secondary" | "ghost" | "danger";
   className?: string;
   /** Verb stays shown but not always available (ticket 133). */
@@ -108,9 +106,10 @@ export function SubmitButton({
       type="submit"
       variant={variant}
       disabled={pending || disabled}
-      className={className}
+      aria-busy={pending || undefined}
+      className={cx("aria-busy:cursor-progress", className)}
     >
-      {pending ? (pendingLabel ?? "Saving…") : children}
+      {children}
     </Button>
   );
 }
@@ -258,7 +257,6 @@ export function ConfirmSubmit({
   confirmLabel = "Yes, do it",
   variant = "danger",
   confirmVariant,
-  pendingLabel,
   className,
   label,
 }: {
@@ -269,7 +267,6 @@ export function ConfirmSubmit({
   variant?: "primary" | "secondary" | "ghost" | "danger";
   /** The panel's own verb, when the trigger is quieter than what it does — an icon-only X still confirms in red. */
   confirmVariant?: "primary" | "secondary" | "ghost" | "danger";
-  pendingLabel?: string;
   className?: string;
   /** Accessible name/tooltip for an icon-only trigger (ticket 38). */
   label?: string;
@@ -289,12 +286,13 @@ export function ConfirmSubmit({
         type="button"
         variant={variant}
         disabled={pending}
-        className={className}
+        aria-busy={pending || undefined}
+        className={cx("aria-busy:cursor-progress", className)}
         aria-label={label}
         title={label}
         onClick={() => ref.current?.showModal()}
       >
-        {pending ? (pendingLabel ?? "Working…") : children}
+        {children}
       </Button>
       <dialog
         ref={ref}
@@ -322,8 +320,8 @@ export function ConfirmSubmit({
               Cancel
             </Button>
             {/* Stays open until the action settles, so a slow or failed one is seen. */}
-            <Button type="submit" variant={confirmVariant ?? variant} disabled={pending}>
-              {pending ? (pendingLabel ?? "Working…") : confirmLabel}
+            <Button type="submit" variant={confirmVariant ?? variant} disabled={pending} aria-busy={pending || undefined} className="aria-busy:cursor-progress">
+              {confirmLabel}
             </Button>
           </div>
         </div>

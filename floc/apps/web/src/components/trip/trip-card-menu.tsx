@@ -49,7 +49,7 @@ export function TripCardMenu({
                 maxLength={TEXT_CAPS.tripName}
               />
             </Field>
-            <SubmitButton pendingLabel="Saving…">Save</SubmitButton>
+            <SubmitButton>Save</SubmitButton>
           </Stack>
         </form>
       </Sheet>
@@ -62,7 +62,6 @@ export function TripCardMenu({
             variant="ghost"
             message={`Archive "${tripName}"? It comes off everyone's list and stays readable — any admin can bring it back from Archived.`}
             confirmLabel="Archive it"
-            pendingLabel="…"
             className={menuItemClass}
           >
             Archive trip
@@ -78,7 +77,6 @@ export function TripCardMenu({
             variant="ghost"
             message={`Delete "${tripName}" for everyone? Nobody will be able to reopen it from the app — archive it instead if you might want it back.`}
             confirmLabel="Delete it"
-            pendingLabel="…"
             className={menuDangerItemClass}
           >
             Delete trip

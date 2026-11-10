@@ -9,7 +9,7 @@ import type { Currency } from "../../money/currency";
 import { formatMoney } from "../../money/money";
 import { shortPlace } from "../../itinerary/names/place-name";
 
-export type GapTab = "dates" | "ideas" | "money" | "packing" | "overview" | "days";
+export type GapTab = "dates" | "money" | "packing" | "overview" | "days";
 
 /** What a check is about, so a surface can draw its icon. */
 export type GapKind = "days" | "ideas" | "money" | "packing" | "stay" | "travel";
@@ -65,7 +65,7 @@ function dateChecks(input: LeftToSortInput): Check[] {
   if (input.ideas.length > 0) {
     const n = input.ideas.length;
     const text = `Vote on where: ${n} ${n === 1 ? "idea" : "ideas"}`;
-    checks.push(check(input.ideas.some((i) => i.mine), { key: "vote", kind: "ideas", text: "You voted on where" }, { key: "vote", kind: "ideas", mine: true, text, tab: "ideas", action: "Vote" }));
+    checks.push(check(input.ideas.some((i) => i.mine), { key: "vote", kind: "ideas", text: "You voted on where" }, { key: "vote", kind: "ideas", mine: true, text, tab: "overview", anchor: "ideas", action: "Vote" }));
   }
   return checks;
 }

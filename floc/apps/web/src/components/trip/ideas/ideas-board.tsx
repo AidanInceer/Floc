@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { addIdea, removeIdea, voteIdea } from "@/app/trip/[id]/overview/actions";
 import { Avatar, EmptyState, Input } from "@/components/system/ui";
 import { ActionForm, PillToggle, SubmitButton } from "@/components/system/client-ui";
+import { readStored, writeStored } from "@/lib/storage/browser-storage";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import {
   readIdeaSort,
@@ -23,12 +24,12 @@ export function IdeasBoard({ tripId, ideas }: { tripId: number; ideas: IdeaRow[]
 
   // The order is a reading preference, not trip data — it rides in the browser.
   useEffect(() => {
-    setSort(readIdeaSort(window.localStorage.getItem(SORT_KEY)));
+    setSort(readIdeaSort(readStored(SORT_KEY)));
   }, []);
 
   const choose = (next: IdeaSort) => {
     setSort(next);
-    window.localStorage.setItem(SORT_KEY, next);
+    writeStored(SORT_KEY, next);
   };
 
   return (
@@ -66,7 +67,7 @@ function AddIdeaForm({ tripId }: { tripId: number }) {
     <ActionForm action={addIdea} className="flex items-center gap-2">
       <input type="hidden" name="tripId" value={tripId} />
       <Input name="title" aria-label="New idea" maxLength={TEXT_CAPS.ideaTitle} className="min-w-0 flex-1" />
-      <SubmitButton pendingLabel="Adding…">Add</SubmitButton>
+      <SubmitButton>Add</SubmitButton>
     </ActionForm>
   );
 }

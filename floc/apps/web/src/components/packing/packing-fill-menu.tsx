@@ -26,7 +26,7 @@ function SavedLists({ kits, apply }: { kits: Kit[]; apply: (kitId: number) => Pr
       <p className="px-2.5 pb-0.5 pt-1.5 text-[11.5px] text-ink-faint">Packing lists</p>
       {kits.map((kit) => (
         <form key={kit.id} action={apply.bind(null, kit.id)}>
-          <SubmitButton variant="ghost" pendingLabel="Adding…" className={cx(menuItemClass, "!flex w-full items-center gap-2.5 !text-ink")}>
+          <SubmitButton variant="ghost" className={cx(menuItemClass, "!flex w-full items-center gap-2.5 !text-ink")}>
             <ListIcon className="text-ink-faint" />
             <span className="min-w-0 flex-1 truncate">{kit.name}</span>
             <span className="font-mono text-[11px] tabular-nums text-ink-faint">{kit.itemCount}</span>
@@ -79,7 +79,7 @@ function AutoPart({ auto }: { auto: FillAuto | null }) {
     <div className="grid gap-2.5 p-1.5">
       <TierTrack tier={auto.tier} setTier={auto.setTier} />
       <form action={auto.addAll}>
-        <SubmitButton variant="secondary" pendingLabel="Adding…" disabled={auto.ideaCount === 0} className="w-full !py-2">
+        <SubmitButton variant="secondary" disabled={auto.ideaCount === 0} className="w-full !py-2">
           {auto.ideaCount > 0 ? <>Add all <span className="tabular-nums">{auto.ideaCount}</span></> : "All added"}
         </SubmitButton>
       </form>

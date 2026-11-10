@@ -61,7 +61,7 @@ export function MemberRow({
               <form action={promoteMember}>
                 <input type="hidden" name="tripId" value={tripId} />
                 <input type="hidden" name="userId" value={m.userId} />
-                <SubmitButton variant="ghost" pendingLabel="…" className={menuItemClass}>
+                <SubmitButton variant="ghost" className={menuItemClass}>
                   Make admin
                 </SubmitButton>
               </form>
@@ -74,7 +74,6 @@ export function MemberRow({
                   variant="ghost"
                   message={`Remove ${m.name} from this trip? Anything they've already posted stays on the board.`}
                   confirmLabel="Remove them"
-                  pendingLabel="…"
                   className={menuDangerItemClass}
                 >
                   Remove from trip
@@ -128,7 +127,7 @@ function NudgeSheet({ tripId, member }: { tripId: number; member: TripMember }) 
           <Field label="Message (optional)">
             <Textarea name="message" />
           </Field>
-          <SubmitButton pendingLabel="Sending…">Send nudge</SubmitButton>
+          <SubmitButton>Send nudge</SubmitButton>
         </Stack>
       </form>
     </Sheet>

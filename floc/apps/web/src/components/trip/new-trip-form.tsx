@@ -58,7 +58,7 @@ export function NewTripForm({
         </div>
       </div>
       <SheetFooter note={askedNote(asked)}>
-        <SubmitButton pendingLabel="Creating…">Create trip</SubmitButton>
+        <SubmitButton>Create trip</SubmitButton>
       </SheetFooter>
     </form>
   );

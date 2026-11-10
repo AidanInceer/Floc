@@ -93,7 +93,7 @@ function AmountField({ currency, amountMinor }: { currency: Currency; amountMino
   );
 }
 
-function Actions({ sheetClose, label, pendingLabel }: { sheetClose: (() => void) | null; label: string; pendingLabel: string }) {
+function Actions({ sheetClose, label }: { sheetClose: (() => void) | null; label: string }) {
   return (
     <div className="flex justify-end gap-2">
       {sheetClose ? (
@@ -101,7 +101,7 @@ function Actions({ sheetClose, label, pendingLabel }: { sheetClose: (() => void)
           Cancel
         </Button>
       ) : null}
-      <SubmitButton pendingLabel={pendingLabel}>{label}</SubmitButton>
+      <SubmitButton>{label}</SubmitButton>
     </div>
   );
 }
@@ -148,7 +148,7 @@ export function SettleUpForm({
         <AmountField currency={currency} amountMinor={amountMinor} />
         <PaidIn currency={currency} initial={currency} />
         <ErrorText>{state.error}</ErrorText>
-        <Actions sheetClose={sheetClose} label="Record payment" pendingLabel="Recording…" />
+        <Actions sheetClose={sheetClose} label="Record payment" />
       </Stack>
     </form>
   );
@@ -214,7 +214,7 @@ export function SettlementEditForm({
         </div>
         <PaidIn currency={currency} initial={s.payCurrency} />
         <ErrorText>{state.error}</ErrorText>
-        <Actions sheetClose={sheetClose} label="Save" pendingLabel="Saving…" />
+        <Actions sheetClose={sheetClose} label="Save" />
       </Stack>
     </form>
   );
@@ -240,7 +240,7 @@ export function PairSettleForm({
       <Stack gap={3}>
         {summary}
         {state.error ? <ErrorText>{state.error}</ErrorText> : null}
-        <SubmitButton pendingLabel="Saving…">Mark as paid</SubmitButton>
+        <SubmitButton>Mark as paid</SubmitButton>
       </Stack>
     </form>
   );

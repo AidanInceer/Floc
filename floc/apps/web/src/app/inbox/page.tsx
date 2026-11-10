@@ -26,7 +26,7 @@ export default async function InboxPage({
       actions={
         anyUnread ? (
           <form action={readEverything}>
-            <SubmitButton variant="secondary" pendingLabel="Marking…">
+            <SubmitButton variant="secondary">
               Mark all as read
             </SubmitButton>
           </form>

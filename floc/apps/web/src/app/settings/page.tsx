@@ -152,7 +152,7 @@ export default async function SettingsPage({
                   />
 
                   <div className="flex justify-end">
-                    <SubmitButton variant="primary" pendingLabel="Saving…">
+                    <SubmitButton variant="primary">
                       Save privacy
                     </SubmitButton>
                   </div>
@@ -167,7 +167,7 @@ export default async function SettingsPage({
                 <Stack gap={4}>
                   <VibePicker selected={vibeTags} />
                   <div>
-                    <SubmitButton variant="primary" pendingLabel="Saving…">
+                    <SubmitButton variant="primary">
                       Save vibe tags
                     </SubmitButton>
                   </div>
@@ -201,7 +201,7 @@ export default async function SettingsPage({
                       defaultChecked={profile.packAutoGenerate}
                     />
                     <div>
-                      <SubmitButton variant="primary" pendingLabel="Saving…">
+                      <SubmitButton variant="primary">
                         Save packing
                       </SubmitButton>
                     </div>
@@ -227,7 +227,7 @@ export default async function SettingsPage({
                         </Select>
                       </Field>
                     </div>
-                    <SubmitButton variant="primary" pendingLabel="Saving…">
+                    <SubmitButton variant="primary">
                       Save
                     </SubmitButton>
                   </div>
@@ -261,7 +261,7 @@ export default async function SettingsPage({
                     />
                   ))}
                   <div>
-                    <SubmitButton variant="primary" pendingLabel="Saving…">
+                    <SubmitButton variant="primary">
                       Save preferences
                     </SubmitButton>
                   </div>
@@ -294,7 +294,6 @@ export default async function SettingsPage({
                           <input type="hidden" name="accountId" value={a.id} />
                           <SubmitButton
                             variant="ghost"
-                            pendingLabel="Unlinking…"
                             className={
                               linkedAccounts.length <= 1
                                 ? "opacity-50"
@@ -314,7 +313,7 @@ export default async function SettingsPage({
                           <span className="text-ink-faint">Reads when you&rsquo;re busy</span>
                         </span>
                         <ActionForm action={removeGoogleCalendar}>
-                          <SubmitButton variant="ghost" pendingLabel="Removing…">
+                          <SubmitButton variant="ghost">
                             Remove
                           </SubmitButton>
                         </ActionForm>
@@ -362,7 +361,6 @@ export default async function SettingsPage({
               <form action={deleteAccount}>
                 <ConfirmSubmit
                   message="Delete your Floc account? Trips you're the sole admin of will hand admin to their earliest-joined remaining member. This can't be undone from the app."
-                  pendingLabel="Deleting…"
                 >
                   Delete my account
                 </ConfirmSubmit>

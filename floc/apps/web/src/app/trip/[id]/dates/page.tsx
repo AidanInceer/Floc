@@ -12,7 +12,7 @@ import { datesMoment } from "@floc/core/dates/dates-moment";
 import { BookingCard } from "@/components/booking/booking-card";
 import { bookingSitesOf } from "@/server/auth/booking-sites";
 import { getTripForecast } from "@/server/itinerary/weather";
-import { bestWindow, monthOf, thisMonth } from "@floc/core/dates/availability";
+import { bestWindow, freeDaysByUser, monthOf, thisMonth } from "@floc/core/dates/availability";
 import { dateRange, formatDateRange, nightsBetween } from "@floc/core/dates/dates";
 import { spanLabel } from "@floc/core/dates/dates-tabs";
 import {
@@ -90,11 +90,8 @@ export default async function DatesPage({
   const mine = free.filter((r) => r.userId === viewer.id).map((r) => r.date);
 
   const tallies: Record<string, number> = {};
-  const marked: Record<string, number> = {};
-  for (const row of free) {
-    tallies[row.date] = (tallies[row.date] ?? 0) + 1;
-    marked[row.userId] = (marked[row.userId] ?? 0) + 1;
-  }
+  for (const row of free) tallies[row.date] = (tallies[row.date] ?? 0) + 1;
+  const marked = freeDaysByUser(rows);
 
   // Trip's month, else earliest marked month, else now. `?from=` overrides so
   // paging is linkable.
@@ -129,10 +126,10 @@ export default async function DatesPage({
     files: docs,
   });
 
-  const answered = members.filter((m) => (marked[m.userId] ?? 0) > 0);
+  const answered = members.filter((m) => m.userId in marked);
   const group: GroupAnswer[] = [
-    ...members.map((m) => ({ id: m.userId, name: m.name, answered: !!marked[m.userId] })),
-    ...guests.map((g) => ({ id: g.id, name: g.name, answered: !!marked[g.id] })),
+    ...members.map((m) => ({ id: m.userId, name: m.name, answered: m.userId in marked })),
+    ...guests.map((g) => ({ id: g.id, name: g.name, answered: g.id in marked })),
   ];
 
   const bestCard = best ? (
@@ -222,7 +219,6 @@ export default async function DatesPage({
                 className={menuDangerItemClass}
                 message={`Resetting the dates removes the whole itinerary — ${resetNoun}. Notes, costs and people stay.`}
                 confirmLabel={resetLabel!}
-                pendingLabel="Resetting…"
               >
                 Reset dates
               </ConfirmSubmit>
@@ -315,7 +311,7 @@ function NudgeSheet({
               name="message"
             />
           </Field>
-          <SubmitButton pendingLabel="Sending…">Send nudge</SubmitButton>
+          <SubmitButton>Send nudge</SubmitButton>
         </Stack>
       </form>
     </Sheet>
@@ -332,7 +328,6 @@ function RemoveGuest({ tripId, guest }: { tripId: number; guest: Guest }) {
           className={menuDangerItemClass}
           message={`Remove ${guest.name}? Their votes and days go for good.`}
           confirmLabel="Remove"
-          pendingLabel="Removing…"
         >
           Remove guest
         </ConfirmSubmit>

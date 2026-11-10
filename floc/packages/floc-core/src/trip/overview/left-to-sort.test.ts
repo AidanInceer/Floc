@@ -46,7 +46,7 @@ describe("leftToSort", () => {
 
   it("asks you to vote while there are ideas and no dates, and you have not voted", () => {
     const open = leftToSort({ ...base, moment: "finding", ideas: [{ mine: false }, { mine: false }] }).open;
-    expect(open[0]).toMatchObject({ mine: true, text: "Vote on where: 2 ideas", tab: "ideas" });
+    expect(open[0]).toMatchObject({ mine: true, text: "Vote on where: 2 ideas", tab: "overview", anchor: "ideas" });
   });
 
   it("orders the list as the trip is planned: dates, booking, packing, money, then the rest", () => {

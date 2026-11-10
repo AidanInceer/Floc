@@ -48,12 +48,11 @@ export function BestWindowCard({
               confirmVariant="danger"
               message={`These dates remove ${cost.noun} from the itinerary.`}
               confirmLabel={cost.label}
-              pendingLabel="Setting…"
             >
               Use these
             </ConfirmSubmit>
           ) : (
-            <SubmitButton pendingLabel="Setting…">Use these</SubmitButton>
+            <SubmitButton>Use these</SubmitButton>
           )}
         </form>
       )}

@@ -41,7 +41,7 @@ export function AttachExistingFile({
               ))}
             </Select>
           </label>
-          <SubmitButton pendingLabel="Linking…">Link it</SubmitButton>
+          <SubmitButton>Link it</SubmitButton>
         </div>
       </ActionForm>
     </Sheet>

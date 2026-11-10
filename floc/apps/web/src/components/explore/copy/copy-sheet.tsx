@@ -33,7 +33,8 @@ function MonthChip({ month, picked, onPick }: { month: StartMonth; picked: boole
 
 function CopyForm({ trip }: { trip: PresetTrip }) {
   const months = startMonths(trip, today());
-  const [picked, setPicked] = useState<number | null>(months[0]?.month ?? null);
+  // Undefined until the person chooses: a month, or null for "Decide later".
+  const [picked, setPicked] = useState<number | null | undefined>(undefined);
   const chosen = months.find((m) => m.month === picked);
 
   return (
@@ -51,10 +52,12 @@ function CopyForm({ trip }: { trip: PresetTrip }) {
               <span className={cx(chip, "h-full px-3 text-sm")}>Decide later</span>
             </label>
           </div>
-          <p className="nums mt-2.5 text-sm text-ink-soft">
+          <p className="nums mt-2.5 min-h-5 text-sm text-ink-soft">
             {chosen
               ? `${formatDateRange(chosen.startDate, chosen.endDate)} · ${trip.nights} nights`
-              : "No dates yet, so only the highlights come across. Days and events need dates."}
+              : picked === null
+                ? "No dates yet, so only the highlights come across. Days and events need dates."
+                : null}
           </p>
         </fieldset>
         <fieldset className="grid gap-3.5 border-t border-dashed border-rule-strong pt-4">
@@ -64,7 +67,7 @@ function CopyForm({ trip }: { trip: PresetTrip }) {
         </fieldset>
       </div>
       <SheetFooter note="You can change all of it later.">
-        <SubmitButton pendingLabel="Starting…">Start trip</SubmitButton>
+        <SubmitButton disabled={picked === undefined}>Start trip</SubmitButton>
       </SheetFooter>
     </form>
   );
