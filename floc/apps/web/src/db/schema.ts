@@ -199,8 +199,8 @@ export const userProfile = sqliteTable("user_profile", {
   exploreAnswers: text("explore_answers", { mode: "json" }).$type<unknown>(),
   /** Your flight and stay sites, read through `readBookingSites`; null or a bad shape reads as the default (wireframe/booking-sites J). */
   bookingSites: text("booking_sites", { mode: "json" }).$type<unknown>(),
-  /** Handed out by its owner so a stranger can find them (#360); made on first look, never reissued. */
   friendCode: text("friend_code").unique(),
+  friendTag: text("friend_tag").unique(),
   ...audit,
 });
 

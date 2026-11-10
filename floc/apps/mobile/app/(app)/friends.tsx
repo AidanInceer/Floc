@@ -4,7 +4,7 @@
  * REQUESTS FIRST. Incoming ones are the only thing on the screen waiting on
  * you, so they are at the top and they are the only rows with a filled button.
  *
- * NO ADD-BY-EMAIL, HERE OR ANYWHERE. Find someone by name or friend code
+ * NO ADD-BY-EMAIL, HERE OR ANYWHERE. Find someone by name or friend tag
  * (#360); a field taking an address would turn this into "is that an
  * account?" for any address typed (ticket 46).
  *
@@ -85,7 +85,7 @@ export default function Friends() {
         </View>
       ) : null}
 
-      <FindFriend code={code} />
+      <FindFriend tag={code} />
 
       <View style={{ gap: space.sm }}>
         <SectionTitle>Friends</SectionTitle>
