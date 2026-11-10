@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { resolve } from "node:path";
 import config from "../../lint-staged.config.mjs";
 
 test("a commit lints its staged files and runs no tests; tests run in CI on the PR", () => {
@@ -7,6 +8,7 @@ test("a commit lints its staged files and runs no tests; tests run in CI on the 
   assert.equal(commands.length, 1);
   assert.match(commands[0], /^node node_modules\/eslint\/bin\/eslint\.js .*"\/r\/floc\/apps\/web\/src\/a\.tsx" "\/r\/floc\/packages\/floc-core\/src\/b\.ts"$/);
   assert.ok(commands.every((c) => !c.includes("vitest")));
+  assert.deepEqual(config["*.{ts,tsx}"]([resolve("floc/wireframe/pick-a/tui.ts")]), []);
 });
 
 test("a big commit lints in few batches, each far under the 32767-character CreateProcess limit", () => {

@@ -53,7 +53,7 @@ function released(main, mergeSha) {
 /**
  * After the merge, never before: label and pop the tickets, push this task's
  * doc pages, close its worktree. For main, first wait until production serves
- * the merge, then close split parents and move prototype tags.
+ * the merge, then close split parents.
  */
 export async function finish(root, { pr: number, docs = [] }) {
   const main = mainCheckout(root);
@@ -68,7 +68,6 @@ export async function finish(root, { pr: number, docs = [] }) {
     result.live = true;
     const open = afterRelease(main, released(main, sha));
     if (open.length) result.stillOpen = open;
-    try { command(process.execPath, ["scripts/wireframe-tags.mjs", "--write"], { cwd: main }); } catch { result.tags = "prototype tags not updated"; }
   } else {
     const body = json(main, "pr", "view", String(number), "--json", "body").body;
     const issues = closedBy([body, git(main, "log", "-1", "--format=%B", pr.headRefOid)].join("\n"));

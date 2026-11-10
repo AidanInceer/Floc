@@ -16,7 +16,7 @@ export function planPreCommit(staged) {
     ["staged files", ["node", "node_modules/lint-staged/bin/lint-staged.js"]],
   ];
   if (staged.some((file) => DOCS_INPUT.test(file))) plan.push(["docs", ["node", "scripts/check-docs.mjs"]]);
-  if (staged.some((file) => SOURCE.test(file))) plan.push(["quality lint", ["node", "scripts/quality/staged.mjs"]]);
+  if (staged.some((file) => SOURCE.test(file) && !file.startsWith("floc/wireframe/"))) plan.push(["quality lint", ["node", "scripts/quality/staged.mjs"]]);
   if (staged.some((file) => WEB.test(file))) plan.push(["dead code", ["node", "node_modules/knip/bin/knip.js", "--directory", "floc/apps/web"]]);
   return plan;
 }
