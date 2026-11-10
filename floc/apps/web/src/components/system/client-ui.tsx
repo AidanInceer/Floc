@@ -294,7 +294,6 @@ export function ConfirmSubmit({
         onClick={() => ref.current?.showModal()}
       >
         {children}
-        {busyMark(pending)}
       </Button>
       <dialog
         ref={ref}
