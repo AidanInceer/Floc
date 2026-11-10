@@ -51,7 +51,7 @@ export default async function TripLayout({
       <div className="bg-paper">
         {/* Same width as `Page wide` and the header bar — see the note in
             `components/ui.tsx`. The trip's settings cog ends the tab row. */}
-        <div className="mx-auto flex w-full max-w-[84rem] items-center px-4 py-2.5 sm:px-6">
+        <div className="mx-auto flex w-full max-w-[84rem] items-center px-4 py-2 sm:px-6">
           <TripTabs tripId={trip.id} tabs={TABS}>
             <TripMenu
               tripId={trip.id}
