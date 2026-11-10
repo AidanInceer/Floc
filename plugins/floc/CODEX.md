@@ -39,9 +39,8 @@ either client; load `plugins/floc/skills/<name>/SKILL.md` when needed.
 
 ## Keep the clients current
 
-After editing any Floc skill, agent procedure or runtime guidance, bump
-`plugins/floc/.claude-plugin/plugin.json`'s version once for the change, then run
-`pnpm plugins:sync`. This updates generated metadata. After reviewing the change,
+After editing any Floc skill, agent procedure or runtime guidance, run
+`pnpm plugins:sync`; `pnpm delivery publish` bumps the plugin version. This updates generated metadata. After reviewing the change,
 `pnpm plugins:refresh` refreshes both installed clients when their CLIs are available. Dependency preparation generates metadata; refresh installed clients only after an actual plugin change. `pnpm plugins:check` detects
 drift without changing files. A fresh session is needed to load changed skill
 instructions; syncing cannot replace instructions already loaded in a chat.
