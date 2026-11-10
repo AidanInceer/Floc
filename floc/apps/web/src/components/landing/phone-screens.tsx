@@ -95,7 +95,7 @@ export function MoneyScreen() {
         <p className="font-mono text-[10px] uppercase tracking-[0.1em]">You owe</p>
         <p className="mt-1.5 flex items-center gap-2 font-display text-[17px] font-semibold">
           <Avatar name={priya.name} tone={priya.tone} size={24} /> Priya
-          <span className="nums ml-auto text-[26px] tracking-[-0.02em]">£200.00</span>
+          <span className="nums ml-auto text-[26px] font-normal tracking-[-0.02em]">£200.00</span>
         </p>
         <span className="mt-2.5 inline-flex rounded-sm bg-pen px-3 py-[5px] font-mono text-[10px] uppercase tracking-[0.06em] text-sheet">Mark as paid</span>
       </div>
