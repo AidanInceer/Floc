@@ -44,7 +44,7 @@ export function TripTabs({ tripId, tabs, children }: { tripId: number; tabs: Tab
         onScroll={fade.onScroll}
         style={fade.style}
         aria-label="Trip sections"
-        className="scroll-x-bare flex max-w-full items-center gap-2 sm:gap-5"
+        className="scroll-x-bare flex h-11 max-w-full items-center gap-2 sm:gap-5"
       >
         {tabs.map((tab) => (
           <Link
@@ -58,9 +58,9 @@ export function TripTabs({ tripId, tabs, children }: { tripId: number; tabs: Tab
             onMouseEnter={warm(tab)}
             onFocus={warm(tab)}
             onTouchStart={warm(tab)}
-            className="trip-tab flex shrink-0 items-center gap-1.5 py-1.5 text-sm font-medium text-ink-faint transition-colors hover:text-ink-soft aria-[current=page]:text-ink has-[[data-tab-pending]]:text-ink"
+            className="trip-tab flex h-full min-w-8 shrink-0 items-center justify-center gap-1.5 text-sm font-medium text-ink-faint transition-colors hover:text-ink-soft aria-[current=page]:text-ink has-[[data-tab-pending]]:text-ink sm:min-w-0"
           >
-            <span className="trip-tab-icon inline-flex size-8 items-center sm:size-6 justify-center rounded-sm transition-colors">
+            <span className="trip-tab-icon inline-flex size-[26px] items-center justify-center rounded-sm transition-colors">
               <NavGlyph name={tab.key} />
             </span>
             <span className="sr-only sm:not-sr-only">{tab.label}</span>
