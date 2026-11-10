@@ -52,7 +52,7 @@ function CopyForm({ trip }: { trip: PresetTrip }) {
               <span className={cx(chip, "h-full px-3 text-sm")}>Decide later</span>
             </label>
           </div>
-          <p className="nums mt-2.5 min-h-5 text-sm text-ink-soft">
+          <p className="nums mt-2.5 min-h-10 text-sm text-ink-soft sm:min-h-5">
             {chosen
               ? `${formatDateRange(chosen.startDate, chosen.endDate)} · ${trip.nights} nights`
               : picked === null

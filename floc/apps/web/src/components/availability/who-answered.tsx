@@ -62,7 +62,7 @@ export function WhoAnswered({
                 <Badge>Guest</Badge>
               </span>
               <span className="nums font-mono text-[11px] text-ink-faint">
-                {daysLabel(marked[g.id] ?? 0)}
+                {marked[g.id] === undefined ? "Not yet" : daysLabel(marked[g.id] ?? 0)}
               </span>
               {removeGuestFor?.(g)}
             </li>

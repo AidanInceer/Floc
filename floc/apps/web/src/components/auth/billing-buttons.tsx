@@ -11,7 +11,7 @@ import type { ReactNode } from "react";
 
 import Link from "next/link";
 
-import { Button, ErrorText, cx } from "@/components/system/ui";
+import { Button, ErrorText, busyMark, cx } from "@/components/system/ui";
 import { formatMoney } from "@floc/core/money/money";
 import { yearlySaving } from "@floc/core/billing/subscription-copy";
 import type { Currency } from "@floc/core/money/currency";
@@ -57,7 +57,12 @@ export function BillingAction({
     }
   }
 
-  const label = busy ? "One moment…" : children;
+  const label = (
+    <>
+      {children}
+      {busyMark(busy)}
+    </>
+  );
 
   return (
     <span className={cx("flex flex-col gap-1", className ? "w-full" : "inline-flex")}>

@@ -15,7 +15,7 @@ import type { ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { usePathname, useSearchParams } from "next/navigation";
 
-import { Button, Card, ErrorText, cx, iconButtonClass, segmentTrack } from "./ui";
+import { Button, Card, ErrorText, busyMark, cx, iconButtonClass, segmentTrack } from "./ui";
 
 // Server-rendered children can't take a close callback as a prop — a form
 // that wants to close only on successful submit reads it from here instead.
@@ -107,9 +107,10 @@ export function SubmitButton({
       variant={variant}
       disabled={pending || disabled}
       aria-busy={pending || undefined}
-      className={cx("aria-busy:cursor-progress", className)}
+      className={className}
     >
       {children}
+      {busyMark(pending)}
     </Button>
   );
 }
@@ -287,12 +288,13 @@ export function ConfirmSubmit({
         variant={variant}
         disabled={pending}
         aria-busy={pending || undefined}
-        className={cx("aria-busy:cursor-progress", className)}
+        className={className}
         aria-label={label}
         title={label}
         onClick={() => ref.current?.showModal()}
       >
         {children}
+        {busyMark(pending)}
       </Button>
       <dialog
         ref={ref}
@@ -320,8 +322,9 @@ export function ConfirmSubmit({
               Cancel
             </Button>
             {/* Stays open until the action settles, so a slow or failed one is seen. */}
-            <Button type="submit" variant={confirmVariant ?? variant} disabled={pending} aria-busy={pending || undefined} className="aria-busy:cursor-progress">
+            <Button type="submit" variant={confirmVariant ?? variant} disabled={pending} aria-busy={pending || undefined}>
               {confirmLabel}
+              {busyMark(pending)}
             </Button>
           </div>
         </div>

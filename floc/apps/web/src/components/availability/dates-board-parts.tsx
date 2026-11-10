@@ -6,7 +6,7 @@ import type { DatesTab, TabStub } from "@/components/availability/dates-tabs";
 import { NavGlyph } from "@/components/system/icons/nav";
 import { CheckIcon, ChevronIcon } from "@/components/system/icons";
 import { ProStar } from "@/components/system/pro-star";
-import { Button, LegendKey, cx } from "@/components/system/ui";
+import { Button, LegendKey, busyMark, cx } from "@/components/system/ui";
 import { WeatherGlyph } from "@/components/system/icons/weather";
 import { formatMonth, tripCoverage, type IsoMonth } from "@floc/core/dates/availability";
 import { formatDate, type IsoDate } from "@floc/core/dates/dates";
@@ -43,8 +43,9 @@ export function SaveBar({ changed, pending, onSave }: { changed: number; pending
   return (
     <Bar>
       <span className="text-[13px] text-ink-soft">{plural(changed, "change")} not saved</span>
-      <Button variant="primary" className="ml-auto" disabled={pending} onClick={onSave}>
-        {pending ? "Saving…" : `Save ${plural(changed, "day")}`}
+      <Button variant="primary" className="ml-auto" disabled={pending} aria-busy={pending || undefined} onClick={onSave}>
+        {`Save ${plural(changed, "day")}`}
+        {busyMark(pending)}
       </Button>
     </Bar>
   );
@@ -81,8 +82,9 @@ export function CommitBar({ pick, dated, problem, pending, onCommit, onDiscard }
         <Button variant="ghost" disabled={!pick.changed} onClick={onDiscard}>
           Discard
         </Button>
-        <Button variant={pick.armed ? "danger" : "primary"} disabled={!pick.start || !pick.changed || pick.halfMade || pending} onClick={onCommit}>
-          {pending ? "Setting…" : verb}
+        <Button variant={pick.armed ? "danger" : "primary"} disabled={!pick.start || !pick.changed || pick.halfMade || pending} aria-busy={pending || undefined} onClick={onCommit}>
+          {verb}
+          {busyMark(pending)}
         </Button>
       </span>
     </Bar>

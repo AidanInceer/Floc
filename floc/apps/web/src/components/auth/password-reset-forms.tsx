@@ -11,7 +11,7 @@ import { useState, type FormEvent } from "react";
 
 import { requestPasswordReset, resetPassword } from "@/lib/auth-client";
 import { isValidEmail, passwordWeakness } from "@floc/core/text/credentials";
-import { Button, ErrorText, Field, Input, Stack } from "@/components/system/ui";
+import { Button, ErrorText, Field, Input, Stack, busyMark } from "@/components/system/ui";
 
 export function RequestResetForm() {
   const [email, setEmail] = useState("");
@@ -67,8 +67,9 @@ export function RequestResetForm() {
           />
         </Field>
         <ErrorText>{error}</ErrorText>
-        <Button type="submit" variant="primary" disabled={busy} className="w-full">
-          {busy ? "Sending…" : "Send reset link"}
+        <Button type="submit" variant="primary" disabled={busy} aria-busy={busy || undefined} className="w-full">
+          Send reset link
+          {busyMark(busy)}
         </Button>
       </Stack>
     </form>
@@ -139,8 +140,9 @@ export function NewPasswordForm() {
           />
         </Field>
         <ErrorText>{error}</ErrorText>
-        <Button type="submit" variant="primary" disabled={busy} className="w-full">
-          {busy ? "Saving…" : "Set new password"}
+        <Button type="submit" variant="primary" disabled={busy} aria-busy={busy || undefined} className="w-full">
+          Set new password
+          {busyMark(busy)}
         </Button>
       </Stack>
     </form>

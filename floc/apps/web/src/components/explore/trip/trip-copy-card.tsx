@@ -57,7 +57,7 @@ function OpenDays({ stops, open, onJump }: { stops: PlanStop[]; open: number[]; 
                     aria-label={`Day ${d.n}, ${s.place}${d.highlight ? `, highlight: ${d.highlight}` : ""}`}
                     aria-pressed={open.includes(d.n)}
                     className={cx(
-                      "nums relative h-10 min-w-10 rounded-sm border px-1.5 text-xs sm:h-7 sm:min-w-7",
+                      "nums relative h-10 min-w-10 rounded-sm border px-1.5 text-xs lg:h-7 lg:min-w-7",
                       open.includes(d.n) ? "border-pen-edge bg-pen-soft text-pen-deep" : "border-rule-strong bg-sheet text-ink-soft hover:border-ink-faint hover:text-ink",
                       d.highlight && "after:absolute after:-right-[3px] after:-top-[3px] after:size-[7px] after:rounded-full after:border-[1.5px] after:border-sheet after:bg-highlight-ink",
                     )}
