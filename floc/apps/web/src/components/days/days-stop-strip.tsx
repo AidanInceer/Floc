@@ -71,13 +71,15 @@ export function StopStrip({
                 stop.placeName
                   ? "bg-sheet-3 text-ink-soft hover:shadow-[inset_0_0_0_1px_var(--color-rule-strong)]"
                   : "border border-dashed border-highlight-edge bg-highlight-soft text-highlight-ink hover:border-highlight-ink",
+                stop.dayIds.length === 1 && "max-sm:px-0.5",
               )}
             >
-              <BedIcon size={12} />
+              {/* Why: a one-night stop is one day wide, so its count goes and, on a phone, its bed too; the name is what cannot be guessed. */}
+              <BedIcon size={12} className={cx("shrink-0", stop.dayIds.length === 1 && stop.placeName && "max-sm:hidden")} />
               <b className={cx("min-w-0 truncate font-medium", stop.placeName ? "text-ink" : "max-sm:hidden")}>
                 {stop.placeName ? shortPlace(stop.placeName) : "Not set"}
               </b>
-              {stop.placeName ? (
+              {stop.placeName && stop.dayIds.length > 1 ? (
                 <small aria-hidden className="nums flex shrink-0 items-center gap-0.5 text-[11px] text-ink-faint max-sm:hidden">
                   {stop.nights}
                   <MoonIcon size={11} />

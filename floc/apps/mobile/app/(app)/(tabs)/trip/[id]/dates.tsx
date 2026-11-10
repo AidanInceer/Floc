@@ -113,7 +113,7 @@ function stubsFor(p: {
   forecast: { shown: boolean; locked: boolean; tripDays: number; days: number; horizonEnd: string | null };
 }): DatesStub[] {
   const stubs: DatesStub[] = [
-    { key: "mine", name: "Your days", glyph: (c) => <TickGlyph color={c} />, summary: yourDaysTab(p.mine, p.unsaved) },
+    { key: "mine", name: "Your days", glyph: (c) => <TickGlyph color={c} />, summary: yourDaysTab(p.mine, p.unsaved, p.group.some((g) => g.id === p.viewerId && g.answered)) },
     { key: "group", name: "The group", glyph: (c) => <GroupGlyph color={c} />, summary: groupTab(p.group, p.viewerId) },
     { key: "trip", name: "The trip", glyph: (c) => <CalendarGlyph color={c} />, summary: tripTab(p.start, p.end, p.best) },
   ];

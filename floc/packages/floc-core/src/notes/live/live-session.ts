@@ -53,7 +53,7 @@ export function openLivePage<P extends SessionProvider>(options: {
   const doc = new Y.Doc();
   let closed = false;
   let failed = false;
-  let status: LiveStatus = "saving";
+  let status: LiveStatus = "opening";
   let people: PresentPerson[] = [];
   let kept = options.cacheKey === null ? null : cache.open(options.cacheKey, doc);
 

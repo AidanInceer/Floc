@@ -13,8 +13,12 @@ describe("liveStatus", () => {
     expect(liveStatus({ ...base, unsynced: 2 })).toBe("saving");
   });
 
-  it("is saving while the first sync is still running", () => {
-    expect(liveStatus({ ...base, synced: false })).toBe("saving");
+  it("is opening while the first sync runs with nothing typed", () => {
+    expect(liveStatus({ ...base, synced: false })).toBe("opening");
+  });
+
+  it("is saving when something was typed before the first sync ended", () => {
+    expect(liveStatus({ ...base, synced: false, unsynced: 1 })).toBe("saving");
   });
 
   it("is offline with changes kept when the socket is down", () => {

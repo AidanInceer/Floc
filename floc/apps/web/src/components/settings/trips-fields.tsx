@@ -2,7 +2,7 @@
 import { updateCurrency, updatePacking } from "@/app/profile/actions";
 import { ToggleRow } from "@/components/auth/account-ui";
 import { Select, cx, segmentTrack } from "@/components/system/ui";
-import { CURRENCIES, currencySymbol, type Currency } from "@floc/core/money/currency";
+import { CURRENCIES, currencyOptionLabel, type Currency } from "@floc/core/money/currency";
 import { PACK_TIERS, PACK_TIER_LABELS, type PackTier } from "@floc/core/packing/packing";
 
 import { AutoSaveForm } from "./auto-save-form";
@@ -49,7 +49,7 @@ export function TripsFields({
           <Select name="homeCurrency" defaultValue={homeCurrency} className="sm:w-40">
             {CURRENCIES.map((c) => (
               <option key={c} value={c}>
-                {currencySymbol(c) ? `${c} — ${currencySymbol(c)}` : c}
+                {currencyOptionLabel(c)}
               </option>
             ))}
           </Select>

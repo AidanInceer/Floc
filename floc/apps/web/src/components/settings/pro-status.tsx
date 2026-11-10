@@ -20,7 +20,7 @@ export function ProStatus({ subscription }: { subscription: Subscription }) {
         {store
           ? `Bought in ${store}, so it is managed or cancelled there.`
           : subscription.stripeCustomerId
-            ? "It covers everyone on your trips."
+            ? "It adds extras to your own screen. The trip stays free for everyone on it."
             : "This one was granted rather than bought, so there is nothing to bill or cancel."}
       </p>
       {!store && subscription.stripeCustomerId ? (

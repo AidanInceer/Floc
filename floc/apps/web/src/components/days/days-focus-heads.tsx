@@ -102,7 +102,7 @@ function FocusHead({
           {" · "}
           {focus.eventCount
             ? `${focus.eventCount} ${focus.eventCount === 1 ? "event" : "events"}`
-            : "Nothing planned yet"}
+            : "Nothing planned"}
         </p>
       </div>
       <div className="flex shrink-0 items-center gap-1">

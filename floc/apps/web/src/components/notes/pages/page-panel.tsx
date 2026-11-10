@@ -49,7 +49,7 @@ export function PagePanel({ tripId, page, parent, socket, epoch, viewer, links, 
         </p>
         <div className="notes-live">
           <AvatarRow people={live?.people ?? []} size={24} />
-          <span className="typed" aria-live="polite">{LIVE_STATUS_WORDS[live?.status ?? "saving"]}</span>
+          <span className="typed" aria-live="polite">{LIVE_STATUS_WORDS[live?.status ?? "opening"]}</span>
         </div>
       </div>
       <div className="notes-sheet">
@@ -68,9 +68,7 @@ export function PagePanel({ tripId, page, parent, socket, epoch, viewer, links, 
             onReply={(threadId, body) => replyPageThread(tripId, page.id, threadId, body)}
             onResolve={(threadId) => resolvePageThread(tripId, threadId)}
           />
-        ) : (
-          <p className="typed text-ink-faint">Opening the page</p>
-        )}
+        ) : null}
       </div>
     </section>
   );
