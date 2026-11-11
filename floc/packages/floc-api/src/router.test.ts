@@ -73,6 +73,7 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
     setExploreFinder: vi.fn().mockResolvedValue(undefined),
     listSavedTrips: vi.fn().mockResolvedValue(["lisbon"]),
     setTripSaved: vi.fn().mockResolvedValue(undefined),
+    friendsWhoSaved: vi.fn().mockResolvedValue({ trips: { lisbon: [{ id: "u2", name: "Priya" }] }, countries: {} }),
     updateTrip: vi.fn().mockResolvedValue(undefined),
     archiveTrip: vi.fn().mockResolvedValue(undefined),
     leaveTrip: vi.fn().mockResolvedValue(undefined),
@@ -212,6 +213,12 @@ describe("explore", () => {
     expect(port.listSavedTrips).toHaveBeenCalledWith("u1");
     await ana.explore.setSaved({ presetId: "lisbon", saved: false });
     expect(port.setTripSaved).toHaveBeenCalledWith("u1", "lisbon", false);
+  });
+
+  it("reads friends' matching saves only for the caller (#544)", async () => {
+    const { caller: ana, port } = caller("u1");
+    expect((await ana.explore.friendSaves()).trips.lisbon).toEqual([{ id: "u2", name: "Priya" }]);
+    expect(port.friendsWhoSaved).toHaveBeenCalledWith("u1");
   });
 
   it("refuses a saved-trip id that is no id at all", async () => {

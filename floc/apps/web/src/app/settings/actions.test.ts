@@ -18,6 +18,7 @@ const rings = {
   visibilityVibeTags: "trip_members",
   visibilityTravelMap: "friends",
   visibilityFriends: "private",
+  visibilitySaved: "friends",
 };
 
 const profile = () =>
@@ -38,6 +39,7 @@ describe("privacy", () => {
       visibilityVibeTags: "trip_members",
       visibilityTravelMap: "friends",
       visibilityFriends: "private",
+      visibilitySaved: "friends",
     });
   });
 

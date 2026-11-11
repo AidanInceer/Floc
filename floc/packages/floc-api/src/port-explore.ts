@@ -1,8 +1,9 @@
 /** The Explore half of the port. The listings themselves are static `@floc/core` data both clients read directly. */
 import type { Finder } from "@floc/core/trip/explore/finder/finder";
 import type { ListingRates } from "@floc/core/trip/explore/listing-price";
+import type { FriendSaves } from "@floc/core/people/shared-saves";
 
-export type { Finder };
+export type { Finder, FriendSaves };
 
 /** `rates` turn listing prices into the viewer's currency; null leaves each in its own (rule 11). */
 export type ExploreState = { finder: Finder | null; rates: ListingRates | null };
@@ -15,4 +16,6 @@ export type ExplorePort = {
   listSavedTrips(viewerId: string): Promise<string[]>;
   /** Saves or takes off one listing; an id Explore does not list is ignored. */
   setTripSaved(viewerId: string, presetId: string, saved: boolean): Promise<void>;
+  /** Friends who saved what you saved, each only through the ring they set (#544, ADR-045). */
+  friendsWhoSaved(viewerId: string): Promise<FriendSaves>;
 };

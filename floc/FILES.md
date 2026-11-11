@@ -35,6 +35,7 @@ Bookings and site links: `floc/apps/web/src/components/booking/`,
 | My trips | `floc/apps/web/src/app/trips/`, `floc/apps/web/src/components/trip/` (bars: `components/trip/trips/`; opening a trip: `lib/trip-open/`) | `floc/apps/mobile/app/(app)/(tabs)/trips.tsx` |
 | Explore | `floc/apps/web/src/app/explore/` (listing page: Good to know in `components/explore/trip/know-*.tsx`, content in `floc/packages/floc-core/src/trip/explore/know/`), `floc/apps/web/src/components/explore/`, `floc/apps/web/src/server/explore/` | `floc/apps/mobile/src/components/explore/` |
 | Profile and globe | `floc/apps/web/src/app/profile/`, `floc/apps/web/src/components/profile/`, `floc/packages/floc-globe/src/` | `floc/apps/mobile/app/(app)/(tabs)/profile.tsx` |
+| Saved, packing lists (a friend's Saved part too) | `floc/apps/web/src/app/lists/`, `floc/apps/web/src/components/lists/`, `floc/packages/floc-core/src/people/shared-saves.ts` | `floc/apps/mobile/src/components/lists/` |
 | Friends, inbox | `floc/apps/web/src/components/social/`, `floc/apps/web/src/components/notifications/` | `floc/apps/mobile/src/components/social/` |
 | Sign in, invites, guests | `floc/apps/web/src/server/auth/`, `floc/apps/web/src/server/guests/`, `floc/apps/web/src/components/guest/` | `floc/apps/mobile/src/components/auth/` |
 | Landing page | `floc/apps/web/src/app/page.tsx`, `floc/apps/web/src/components/landing/` | — |

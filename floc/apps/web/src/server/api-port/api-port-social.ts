@@ -235,6 +235,7 @@ export const socialPort: SocialPort = {
         : null,
       been: profile.travelMap ? profile.travelMap.visited : null,
       wantToGo: profile.travelMap ? profile.travelMap.wantToGo : null,
+      saved: profile.saved,
       // `place` is dropped: the phone draws a name and a date range, and a
       // field nothing draws is a field that goes stale unnoticed.
       pastTrips:

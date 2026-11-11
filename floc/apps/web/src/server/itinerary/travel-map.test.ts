@@ -4,7 +4,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { removeMembership } from "@/server/trips/roster";
-import { pendingMapPrompts, setManualMark, travelMapFor } from "@/server/itinerary/travel-map";
+import { pendingMapPrompts, setManualMark, travelMapFor, travelMapsFor } from "@/server/itinerary/travel-map";
 
 let world: Scenario;
 
@@ -51,5 +51,18 @@ describe("the travel map", () => {
     expect(await pendingMapPrompts(world.member)).toEqual([
       { tripId: world.ours.id, tripName: "Ours", countries: [{ code: "PT", state: "green" }] },
     ]);
+  });
+
+  it("reads several people's maps at once, the same as one by one", async () => {
+    await sleepIn(world.ours.id, world.ours.dayId, "PT");
+    await sleepIn(world.theirs.id, world.theirs.dayId, "JP");
+    await setManualMark(world.member, "PT", "green");
+    await setManualMark(world.outsider, "PE", "yellow");
+    const people = [world.admin, world.member, world.outsider];
+
+    const maps = await travelMapsFor(people);
+
+    for (const id of people) expect(maps.get(id)).toEqual(await travelMapFor(id));
+    expect(maps.get(world.outsider)?.states).toEqual({ JP: "yellow", PE: "yellow" });
   });
 });

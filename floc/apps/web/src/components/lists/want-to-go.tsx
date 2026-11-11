@@ -2,27 +2,18 @@
 
 import { COUNTRIES } from "@floc/core/people/countries";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
-import { useOptimistic, useState, useTransition, type ReactNode } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 
 import { setCountryMark } from "@/app/profile/actions";
 import { ExploreTile } from "@/components/explore/all/explore-tile";
 import { PlusIcon } from "@/components/system/icons";
 import { ButtonLink, Input } from "@/components/system/ui";
+import type { FriendSaves } from "@floc/core/people/shared-saves";
 
 import { CountryTile } from "./country-tile";
+import { FriendFaces } from "./friend-faces";
+import { SavedSection, savedCountryGridClass, savedTripGridClass } from "./saved-section";
 import { StartTripButton } from "./start-trip-button";
-
-function Section({ title, count, children }: { title: string; count: number; children: ReactNode }) {
-  return (
-    <section aria-label={title} className="mt-8 first:mt-0">
-      <h2 className="mb-3 flex items-baseline gap-2.5 font-display text-lg font-semibold tracking-[-0.015em]">
-        {title}
-        <span className="nums text-xs font-normal text-ink-faint">{count}</span>
-      </h2>
-      {children}
-    </section>
-  );
-}
 
 type Country = { code: string; name: string };
 
@@ -33,7 +24,7 @@ const byName = (a: Country, b: Country) => a.name.localeCompare(b.name);
  * Trips and countries sit apart (A3): trips as Explore tiles, countries four across and smaller. A tile opens the trip or Explore
  * searched for the country; Start trip on its last line starts one from it. A country is the globe's yellow, so adding or removing one paints it.
  */
-export function WantToGo({ trips, countries }: { trips: PresetTrip[]; countries: Country[] }) {
+export function WantToGo({ trips, countries, friends }: { trips: PresetTrip[]; countries: Country[]; friends: FriendSaves }) {
   const [shown, change] = useOptimistic(countries, (list, next: { add?: Country; drop?: string }) =>
     next.add ? [...list, next.add].sort(byName) : list.filter((c) => c.code !== next.drop),
   );
@@ -90,26 +81,30 @@ export function WantToGo({ trips, countries }: { trips: PresetTrip[]; countries:
       ) : (
         <div>
           {trips.length ? (
-            <Section title="Trips" count={trips.length}>
-              <ul className="grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-3">
+            <SavedSection title="Trips" count={trips.length}>
+              <ul className={savedTripGridClass}>
                 {trips.map((trip) => (
                   <li key={trip.id}>
-                    <ExploreTile trip={trip} action={<StartTripButton saved={{ kind: "trip", id: trip.id }} name={trip.title} />} />
+                    <ExploreTile trip={trip} action={<StartTripButton saved={{ kind: "trip", id: trip.id }} name={trip.title} />}>
+                      <FriendFaces faces={friends.trips[trip.id]} />
+                    </ExploreTile>
                   </li>
                 ))}
               </ul>
-            </Section>
+            </SavedSection>
           ) : null}
           {shown.length ? (
-            <Section title="Countries" count={shown.length}>
-              <ul className="grid grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-3 lg:grid-cols-4">
+            <SavedSection title="Countries" count={shown.length}>
+              <ul className={savedCountryGridClass}>
                 {shown.map((c) => (
                   <li key={c.code}>
-                    <CountryTile code={c.code} name={c.name} onDrop={() => drop(c.code)} />
+                    <CountryTile code={c.code} name={c.name} onDrop={() => drop(c.code)}>
+                      <FriendFaces faces={friends.countries[c.code]} />
+                    </CountryTile>
                   </li>
                 ))}
               </ul>
-            </Section>
+            </SavedSection>
           ) : null}
         </div>
       )}

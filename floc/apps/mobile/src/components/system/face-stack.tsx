@@ -10,7 +10,7 @@ export type Face = { userId: string; name: string; tone: string };
 const SHOWN = 5;
 
 /** Overlapping faces, the web card's avatar row. Past five, a count says how many more. */
-export function FaceStack({ faces, diameter = 26 }: { faces: Face[]; diameter?: number }) {
+export function FaceStack({ faces, diameter = 26, label }: { faces: Face[]; diameter?: number; label?: string }) {
   const { c } = useTheme();
   if (faces.length === 0) return null;
   const shown = faces.slice(0, SHOWN);
@@ -19,7 +19,7 @@ export function FaceStack({ faces, diameter = 26 }: { faces: Face[]; diameter?: 
   return (
     <View
       accessible
-      accessibilityLabel={`${faces.length} going: ${faces.map((f) => f.name).join(", ")}`}
+      accessibilityLabel={label ?? `${faces.length} going: ${faces.map((f) => f.name).join(", ")}`}
       style={{ flexDirection: "row", alignItems: "center" }}
     >
       {shown.map((face, i) => {

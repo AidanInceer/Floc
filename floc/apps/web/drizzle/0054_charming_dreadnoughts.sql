@@ -1,0 +1,1 @@
+ALTER TABLE `user_profile` ADD `visibility_saved` text DEFAULT 'private' NOT NULL;
