@@ -12,7 +12,7 @@ import { SessionRenewal } from "@/components/chrome/session-renewal";
 import { NONCE_HEADER } from "@/lib/http/csp";
 import { themeBootstrap } from "@/lib/theme";
 import { getSession } from "@/server/access";
-import { allFeaturesFree } from "@/lib/env";
+import { allFeaturesFree, appUrl } from "@/lib/env";
 import { isLive } from "@floc/core/billing/subscription-copy";
 import { topBarFor } from "@/server/chrome/top-bar";
 
@@ -56,7 +56,10 @@ const mono = localFont({
   adjustFontFallback: false,
 });
 
+// Why: noindex unless a page opts in with `publicMetadata` (#550), so a new private page is never listed by default.
 export const metadata: Metadata = {
+  metadataBase: new URL(appUrl()),
+  robots: { index: false, follow: false },
   title: { default: "Floc — Trip planning, sorted.", template: "%s · Floc" },
   description:
     "Floc keeps a group trip in one place: the notes, the route, the days, and who owes who.",

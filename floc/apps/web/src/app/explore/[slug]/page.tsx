@@ -18,6 +18,7 @@ import { SavedTripsProvider } from "@/components/explore/save/saved-trips";
 import { getSession } from "@/server/access";
 import { savedTripIds } from "@/server/explore/explore-saves";
 import { listingRates, viewerCurrency } from "@/server/money/viewer-currency";
+import { publicMetadata } from "@/lib/seo/public-pages";
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ start?: string | string[] }> };
 
@@ -25,7 +26,14 @@ const findTrip = (slug: string) => PRESET_TRIPS.find((t) => t.id === slug);
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const trip = findTrip((await params).slug);
-  return trip ? { title: `${trip.title} · Explore`, description: trip.summary } : {};
+  return trip
+    ? publicMetadata({
+        path: `/explore/${trip.id}`,
+        title: `${trip.title} · Explore`,
+        description: trip.summary,
+        card: `/explore/${trip.id}/opengraph-image`,
+      })
+    : {};
 }
 
 export default async function ExploreTripPage({ params, searchParams }: Props) {
