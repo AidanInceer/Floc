@@ -46,7 +46,7 @@ export function FinderBar({
 }) {
   return (
     <div className="flex flex-col gap-3 pb-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex min-h-8 flex-wrap items-center gap-1.5">
         <b className="nums mr-1.5 text-[13px]">
           {shown} {shown === 1 ? "trip" : "trips"}
         </b>
