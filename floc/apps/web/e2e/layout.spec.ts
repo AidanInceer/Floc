@@ -148,6 +148,23 @@ for (const size of WIDTHS) {
     test.describe("signed in", () => {
       test.use({ storageState: priya.state });
 
+      test("the New group button sits beside the People tabs and opens the group dialog", async ({ page }) => {
+        await page.goto("/friends");
+        const tabs = page.getByRole("group", { name: "People" });
+        await tabs.getByRole("button", { name: /^Groups/ }).click();
+        const create = page.getByRole("button", { name: "New group", exact: true });
+        await expect(create).toBeVisible();
+
+        const tabBox = (await tabs.boundingBox())!;
+        const createBox = (await create.boundingBox())!;
+        expect(createBox.x).toBeGreaterThan(tabBox.x + tabBox.width);
+        expect(createBox.y).toBeGreaterThanOrEqual(tabBox.y);
+        expect(createBox.y + createBox.height).toBeLessThanOrEqual(tabBox.y + tabBox.height);
+
+        await create.click();
+        await expect(page.getByRole("dialog", { name: "New group" })).toBeVisible();
+      });
+
       test("my trips and every trip tab", async ({ page }) => {
         await page.emulateMedia({ reducedMotion: "reduce" });
         await page.goto("/trips");

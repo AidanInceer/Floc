@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, type RefObject } from "react";
 
 import { openArea } from "@/components/explore/atlas/atlas-frame";
 import { firstBase, routeParts } from "@/components/explore/listing";
+import { NavGlyph } from "@/components/system/icons/nav";
 
 import { useAtlasGlobe } from "./use-atlas-globe";
 import "./explore-globe.css";
@@ -70,10 +71,7 @@ export function ExploreGlobe({
       ) : null}
       {route ? (
         <button type="button" onClick={onWorld} className="atlas-world">
-          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.2} strokeLinecap="round" aria-hidden>
-            <circle cx="7" cy="7" r="5.25" />
-            <path d="M1.75 7h10.5M7 1.75c1.6 1.5 2.4 3.25 2.4 5.25S8.6 10.75 7 12.25M7 1.75C5.4 3.25 4.6 5 4.6 7s.8 3.75 2.4 5.25" />
-          </svg>
+          <NavGlyph name="explore" />
           Every trip
         </button>
       ) : null}
