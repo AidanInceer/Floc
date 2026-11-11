@@ -4,7 +4,7 @@ import type { TripTag } from "./tag-groups";
 import { tagsOf } from "./trip-tags";
 
 export const FINDER_SORTS = {
-  match: "Best match",
+  match: "Saved first",
   cheap: "Price, low to high",
   dear: "Price, high to low",
   short: "Shortest first",
@@ -41,9 +41,20 @@ const ORDER: Record<FinderSort, (a: Ranked, b: Ranked) => number> = {
   long: (a, b) => b.trip.nights - a.trip.nights || price(a) - price(b),
 };
 
-/** Every listing that fits, in the order asked. What you like ranks; it never hides. `likeId` ranks by likeness to that listing. */
-export function rankTrips(trips: readonly PresetTrip[], f: Finder, sort: FinderSort, likeId: string | null): Ranked[] {
+/**
+ * Every listing that fits, in the order asked. What you like ranks; it never hides. `likeId` ranks by likeness to that listing.
+ * In the best-match order, the listings you saved come first.
+ */
+export function rankTrips(
+  trips: readonly PresetTrip[],
+  f: Finder,
+  sort: FinderSort,
+  likeId: string | null,
+  saved: ReadonlySet<string> = new Set(),
+): Ranked[] {
   const like = trips.find((t) => t.id === likeId) ?? null;
+  const savedFirst = sort === "match" && !like;
+  const first = (a: Ranked, b: Ranked) => (savedFirst ? Number(saved.has(b.trip.id)) - Number(saved.has(a.trip.id)) : 0);
   return trips
     .filter((t) => t !== like && fits(t, f))
     .map((trip) => {
@@ -52,5 +63,5 @@ export function rankTrips(trips: readonly PresetTrip[], f: Finder, sort: FinderS
       if (like) return { trip, hits, ...alike(like, trip) };
       return { trip, hits, shared: null, score: f.likes.length ? hits.length / f.likes.length : 0 };
     })
-    .sort((a, b) => ORDER[sort](a, b) || a.trip.title.localeCompare(b.trip.title, "en-GB"));
+    .sort((a, b) => first(a, b) || ORDER[sort](a, b) || a.trip.title.localeCompare(b.trip.title, "en-GB"));
 }

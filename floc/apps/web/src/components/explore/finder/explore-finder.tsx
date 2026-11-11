@@ -15,6 +15,7 @@ import { Dialog } from "@/components/system/dialog";
 import { LineIcon } from "@/components/system/icons";
 import { Button } from "@/components/system/ui";
 import { useListingRates } from "@/components/explore/listing-rates";
+import { useSavedTrips } from "@/components/explore/save/saved-trips";
 
 const sheetClass =
   "m-0 mt-auto max-h-[90dvh] w-full max-w-none overflow-y-auto rounded-t-md bg-sheet p-0 text-ink backdrop:bg-black/40 sm:mx-auto sm:max-w-lg lg:hidden";
@@ -26,13 +27,14 @@ const sheetClass =
 export function ExploreFinder({ signedIn, initialFinder, blankName }: { signedIn: boolean; initialFinder: Finder; blankName: string | null }) {
   const [finder, setFinder] = useState(initialFinder);
   const rates = useListingRates();
+  const saved = useSavedTrips().ids;
   const [sort, setSort] = useState<FinderSort>("match");
   const [like, setLike] = useState<string | null>(null);
   const [sheet, setSheet] = useState(false);
   const top = useRef<HTMLDivElement>(null);
   const pendingSave = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const rows = useMemo(() => rankTrips(PRESET_TRIPS, finder, sort, like), [finder, sort, like]);
+  const rows = useMemo(() => rankTrips(PRESET_TRIPS, finder, sort, like, saved), [finder, sort, like, saved]);
   const counts = useMemo(() => finderCounts(PRESET_TRIPS, finder), [finder]);
   const liked = like ? PRESET_TRIPS.find((t) => t.id === like) : undefined;
 
