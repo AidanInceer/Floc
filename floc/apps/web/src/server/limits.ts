@@ -9,6 +9,8 @@ import "server-only";
 
 import { Refusal } from "@floc/core/errors/refusal";
 
+import { log } from "./observability/log";
+
 export const LIMITS = {
   /** Days in one trip. A year of itinerary; the longest real trip is shorter. */
   days: 366,
@@ -54,9 +56,7 @@ export type LimitKey = keyof typeof LIMITS;
 
 // Why: no PII and no ids beyond the trip's own — a ceiling log is not an audit trail.
 export function reportCeiling(what: LimitKey, scope: string): void {
-  console.warn(
-    `[floc] ceiling reached: ${what} at ${LIMITS[what]} for ${scope} — the view is truncated (see server/limits.ts)`,
-  );
+  log.warn("limit.ceiling", { limit: what, max: LIMITS[what], scope });
 }
 
 // Why: wrapping every bounded read makes "did we bound this query?" answerable by grep.

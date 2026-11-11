@@ -3,6 +3,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 
 import { db, schema } from "@/db";
 import { searchPlaces, upsertPlace } from "@/server/itinerary/places";
+import { capturedLogAsync } from "@/test/captured-log";
 import { migrateTestDb, resetDb } from "@/test/db";
 
 const porto = [{ osm_type: "relation", osm_id: 1, name: "Porto", display_name: "Porto, Portugal", lat: "41.1", lon: "-8.6" }];
@@ -39,6 +40,13 @@ describe("searching for a place", () => {
     const second = searchPlaces("Faro", "ada");
     expect(await searchPlaces("Evora", "ada")).toEqual([]);
     await Promise.all([first, second]);
+  });
+
+  it("answers nothing and logs it when the provider cannot be reached", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new TypeError("fetch failed"); }));
+    const { result, lines } = await capturedLogAsync(() => searchPlaces("Sintra"));
+    expect(result).toEqual([]);
+    expect(lines).toEqual([expect.objectContaining({ message: "geocoding.unreachable", errorType: "TypeError" })]);
   });
 });
 
