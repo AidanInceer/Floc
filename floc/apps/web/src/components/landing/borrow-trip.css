@@ -175,81 +175,26 @@
   .borrow-globe:active { cursor: grabbing; }
   .borrow-back {
     position: absolute;
-    left: 16px;
-    top: 16px;
+    left: 14px;
+    top: 14px;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 9px 14px 9px 12px;
-    font-family: var(--type);
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    gap: 6px;
+    height: 34px;
+    padding: 0 12px;
+    font: 500 13px var(--sans);
     color: var(--ink);
     background: var(--sheet);
-    border: 1px solid var(--rule-2);
-    border-radius: var(--radius-pill);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
     box-shadow: var(--shadow-sm);
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.25s var(--ease), border-color 0.18s var(--ease), color 0.18s var(--ease);
+    transition: opacity 0.25s var(--ease), background-color 0.22s var(--ease), color 0.22s var(--ease), border-color 0.22s var(--ease);
   }
-  .borrow-back:hover { color: var(--pen); border-color: var(--pen); }
+  .borrow-back:hover { color: var(--pen-deep); background: var(--pen-2); border-color: var(--pen-edge); }
   .borrow-stage[data-on] .borrow-back { opacity: 1; pointer-events: auto; }
-
-  /* The open trip's stops. The globe moves each pin; the trip's own pin hands over to them as the map opens. */
-  .borrow-pins {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    opacity: calc((var(--deep) - 0.6) * 3.4);
-  }
-  .borrow-pin {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 0;
-    height: 0;
-    pointer-events: auto;
-  }
-  .borrow-pin b {
-    position: absolute;
-    display: grid;
-    place-items: center;
-    min-width: 22px;
-    height: 22px;
-    padding: 0 6px;
-    translate: -50% -50%;
-    font-size: 11px;
-    font-weight: 500;
-    white-space: nowrap;
-    color: var(--pen);
-    background: var(--sheet);
-    border-radius: var(--radius-pill);
-    box-shadow: 0 0 0 1.5px var(--pen);
-  }
-  .borrow-pin[aria-current="true"] b { color: var(--sheet); background: var(--pen); box-shadow: 0 0 0 2.5px var(--sheet); }
-  .borrow-pin i {
-    position: absolute;
-    padding: 3px 10px;
-    font-size: 12.5px;
-    font-style: normal;
-    font-weight: 600;
-    line-height: 1.4;
-    white-space: nowrap;
-    color: var(--ink);
-    background: var(--sheet);
-    border: 1px solid var(--rule-2);
-    border-radius: var(--radius-pill);
-    box-shadow: var(--shadow-sm);
-    opacity: 0;
-    transition: opacity 0.3s var(--ease);
-  }
-  .borrow-pin[data-side="r"] i { left: 18px; top: 0; translate: 0 -50%; }
-  .borrow-pin[data-side="l"] i { right: 18px; top: 0; translate: 0 -50%; }
-  .borrow-pin[data-side="t"] i { left: 0; bottom: 18px; translate: -50% 0; }
-  .borrow-pin[data-side="b"] i { left: 0; top: 18px; translate: -50% 0; }
-  .borrow-stage[data-on] .borrow-pin[aria-current="true"] i { opacity: 1; }
+  .borrow-replay { top: auto; bottom: 14px; width: 34px; padding: 0; justify-content: center; }
 
   /* The rail: the open trip stop by stop, over the right of the map. */
   .borrow-panel {
@@ -265,98 +210,106 @@
     transition: opacity 0.3s var(--ease);
   }
   .borrow-stage[data-on] .borrow-panel { opacity: 1; pointer-events: auto; }
-  .borrow-rail {
+  .bp {
+    --row-max: 40px;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
     height: 100%;
     padding: 18px 18px 16px;
-    overflow-y: auto;
+    overflow: hidden;
     background: var(--sheet);
-    border-radius: 22px;
+    border-radius: var(--radius-md);
     box-shadow: var(--shadow-lift);
   }
-  .borrow-rail-title {
-    margin-top: 7px;
-    font-family: var(--display);
-    font-size: 22px;
-    font-weight: 600;
-    line-height: 1.12;
-    letter-spacing: -0.02em;
+  .bp-head { display: flex; flex: none; flex-direction: column; align-items: flex-start; }
+  .bp-tag {
+    display: inline-block;
+    max-width: 100%;
+    padding: 2px 8px;
+    overflow: hidden;
+    font: 500 11.5px var(--type);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    border-radius: var(--radius-pill);
   }
-  .borrow-pager {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
+  .bp-title { margin: 8px 0 0; font: 600 22px/1.12 var(--display); letter-spacing: -0.02em; }
+  .bp-figs { margin: 6px 0 0; font: 400 11.5px var(--type); color: var(--ink-2); }
+  .bp-pager {
+    display: flex;
+    flex: none;
     align-items: center;
-    gap: 10px;
-    width: 100%;
+    justify-content: space-between;
     margin-top: 14px;
-    font-size: 12px;
-    text-align: center;
-    color: var(--ink-2);
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
   }
-  .borrow-pager button {
+  .bp-count { font: 400 11.5px var(--type); color: var(--ink-2); }
+  .bp-steps { display: inline-flex; gap: 4px; }
+  .bp-step {
     display: grid;
     place-items: center;
-    width: 38px;
-    height: 38px;
+    width: 32px;
+    height: 32px;
     color: var(--ink);
-    border: 1px solid var(--rule-2);
-    border-radius: var(--radius-pill);
-    transition: border-color 0.18s var(--ease), color 0.18s var(--ease), opacity 0.18s var(--ease);
+    background: var(--sheet);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    transition: background-color 0.22s var(--ease), color 0.22s var(--ease);
   }
-  .borrow-pager button:hover:not(:disabled) { color: var(--pen); border-color: var(--pen); }
-  .borrow-pager button:disabled { opacity: 0.35; }
-  .borrow-steps {
+  .bp-step:hover:not(:disabled) { color: var(--pen-deep); background: var(--pen-2); }
+  .bp-step:disabled { color: var(--ink-3); cursor: default; }
+  /* Why: every stop gets one row height that shrinks to fit, so eight stops never scroll inside the panel. */
+  .bp-list {
     display: grid;
-    gap: 2px;
-    width: 100%;
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1.5px dashed var(--rule-2);
+    flex: 1 1 auto;
+    grid-template-rows: repeat(var(--n), minmax(min-content, var(--row-max)));
+    align-content: start;
+    min-height: 0;
+    margin: 10px -6px 0;
   }
-  .borrow-steps button {
+  .bp-list li { display: flex; min-height: 0; }
+  .bp-row {
+    position: relative;
     display: grid;
     grid-template-columns: 22px minmax(0, 1fr) auto;
     align-items: center;
-    gap: 10px;
-    width: calc(100% + 16px);
-    margin-inline: -8px;
-    padding: 7px 8px;
-    font-size: 13.5px;
-    text-align: left;
-    border: 1px solid transparent;
-    border-radius: var(--radius-md);
-    transition: background-color 0.18s var(--ease), border-color 0.18s var(--ease);
-  }
-  .borrow-steps button:hover { border-color: var(--pastel-blue-edge); }
-  .borrow-steps button[aria-current="true"] { background: var(--pastel-blue); border-color: var(--pastel-blue-edge); }
-  .borrow-steps b {
-    display: grid;
-    place-items: center;
-    width: 22px;
-    height: 22px;
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--pen);
-    background: var(--sheet);
-    border-radius: var(--radius-pill);
-    box-shadow: inset 0 0 0 1.5px var(--pen);
-  }
-  .borrow-steps button[aria-current="true"] b { color: var(--sheet); background: var(--pen); }
-  .borrow-steps span { display: flex; flex-direction: column; min-width: 0; }
-  .borrow-steps strong { font-weight: 600; }
-  .borrow-steps small { font-size: 11.5px; color: var(--ink-3); }
-  .borrow-steps em { font-size: 11.5px; font-style: normal; white-space: nowrap; color: var(--ink-3); }
-  .borrow-acts {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px 16px;
+    column-gap: 10px;
     width: 100%;
-    margin-top: auto;
-    padding-top: 16px;
+    min-height: 32px;
+    padding: 0 6px;
+    color: var(--ink);
+    text-align: left;
+    border-radius: var(--radius-sm);
+    transition: background-color 0.22s var(--ease), color 0.22s var(--ease), box-shadow 0.22s var(--ease);
   }
+  .bp-row:hover { box-shadow: inset 0 0 0 1px var(--pen-edge); }
+  .bp-row[aria-current] { color: var(--pen-deep); background: var(--pen-2); }
+  .bp-mark { position: relative; display: grid; place-items: center; align-self: stretch; }
+  .bp-name { display: flex; flex-direction: column; min-width: 0; }
+  .bp-place { font: 600 13.5px/1.2 var(--sans); overflow-wrap: break-word; }
+  .bp-out { display: inline-flex; align-items: center; gap: 5px; font: italic 400 11.5px/1.25 var(--sans); color: var(--ink-2); }
+  .bp-n { font: 400 11.5px var(--type); white-space: nowrap; color: var(--ink-2); }
+  .bp-row[aria-current] :is(.bp-out, .bp-n) { color: var(--pen-deep); }
+  .bp .mk { position: relative; z-index: 1; width: 14px; height: 14px; overflow: visible; }
+  .bp .mk-night circle { fill: var(--sheet); stroke: var(--ink); stroke-width: 1.8; }
+  .bp .mk-end circle { fill: var(--ink); stroke: var(--sheet); stroke-width: 1.4; }
+  .bp .mk-end :is(path, rect) { fill: var(--sheet); }
+  .bp .odot { display: inline-block; flex: none; width: 7px; height: 7px; border: 1.5px solid currentColor; border-radius: var(--radius-pill); }
+  .bp .seg { position: absolute; overflow: visible; color: var(--ink); }
+  .bp .seg line { stroke: currentColor; }
+  /* Why: the line runs from the mark above to the mark below, so it starts half a row up and stops short of each mark. */
+  .bp .seg-v { top: calc(-50% + 9px); left: 0; width: 100%; height: calc(100% - 18px); }
+  .bp-acts {
+    display: flex;
+    flex: none;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 14px;
+    margin-top: 12px;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule);
+  }
+  .bp-full { font-size: 12.5px; font-weight: 600; white-space: nowrap; color: var(--pen); text-decoration: underline; text-underline-offset: 3px; }
 
   /* See every trip holds the centre whatever the length of the place name beside it. The bar folds away as a trip opens. */
   .borrow-bar {
@@ -372,6 +325,7 @@
   .borrow-bar > :is(button, a) { min-height: 44px; padding-block: 10px; font-size: 12px; }
   .borrow-go { justify-self: end; }
   .borrow-start { justify-self: start; white-space: nowrap; }
+  .borrow-start-still { display: none; }
 
   @media (max-width: 900px) {
     /* A phone: the globe on top grows into the map; the tiles under it fold away and the rail takes their place. */
@@ -409,7 +363,9 @@
       height: calc(var(--globe) + (var(--deep-h) - var(--globe)) * var(--deep));
       translate: none;
     }
-    .borrow-back { left: 12px; top: 12px; }
+    /* Why: on a phone the sticky top bar can cover the top of the map, so both buttons sit along its foot. */
+    .borrow-back { left: 12px; top: auto; bottom: 12px; height: 32px; font-size: 12.5px; }
+    .borrow-replay { left: auto; right: 12px; width: 32px; }
     /* Why: with 25 trips the place can be long ("South Africa"), so Start from takes its own row when it does not fit beside Spin for me. */
     .borrow-bar {
       grid-column: 1 / -1;
@@ -421,6 +377,10 @@
       margin: calc(10px * (1 - var(--deep))) 0 calc(12px * (1 - var(--deep)));
     }
     .borrow-bar::before { content: ""; order: -1; flex-basis: 100%; }
+    /* Why: a spin changes the place, and a long one ("South Africa, Namibia, …") would push the page up and down; on a phone the heading and the button hold still and the tiles show the spin. */
+    .borrow-to,
+    .borrow-start-place { display: none; }
+    .borrow-start-still { display: inline; }
     .borrow-every { order: -2; }
     .borrow-panel {
       position: static;
@@ -431,8 +391,8 @@
       margin-top: 12px;
     }
     .borrow-stage[data-on] .borrow-panel { display: block; animation: borrow-roll 0.35s var(--ease) both; }
-    .borrow-rail { height: auto; overflow: visible; }
-    .borrow-acts { margin-top: 0; }
+    .bp { height: auto; border: 1px solid var(--rule); box-shadow: none; }
+    .bp-list { grid-template-rows: repeat(var(--n), minmax(var(--row-max), auto)); }
   }
   @media (prefers-reduced-motion: reduce) {
     .borrow-roll,
@@ -441,6 +401,9 @@
     /* Why: with no animation the old words never report that they have gone. */
     .borrow-face[data-kind="out"] { display: none; }
     .borrow-chip,
-    .borrow-deeper { transition: none; }
+    .borrow-deeper,
+    .borrow-back,
+    .bp-row,
+    .bp-step { transition: none; }
   }
 }

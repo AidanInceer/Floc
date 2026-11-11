@@ -53,6 +53,10 @@ describe("followPen", () => {
     expect(run.old(run.passes(0))).toBe(0);
   });
 
+  it("plays slower by the share asked for", () => {
+    expect(followPen(plane, { from, to, look, length: 900, slow: 1.3 }).ms).toBeCloseTo(run.ms * 1.3);
+  });
+
   it("takes longer for a longer route, within limits", () => {
     expect(followPen(plane, { from, to, look, length: 1600 }).ms).toBeGreaterThan(run.ms);
     expect(followPen(plane, { from, to, look, length: 1e6 }).ms).toBe(followPen(plane, { from, to, look, length: 2e6 }).ms);

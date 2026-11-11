@@ -15,6 +15,17 @@ export function guardVerdict({ flocCommon, fileCommon, fileGitDir, ignored }) {
   return { allow: false };
 }
 
+/**
+ * Why: scratch files and throwaway preview routes made inside a checkout were left behind,
+ * could not be deleted under auto mode, and a deleted preview route broke Next's route types.
+ */
+export function scratchVerdict(rel) {
+  const parts = rel.split("/");
+  if (parts.some((part) => /^\.?tmp/i.test(part))) return { allow: false };
+  if (/^floc\/apps\/web\/src\/app\/[^/]*preview/i.test(rel)) return { allow: false };
+  return { allow: true };
+}
+
 function gitIn(cwd, ...args) {
   const result = spawnSync("git", args, { cwd, encoding: "utf8", windowsHide: true });
   return result.status === 0 ? result.stdout.trim() : null;
@@ -35,6 +46,7 @@ function check(file) {
   const [gitDir, common, top] = facts.split(/\r?\n/);
   const rel = relative(top, resolve(file)).replaceAll("\\", "/");
   const ignored = spawnSync("git", ["check-ignore", "-q", "--", rel], { cwd: top, windowsHide: true }).status === 0;
+  if (resolve(dir, common).toLowerCase() === flocCommon.toLowerCase() && !scratchVerdict(rel).allow) return { allow: false, scratch: true, top, rel };
   return { ...guardVerdict({ flocCommon, fileCommon: resolve(dir, common), fileGitDir: resolve(dir, gitDir), ignored }), top, rel };
 }
 
@@ -43,9 +55,13 @@ if (process.argv[1] && resolve(process.argv[1]).toLowerCase() === resolve(fileUR
     const input = JSON.parse(readFileSync(0, "utf8") || "{}");
     const file = input.tool_input?.file_path ?? input.tool_input?.notebook_path;
     const verdict = file ? check(file) : { allow: true };
-    if (!verdict.allow) {
+    if (verdict.scratch) {
+      process.stderr.write(`Blocked: ${verdict.rel} looks like a scratch file or preview page inside the repo. `
+        + "Put scratch files in $env:TEMP\\claude. To see a state in the app, use /floc:scenario or /api/dev/enter.\n");
+      process.exitCode = 2;
+    } else if (!verdict.allow) {
       process.stderr.write(`Blocked: ${verdict.rel} is a repo file in the main checkout (${verdict.top}). `
-        + "The main checkout only shapes work (floc/wireframe, docs, mockups). Build in a task worktree: "
+        + "Edit tracked source, including wireframes, in a task worktree: "
         + "pnpm workspace:new <name>, then work in that folder.\n");
       process.exitCode = 2;
     }

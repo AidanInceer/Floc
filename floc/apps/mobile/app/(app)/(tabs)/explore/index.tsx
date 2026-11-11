@@ -34,6 +34,7 @@ export default function Explore() {
   const pendingSave = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const state = useQuery(trpc.explore.get.queryOptions());
+  const saves = useQuery(trpc.explore.saves.queryOptions());
   const [picked, setPicked] = useState(MAP_PICKS[0].id);
   // Why: a want-to-go country on Lists opens Explore searched for it (#467), over the remembered finder.
   const asked = readCountryCode(useLocalSearchParams<{ country?: string }>().country);
@@ -59,7 +60,8 @@ export default function Explore() {
   });
 
   const trip = PRESET_TRIPS.find((t) => t.id === picked) ?? PRESET_TRIPS[0];
-  const rows = useMemo(() => rankTrips(PRESET_TRIPS, finder, sort, null), [finder, sort]);
+  // Why: saved trips are read when the list loads or the finder or sort changes, never on a heart press, so the list holds still.
+  const rows = useMemo(() => rankTrips(PRESET_TRIPS, finder, sort, null, new Set(saves.data ?? [])), [finder, sort, saves.isSuccess]);
   const counts = useMemo(() => finderCounts(PRESET_TRIPS, finder), [finder]);
   const pills = finderPills(finder, state.data?.rates ?? null);
   const shown = showAll ? rows : rows.slice(0, ROW_LIMIT);

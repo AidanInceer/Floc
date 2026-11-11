@@ -1,0 +1,28 @@
+/* Borrow a trip, on the globe. Sits on the hero experiments' styles in landing-hero-flock. Throwaway. */
+.bw-above { margin-top: 28px; }
+.hero .c-hero.bw-head { padding-top: 96px; }
+.bw-head h2 { font-size: clamp(2.2rem, 4.4vw, 3.4rem); line-height: 1.04; letter-spacing: -0.03em; }
+.bw-word { display: inline-block; margin-inline: -0.1em; padding: 0 0.1em; border-radius: 0.14em; transition: background-color .5s var(--ease), color .5s var(--ease); }
+.bw-head .lede { margin-top: 14px; }
+.bw-stops { margin-top: 8px; max-width: 30ch; font-size: 12px; line-height: 1.4; color: var(--ink-2); }
+.bw-stops span { white-space: nowrap; }
+.bw-more { position: relative; display: flex; justify-content: center; margin-top: 4px; }
+@media (max-width: 700px) {
+  .hero .c-hero.bw-head { padding-top: 64px; }
+  .bw-more { margin-top: 20px; }
+}
+/* Why: the card carries the stops here, so it is wider and taller; the dome gets more height to keep the pin clear of it. */
+@media (min-width: 701px) {
+  .hero:has(.bw-head) .hz { height: 520px; }
+  .hero:has(.bw-head) .g-card.hz-card { width: 330px; margin-left: -165px; }
+  .bw-stops { max-width: none; }
+  .bw-more { margin-top: -44px; }
+}
+/* C, the fan: on a phone the nights bar stays one row and the hidden side cards do not widen the page, as on the live band. */
+.bw-fan { overflow-x: clip; }
+@media (max-width: 700px) {
+  .bw-fan .d-stage { height: 390px; }
+  .bw-fan .b-line.compact { flex-direction: row; gap: 4px; }
+  .bw-fan .b-line.compact .b-seg { flex: var(--n) !important; }
+  .bw-fan .b-line.compact .b-bar { width: auto; min-width: 0; }
+}

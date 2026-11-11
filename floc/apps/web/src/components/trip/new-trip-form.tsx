@@ -1,64 +1,52 @@
 "use client";
 
 import { useState } from "react";
+import { peopleCount, toggleTripPeople, TRIP_INVITE_CAP, type TripPeopleSelection } from "@floc/core/people/group-ticks";
 import { TEXT_CAPS } from "@floc/core/text/text";
 
-import { FriendPicker } from "@/components/social/friend-picker";
 import { SubmitButton } from "@/components/system/client-ui";
-import { Field, FieldGroup, Input, SheetFooter } from "@/components/system/ui";
+import { AvatarRow, Field, Input, SheetFooter } from "@/components/system/ui";
 import type { Person } from "@/server/social/friends";
+import type { Group } from "@/server/social/groups";
 
-function askedNote(n: number) {
-  if (n === 0) return "Friends can join later";
-  return `${n} friend${n === 1 ? "" : "s"} asked along`;
-}
+import { TripPeoplePicker } from "./trips/trip-people-picker";
 
-/** The "Start a trip" sheet as a split: the name on the left, friends beside it; stacked on a phone. */
-export function NewTripForm({
-  action,
-  friends,
-  name = "",
-}: {
+export function NewTripForm({ action, friends, groups, name = "" }: {
   action: (formData: FormData) => Promise<void>;
   friends: Person[];
+  groups: Group[];
   name?: string;
 }) {
-  const [asked, setAsked] = useState(0);
-
+  const [selection, setSelection] = useState<TripPeopleSelection>(() => ({ ticked: new Set(), groups: new Set() }));
+  const { ticked } = selection;
+  const known = new Map([...groups.flatMap(({ members }) => members), ...friends].map((person) => [person.id, person]));
+  const asked = [...ticked].flatMap((id) => known.get(id) ?? []);
+  const toggle = (ids: string[], groupId?: number) => setSelection((now) => toggleTripPeople(now, ids, groupId));
   return (
-    <form
-      className="flex min-h-0 flex-1 flex-col"
-      action={action}
-      onChange={(e) =>
-        setAsked(e.currentTarget.querySelectorAll('input[name="friendIds"]:checked').length)
-      }
-    >
-      <div className="scroll-thin grid min-h-0 flex-1 overflow-y-auto sm:grid-cols-[minmax(0,1fr)_15rem] sm:grid-rows-[minmax(0,1fr)] sm:overflow-hidden">
+    <form className="flex min-h-0 flex-1 flex-col" action={action}>
+      {asked.map(({ id }) => <input key={id} type="hidden" name="friendIds" value={id} />)}
+      {[...selection.groups].map((id) => <input key={id} type="hidden" name="groupIds" value={id} />)}
+      <div className="scroll-thin min-h-0 flex-1 overflow-y-auto">
         <div className="p-6">
           <Field label="Name">
             <Input name="name" required maxLength={TEXT_CAPS.tripName} defaultValue={name} />
           </Field>
-          {/* No date fields — rule 9: undated is the normal path. */}
         </div>
-        <div className="scroll-thin border-t border-rule bg-sheet-2 p-6 sm:overflow-y-auto sm:border-l sm:border-t-0">
-          <FieldGroup
-            label={
-              <span className="flex justify-between gap-3">
-                <span>Friends</span>
-                <span>Optional</span>
-              </span>
-            }
-          >
-            <FriendPicker
-              friends={friends}
-              emptyNote="No friends yet — share the trip link once it exists."
-              unbounded
-            />
-          </FieldGroup>
+        <div className="border-t border-rule bg-sheet-2 p-6">
+          <TripPeoplePicker friends={friends} groups={groups} ticked={ticked} onPerson={(id) => toggle([id])} onGroup={toggle} />
+          {asked.length > 0 ? (
+            <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-rule pt-3">
+              <AvatarRow people={asked} size={24} max={5} />
+              <span className="font-mono text-xs text-ink-soft">{peopleCount(asked.length)}</span>
+            </div>
+          ) : null}
+          {asked.length >= TRIP_INVITE_CAP ? (
+            <p className="mt-2 text-xs text-ink-soft">You can invite {TRIP_INVITE_CAP} people at most.</p>
+          ) : null}
         </div>
       </div>
-      <SheetFooter note={askedNote(asked)}>
-        <SubmitButton pendingLabel="Creating…">Create trip</SubmitButton>
+      <SheetFooter note={asked.length ? `${peopleCount(asked.length)} asked along` : "Friends can join later"}>
+        <SubmitButton>Create trip</SubmitButton>
       </SheetFooter>
     </form>
   );

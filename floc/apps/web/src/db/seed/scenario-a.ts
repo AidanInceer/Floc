@@ -1,10 +1,6 @@
 /**
- * Scenario A — the ordinary case (#no-ticket).
- *
- * Four people who all know each other, one trip five weeks out, a bag that is
- * part claimed and part still open, three expenses that leave a real balance.
- * Nothing pending, nothing broken: this is what "working" looks like, and the
- * baseline you compare B against.
+ * Why: scenario A is the ordinary case — four friends, one trip five weeks out,
+ * nothing pending, nothing broken. It is the baseline you compare B against.
  */
 import { db } from "../index.ts";
 import { availability, day, dayEvent, place } from "../schema.ts";
@@ -31,6 +27,7 @@ const PEOPLE: Person[] = [
       currency: "GBP",
       rings: OPEN,
       map: { green: ["IT", "GR", "PT"], yellow: ["JP", "PE"] },
+      saves: ["porto-to-seville", "sri-lanka-road-and-rail", "patagonia-w-trek"],
     },
   },
   {
@@ -40,7 +37,8 @@ const PEOPLE: Person[] = [
       vibes: ["hiking", "road trips", "early starts"],
       currency: "EUR",
       rings: FRIENDS_ONLY,
-      map: { green: ["NO", "IS"] },
+      map: { green: ["NO", "IS"], yellow: ["JP"] },
+      saves: ["peru-sacred-valley", "scottish-highlands-and-skye"],
     },
   },
   {
@@ -51,6 +49,7 @@ const PEOPLE: Person[] = [
       currency: "EUR",
       rings: PRIVATE,
       map: { green: ["BR"] },
+      saves: ["porto-to-seville"],
     },
   },
 ];

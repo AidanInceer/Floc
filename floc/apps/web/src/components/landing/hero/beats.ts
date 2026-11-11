@@ -26,4 +26,15 @@ export const CLAIMED = VOTED + 8;
 export const SCENE_END_MS = 13500;
 export const FLIGHT_MS = SCENE_END_MS - VOTE_START;
 
-export const kicker = "font-mono text-[10px] uppercase tracking-[0.1em] opacity-80";
+export const kicker = "deck-kicker font-mono text-[10px] uppercase tracking-[0.1em] opacity-80";
+
+export type DeckCard = "votes" | "dates" | "ticket" | "money" | "pack";
+
+/** The card the scene is playing at `step`: none before the first beat or once the last reel locks. */
+export function playingCard(step: number): DeckCard | null {
+  if (step <= 0 || step >= CLAIMED) return null;
+  if (step <= VOTED) return "votes";
+  if (step === DATED) return "dates";
+  if (step === ROUTED) return "ticket";
+  return step < SPUN ? "money" : "pack";
+}

@@ -27,8 +27,8 @@ Never push when the user asked for local review only.
   They are pushed after the merge, in step 5.
 - **Schema** → the new `drizzle/*.sql` is applied to this worktree's database.
   **API procedure** → its `scripts/parity/parity.json` line (`pnpm parity --fix`
-  writes the boring half). **Plugin** → bump `version` in
-  `plugins/floc/.claude-plugin/plugin.json` and run `pnpm plugins:sync`.
+  writes the boring half). **Plugin** → run `pnpm plugins:sync`;
+  publish bumps the version.
 
 Do not run `pnpm checks` here. The pre-commit hook is the local gate; CI is the real one.
 
@@ -85,11 +85,8 @@ cd C:/dev/Floc; pnpm delivery finish --pr <n> --docs <page> <page>
 
 Leave out `--docs` when no page changed. It labels the tickets `on-develop` and pops them off
 the Priority stack, pushes only your doc pages to `floc-docs`, and removes this worktree and its
-branch.
-
-**Prototype tag.** For each prototype this work built, set its `wf-status` to
-`Chosen: <key>, on develop <first 7 of the merge sha>` in the main
-checkout's `floc/wireframe/`. Rules: [prototype](../prototype/SKILL.md#the-tag-follows-the-work).
+branch. `docsAlsoCarry` in the result names pages that went out with another branch's unpushed
+edits on them: name those pages and branches in the report.
 
 ## 6. Report
 

@@ -4,10 +4,12 @@ import "./fonts/extended.css";
 
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { headers } from "next/headers";
 
 import { AppChrome } from "@/components/chrome/app-chrome";
 import { SiteFooter } from "@/components/chrome/site-footer";
 import { SessionRenewal } from "@/components/chrome/session-renewal";
+import { NONCE_HEADER } from "@/lib/http/csp";
 import { themeBootstrap } from "@/lib/theme";
 import { getSession } from "@/server/access";
 import { allFeaturesFree } from "@/lib/env";
@@ -67,7 +69,7 @@ export default async function RootLayout({
   children: React.ReactNode;
   modal: React.ReactNode;
 }) {
-  const session = await getSession();
+  const [session, nonce] = await Promise.all([getSession(), headers().then((h) => h.get(NONCE_HEADER) ?? undefined)]);
 
   // The badges on Trips (ticket 146) and Friends (ticket 145): an invite and a
   // friend request are the two things that arrive while you're elsewhere in the
@@ -97,7 +99,8 @@ export default async function RootLayout({
       className={`${display.variable} ${body.variable} ${mono.variable}`}
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeBootstrap(Boolean(session?.user)) }} />
+        {/* A browser hides the nonce once it has read it, so the attribute never matches on hydration. */}
+        <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: themeBootstrap(Boolean(session?.user)) }} />
       </head>
       <body className="min-h-dvh">
         <AppChrome

@@ -28,6 +28,7 @@ export type Privacy = {
   visibilityVibeTags: Visibility;
   visibilityTravelMap: Visibility;
   visibilityFriends: Visibility;
+  visibilitySaved: Visibility;
   pastTripsShow: PastTripsShow;
 };
 
@@ -40,6 +41,7 @@ const PARTS = [
   { key: "visibilityVibeTags", label: "Vibe tags" },
   { key: "visibilityTravelMap", label: "Travel map" },
   { key: "visibilityFriends", label: "Friends list" },
+  { key: "visibilitySaved", label: "Saved" },
 ] as const;
 
 const CELL = 92;

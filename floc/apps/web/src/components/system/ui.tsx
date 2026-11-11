@@ -92,6 +92,12 @@ const variants: Record<Variant, string> = {
 const buttonBase =
   "lift inline-flex items-center justify-center gap-2 rounded-sm border px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.06em] disabled:pointer-events-none disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none";
 
+/**
+ * Why: a busy button keeps its own words, so the action stays named, and a disabled button takes no pointer,
+ * so a cursor cannot say "busy". The mark is the status, on touch too (#572).
+ */
+export const busyMark = (busy: boolean): string | null => (busy ? "…" : null);
+
 /** The house button look, for a control that cannot be a `Button` — a menu trigger, a bare `Link`. */
 export const buttonClass = (variant: Variant = "secondary"): string => cx(buttonBase, variants[variant]);
 
@@ -284,32 +290,34 @@ export function AvatarRow({
   people,
   max = 5,
   size = 28,
+  spaced = false,
 }: {
   people: { name: string; tone?: string }[];
   max?: number;
   size?: number;
+  spaced?: boolean;
 }) {
   const shown = people.slice(0, max);
   const extra = people.length - shown.length;
   return (
-    <div className="flex items-center">
+    <span className={cx("flex items-center", spaced && "gap-1")}>
       {/* inline-flex, not default inline — avoids a 1px leading offset (ticket 133). */}
       {shown.map((p, i) => (
         <span
           key={`${p.name}-${i}`}
-          className={cx("inline-flex rounded-sm ring-[1.5px] ring-sheet", i > 0 && "-ml-2")}
+          className={cx("inline-flex rounded-sm ring-[1.5px] ring-sheet", !spaced && i > 0 && "-ml-2")}
         >
           <Avatar name={p.name} size={size} tone={p.tone} />
         </span>
       ))}
       {extra > 0 ? (
-        <span className="-ml-2 inline-flex items-center justify-center rounded-sm border border-rule-strong bg-sheet-2 px-1.5 font-mono text-xs font-semibold text-ink-soft"
+        <span className={cx("inline-flex items-center justify-center rounded-sm border border-rule-strong bg-sheet-2 px-1.5 font-mono text-xs font-semibold text-ink-soft", !spaced && "-ml-2")}
           style={{ height: size, minWidth: size }}
         >
           +{extra}
         </span>
       ) : null}
-    </div>
+    </span>
   );
 }
 

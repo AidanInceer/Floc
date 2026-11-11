@@ -8,6 +8,10 @@ describe("yourDaysTab", () => {
     expect(yourDaysTab([], 0)).toEqual({ value: "Not yet", short: "Not yet", note: "Mark the days you can do", open: true });
   });
 
+  it("does not ask again when you answered that you can do no day", () => {
+    expect(yourDaysTab([], 0, true)).toEqual({ value: "No days", short: "No days", note: "You said you can do none", open: false });
+  });
+
   it("gives the count and the span of your days", () => {
     expect(yourDaysTab(["2027-09-01", "2027-08-28", "2027-09-12"], 0)).toMatchObject({
       value: "3 days",

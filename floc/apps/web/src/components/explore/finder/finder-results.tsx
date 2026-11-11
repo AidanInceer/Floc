@@ -10,9 +10,10 @@ import { linkClass } from "@/components/explore/finder/finder-chip";
 import { CheckIcon } from "@/components/system/icons";
 import { ChevronIcon } from "@/components/system/icons";
 import { ButtonLink, cx } from "@/components/system/ui";
+import { startTripHref } from "@/lib/landing/start-trip";
 
-// Twelve tiles fill four rows of three, or six of two.
-const TILE_LIMIT = 12;
+// Twelve tiles, your own first, fill four rows of three or six of two.
+const TILE_LIMIT = 11;
 
 const hit = "inline-flex items-center gap-1 rounded-full border border-rule-strong px-2 py-px text-[11.5px]";
 
@@ -48,13 +49,12 @@ function Tags({ on = [], off = [], plain = [] }: { on?: TripTag[]; off?: TripTag
 
 /** A blank trip; from a want-to-go country on Lists it starts named after that country (#467). */
 function OwnTile({ signedIn, name }: { signedIn: boolean; name: string | null }) {
-  const start = name ? `/trips?new=${encodeURIComponent(name)}` : "/trips";
   return (
-    <li className="col-span-full flex min-h-32 flex-col items-center justify-center text-center gap-1.5 rounded-md border-[1.5px] border-dashed border-rule-strong p-4">
+    <li className="flex min-h-56 flex-col items-center justify-center text-center gap-1.5 rounded-md border-[1.5px] border-dashed border-rule-strong p-4">
       <span className={cx(tagClass, "border border-dashed border-rule-strong text-ink-soft")}>{name ?? "Anywhere"}</span>
       <strong className="font-display text-base font-semibold tracking-[-0.02em]">Your own</strong>
       <p className="text-[13px] text-ink-soft">{name ? "No dates yet. See who agrees." : "No dates, no destination. See who agrees."}</p>
-      <ButtonLink href={signedIn ? start : "/signup"} className="mt-2">
+      <ButtonLink href={name ? startTripHref(signedIn, name) : signedIn ? "/trips" : "/signup"} className="mt-2">
         Start blank
       </ButtonLink>
     </li>
@@ -83,15 +83,14 @@ export function FinderResults({
   onLike: (presetId: string) => void;
 }) {
   const [all, setAll] = useState(false);
-  if (!rows.length && blankName) {
-    return (
-      <ul className={grid}>
-        <OwnTile signedIn={signedIn} name={blankName} />
-      </ul>
-    );
-  }
+  const own = <OwnTile key="own" signedIn={signedIn} name={blankName} />;
   if (!rows.length) {
-    return <p className="rounded-md border border-dashed border-rule-strong p-6 text-ink-soft">No trip fits all of that. Remove a filter.</p>;
+    return (
+      <>
+        {blankName ? null : <p className="mb-4 text-ink-soft">No trip fits all of that. Remove a filter.</p>}
+        <ul className={grid}>{own}</ul>
+      </>
+    );
   }
   const shown = all ? rows : rows.slice(0, TILE_LIMIT);
   const top = split ? shown.filter((r) => r.hits.length) : shown;
@@ -110,13 +109,12 @@ export function FinderResults({
       </ExploreTile>
     </li>
   );
-  const own = <OwnTile key="own" signedIn={signedIn} name={blankName} />;
   return (
     <>
       {top.length ? (
         <ul className={grid}>
+          {own}
           {top.map((r) => tile(r))}
-          {rest.length ? null : own}
         </ul>
       ) : null}
       {rest.length ? (
@@ -126,8 +124,8 @@ export function FinderResults({
             <span className="nums text-xs text-ink-faint">{rows.filter((r) => !r.hits.length).length}</span>
           </div>
           <ul className={grid}>
+            {top.length ? null : own}
             {rest.map((r) => tile(r, true))}
-            {own}
           </ul>
         </>
       ) : null}

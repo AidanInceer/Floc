@@ -16,8 +16,8 @@ beforeEach(async () => {
 
 const TODAY = "2026-10-22";
 const listing = "great-ocean-road-and-uluru";
-const copy = (choice: { month: number | null; ideas?: boolean; events?: boolean }, presetId = listing) =>
-  copyListing(world.admin, { presetId, ideas: true, events: true, ...choice }, TODAY);
+const copy = (choice: { month?: number | null; startDate?: string | null; ideas?: boolean; events?: boolean }, presetId = listing) =>
+  copyListing(world.admin, { presetId, month: null, startDate: null, ideas: true, events: true, ...choice }, TODAY);
 
 const tripRow = (id: number) => db.select().from(schema.trip).where(eq(schema.trip.id, id)).get();
 const pages = (tripId: number) =>
@@ -85,6 +85,19 @@ describe("copying a listing with a start month", () => {
   it("adds no Ideas page when ideas are off", async () => {
     const id = (await copy({ month: 10, ideas: false }))!;
     expect((await pages(id)).map((p) => p.title)).toEqual(["Notes"]);
+  });
+});
+
+describe("copying a listing with a start day", () => {
+  it("dates the trip from that day and runs it for the listing's nights", async () => {
+    const id = (await copy({ startDate: "2027-06-12" }))!;
+    expect(await tripRow(id)).toMatchObject({ startDate: "2027-06-12", endDate: "2027-06-24" });
+    expect((await days(id))[0].date).toBe("2027-06-12");
+  });
+
+  it("copies a start day that has gone undated", async () => {
+    const id = (await copy({ startDate: "2026-10-01" }))!;
+    expect((await tripRow(id))?.startDate).toBeNull();
   });
 });
 

@@ -118,7 +118,7 @@ export function TicketsScreen() {
         <FakeButton small quiet>Copy address</FakeButton>
       </div>
       <div className="mt-3 flex items-center gap-1.5 text-xs">
-        <span className="rounded-sm border border-ink bg-ink px-3 py-1 text-sheet">All</span>
+        <span className="rounded-sm border border-transparent bg-pen-soft px-3 py-1 text-pen-deep">All</span>
         <span className="px-3 py-1 text-ink-soft">Travel · 1</span>
         <span className="px-3 py-1 text-ink-soft">Stay · 1</span>
         <span className="px-3 py-1 text-ink-soft">Tickets · 2</span>

@@ -30,14 +30,14 @@ Include untracked files. If the user named a commit range, diff that instead.
 
 | The diff touches | Update |
 |---|---|
-| `db/schema.ts` | [ERD](docs/engineering/data-model.html) block, relationships and "Tables by feature"; "Data model shape" in [architecture](docs/engineering/index.html); the feature page's *Built on* |
+| `db/schema.ts` | [ERD](docs/engineering/data-model.html) block, relationships and "Tables by feature"; the feature page's *Built on* |
 | Layers, seams, trip state, deploy | [architecture](docs/engineering/index.html) |
 | Sign-in, sessions, Better Auth | [security](docs/engineering/security.html#auth) |
 | Trip access, roles, `assertAdmin`, a new door into a trip | [access](docs/engineering/access.html) |
 | PII, tokens, signed links, webhooks, cookies, browser storage | [security](docs/engineering/security.html) (and `/privacy` in code) |
 | A tRPC procedure | [API map](docs/engineering/api.html) |
 | An env var, `railway.json`, a production fix | [runbook](docs/engineering/operations.html) |
-| `.github/workflows/`, `scripts/checks/` | [CI](docs/engineering/ci.html) |
+| `.github/workflows/`, `scripts/checks/` | [CI](docs/process/lifecycle.html#ci) |
 | Workflow, a skill or agent | [lifecycle](docs/process/lifecycle.html) and the Agent skills section in `AGENTS.md` |
 | The web/app split, `parity.json` | [multi-platform](docs/engineering/platforms.html) |
 | Notifications, reminders, the cron | [notifications](docs/product/notifications/index.html) |
@@ -62,6 +62,9 @@ Read the page before you edit it. Change only what the diff makes untrue.
   restating what the code or another page already says — link it.
 - **No new page by default.** If the fact has no home, put one line on the
   nearest page. Only when that cannot work, ask Aidan before creating a page.
+- **Never restore what was cut.** The docs were cut on purpose
+  ([keep it short](docs/process/editing-docs.html#short)). Do not bring back a
+  section, a diagram or a page, and never rewrite a whole page: line edits only.
 
 - **HTML is the source.** No markdown copy exists to regenerate from.
 - **Plain words.** Short sentences, active voice, present tense — the
@@ -93,12 +96,23 @@ pnpm docs:check
 ```
 
 It fails on a schema table missing from the ERD, a procedure missing from the
-API map, a broken link or anchor in `docs/` or `AGENTS.md`, a page missing from
+API map, a broken link or anchor in `docs/`, `AGENTS.md` or a skill, a page missing from
 `TREE`, a bad `related` id or `adr` number, or a feature page without *Built on*.
 It cannot see stale prose — that part is yours.
+
+## 5. Claim the pages
+
+```bash
+pnpm delivery claim --docs <page> <page>
+```
+
+Every session edits the same docs clone, and Git commits a whole page. The claim
+records that this branch edited these pages. If `shared` names another branch,
+that branch has unpushed edits on the same page: leave its lines alone, and say
+so in your report. Whichever of you finishes first pushes both sets of edits.
 
 ## Report
 
 Each page changed, one line on what changed and the net lines added or
 removed. Pages you judged and left alone, if the user would expect a change.
-Nothing else.
+Any page another branch is also editing. Nothing else.

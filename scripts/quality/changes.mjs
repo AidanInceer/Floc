@@ -3,7 +3,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 export function git(root, args, options = {}) {
-  const result = spawnSync("git", args, { cwd: root, encoding: "utf8", ...options });
+  // Why: a develop merge stages diffs over Node's 1 MB default, which failed with no stderr.
+  const result = spawnSync("git", args, { cwd: root, encoding: "utf8", maxBuffer: 64 * 1024 * 1024, ...options });
   if (result.status !== 0) throw new Error(result.stderr?.trim() || "git failed");
   return result.stdout;
 }

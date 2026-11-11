@@ -17,7 +17,7 @@
  *
  * YOU ANSWER ONLY FOR YOURSELF. There is no control to mark somebody else's days (rule 6).
  */
-import { bestWindow, monthOf, thisMonth } from "@floc/core/dates/availability";
+import { bestWindow, freeDaysByUser, monthOf, thisMonth } from "@floc/core/dates/availability";
 import { paintRange } from "@floc/core/dates/calendar-gestures";
 import { dateRange, formatDateRange, nightsBetween, today } from "@floc/core/dates/dates";
 import { datesMoment } from "@floc/core/dates/dates-moment";
@@ -72,12 +72,12 @@ function bookingFor(trip: Outputs["trips"]["get"], days: Outputs["itinerary"]["d
 
 type Member = { userId: string; name: string };
 
-/** Members and the invite link's guests (#442), each with how many days they can do. */
-function peopleOf(members: Member[], guests: { id: string; name: string }[] | undefined, marked: { userId: string }[]) {
+/** Members and the invite link's guests (#442), each with how many days they can do; null until they answer, 0 for only "no" (#572). */
+function peopleOf(members: Member[], guests: { id: string; name: string }[] | undefined, freeDays: Partial<Record<string, number>>) {
   return [
     ...members.map((m) => ({ id: m.userId, name: m.name, guest: false })),
     ...(guests ?? []).map((g) => ({ id: g.id, name: g.name, guest: true })),
-  ].map((p) => ({ ...p, days: marked.filter((row) => row.userId === p.id).length }));
+  ].map((p) => ({ ...p, days: freeDays[p.id] ?? null }));
 }
 
 function tripDaysOf(start: string | null, end: string | null): string[] {
@@ -113,7 +113,7 @@ function stubsFor(p: {
   forecast: { shown: boolean; locked: boolean; tripDays: number; days: number; horizonEnd: string | null };
 }): DatesStub[] {
   const stubs: DatesStub[] = [
-    { key: "mine", name: "Your days", glyph: (c) => <TickGlyph color={c} />, summary: yourDaysTab(p.mine, p.unsaved) },
+    { key: "mine", name: "Your days", glyph: (c) => <TickGlyph color={c} />, summary: yourDaysTab(p.mine, p.unsaved, p.group.some((g) => g.id === p.viewerId && g.answered)) },
     { key: "group", name: "The group", glyph: (c) => <GroupGlyph color={c} />, summary: groupTab(p.group, p.viewerId) },
     { key: "trip", name: "The trip", glyph: (c) => <CalendarGlyph color={c} />, summary: tripTab(p.start, p.end, p.best) },
   ];
@@ -200,9 +200,9 @@ export default function Dates() {
   const mineOn = (date: string): boolean => edits[date] ?? mineSaved.includes(date);
   const unsaved = Object.keys(edits).length;
 
-  const people = peopleOf(trip.data.members, guests.data, marked);
+  const people = peopleOf(trip.data.members, guests.data, freeDaysByUser(rows.data));
   const memberCount = people.length;
-  const group = people.map((p) => ({ id: p.id, name: p.name, answered: p.days > 0 }));
+  const group = people.map((p) => ({ id: p.id, name: p.name, answered: p.days !== null }));
   const best = bestWindow(rows.data);
 
   const forecast = forecastIndex(weather.data);

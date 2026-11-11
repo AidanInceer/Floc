@@ -69,6 +69,6 @@ const section = (title, list) => list.length && console.log(`\n${title} (${list.
 console.log(`main is ${live ?? "unknown (no main branch found)"}`);
 section(write ? "Moved to Shipped" : "Would move to Shipped (run with --write)", groups.moved);
 section("On develop, not on main yet", groups.develop);
-section("Chosen, not on develop: built by a push yet? set 'on develop <commit>' if so", groups.chosen);
+section("Chosen", groups.chosen);
 section("Exploring: picked yet? set Chosen, Parked or Experiment", groups.exploring);
 section("No wf-status", groups.none);

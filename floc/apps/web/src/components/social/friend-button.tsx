@@ -48,14 +48,14 @@ export function FriendButton({
       <span className="flex items-center gap-2">
         <form action={acceptFriend}>
           <input type="hidden" name="requesterId" value={userId} />
-          <SubmitButton variant="primary" pendingLabel="Accepting…">
+          <SubmitButton variant="primary">
             {compact ? "Accept" : `Accept ${firstName(name)}'s request`}
           </SubmitButton>
         </form>
         {compact ? null : (
           <form action={declineFriend}>
             <input type="hidden" name="requesterId" value={userId} />
-            <SubmitButton variant="ghost" pendingLabel="Declining…">
+            <SubmitButton variant="ghost">
               Decline
             </SubmitButton>
           </form>
@@ -68,7 +68,7 @@ export function FriendButton({
     return (
       <form action={cancelRequest}>
         <input type="hidden" name="targetId" value={userId} />
-        <SubmitButton variant="ghost" pendingLabel="Cancelling…">
+        <SubmitButton variant="ghost">
           {compact ? "Requested" : "Requested — cancel"}
         </SubmitButton>
       </form>
@@ -81,7 +81,7 @@ export function FriendButton({
     <ActionForm action={requestFriendById}>
       <input type="hidden" name="targetId" value={userId} />
       {viaId ? <input type="hidden" name="viaId" value={viaId} /> : null}
-      <SubmitButton variant="secondary" pendingLabel="Sending…">
+      <SubmitButton variant="secondary">
         {compact ? "Add" : "Add as friend"}
       </SubmitButton>
     </ActionForm>

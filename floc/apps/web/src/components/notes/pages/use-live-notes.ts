@@ -82,7 +82,7 @@ const indexedDbCache: PageCache = { open: (key, doc) => new IndexeddbPersistence
 /** Null until the connection objects exist — they are built in an effect so strict mode cannot reuse a destroyed one. */
 export function useLivePage(socket: HocuspocusProviderWebsocket | null, tripId: number, pageId: number, epoch: string | null): LivePage | null {
   const [live, setLive] = useState<{ doc: Y.Doc; provider: HocuspocusProvider } | null>(null);
-  const [state, setState] = useState<LivePageState>({ status: "saving", people: [] });
+  const [state, setState] = useState<LivePageState>({ status: "opening", people: [] });
   // Why only the first: a refresh after this person's first edit brings the epoch the server just
   // stamped, and rebuilding the doc for it would drop the page from under the caret.
   const firstEpoch = useRef(epoch);

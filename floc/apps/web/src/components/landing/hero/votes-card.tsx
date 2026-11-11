@@ -18,14 +18,14 @@ export function VotesCard({ step }: { step: number }) {
     <div className="deck-card bg-pastel-yellow px-5 py-[18px] text-pastel-yellow-ink">
       <div className="flex items-center justify-between gap-2">
         <span className={kicker}>Where to</span>
-        <span className="text-xs font-semibold">
+        <span className="deck-note text-xs font-semibold">
           <Roll value={headline}>
             {cast === VOTED && <Glyph name="check" className="size-3" />}
             {headline}
           </Roll>
         </span>
       </div>
-      <div className="mt-2.5 flex flex-col gap-2 text-[13px]">
+      <div className="deck-vote-list mt-2.5 flex flex-col gap-2 text-[13px]">
         {heroPlaces.map((place) => (
           <div key={place} className={cx("deck-vote-row grid grid-cols-[4.4rem_1fr_1.2rem] items-center gap-2", lead === place && "font-semibold")}>
             <span>{place}</span>
@@ -40,7 +40,7 @@ export function VotesCard({ step }: { step: number }) {
           </div>
         ))}
       </div>
-      <p className="mt-2.5 min-h-5 text-xs opacity-90">
+      <p className="deck-voter mt-2.5 min-h-5 text-xs opacity-90">
         {last && voter && (
           <Roll value={last.who}>
             <Avatar name={voter.name} tone={voter.tone} size={16} />

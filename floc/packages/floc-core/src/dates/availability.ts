@@ -173,3 +173,15 @@ export function tripCoverage(
   const missing = days.filter((d) => !isFree(d));
   return { free: days.length - missing.length, total: days.length, missing };
 }
+
+/** Why: "I can't do any of these" is an answer. Counting only free days asked that person again (#572). */
+export function markedUserIds(rows: AvailabilityRow[]): string[] {
+  return [...new Set(rows.map((row) => row.userId))];
+}
+
+/** Free days per person who has answered; someone who only said no is there with 0. */
+export function freeDaysByUser(rows: AvailabilityRow[]): Partial<Record<string, number>> {
+  const out: Partial<Record<string, number>> = {};
+  for (const row of rows) out[row.userId] = (out[row.userId] ?? 0) + (row.available ? 1 : 0);
+  return out;
+}

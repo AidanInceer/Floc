@@ -175,6 +175,10 @@ export const userProfile = sqliteTable("user_profile", {
   visibilityFriends: text("visibility_friends", { enum: VISIBILITIES })
     .notNull()
     .default("friends"),
+  /** Saved trips start private (ADR-045, #544); want-to-go countries follow `visibility_travel_map`. */
+  visibilitySaved: text("visibility_saved", { enum: VISIBILITIES })
+    .notNull()
+    .default("private"),
   /** Rides `is_private`, not its own ring (ticket 46) — only truncates the list. */
   pastTripsShow: text("past_trips_show", { enum: PAST_TRIPS_SHOW })
     .notNull()
@@ -199,8 +203,8 @@ export const userProfile = sqliteTable("user_profile", {
   exploreAnswers: text("explore_answers", { mode: "json" }).$type<unknown>(),
   /** Your flight and stay sites, read through `readBookingSites`; null or a bad shape reads as the default (wireframe/booking-sites J). */
   bookingSites: text("booking_sites", { mode: "json" }).$type<unknown>(),
-  /** Handed out by its owner so a stranger can find them (#360); made on first look, never reissued. */
   friendCode: text("friend_code").unique(),
+  friendTag: text("friend_tag").unique(),
   ...audit,
 });
 
@@ -267,6 +271,40 @@ export const friendship = sqliteTable(
     uniqueIndex("friendship_pair_idx").on(t.userId, t.friendId),
     index("friendship_friend_idx").on(t.friendId),
   ],
+);
+
+/**
+ * A named group of people to start a trip with (#545). Private to its owner: members are never
+ * told. Who may still be in it is worked out at read time (rule 4), so a member who drops out
+ * keeps their row and is filtered, not deleted.
+ */
+export const friendGroup = sqliteTable(
+  "friend_group",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    ownerUserId: text("owner_user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    ...audit,
+  },
+  (t) => [index("friend_group_owner_idx").on(t.ownerUserId)],
+);
+
+// Why unique with no `deleted_at` in it: re-adding someone revives their row, as trip invites do.
+export const friendGroupMember = sqliteTable(
+  "friend_group_member",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    groupId: integer("group_id")
+      .notNull()
+      .references(() => friendGroup.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    ...audit,
+  },
+  (t) => [uniqueIndex("friend_group_member_pair_idx").on(t.groupId, t.userId)],
 );
 
 export const trip = sqliteTable(

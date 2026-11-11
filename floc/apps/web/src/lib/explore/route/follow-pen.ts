@@ -48,16 +48,17 @@ export function penLook<C>(space: Space<C>, points: readonly C[], window = WINDO
  * Follow the pen: fly in close to the start, ride along the route as it draws, then ease out to the whole trip.
  * `length` is the route's length in px at `to`; the old route rubs out while the map flies.
  */
-export function followPen<C>(space: Space<C>, { from, to, look, length }: { from: Pose<C>; to: Pose<C>; look: (g: number) => C; length: number }): Timeline<C> {
+export function followPen<C>(space: Space<C>, { from, to, look, length, slow = 1 }: { from: Pose<C>; to: Pose<C>; look: (g: number) => C; length: number; slow?: number }): Timeline<C> {
   const near: Pose<C> = { centre: look(0), w: to.w / CLOSE, at: to.at };
   const fly = glide(space, from, near);
-  const T1 = clamp(Math.abs(fly.S) * FLY.per, FLY.least, FLY.most);
-  const D = clamp((length * CLOSE) / PACE, DRAW.least, DRAW.most);
+  const T1 = clamp(Math.abs(fly.S) * FLY.per, FLY.least, FLY.most) * slow;
+  const D = clamp((length * CLOSE) / PACE, DRAW.least, DRAW.most) * slow;
+  const B = BACK_MS * slow;
   const t0 = T1 * LEAD;
   const T2 = t0 + D;
   const back = glide(space, { centre: look(1), w: near.w, at: to.at }, to);
   const drawn = (t: number) => sine(clamp((t - t0) / D));
-  const ms = T2 + BACK_MS;
+  const ms = T2 + B;
   return {
     ms,
     skip: ms,
@@ -67,7 +68,7 @@ export function followPen<C>(space: Space<C>, { from, to, look, length }: { from
     pose(t) {
       if (t < T1) return fly.pose(easeInOut(clamp(t / T1)));
       if (t < T2) return { centre: look(drawn(t)), w: near.w, at: to.at };
-      return back.pose(easeInOut(clamp((t - T2) / BACK_MS)));
+      return back.pose(easeInOut(clamp((t - T2) / B)));
     },
   };
 }

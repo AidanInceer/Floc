@@ -9,7 +9,7 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 
-import { Button, ErrorText, cx } from "@/components/system/ui";
+import { Button, ErrorText, busyMark, cx } from "@/components/system/ui";
 
 export function BillingAction({
   path,
@@ -58,17 +58,17 @@ export function BillingAction({
     }
   }
 
-  const label = busy ? "One moment…" : children;
-
   return (
     <span className={cx("flex flex-col gap-1", className ? "w-full" : "inline-flex")}>
       {className ? (
-        <button type="button" onClick={go} disabled={busy || disabled} className={className}>
-          {label}
+        <button type="button" onClick={go} disabled={busy || disabled} aria-busy={busy || undefined} className={className}>
+          {children}
+          {busyMark(busy)}
         </button>
       ) : (
-        <Button variant={variant} onClick={go} disabled={busy || disabled}>
-          {label}
+        <Button variant={variant} onClick={go} disabled={busy || disabled} aria-busy={busy || undefined}>
+          {children}
+          {busyMark(busy)}
         </Button>
       )}
       {error ? <ErrorText>{error}</ErrorText> : null}

@@ -43,7 +43,7 @@ export function PackingLists({ kits }: { kits: Kit[] }) {
                 className={boxClass}
               />
             </label>
-            <SubmitButton pendingLabel="Making it…">Make the list</SubmitButton>
+            <SubmitButton>Make the list</SubmitButton>
           </form>
         </div>
         <p className="mt-2 max-w-prose text-sm text-ink-soft">
@@ -98,7 +98,7 @@ function KitSection({ kit }: { kit: Kit }) {
           />
         </label>
         <CategorySelect />
-        <SubmitButton pendingLabel="Adding…" className="shrink-0">Add to list</SubmitButton>
+        <SubmitButton className="shrink-0">Add to list</SubmitButton>
       </form>
 
       {groups.length === 0 ? (
@@ -138,7 +138,7 @@ function KitSection({ kit }: { kit: Kit }) {
               className="w-full rounded-sm border border-rule bg-sheet px-3 py-1.5 text-sm focus-visible:border-pen"
             />
           </label>
-          <SubmitButton variant="ghost" pendingLabel="Saving…">Rename</SubmitButton>
+          <SubmitButton variant="ghost">Rename</SubmitButton>
         </form>
         <form action={deleteKit.bind(null, kit.id)}>
           <ConfirmSubmit

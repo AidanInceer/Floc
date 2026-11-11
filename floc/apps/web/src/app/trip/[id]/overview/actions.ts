@@ -8,8 +8,8 @@ import { redirect } from "next/navigation";
 import { NUDGE_TABS, type NudgeTab } from "@/db/schema";
 import { assertAdmin, requireTripAccess, requireUser } from "@/server/access";
 import { markTourSeen as markTourSeenFor } from "@/server/auth/tour";
-import { parseTagNames } from "@floc/core/trip/tags";
-import { capText, properCase, TEXT_CAPS } from "@floc/core/text/text";
+import { capText } from "@floc/core/text/text";
+import { readTripName } from "@floc/core/trip/trip-name";
 import {
   findIdea,
   insertIdea,
@@ -24,7 +24,8 @@ import {
   removeMembership,
   setMemberRoleAdmin,
 } from "@/server/trips/roster";
-import { resetInviteToken, updateTrip } from "@/server/trips/trips";
+import { saveTrip } from "@/server/trips/trip-save";
+import { resetInviteToken } from "@/server/trips/trips";
 import { refresh } from "@/server/freshness";
 
 export async function sendNudge(formData: FormData) {
@@ -132,38 +133,18 @@ export async function resetInviteLink(formData: FormData) {
 
 // Open to any member deliberately — not one of the admin powers (rule 6).
 export async function renameTrip(formData: FormData) {
-  const tripId = Number(formData.get("tripId"));
-  const name = properCase(String(formData.get("name") ?? "").trim());
+  // Checked before the trip is read: a bad name must not cost a lookup, and its message is the form's.
+  const read = readTripName(formData.get("name"));
+  if ("problem" in read) return { error: read.problem };
 
-  if (!name) return { error: "A trip needs a name." };
-  // Rejected, not truncated — silent clipping would be visibly wrong (ticket 113).
-  if (name.length > TEXT_CAPS.tripName) return { error: "That name is too long." };
-
-  const access = await requireTripAccess(tripId);
-
-  await updateTrip(access.trip.id, { name });
-
-  refresh(
-    { kind: "tripHeader", tripId: access.trip.id },
-    { kind: "tripList" },
-  );
+  await saveTrip(await requireTripAccess(Number(formData.get("tripId"))), { name: read.name });
 }
 
 // Trip tags (ticket 71), open to any member like renaming. `parseTagNames` owns
 // normalisation/caps. Empty clears to `[]`, never a half-state. Colour is the
 // trip's, not the tag's (ticket 213) — clearing a tag's name is how it's deleted.
 export async function setTripTags(formData: FormData) {
-  const tripId = Number(formData.get("tripId"));
-  const tags = parseTagNames(formData.getAll("tag").map(String));
-
-  const access = await requireTripAccess(tripId);
-
-  await updateTrip(access.trip.id, { tags });
-
-  refresh(
-    { kind: "tripOverview", tripId: access.trip.id },
-    { kind: "tripList" },
-  );
+  await saveTrip(await requireTripAccess(Number(formData.get("tripId"))), { tags: formData.getAll("tag").map(String) });
 }
 
 // Leaving (ticket 65), open to every member incl. admin. Two side effects

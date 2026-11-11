@@ -56,6 +56,7 @@ export async function eraseAccount(userId: string): Promise<void> {
         isPrivate: true,
         exploreAnswers: null,
         friendCode: null,
+        friendTag: null,
         notifyPush: false,
         notifyEmail: false,
         notifyReminders: false,

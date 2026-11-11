@@ -30,9 +30,11 @@ export function GuestGate({ tripName, hostName, open, blurb, actions, children }
             <Card className="rounded-b-none bg-sheet sm:rounded-md">
               <div className="grid gap-6 p-6">
                 <div>
-                  <p className="typed">{hostName ? `${hostName} shared this with you` : "Shared with you"}</p>
-                  <h2 className="mt-2 font-display text-2xl font-semibold">{tripName}</h2>
-                  <p className="mt-2 text-sm text-ink-soft">{blurb}</p>
+                  <h2 className="font-display text-2xl font-semibold">{tripName}</h2>
+                  <p className="mt-2 text-sm text-ink-soft">
+                    {hostName ? `${hostName} shared this with you. ` : null}
+                    {blurb}
+                  </p>
                 </div>
                 {actions}
               </div>

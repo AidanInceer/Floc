@@ -30,10 +30,15 @@ export function Sheet({
   open,
   onClose,
   children,
+  footer,
+  stableHeight,
 }: {
   open: boolean;
   onClose: () => void;
   children: ReactNode;
+  /** Pinned under the scrolling body, so its buttons stay in reach. */
+  footer?: ReactNode;
+  stableHeight?: boolean;
 }) {
   const { c } = useTheme();
   const reducedMotion = useReducedMotion();
@@ -60,9 +65,11 @@ export function Sheet({
             // the screen edge — the footer buttons were cut in half.
             paddingBottom: space.md + insets.bottom,
             maxHeight: height * 0.85,
+            height: stableHeight ? height * 0.72 : undefined,
           }}
         >
           <ScrollView>{children}</ScrollView>
+          {footer}
         </View>
       </View>
     </Modal>

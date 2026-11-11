@@ -66,7 +66,7 @@ export function EventFiles({
               {/* Not a confirm: the file stays on the Files page, so there is
                   nothing to lose by pressing it. */}
               <form action={detachFromEvent.bind(null, tripId, doc.id)}>
-                <SubmitButton variant="ghost" pendingLabel="Detaching…">
+                <SubmitButton variant="ghost">
                   Detach
                 </SubmitButton>
               </form>

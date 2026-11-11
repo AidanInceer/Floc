@@ -66,7 +66,6 @@ export function CalendarMenu({
           confirmVariant="danger"
           message="Reset your calendar link? The old link stops working in every calendar that holds it. Everyone else on the trip keeps theirs."
           confirmLabel="Reset the link"
-          pendingLabel="Resetting…"
           className={menuItemClass}
         >
           Reset link

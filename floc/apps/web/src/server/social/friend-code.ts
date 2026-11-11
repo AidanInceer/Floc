@@ -1,65 +1,78 @@
-/**
- * A person's friend code (#360): handed out by its owner, so whoever types it
- * may see who it belongs to. Eight characters from 31 is ~10¹² codes — too
- * many to walk for a directory.
- */
 import "server-only";
 
 import { randomBytes } from "node:crypto";
-import { and, eq, isNull } from "drizzle-orm";
-import { generateFriendCode } from "@floc/core/people/friend-query";
+import { and, eq, isNull, sql } from "drizzle-orm";
+import { friendTagNameKey, generateFriendTagSuffix, readFriendQuery } from "@floc/core/people/friend-query";
+import type { FriendSearch } from "@floc/api/port";
 
 import { db } from "@/db";
-import { userProfile } from "@/db/schema";
-import { ensureProfile, getProfile } from "@/server/auth/profile";
-import type { FoundPerson } from "@/server/social/find-friends";
+import { user, userProfile } from "@/db/schema";
+import { ensureProfile } from "@/server/auth/profile";
+import { writeLimiter } from "@/server/http/write-limiter";
 import { friendStateWith, openPendingRequest, peopleByIds } from "@/server/social/friends";
 
-const ATTEMPTS = 5;
+const ATTEMPTS = 8;
+const processState = globalThis as typeof globalThis & { flocFriendTagGuesses?: ReturnType<typeof writeLimiter> };
+const guesses = processState.flocFriendTagGuesses ??= writeLimiter({ capacity: 12, perSecond: 1 / 60 });
+
+const shownName = sql<string>`coalesce(${userProfile.displayName}, (select ${user.name} from ${user} where ${user.id} = ${userProfile.userId}))`;
+const keyFor = (tag: string) => `${friendTagNameKey(tag.slice(0, -5))}${tag.slice(-5)}`;
 
 export async function friendCodeFor(userId: string): Promise<string> {
-  const profile = await ensureProfile(userId);
-  if (profile.friendCode) return profile.friendCode;
-
-  let lastError: unknown;
   for (let i = 0; i < ATTEMPTS; i++) {
-    try {
-      // `isNull` so two first looks at once both end up with the winner's code.
-      await db
-        .update(userProfile)
-        .set({ friendCode: generateFriendCode((n) => randomBytes(n)) })
-        .where(and(eq(userProfile.userId, userId), isNull(userProfile.friendCode)));
-    } catch (error) {
-      lastError = error; // a code someone already holds; draw again
+    const profile = await db
+      .select({ name: shownName, tag: userProfile.friendTag })
+      .from(userProfile)
+      .where(eq(userProfile.userId, userId))
+      .get();
+    if (!profile) {
+      await ensureProfile(userId);
       continue;
     }
-    const code = (await getProfile(userId))?.friendCode;
-    if (code) return code;
+    const { name, tag } = profile;
+    if (tag && tag.slice(0, -5) === friendTagNameKey(name)) return `${name.trim()}${tag.slice(-5)}`;
+
+    const next = `${name.trim()}#${generateFriendTagSuffix(randomBytes)}`;
+    const key = keyFor(next);
+    const [saved] = await db
+      .update(userProfile)
+      .set({ friendTag: key })
+      .where(and(
+        eq(userProfile.userId, userId),
+        eq(shownName, name),
+        tag ? eq(userProfile.friendTag, tag) : isNull(userProfile.friendTag),
+        sql`not exists (select 1 from user_profile as holder where holder.friend_tag = ${key})`,
+      ))
+      .returning({ tag: userProfile.friendTag });
+    if (saved) return next;
   }
-  throw lastError ?? new Error("Could not make a friend code");
+  throw new Error("Could not issue a friend tag");
 }
 
-/** Null when nobody holds the code — the code is secret, the account behind it isn't. */
-export async function findByCode(viewerId: string, code: string): Promise<FoundPerson | null> {
+export async function lookupFriendTag(viewerId: string, code: string): Promise<Extract<FriendSearch, { kind: "code" }>> {
+  if (!guesses.allow(viewerId)) return { kind: "code", code, person: null, limited: true };
+  const key = keyFor(code);
   const holder = await db
-    .select({ userId: userProfile.userId })
+    .select({ userId: userProfile.userId, name: shownName })
     .from(userProfile)
-    .where(eq(userProfile.friendCode, code))
+    .where(eq(userProfile.friendTag, key))
     .get();
-  if (!holder || holder.userId === viewerId) return null;
-
+  if (!holder || holder.userId === viewerId || friendTagNameKey(holder.name) !== key.slice(0, -5)) {
+    return { kind: "code", code, person: null };
+  }
   const person = (await peopleByIds([holder.userId])).get(holder.userId);
-  if (!person) return null;
-  return { ...person, state: await friendStateWith(viewerId, holder.userId) };
+  return {
+    kind: "code",
+    code,
+    person: person ? { ...person, state: await friendStateWith(viewerId, holder.userId) } : null,
+  };
 }
 
-export async function requestByCode(
-  viewerId: string,
-  code: string,
-): Promise<FoundPerson | null> {
-  const found = await findByCode(viewerId, code);
-  if (!found || found.state !== "none") return found;
-
-  await openPendingRequest(viewerId, found.id, "code");
-  return { ...found, state: "outgoing" };
+export async function requestByCode(viewerId: string, code: string) {
+  const query = readFriendQuery(code);
+  if (query?.kind !== "code") return null;
+  const { person } = await lookupFriendTag(viewerId, query.code);
+  if (!person || person.state !== "none") return person;
+  await openPendingRequest(viewerId, person.id, "code");
+  return { ...person, state: "outgoing" as const };
 }

@@ -1,15 +1,15 @@
 /**
- * Find someone to befriend by name or friend code (#360) — the phone's half of
+ * Find someone to befriend by name or full friend tag — the phone's half of
  * the web's "Find someone" panel. Never by email address: any answer to one
  * would say whether it is an account.
  */
 import type { FoundFriend, FriendSearch } from "@floc/api/port";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Share, View } from "react-native";
+import * as Clipboard from "expo-clipboard";
+import { View } from "react-native";
 
 import { PersonRow } from "../trip/person-row";
-import { ShareGlyph } from "../system/glyphs";
 import { Body, Button, Pill, SearchField, SectionTitle } from "../system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
@@ -47,8 +47,8 @@ function Outcome({
     return (
       <Body tone="ink-3">
         {typedAddress
-          ? "Floc does not look people up by email address. Ask them for their friend code."
-          : "Type at least two letters of a name, or a friend code."}
+          ? "Floc does not look people up by email address. Ask them for their friend tag."
+          : "Enter at least two letters of a name or a full friend tag."}
       </Body>
     );
   }
@@ -56,7 +56,7 @@ function Outcome({
     return result.person ? (
       <Found person={result.person} busy={busy} onAsk={() => ask(result.person!, result.code)} />
     ) : (
-      <Body tone="ink-3">Nobody has that code.</Body>
+      <Body tone="ink-3">{result.limited ? "Too many tag searches. Try again in a minute." : "Nobody has that friend tag."}</Body>
     );
   }
   if (result.people.length === 0) {
@@ -71,10 +71,11 @@ function Outcome({
   );
 }
 
-export function FindFriend({ code }: { code: string }) {
+export function FindFriend({ tag }: { tag: string }) {
   const queryClient = useQueryClient();
   const [query, setQuery] = useState("");
   const [searched, setSearched] = useState("");
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
   const find = useMutation(trpc.friends.find.mutationOptions());
 
   const again = {
@@ -94,9 +95,9 @@ export function FindFriend({ code }: { code: string }) {
 
   return (
     <View style={{ gap: space.sm }}>
-      <SectionTitle>Find someone</SectionTitle>
+      <SectionTitle>Name or full friend tag</SectionTitle>
       <SearchField
-        label="Name or friend code"
+        label="Name or full friend tag"
         value={query}
         onChangeText={setQuery}
         onSubmitEditing={search}
@@ -115,14 +116,19 @@ export function FindFriend({ code }: { code: string }) {
           }
         />
       ) : null}
-      <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
-        <Body tone="ink-3">Your code {code}</Body>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: space.sm }}>
+        <Body tone="ink-3">Your friend tag {tag}</Body>
         <Button
-          label="Share"
+          label={copyStatus === "copied" ? "Copied" : copyStatus === "failed" ? "Copy failed" : "Copy friend tag"}
           fit="small"
           variant="quiet"
-          icon={(ink) => <ShareGlyph color={ink} />}
-          onPress={() => void Share.share({ message: code })}
+          onPress={async () => {
+            try {
+              setCopyStatus(await Clipboard.setStringAsync(tag) ? "copied" : "failed");
+            } catch {
+              setCopyStatus("failed");
+            }
+          }}
         />
       </View>
     </View>

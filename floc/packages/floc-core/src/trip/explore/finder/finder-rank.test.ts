@@ -54,6 +54,15 @@ describe("rankTrips", () => {
     expect(rows[0].shared).not.toContain(WALK.region);
   });
 
+  it("puts your saved listings first in the best-match order", () => {
+    expect(ids(rankTrips(ALL, find({ likes: ["Food", "Mountains"] }), "match", null, new Set(["food"])))).toEqual(["food", "both", "walk"]);
+  });
+
+  it("leaves saved listings where they fall in other orders and in a likeness", () => {
+    expect(ids(rankTrips(ALL, EMPTY_FINDER, "cheap", null, new Set(["both"])))).toEqual(["walk", "food", "both"]);
+    expect(ids(rankTrips(ALL, EMPTY_FINDER, "match", "walk", new Set(["food"])))).toEqual(["both", "food"]);
+  });
+
   it("ignores a likeness to a listing that is gone", () => {
     expect(ids(rankTrips(ALL, EMPTY_FINDER, "cheap", "retired"))).toHaveLength(3);
   });

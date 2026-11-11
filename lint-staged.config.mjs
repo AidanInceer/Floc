@@ -1,3 +1,5 @@
+import { relative } from "node:path";
+
 // Why: eslint runs as `node eslint.js`, not through the .cmd shim, so cmd.exe's 8191-character
 // limit never applies and one start (about 3 s of config loading) takes a whole commit. The
 // limit left is CreateProcess's 32767; stay well under it.
@@ -5,6 +7,7 @@ const MAX_CHARS = 24000;
 const ESLINT = "node node_modules/eslint/bin/eslint.js --flag v10_config_lookup_from_file --max-warnings=0 --cache --cache-location .floc/eslintcache";
 
 function batches(files) {
+  if (!files.length) return [];
   const out = [[]];
   let size = 0;
   for (const file of files) {
@@ -25,7 +28,9 @@ function batches(files) {
  * (AGENTS.md, Guardrail gates).
  */
 export default {
-  "*.{ts,tsx}": (files) => batches(files).map((batch) => `${ESLINT} ${batch.join(" ")}`),
+  "*.{ts,tsx}": (files) => batches(files.filter((file) =>
+    !relative(process.cwd(), file).replaceAll("\\", "/").startsWith("floc/wireframe/"),
+  )).map((batch) => `${ESLINT} ${batch.join(" ")}`),
   "*.{ts,tsx,js,jsx,mjs,cjs}": "node scripts/check-comments.mjs --staged",
   "*": () => "node scripts/checks/secrets.mjs --staged",
 };

@@ -1,15 +1,7 @@
 /**
- * Seeded people, and the passwords that let you *be* them (#no-ticket).
- *
- * WHY A PASSWORD AT ALL. The old seed wrote users with no credential, so the
- * only account you could sign in as was your own — and half of what needs
- * testing (somebody else claimed that jumper, somebody else paid) is invisible
- * from one seat. A credential row here plus the picker on the dev sign-in door
- * turns the seed into something you can walk around inside.
- *
- * `hashPassword` is Better Auth's own, so these rows are byte-identical to
- * what signing up through the form writes. There is no second definition of a
- * password to drift.
+ * Why: seeded people get a password so the dev sign-in door can put you in any
+ * seat — half of what needs testing is invisible from one. `hashPassword` is
+ * Better Auth's own, so these rows match what the sign-up form writes.
  */
 import { randomUUID } from "node:crypto";
 
@@ -17,7 +9,7 @@ import { and, eq } from "drizzle-orm";
 import { hashPassword } from "better-auth/crypto";
 
 import { db } from "../index.ts";
-import { account, friendship, user, userCountryMark, userProfile } from "../schema.ts";
+import { account, exploreSave, friendship, user, userCountryMark, userProfile } from "../schema.ts";
 import { SEED_PASSWORD, type Scenario, seedEmail } from "./identity.ts";
 import { OPEN, type Profile } from "./profiles.ts";
 
@@ -83,8 +75,16 @@ export async function upsertAccount(args: {
     .onConflictDoUpdate({ target: userProfile.userId, set: fields });
 
   await paintMap(id, profile.map);
+  await saveTrips(id, profile.saves);
 
   return id;
+}
+
+async function saveTrips(userId: string, saves: Profile["saves"]): Promise<void> {
+  await db.delete(exploreSave).where(eq(exploreSave.userId, userId));
+  if (saves?.length) {
+    await db.insert(exploreSave).values(saves.map((presetId) => ({ userId, presetId })));
+  }
 }
 
 /** Hand marks only; replaced wholesale so a re-seed never keeps a stale country. */
@@ -140,6 +140,7 @@ export async function ensureDevUser(): Promise<string> {
       currency: "GBP",
       rings: OPEN,
       map: { green: ["FR", "ES"], yellow: ["JP"] },
+      saves: ["porto-to-seville", "peru-sacred-valley"],
     },
   });
 }
@@ -161,12 +162,9 @@ export async function befriend(
 }
 
 /**
- * A request *they* sent *you*, waiting on the friends tab.
- *
- * Not sorted lower-id-first the way `befriend` sorts: a pending row stores the
- * asker in `user_id`, and that is the only thing telling incoming from
- * outgoing at read time (`friendStateWith`). Sorting the pair here would flip
- * half the requests into ones you appear to have sent.
+ * Why: not sorted lower-id-first as `befriend` is — a pending row stores the
+ * asker in `user_id`, the only thing telling incoming from outgoing at read
+ * time (`friendStateWith`).
  */
 export async function requestFriendship(from: string, to: string): Promise<void> {
   await db

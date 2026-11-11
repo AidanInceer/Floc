@@ -4,6 +4,7 @@ import type { PlanStop } from "@floc/core/trip/explore/detail/preset-plan";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 
 import { CopySheet } from "@/components/explore/copy/copy-sheet";
+import { listingStartHref } from "@/lib/landing/start-trip";
 import { CopyIcon } from "@/components/system/icons/explore-trip";
 import { CheckIcon, ChevronIcon } from "@/components/system/icons";
 import { ButtonLink, cx } from "@/components/system/ui";
@@ -11,7 +12,7 @@ import { ButtonLink, cx } from "@/components/system/ui";
 function CopyAction({ trip, signedIn, className, defaultOpen }: { trip: PresetTrip; signedIn: boolean; className?: string; defaultOpen?: boolean }) {
   if (!signedIn) {
     return (
-      <ButtonLink href="/signup" variant="primary" className={className}>
+      <ButtonLink href={listingStartHref(false, trip.id)} variant="primary" className={className}>
         <CopyIcon />
         Sign up to copy
       </ButtonLink>
@@ -56,7 +57,7 @@ function OpenDays({ stops, open, onJump }: { stops: PlanStop[]; open: number[]; 
                     aria-label={`Day ${d.n}, ${s.place}${d.highlight ? `, highlight: ${d.highlight}` : ""}`}
                     aria-pressed={open.includes(d.n)}
                     className={cx(
-                      "nums relative h-7 min-w-7 rounded-sm border px-1.5 text-xs",
+                      "nums relative h-10 min-w-10 rounded-sm border px-1.5 text-xs lg:h-7 lg:min-w-7",
                       open.includes(d.n) ? "border-pen-edge bg-pen-soft text-pen-deep" : "border-rule-strong bg-sheet text-ink-soft hover:border-ink-faint hover:text-ink",
                       d.highlight && "after:absolute after:-right-[3px] after:-top-[3px] after:size-[7px] after:rounded-full after:border-[1.5px] after:border-sheet after:bg-highlight-ink",
                     )}
@@ -90,8 +91,7 @@ export function TripCopyCard({
 }) {
   return (
     <aside className="rounded-md border border-rule-strong bg-sheet p-5 shadow-raised lg:sticky lg:top-20">
-      <p className="typed">Make it yours</p>
-      <h2 className="mt-1.5 text-xl">Copy this trip</h2>
+      <h2 className="text-xl">Copy this trip</h2>
       {stops.some((s) => s.days.length > 0) ? <OpenDays stops={stops} open={open} onJump={onJump} /> : null}
       <CopyAction trip={trip} signedIn={signedIn} className="mt-4 w-full" defaultOpen={startOpen} />
       <p className="mt-2.5 text-center text-xs text-ink-faint">Free. Nothing is booked.</p>
@@ -108,16 +108,19 @@ export function TripCopyCard({
             </li>
           ))}
         </ul>
-        <p className="mt-2 text-xs text-ink-faint">Pick &ldquo;Decide later&rdquo; and only the name and highlights come across. You bring the people and the money.</p>
+        <p className="mt-2 text-xs text-ink-faint">With no dates yet, only the name and highlights come across. You bring the people and the money.</p>
       </details>
     </aside>
   );
 }
 
-/** Phones only: the card sits below the days there, so the action stays in reach. */
+/**
+ * Phones only: the card sits below the days there, so the action stays in reach.
+ * Why it floats clear of the edges: a phone's curved screen corners cut into a bar that runs edge to edge.
+ */
 export function TripCopyBar({ trip, signedIn }: { trip: PresetTrip; signedIn: boolean }) {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-3 border-t border-rule-strong bg-sheet px-4 py-2.5 shadow-lifted lg:hidden">
+    <div className="trip-copy-bar fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 flex items-center justify-between gap-3 rounded-md border border-rule-strong bg-sheet py-1 pl-4 pr-1 shadow-lifted lg:hidden">
       <span className="grid min-w-0 text-sm">
         <b className="truncate font-semibold">{trip.title}</b>
         <span className="nums text-[11.5px] text-ink-soft">{trip.nights} nights</span>

@@ -6,6 +6,7 @@ import { mergeTarget } from "./sync.mjs";
 import { requireReview } from "./review.mjs";
 import { mainCheckout, targetFor } from "../workspace/worktrees.mjs";
 import { sweep } from "../workspace/sweep.mjs";
+import { bumpPlugin } from "./plugin-version.mjs";
 
 const PACKAGE = "floc/apps/web/package.json";
 
@@ -47,6 +48,7 @@ export function publish(root, { messageFile }) {
   if (merged.state === "conflict") throw new Error(`Merging ${target} conflicts in ${merged.files.join(", ")}. Resolve them, commit, then publish again.`);
   if (!git(root, "rev-list", `origin/${target}..HEAD`)) throw new Error(`Nothing to publish: no commits beyond ${target}.`);
   const version = target === "main" ? bumpHotfix(root) : null;
+  const plugin = bumpPlugin(root, target);
   requireReview(root, `origin/${target}`);
   git(root, "push", "--quiet", "--set-upstream", "origin", `HEAD:refs/heads/${branch}`);
   let pr = pullRequest(root, branch, "open");
@@ -56,7 +58,7 @@ export function publish(root, { messageFile }) {
   }
   const merging = autoMerge(root, pr.number, target);
   return {
-    state: "published", pr: pr.url, number: pr.number, target, sha: git(root, "rev-parse", "HEAD"), ...(version && { version }), autoMerge: merging, swept,
+    state: "published", pr: pr.url, number: pr.number, target, sha: git(root, "rev-parse", "HEAD"), ...(version && { version }), ...(plugin && { plugin }), autoMerge: merging, swept,
     next: `Start the floc:ci-watch agent in the background for PR #${pr.number}.`,
   };
 }

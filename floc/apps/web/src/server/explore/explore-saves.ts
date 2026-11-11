@@ -10,7 +10,8 @@ import { exploreSave } from "@/db/schema";
 const LISTED = new Set(PRESET_TRIPS.map((t) => t.id));
 
 /**
- * The Explore trips one person saved, newest first (#467, ADR-042). Only theirs: saves are private.
+ * The Explore trips one person saved, newest first (#467). Who else may read them is the Saved
+ * ring's call in `server/auth/visibility.ts` (ADR-045), never this function's.
  * Why: bounded by the listings themselves, since a save is only written for a listed trip.
  */
 export async function savedTripIds(userId: string): Promise<string[]> {

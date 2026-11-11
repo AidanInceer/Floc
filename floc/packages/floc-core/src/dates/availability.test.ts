@@ -4,6 +4,8 @@ import {
   addMonths,
   bestWindow,
   daysInMonth,
+  freeDaysByUser,
+  markedUserIds,
   monthGrid,
   monthsFrom,
   tally,
@@ -183,6 +185,22 @@ describe("the awkward halves of the availability helpers", () => {
     });
   });
 
+});
+
+describe("who has answered", () => {
+  const rows = [
+    { userId: "a", date: "2026-09-01", available: true },
+    { userId: "a", date: "2026-09-02", available: false },
+    { userId: "b", date: "2026-09-01", available: false },
+  ];
+
+  it("counts someone who only said no as having answered", () => {
+    expect(markedUserIds(rows)).toEqual(["a", "b"]);
+  });
+
+  it("gives each person who answered their free days, 0 for only no", () => {
+    expect(freeDaysByUser(rows)).toEqual({ a: 1, b: 0 });
+  });
 });
 
 describe("tripCoverage", () => {

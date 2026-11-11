@@ -87,13 +87,13 @@ export default async function ProfilePage() {
             <div className="flex flex-wrap gap-2">
               <ActionForm action={keepPromptCountries}>
                 <input type="hidden" name="tripId" value={prompt.tripId} />
-                <SubmitButton variant="primary" pendingLabel="Keeping…">
+                <SubmitButton variant="primary">
                   Keep them
                 </SubmitButton>
               </ActionForm>
               <ActionForm action={dropPromptCountries}>
                 <input type="hidden" name="tripId" value={prompt.tripId} />
-                <SubmitButton variant="ghost" pendingLabel="Removing…">
+                <SubmitButton variant="ghost">
                   No, drop them
                 </SubmitButton>
               </ActionForm>

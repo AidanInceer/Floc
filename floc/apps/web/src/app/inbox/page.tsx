@@ -26,7 +26,7 @@ export default async function InboxPage({
       actions={
         anyUnread ? (
           <form action={readEverything}>
-            <SubmitButton variant="secondary" pendingLabel="Marking…">
+            <SubmitButton variant="secondary">
               Mark all as read
             </SubmitButton>
           </form>
@@ -34,11 +34,11 @@ export default async function InboxPage({
       }
     >
       <SeenOnLanding act={seeInbox} count={unseen} />
-      <Panel>
-        {page.items.length === 0 ? (
-          <EmptyState title={after ? "Nothing older" : "Nothing new"} />
-        ) : (
-          <ul className="flex flex-col gap-2">
+      {page.items.length === 0 ? (
+        <EmptyState title={after ? "Nothing older" : "Nothing new"} />
+      ) : (
+        <Panel>
+          <ul className="flex flex-col divide-y divide-rule">
             {page.items.map((item) => (
               <li key={item.id}>
                 <form action={openNotification}>
@@ -46,12 +46,12 @@ export default async function InboxPage({
                   <button
                     type="submit"
                     className={cx(
-                      "lift flex w-full items-center justify-between gap-3 rounded-md border px-4 py-3 text-left",
-                      item.read ? "border-rule bg-sheet" : "border-pen/30 bg-pen-soft",
+                      "group flex w-full items-center justify-between gap-3 rounded-sm px-3 py-3 text-left",
+                      item.read ? null : "bg-pen-soft",
                     )}
                   >
                     <span className="min-w-0">
-                      <span className={cx("block text-sm", item.read ? "text-ink-2" : "text-ink")}>
+                      <span className={cx("block text-sm transition-colors group-hover:text-pen-deep", item.read ? "text-ink-2" : "text-ink")}>
                         {item.text}
                       </span>
                       <span className="font-mono text-[11px] text-ink-faint">
@@ -64,8 +64,8 @@ export default async function InboxPage({
               </li>
             ))}
           </ul>
-        )}
-      </Panel>
+        </Panel>
+      )}
       {page.next ? (
         <div className="flex justify-center">
           <ButtonLink href={`/inbox?after=${encodeURIComponent(page.next)}`}>Older</ButtonLink>

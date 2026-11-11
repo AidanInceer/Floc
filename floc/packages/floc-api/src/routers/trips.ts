@@ -9,6 +9,8 @@
  */
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { isIsoDate } from "@floc/core/dates/dates";
+import { GROUP_CAP, TRIP_INVITE_CAP } from "@floc/core/people/group-ticks";
+import { NO_TRIP_NAME, TRIP_NAME_TOO_LONG } from "@floc/core/trip/trip-name";
 import { z } from "zod";
 
 import { protectedProcedure, router, tripProcedure } from "../trpc";
@@ -17,7 +19,7 @@ import { protectedProcedure, router, tripProcedure } from "../trpc";
 const isoDate = z.string().refine(isIsoDate, "Use a real YYYY-MM-DD date.");
 const optionalDate = isoDate.nullable();
 
-const tripName = z.string().trim().min(1, "Give the trip a name.").max(TEXT_CAPS.tripName, "That name is too long.");
+const tripName = z.string().trim().min(1, NO_TRIP_NAME).max(TEXT_CAPS.tripName, TRIP_NAME_TOO_LONG);
 
 export const tripsRouter = router({
   list: protectedProcedure
@@ -33,19 +35,22 @@ export const tripsRouter = router({
         name: tripName,
         startDate: optionalDate.default(null),
         endDate: optionalDate.default(null),
+        friendIds: z.array(z.string().min(1).max(64)).max(TRIP_INVITE_CAP).optional(),
+        groupIds: z.array(z.number().int().positive()).max(GROUP_CAP).optional(),
       }),
     )
     .mutation(({ ctx, input }) => ctx.port.createTrip(ctx.viewer.id, input)),
 
   /**
    * ADR-025. Only the write is here: both clients read the listing from `@floc/core`.
-   * Why the defaults: an older app sends only the listing and gets the undated copy.
+   * Why the defaults and `month`: older apps send only the listing, or a best month, and still get their copy.
    */
   startFromPreset: protectedProcedure
     .input(
       z.object({
         presetId: z.string().min(1),
         month: z.number().int().min(1).max(12).nullable().default(null),
+        startDate: optionalDate.default(null),
         ideas: z.boolean().default(true),
         events: z.boolean().default(true),
       }),
@@ -88,8 +93,8 @@ export const tripsRouter = router({
     }),
 
   /**
-   * Admin-only, any stage, no undo (rule 6). A soft delete, so the rows stay
-   * for an operator — but nothing in either client ever offers them again.
+   * Admin-only, any stage, no undo (rule 6). A soft delete, so an operator still
+   * has the rows — but nothing in either client ever offers them again.
    */
   delete: tripProcedure.mutation(async ({ ctx, input }) => {
     await ctx.port.deleteTrip(ctx.viewer.id, input.tripId);

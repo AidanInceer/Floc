@@ -28,7 +28,7 @@ export function ExploreFront({ signedIn, initialFinder, blankName = null }: { si
         <div className="h-[25.75rem] lg:absolute lg:inset-0 lg:h-auto">
           <ExploreGlobe picked={trip.id} route={route} card={card} onPick={pickOnMap} onWorld={() => setRoute(null)} />
         </div>
-        <div className="pointer-events-none relative mx-auto flex max-w-[90rem] justify-end px-4 pb-6 pt-21 sm:px-6 lg:min-h-[700px] lg:pb-8 lg:pt-23">
+        <div className="pointer-events-none relative mx-auto flex max-w-[112rem] justify-end px-4 pb-6 pt-21 sm:px-6 lg:min-h-[53.9rem] lg:pb-8 lg:pt-23">
           <div ref={card} className="pointer-events-auto w-full lg:w-[25rem]">
             <ExplorePostcard trip={trip} signedIn={signedIn} />
           </div>

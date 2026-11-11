@@ -20,8 +20,11 @@ export function fitRoute(route: TripRoute, box: Box, room: { x: number; y: numbe
   const [xs, ys] = [pts.map((p) => p.x), pts.map((p) => p.y)];
   const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
   const view = unproject(mid, (x0 + x1) / 2, -(y0 + y1) / 2);
-  // Why: a box narrower than the room (a card filling the band, a hidden tab) would give a negative radius, and canvas `arc` throws on one.
-  const [w, h] = [Math.max(box.right - box.left - 2 * room.x, 1), Math.max(box.bottom - box.top - 2 * room.y, 1)];
+  // Why: a box shorter than the room (a phone's My trips bar) must shrink the room, not the route to a speck on a whole globe.
+  const [bw, bh] = [box.right - box.left, box.bottom - box.top];
+  const [rx, ry] = [Math.min(room.x, bw / 4), Math.min(room.y, bh / 4)];
+  // Why: a hidden tab gives a zero box, and canvas `arc` throws on a negative radius.
+  const [w, h] = [Math.max(bw - 2 * rx, 1), Math.max(bh - 2 * ry, 1)];
   return { view, R: Math.min(w / Math.max(x1 - x0, 1e-9), h / Math.max(y1 - y0, 1e-9), closest) };
 }
 
@@ -32,11 +35,15 @@ const ROOM = { wide: { x: 74, y: 44 }, narrow: { x: 46, y: 34 } };
 
 export type RouteFraming = { view: LatLng; R: number; cx: number; cy: number; at: (s: LatLng) => { x: number; y: number } };
 
-/** How every globe frames a route in the part of the band left `clear`, so it reads the same on Explore and on a trip. `foot` px at the bottom stay empty. */
-export function frameRoute(route: TripRoute, clear: Box, foot = 0): RouteFraming {
+/**
+ * How every globe frames a route in the part of the band left `clear`, so it reads the same on Explore and on a trip.
+ * `foot` px at the bottom stay empty; `edge` px more room each side keep names in a small box.
+ */
+export function frameRoute(route: TripRoute, clear: Box, foot = 0, edge = 0): RouteFraming {
   const narrow = clear.right - clear.left < NARROW_BELOW;
   const box = { ...clear, bottom: clear.bottom - foot };
-  const { view, R } = fitRoute(route, box, narrow ? ROOM.narrow : ROOM.wide, narrow ? CLOSEST.narrow : CLOSEST.wide);
+  const room = narrow ? ROOM.narrow : ROOM.wide;
+  const { view, R } = fitRoute(route, box, { x: room.x + edge, y: room.y + edge }, narrow ? CLOSEST.narrow : CLOSEST.wide);
   const [cx, cy] = [(box.left + box.right) / 2, (box.top + box.bottom) / 2];
   const at = (s: LatLng) => {
     const q = project(view, s);

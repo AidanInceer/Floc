@@ -31,6 +31,7 @@ import {
 } from "@/db/schema";
 import { hasEnded } from "@floc/core/dates/dates";
 import { travelMapFor } from "@/server/itinerary/travel-map";
+import { savedTripIds } from "@/server/explore/explore-saves";
 import { readVibeTags } from "@floc/core/trip/vibe-tags";
 import type { TravelMap } from "@floc/core/itinerary/travel-map";
 import type { PastTripsShow, Visibility } from "@/db/schema";
@@ -70,10 +71,6 @@ export function showsAttribute(
   if (isPrivate) return false;
   return canSee(relation, visibility);
 }
-
-/* -------------------------------------------------------------------------- */
-/* The loaders                                                                */
-/* -------------------------------------------------------------------------- */
 
 /** The two ways in, run together — neither gates the other. */
 export async function relationTo(
@@ -140,7 +137,30 @@ export type PublicProfile = {
   travelMap: TravelMap | null;
   /** `null` when the ring shuts the viewer out, empty when there's nobody to show (ticket 145). */
   friends: ProfileFriend[] | null;
+  /** Explore listing ids on their Saved list, newest first; `null` when the ring shuts the viewer out (ADR-045). */
+  saved: string[] | null;
 };
+
+type RingColumns = {
+  isPrivate: boolean | null;
+  visibilityVibeTags: Visibility | null;
+  pastTripsShow: PastTripsShow | null;
+  visibilityTravelMap: Visibility | null;
+  visibilityFriends: Visibility | null;
+  visibilitySaved: Visibility | null;
+};
+
+/** Profile row is created lazily, so a never-opened account has none — read defaults, don't 404. */
+function ringsOf(row: RingColumns) {
+  return {
+    isPrivate: row.isPrivate ?? false,
+    vibes: row.visibilityVibeTags ?? "trip_members",
+    pastTripsShow: row.pastTripsShow ?? "all",
+    travelMap: row.visibilityTravelMap ?? "trip_members",
+    friendsRing: row.visibilityFriends ?? "friends",
+    savedRing: row.visibilitySaved ?? "private",
+  } satisfies Record<string, Visibility | PastTripsShow | boolean>;
+}
 
 /** The public profile page's one loader. A stranger gets the same `notFound()` as a nonexistent id. */
 export async function requireProfileView(
@@ -161,6 +181,7 @@ export async function requireProfileView(
       pastTripsShow: userProfile.pastTripsShow,
       visibilityTravelMap: userProfile.visibilityTravelMap,
       visibilityFriends: userProfile.visibilityFriends,
+      visibilitySaved: userProfile.visibilitySaved,
     })
     .from(user)
     .leftJoin(userProfile, eq(userProfile.userId, user.id))
@@ -169,23 +190,20 @@ export async function requireProfileView(
 
   if (!row) notFound();
 
-  // Profile row is created lazily, so a never-opened account has none — read defaults, don't 404.
-  const isPrivate = row.isPrivate ?? false;
-  const vibes = row.visibilityVibeTags ?? "trip_members";
-  const pastTripsShow: PastTripsShow = row.pastTripsShow ?? "all";
-  const travelMap = row.visibilityTravelMap ?? "trip_members";
-  const friendsRing = row.visibilityFriends ?? "friends"; // one ring tighter by default
+  const { isPrivate, vibes, pastTripsShow, travelMap, friendsRing, savedRing } = ringsOf(row);
 
   // Parallel-when-needed (ticket 114): visibility check still gates each fetch,
   // so a hidden attribute costs nothing rather than being fetched speculatively.
   const showPastTrips = relation === "self" || !isPrivate;
   const showTravelMap = showsAttribute(relation, travelMap, isPrivate);
   const showFriends = showsAttribute(relation, friendsRing, isPrivate);
+  const showSaved = showsAttribute(relation, savedRing, isPrivate);
 
-  const [pastTrips, travelMapValue, friends] = await Promise.all([
+  const [pastTrips, travelMapValue, friends, saved] = await Promise.all([
     showPastTrips ? pastTripsFor(ownerId, pastTripsShow) : null,
     showTravelMap ? travelMapFor(ownerId) : null,
     showFriends ? friendsOnProfile(ownerId, viewerId) : null,
+    showSaved ? savedTripIds(ownerId) : null,
   ]);
 
   return {
@@ -200,6 +218,7 @@ export async function requireProfileView(
     pastTrips,
     travelMap: travelMapValue,
     friends,
+    saved,
   };
 }
 

@@ -9,7 +9,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { findByName, mayAskToBeFriends } from "@/server/social/find-friends";
-import { findByCode, friendCodeFor, requestByCode } from "@/server/social/friend-code";
+import { friendCodeFor, requestByCode } from "@/server/social/friend-code";
 import { searchFriends } from "@/server/social/friend-search";
 import { listFriendshipsFor, splitFriendships } from "@/server/social/friends";
 
@@ -111,11 +111,26 @@ describe("mayAskToBeFriends", () => {
   });
 });
 
-describe("friend codes", () => {
-  it("gives a person one code and keeps it", async () => {
+describe("friend tags", () => {
+  it("gives a person one tag and keeps it", async () => {
     const code = await friendCodeFor(world.outsider);
-    expect(code).toMatch(/^[A-Z2-9]{4}-[A-Z2-9]{4}$/);
+    expect(code).toMatch(/^Ozz#[A-HJKMNP-Z2-9]{4}$/);
     expect(await friendCodeFor(world.outsider)).toBe(code);
+  });
+
+  it("gives two people with the same name distinct tags", async () => {
+    await setProfile(world.outsider, { displayName: "Sam" });
+    const [first, second] = await Promise.all([friendCodeFor(world.outsider), friendCodeFor(sam)]);
+    expect(first).not.toBe(second);
+    expect(await searchFriends(world.member, first)).toMatchObject({ person: { id: world.outsider, name: "Sam" } });
+    expect(await searchFriends(world.member, second)).toMatchObject({ person: { id: sam, name: "Sam" } });
+  });
+
+  it("stops resolving a tag once its owner changes their name", async () => {
+    const previous = await friendCodeFor(world.outsider);
+    await setProfile(world.outsider, { displayName: "Oscar" });
+    expect(await searchFriends(world.member, previous)).toMatchObject({ kind: "code", person: null });
+    expect(await friendCodeFor(world.outsider)).toMatch(/^Oscar#[A-HJKMNP-Z2-9]{4}$/);
   });
 
   it("finds a stranger by their code and asks them", async () => {
@@ -131,7 +146,7 @@ describe("friend codes", () => {
 
   it("names the holder of a code without asking them anything", async () => {
     const code = await friendCodeFor(world.outsider);
-    expect(await findByCode(world.member, code)).toMatchObject({ name: "Ozz", state: "none" });
+    expect(await searchFriends(world.member, code)).toMatchObject({ person: { name: "Ozz", state: "none" } });
     expect(await db.select().from(schema.friendship).all()).toHaveLength(2);
   });
 
@@ -151,6 +166,27 @@ describe("friend codes", () => {
 });
 
 describe("searchFriends", () => {
+  it("requires a matching full tag to find someone outside your circles", async () => {
+    const tag = await friendCodeFor(world.outsider);
+    expect(tag).toMatch(/^Ozz#[A-HJKMNP-Z2-9]{4}$/);
+    const suffix = tag.slice(-4);
+    expect(await searchFriends(world.member, suffix)).toEqual({ kind: "people", people: [] });
+    expect(await searchFriends(world.member, `Wrong name#${suffix}`)).toMatchObject({ kind: "code", person: null });
+    expect(await searchFriends(world.member, tag.toLowerCase())).toMatchObject({
+      kind: "code",
+      person: { id: world.outsider, name: "Ozz", state: "none" },
+    });
+  });
+
+  it("stops repeated tag guesses across search and request", async () => {
+    const tag = await friendCodeFor(world.outsider);
+    for (let i = 0; i < 12; i++) {
+      await searchFriends(world.admin, "Wrong name#AAAA");
+    }
+    expect(await requestByCode(world.admin, tag)).toBeNull();
+    expect(await searchFriends(world.admin, tag)).toMatchObject({ kind: "code", person: null, limited: true });
+  });
+
   it("searches names among the people you can reach", async () => {
     expect(await searchFriends(world.member, "sam")).toEqual({
       kind: "people",
@@ -167,7 +203,7 @@ describe("searchFriends", () => {
   it("looks a code up without asking", async () => {
     const code = await friendCodeFor(world.outsider);
     const found = await searchFriends(world.member, code.toLowerCase());
-    expect(found).toMatchObject({ kind: "code", code, person: { name: "Ozz" } });
+    expect(found).toMatchObject({ kind: "code", code: `ozz${code.slice(-5)}`, person: { name: "Ozz" } });
     expect(await db.select().from(schema.friendship).all()).toHaveLength(2);
   });
 

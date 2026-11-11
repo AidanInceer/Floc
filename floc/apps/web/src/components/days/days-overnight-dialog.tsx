@@ -2,23 +2,25 @@
 
 /**
  * Where the group sleeps, for a span of days (ticket 141; split out under 243) —
- * the whole gesture for anyone who can't drag. Drawn as wireframe/modal-forms B3b:
- * the place in the head, the last night picked from one joined row of the days
- * still ahead, and a line saying what the stay takes from the next one.
+ * the whole gesture for anyone who can't drag. The place sits in the head; the first
+ * and last night are picked on the month calendar (wireframe/days-week F), with a
+ * line saying what the stay takes from another one.
  */
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 
 import { PlacePicker, type PlacePickerResult } from "@/components/social/place-picker";
 import { Dialog, DialogClose } from "@/components/system/dialog";
 import { BedIcon } from "@/components/system/icons/days";
-import { Button, buttonClass, cx } from "@/components/system/ui";
+import { Button, buttonClass, cx, panelBandClass, panelTitleClass } from "@/components/system/ui";
 import { CALENDAR_DIALOG } from "@/components/days/days-calendar-chrome";
 import type { CalendarDay, OvernightPlace } from "@/components/days/days-calendar-shared";
+import { OvernightCalendar } from "@/components/days/days-overnight-calendar";
 import type { PlaceSearch } from "@/components/days/event-form";
 import type { BandSpan } from "@floc/core/itinerary/overnight-band";
-import { stayNights } from "@floc/core/itinerary/overnight-pick";
+import { stayNights, stayOpening, stayWrites, type StayWrite } from "@floc/core/itinerary/stay/overnight-pick";
+import { previewNight, tapNight, type NightPick } from "@floc/core/itinerary/stay/stay-calendar";
 import { stayCheckOut, stayLinks } from "@floc/core/trip/booking/booking-links";
-import { formatShortRange } from "@floc/core/dates/dates";
+import { formatShortRange, type IsoDate } from "@floc/core/dates/dates";
 import { OFFSITE_NOTE } from "@/components/booking/site-links";
 import { SitePicker } from "@/components/booking/site-picker";
 
@@ -39,34 +41,35 @@ export function OvernightDialog({
   groupSize: number;
   bookingPrefill: boolean;
   onClose: () => void;
-  onSave: (end: string, place: OvernightPlace) => void;
+  /** The writes in order: the stay first, then the old nights it gives back. */
+  onSave: (writes: StayWrite[], place: OvernightPlace) => void;
   onClear: () => void;
 }) {
-  const [pick, setPick] = useState<PlacePickerResult | null>(null);
-  const [end, setEnd] = useState(span.end);
-  const endCell = useRef<HTMLButtonElement>(null);
-  // A long trip scrolls the row; open with the stay's last night in view.
-  // Why: newer Chromium returns a Promise from scrollIntoView, and an effect that returns one crashes the page.
-  useEffect(() => void endCell.current?.scrollIntoView({ block: "nearest", inline: "nearest" }), []);
-  const ahead = days.filter((d) => !d.outside && d.date >= span.start);
-  const startLabel = ahead[0]?.shortLabel ?? span.start;
-  const name = pick ? pick.name : (span.placeName ?? "");
+  const trip = days.filter((d) => !d.outside);
+  const tripLast = trip.at(-1)?.date ?? span.end;
+  const nightDays = trip.length > 1 ? trip.slice(0, -1) : trip;
+  const [found, setFound] = useState<PlacePickerResult | null>(null);
+  const [pick, setPick] = useState<NightPick>(() => ({ ...stayOpening(span, tripLast), picking: false }));
+  const startLabel = trip.find((d) => d.date === pick.start)?.shortLabel ?? pick.start;
+  const name = found ? found.name : (span.placeName ?? "");
   const nights = stayNights(
-    ahead.map((d) => ({ date: d.date, placeId: d.overnightPlaceId, placeName: d.overnightPlaceName })),
-    { start: span.start, placeId: span.placeId },
-    end,
+    nightDays.map((d) => ({ date: d.date, placeId: d.overnightPlaceId, placeName: d.overnightPlaceName })),
+    { start: pick.start, placeId: span.placeId },
+    pick.end,
   );
+  const placeOf = (date: IsoDate) =>
+    previewNight(date, trip.find((d) => d.date === date)?.overnightPlaceName ?? null, pick, span, name);
 
   const save = () => {
     // An untouched picker means the span keeps the place it already had — the
     // id, not the name, so the stay keeps its pin (see `resolveOvernightPlace`).
-    const place: OvernightPlace | null = pick?.name.trim()
-      ? { name: pick.name, providerId: pick.providerId, lat: pick.lat, lng: pick.lng, countryCode: pick.countryCode }
+    const place: OvernightPlace | null = found?.name.trim()
+      ? { name: found.name, providerId: found.providerId, lat: found.lat, lng: found.lng, countryCode: found.countryCode }
       : span.placeId !== null
         ? { placeId: span.placeId }
         : null;
     if (!place) return;
-    onSave(end < span.start ? span.start : end, place);
+    onSave(stayWrites(span, pick.start, pick.end, tripLast), place);
   };
 
   return (
@@ -80,56 +83,31 @@ export function OvernightDialog({
           <span className="mb-1.5 grid size-[34px] place-items-center rounded-sm bg-sheet">
             <BedIcon size={16} />
           </span>
-          <PlacePicker name="overnight" look="display" defaultName={span.placeName ?? ""} search={searchPlaces} onSelect={setPick} />
+          <PlacePicker name="overnight" look="display" defaultName={span.placeName ?? ""} search={searchPlaces} onSelect={setFound} />
         </div>
       </div>
 
-      <div className="px-5 py-[18px] max-sm:px-4">
-        <span id="overnight-last" className="mb-[7px] block font-mono text-xs text-ink-faint">
-          Last night
-        </span>
-        <div
-          role="group"
-          aria-labelledby="overnight-last"
-          className="grid auto-cols-[minmax(44px,1fr)] grid-flow-col overflow-x-auto rounded-sm border border-rule-strong"
-        >
-          {ahead.map((d, i) => {
-            const inside = d.date <= end;
-            return (
-              <button
-                key={d.date}
-                ref={d.date === span.end ? endCell : undefined}
-                type="button"
-                aria-pressed={inside}
-                aria-label={d.longLabel}
-                onClick={() => setEnd(d.date)}
-                className={cx(
-                  "group flex flex-col items-center gap-px py-2 font-mono text-[11px] transition-colors hover:text-pen",
-                  i > 0 && "border-l",
-                  inside ? "border-pen-edge bg-pen-soft text-pen-deep" : "border-rule text-ink-faint",
-                )}
-              >
-                <span>{d.weekday}</span>
-                <b className={cx("text-[17px] font-medium leading-tight transition-colors group-hover:text-pen", inside ? "text-pen-deep" : "text-ink")}>{d.dayOfMonth}</b>
-              </button>
-            );
-          })}
-        </div>
+      <div className={panelBandClass}>
+        <span className={cx(panelTitleClass, "mb-2")}>First and last night</span>
+        <OvernightCalendar trip={nightDays} pick={pick} placeOf={placeOf} onTap={(date) => setPick((p) => tapNight(p, date))} />
         <p className="nums mt-2.5 text-[13px] text-ink-soft" aria-live="polite">
           {nights.label}
         </p>
-        {nights.taken.map((line) => (
-          <p key={line} className="mt-1 text-[13px] text-ink-soft">
-            {line}
-          </p>
-        ))}
+        {/* Why: a line held open, so the centred dialog does not move under the next tap. */}
+        <div className="grid min-h-5 content-start gap-1">
+          {nights.taken.map((line) => (
+            <p key={line} className="text-[13px] text-ink-soft">
+              {line}
+            </p>
+          ))}
+        </div>
       </div>
 
       {span.placeName ? (
         <FindStay
           place={name.trim() || span.placeName}
-          checkIn={span.start}
-          checkOut={stayCheckOut(end, days.filter((d) => !d.outside).at(-1)?.date ?? null)}
+          checkIn={pick.start}
+          checkOut={stayCheckOut(pick.end, tripLast)}
           adults={groupSize}
           prefill={bookingPrefill}
         />

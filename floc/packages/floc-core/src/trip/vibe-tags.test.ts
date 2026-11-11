@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { VIBE_TAGS, parseVibeTags, readVibeTags } from "./vibe-tags";
+import { VIBE_TAGS, VIBE_TAG_GROUPS, parseVibeTags, readVibeTags } from "./vibe-tags";
 
 describe("vibe tags", () => {
   it("refuses a tag that isn't in the vocabulary", () => {
@@ -22,6 +22,11 @@ describe("vibe tags", () => {
   it("survives a column holding something that isn't a list", () => {
     expect(readVibeTags(null)).toEqual([]);
     expect(readVibeTags("beaches")).toEqual([]);
+  });
+
+  it("puts every tag in exactly one travel-style group", () => {
+    const grouped = VIBE_TAG_GROUPS.flatMap((g) => g.tags);
+    expect([...grouped].sort()).toEqual([...VIBE_TAGS].sort());
   });
 
   it("drops a tag that has since left the vocabulary", () => {

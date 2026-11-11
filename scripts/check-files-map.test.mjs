@@ -16,6 +16,6 @@ test("ignores code spans that are not repo paths", () => {
   assert.deepEqual(missingPaths(map, exists([])), []);
 });
 
-test("skips gitignored folders a fresh checkout does not have", () => {
-  assert.deepEqual(missingPaths("`floc/wireframe/` pages", exists([])), []);
+test("checks the tracked wireframe directory", () => {
+  assert.deepEqual(missingPaths("`floc/wireframe/` pages", exists([])), ["floc/wireframe/"]);
 });

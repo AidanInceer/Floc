@@ -1,0 +1,157 @@
+/* Hero motion — sits on top of landing-hero-centred/hero.css. Throwaway. */
+:root { --bounce: cubic-bezier(.34, 1.7, .5, 1); --bounce-soft: cubic-bezier(.34, 1.4, .64, 1); }
+
+/* The pick in the deck's slots is taller now: give it room. */
+.deck.motion { height: 500px; }
+
+/* Rolling figures */
+.roll { display: inline-flex; align-items: center; gap: 5px; animation: roll .42s var(--bounce-soft) both; }
+@keyframes roll { from { opacity: 0; transform: translateY(70%); } }
+.ok .ico { width: 12px; height: 12px; }
+
+/* ── Votes A: six blocks per place, one per vote ── */
+.vrows { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+.vrow { display: grid; grid-template-columns: 4.4rem 1fr 1.2rem; align-items: center; gap: 8px; transition: font-weight .2s; }
+.vrow.lead { font-weight: 600; }
+.vrow .cnt { text-align: right; }
+.blocks { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; }
+.blocks i { height: 10px; border-radius: 3px; background: color-mix(in srgb, currentColor 14%, transparent); }
+.blocks i.on { background: currentColor; animation: block .5s var(--bounce) both; }
+@keyframes block { 0% { transform: scale(.2, .2); } 60% { transform: scale(1.25, 1.5); } 100% { transform: none; } }
+.last { margin-top: 10px; min-height: 20px; font-size: 12px; opacity: .9; }
+.last .avatar { flex-shrink: 0; }
+
+/* ── Votes B: rows race, swap places, faces drop in ── */
+.race { position: relative; margin-top: 10px; font-size: 13px; }
+.rrow {
+  position: absolute; left: 0; right: 0; top: 0; height: 26px;
+  display: grid; grid-template-columns: 4.4rem 1fr 1.2rem; align-items: center; gap: 8px;
+  padding: 0 8px; margin: 0 -8px; border-radius: 10px;
+  transform: translateY(var(--y)); transition: transform .6s var(--bounce-soft), background-color .3s var(--ease);
+}
+.rrow.lead { font-weight: 600; background: color-mix(in srgb, currentColor 10%, transparent); }
+.rrow .cnt { text-align: right; }
+.rrow.bump { animation: bump .4s var(--bounce); }
+@keyframes bump { 40% { scale: 1.05; } }
+.faces { display: flex; }
+.faces .drop { margin-right: -5px; animation: drop .5s var(--bounce) both; }
+.faces .avatar { box-shadow: 0 0 0 1.5px var(--pastel-yellow); }
+@keyframes drop { from { opacity: 0; transform: translateY(-16px) scale(.5); } }
+
+/* ── Calendar: the agreed days pop green ── */
+.motion .cal span { transition: opacity .4s var(--ease); }
+.motion .cal.on span:not(.pick) { opacity: .55; }
+.motion .cal.on span.pick { animation: day-pop .55s var(--bounce) both; animation-delay: var(--dl); font-weight: 600; }
+@keyframes day-pop {
+  0% { transform: scale(1); background: color-mix(in srgb, var(--pen) var(--f), transparent); }
+  45% { transform: scale(1.4); background: var(--green); color: var(--sheet); border-radius: 50%; }
+  100% { transform: scale(1); background: var(--green); color: var(--sheet); }
+}
+
+/* ── Money: expenses land one by one ── */
+.rows .exp { opacity: 0; transform: translateX(28px) rotate(2deg); }
+.rows .exp.on { animation: land .5s var(--bounce-soft) forwards; }
+@keyframes land { to { opacity: 1; transform: none; } }
+
+/* Money A: a stamp over the rows */
+.money-a { position: relative; }
+.money-a .rows { transition: opacity .3s var(--ease), filter .3s var(--ease); }
+.money-a.on .rows { opacity: .3; filter: blur(.6px); }
+.money-a.on { animation: jolt .5s var(--bounce); }
+@keyframes jolt { 30% { transform: scale(1.04); } }
+.settled {
+  position: absolute; left: 50%; top: 64%; translate: -50% -50%;
+  display: inline-flex; align-items: center; gap: 9px; white-space: nowrap;
+  padding: 9px 18px 9px 9px; border-radius: 999px; background: var(--green); color: var(--sheet);
+  font-family: var(--display); font-weight: 600; font-size: 17px; letter-spacing: -.01em; box-shadow: var(--shadow-lift);
+  opacity: 0; transform: scale(.3) rotate(-12deg);
+}
+.money-a.on .settled { animation: stamp .6s var(--bounce) .12s forwards; }
+@keyframes stamp { to { opacity: 1; transform: rotate(-4deg); } }
+.tick { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--sheet); color: var(--green); }
+.tick svg, .big-tick svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tick path, .big-tick path { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.money-a.on .tick path { transition: stroke-dashoffset .4s var(--ease) .45s; stroke-dashoffset: 0; }
+
+/* Money B: the card flips to its back */
+.flip { display: grid; perspective: 900px; }
+.flip > .card { grid-area: 1 / 1; backface-visibility: hidden; transition: transform .8s var(--bounce-soft); }
+.face-back { transform: rotateY(-180deg); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; }
+.flip.on .face-front { transform: rotateY(180deg); }
+.flip.on .face-back { transform: rotateY(0); }
+.big-tick { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--green); color: var(--sheet); transform: scale(0); }
+.big-tick svg { width: 32px; height: 32px; stroke-width: 1.6; }
+.flip.on .big-tick { animation: tick-pop .6s var(--bounce) .45s forwards; }
+.flip.on .big-tick path { transition: stroke-dashoffset .45s var(--ease) .8s; stroke-dashoffset: 0; }
+@keyframes tick-pop { to { transform: scale(1); } }
+.settled-word { font-family: var(--display); font-weight: 600; font-size: 24px; letter-spacing: -.02em; margin-top: 4px; }
+
+/* ── Packing A: three reels, one per row ── */
+.slots { margin: 10px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; font-size: 13px; }
+.slots li {
+  display: flex; justify-content: space-between; gap: 10px; padding: 0 8px; margin: 0 -8px; border-radius: 8px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 16%, transparent);
+}
+.slots li.on { box-shadow: none; animation: lock .5s var(--bounce); background: color-mix(in srgb, currentColor 9%, transparent); }
+@keyframes lock { 40% { transform: scale(1.06); } }
+.reel { display: block; height: 22px; overflow: hidden; line-height: 22px; }
+.reel .strip { display: flex; flex-direction: column; }
+.reel .strip span { height: 22px; white-space: nowrap; }
+.reel.who { text-align: right; }
+.reel.you .strip span:last-child { color: var(--pen-deep); font-weight: 600; }
+
+/* ── Packing B: one window, the whole list spins through it ── */
+.pack-b .window {
+  position: relative; margin-top: 10px; height: 72px; overflow: hidden; font-size: 13px;
+  -webkit-mask-image: linear-gradient(transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(transparent, #000 18%, #000 82%, transparent);
+  transition: -webkit-mask-image .3s, mask-image .3s;
+}
+.pack-b .window.on { -webkit-mask-image: none; mask-image: none; }
+.pack-b .strip { display: flex; flex-direction: column; }
+.pack-b .strip span { height: 24px; line-height: 24px; }
+.pack-b .whos { position: absolute; right: 0; top: 0; margin: 0; padding: 0; list-style: none; }
+.pack-b .whos li { height: 24px; line-height: 24px; text-align: right; opacity: 0; transform: translateX(14px) scale(.6); }
+.pack-b .window.on .whos li { animation: who-in .45s var(--bounce) forwards; animation-delay: var(--dl); }
+@keyframes who-in { to { opacity: 1; transform: none; } }
+.pack-b .whos li.you { color: var(--pen-deep); font-weight: 600; }
+
+/* ── Phone: every card stays, stacked two by two under the ticket ── */
+@media (max-width: 900px) {
+  .deck.motion { height: auto; overflow: visible; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 10px; padding: 0 14px 12px; max-width: 560px; margin: 0 auto; }
+  .deck.motion .slot { position: static; width: auto; transform: rotate(var(--rm, 0deg)); }
+  .deck.motion .slot:hover .card { transform: none; }
+  .deck.motion .d-votes, .deck.motion .d-pack { display: block; }
+  .deck.motion .d-ticket { grid-column: 1 / -1; order: 0; }
+  .deck.motion .d-votes { order: 1; --rm: -1.5deg; }
+  .deck.motion .d-dates { order: 2; --rm: 1.5deg; }
+  .deck.motion .d-money { order: 3; --rm: -1deg; }
+  .deck.motion .d-pack { order: 4; --rm: 1deg; }
+  .motion .card { padding: 13px 12px; border-radius: 16px; }
+  .motion .ticket { padding: 0; }
+  .motion .t-top { padding: 20px 18px 14px; }
+  .motion .t-top h2 { font-size: 44px; }
+  .motion .t-stub { padding: 12px 18px 16px; font-size: 12px; }
+  .motion .t-stub .avatar { width: 20px !important; height: 20px !important; font-size: 9px !important; }
+  .motion .t-stub .going { display: none; }
+  .motion .head { flex-wrap: wrap; row-gap: 2px; }
+  .vrow, .rrow { grid-template-columns: 3.4rem 1fr 1rem; gap: 5px; font-size: 12px; }
+  .vrows, .race, .slots, .pack-b .window { font-size: 12px; }
+  .blocks { gap: 2px; }
+  .last { font-size: 11px; }
+  .money-big { font-size: 24px; }
+  .rows { font-size: 10.5px; }
+  .rows .exp { padding: 5px 7px; }
+  .settled { font-size: 14px; padding: 7px 13px 7px 7px; }
+  .settled-word { font-size: 20px; }
+  .perf::before, .perf::after { background: var(--paper); }
+}
+
+/* Pull the outer cards in: the votes and packing play now, so they must be on screen. */
+@media (min-width: 901px) {
+  .motion .d-votes  { --x: -725px; --y: 110px; width: 250px; }
+  .motion .d-dates  { --x: -468px; --y: 0px; width: 240px; }
+  .motion .d-money  { --x: 238px;  --y: 0px; width: 240px; }
+  .motion .d-pack   { --x: 492px;  --y: 110px; width: 230px; }
+}
+@media (min-width: 901px) and (max-width: 1439px) { .deck.motion { zoom: calc(100vw / 1460px); } }

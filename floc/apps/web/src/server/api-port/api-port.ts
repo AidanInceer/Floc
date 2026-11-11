@@ -32,7 +32,7 @@ import type {
 } from "@floc/api/port";
 
 import { copyListing } from "@/server/explore/listing-copy";
-import { saveTrip } from "@/server/trips/trip-save";
+import { saveTrip, startTrip } from "@/server/trips/trip-save";
 
 import { assertAdmin, findTripAccess, type TripAccess } from "@/server/access";
 import { listTripCards } from "@/server/trips/trip-cards";
@@ -96,7 +96,6 @@ import { readVibeTags } from "@floc/core/trip/vibe-tags";
 import { travelMapFor } from "@/server/itinerary/travel-map";
 import { leaveTripAs, removeMembership, setMemberRoleAdmin } from "@/server/trips/roster";
 import {
-  createTripWithAdmin,
   listTripsFor,
   resetInviteToken,
   setTripArchived,
@@ -121,7 +120,6 @@ function toDetail(access: TripAccess, bookingPrefill: boolean): TripDetail {
       userId: m.userId,
       role: m.role,
       name: m.name,
-      email: m.email,
       avatarIcon: m.avatarIcon,
       tone: m.tone,
     })),
@@ -421,12 +419,7 @@ export const webPort: FlocPort = {
   },
 
   async createTrip(viewerId, input: NewTrip) {
-    // The lazy profile row, as the web action does — a trip whose creator has
-    // no profile renders a nameless admin on every roster.
-    await ensureProfile(viewerId);
-    const id = await createTripWithAdmin({ ...input, createdBy: viewerId });
-    refresh({ kind: "tripList" });
-    return { id };
+    return { id: await startTrip(viewerId, input) };
   },
 
   async startTripFromPreset(viewerId, choice) {

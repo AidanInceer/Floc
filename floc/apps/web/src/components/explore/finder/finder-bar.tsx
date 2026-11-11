@@ -7,7 +7,7 @@ import { CrossIcon, LineIcon } from "@/components/system/icons";
 import { cx } from "@/components/system/ui";
 
 const SORT_ICONS: Record<FinderSort, ReactNode> = {
-  match: <path d="M7 1.8 8.5 5l3.5.4-2.6 2.4.7 3.5L7 9.6l-3.1 1.7.7-3.5L2 5.4 5.5 5Z" />,
+  match: <path d="M7 12.1C3.3 9.4 1.5 7.5 1.5 5.4A3.2 3.2 0 0 1 7 3.5a3.2 3.2 0 0 1 5.5 1.9c0 2.1-1.8 4-5.5 6.7Z" />,
   cheap: <path d="M3 10.5v-8M1.2 4.3 3 2.5l1.8 1.8M7 4h2M7 7h3.5M7 10h5" />,
   dear: <path d="M3 3.5v8m-1.8-1.8L3 11.5l1.8-1.8M7 4h5M7 7h3.5M7 10h2" />,
   short: <path d="M2 7h4M2 4.5v5M10 7h2" />,
@@ -21,7 +21,7 @@ function Pill({ dark = false, onClick, children }: { dark?: boolean; onClick: ()
       onClick={onClick}
       className={cx(
         "group inline-flex min-h-7 items-center gap-1.5 rounded-full pl-[11px] pr-2 text-[12.5px]",
-        dark ? "bg-ink text-paper" : "bg-sheet-3 text-ink",
+        dark ? "bg-pen-soft text-pen-deep" : "bg-sheet-3 text-ink",
       )}
     >
       {children}
@@ -80,7 +80,7 @@ export function SortPicker({ sort, onSort }: { sort: FinderSort; onSort: (sort: 
           onClick={() => onSort(key)}
           className={cx(
             "grid size-8 place-items-center rounded-sm transition-colors",
-            sort === key ? "bg-ink text-paper" : "text-ink-soft hover:bg-sheet-2 hover:text-ink",
+            sort === key ? "bg-pen-soft text-pen-deep" : "text-ink-soft hover:bg-sheet-2 hover:text-ink",
           )}
         >
           <LineIcon size={14}>{SORT_ICONS[key]}</LineIcon>

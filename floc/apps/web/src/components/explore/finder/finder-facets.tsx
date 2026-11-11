@@ -45,7 +45,7 @@ export function WhenFacet({ finder, counts, onChange }: Facet) {
               onClick={() => onChange({ ...finder, months: toggled(finder.months, i + 1) })}
               className={cx(
                 "grid justify-items-center gap-px rounded-sm border pb-[5px] pt-1.5 transition-colors",
-                on ? "border-ink bg-ink text-paper" : "border-rule-strong bg-sheet hover:border-ink-faint",
+                on ? "border-transparent bg-pen-soft text-pen-deep" : "border-rule-strong bg-sheet hover:border-ink-faint",
                 !on && none && "border-dashed text-ink-faint",
               )}
             >

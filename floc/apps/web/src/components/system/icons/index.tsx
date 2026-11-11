@@ -78,6 +78,15 @@ export function CheckIcon(props: IconProps) {
   );
 }
 
+export function ClockIcon(props: IconProps) {
+  return (
+    <LineIcon {...props}>
+      <circle cx="7" cy="7" r="5.2" />
+      <path d="M7 4v3.2l2 1.2" />
+    </LineIcon>
+  );
+}
+
 export function PencilIcon(props: IconProps) {
   return (
     <LineIcon {...props}>
@@ -123,7 +132,7 @@ export function CogIcon(props: IconProps) {
   return (
     <LineIcon {...props}>
       <circle cx="7" cy="7" r="1.9" />
-      <path d="M6.1 1.6h1.8l.3 1.5 1.1.6 1.4-.5.9 1.6-1.1 1v1.4l1.1 1-.9 1.6-1.4-.5-1.1.6-.3 1.5H6.1l-.3-1.5-1.1-.6-1.4.5-.9-1.6 1.1-1V6.3l-1.1-1 .9-1.6 1.4.5 1.1-.6Z" />
+      <path d="M5.67 3.12L6.06 1.68L7.94 1.68L8.33 3.12L9.69 3.91L11.14 3.53L12.07 5.15L11.02 6.22L11.02 7.78L12.07 8.85L11.14 10.47L9.69 10.09L8.33 10.88L7.94 12.32L6.06 12.32L5.67 10.88L4.31 10.09L2.86 10.47L1.93 8.85L2.98 7.78L2.98 6.22L1.93 5.15L2.86 3.53L4.31 3.91Z" />
     </LineIcon>
   );
 }

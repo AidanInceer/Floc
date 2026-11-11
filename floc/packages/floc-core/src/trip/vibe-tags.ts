@@ -25,6 +25,15 @@ export const VIBE_TAGS = [
   "slow mornings",
 ] as const;
 
+type VibeTag = (typeof VIBE_TAGS)[number];
+
+/** Settings shows the tags as a travel style, sorted by what each one is about. */
+export const VIBE_TAG_GROUPS: { name: string; tags: VibeTag[] }[] = [
+  { name: "Pace", tags: ["early starts", "slow mornings", "late nights"] },
+  { name: "Places", tags: ["city breaks", "beaches", "hiking", "road trips"] },
+  { name: "Things to do", tags: ["food first", "museums", "festivals"] },
+];
+
 /** Form input → the column. Seed-only enforced here too, not just in the UI — a hand-crafted POST must not invent a tag. */
 export function parseVibeTags(input: (string | null | undefined)[]): string[] {
   const allowed = new Set<string>(VIBE_TAGS);

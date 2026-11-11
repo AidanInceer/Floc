@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Landing · hero, four new takes</title>
+  <meta name="wf-page" content="Landing">
+  <meta name="wf-route" content="/">
+  <meta name="wf-status" content="Experiment: H1 and H2, hero options to A/B test against the live hero">
+  <meta name="description" content="Hero takes. Round 1, A–D: closed, too busy. Round 2, calmer: E and F closed (not good), G kept but bland, H you are invited picked as the base. Round 3, on H with the house paper pieces: H1 a postcard from Priya, H2 everyone&#39;s way there on the paper globe, H3 the way in from globe to trip map with stop postcards. Round 4: all closed but the two experiments, H1 in Explore&#39;s route style, H2 from London, Barcelona and Manchester, H3a follow the pen, H3b cards pinned to the map.">
+  <link rel="stylesheet" href="/_house/house.css">
+  <link rel="stylesheet" href="/_landing/landing.css">
+  <link rel="stylesheet" href="hero.css">
+  <link rel="stylesheet" href="calm.css">
+  <link rel="stylesheet" href="paper.css">
+  <link rel="stylesheet" href="explore.css">
+  <script src="/_house/house.js" defer></script>
+  <script src="main.js" type="module"></script>
+</head>
+<body>
+  <!-- PROTOTYPE — throwaway. Hero takes, ?variant=H1|H2. State lives in memory; a reload starts over. -->
+  <header class="beads" aria-label="Site">
+    <span class="bead mark">
+      <svg viewBox="0 0 26 20" aria-hidden="true"><path d="M3 14 6.5 10.5 10 14"/><path d="M9.5 8.5 13 5 16.5 8.5"/><path d="M16 14 19.5 10.5 23 14"/></svg>
+      <b>floc<i>.</i></b>
+    </span>
+    <a class="bead" href="#">Explore</a>
+    <span class="bead pair"><a href="#">Log in</a><a class="go" href="#">Sign up</a></span>
+  </header>
+  <main id="stage"></main>
+  <div class="cv-wrap"><div class="ghost-section">Below: Everything in one place — unchanged</div></div>
+  <div style="height:140px"></div>
+  <button type="button" class="cv-replay" id="replay">Replay</button>
+</body>
+</html>

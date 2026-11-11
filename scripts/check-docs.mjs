@@ -7,6 +7,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { docLinks } from "./docs-links.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DOCS = join(ROOT, "docs");
@@ -61,7 +62,12 @@ function htmlFiles(dir) {
   });
 }
 
-const EXTERNAL = /^(https?:|mailto:|data:|javascript:|#)/;
+function markdownFiles(dir) {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => entry.isDirectory()
+    ? markdownFiles(join(dir, entry.name)) : entry.name.endsWith(".md") ? [join(dir, entry.name)] : []);
+}
+
+const EXTERNAL =/^(https?:|mailto:|data:|javascript:|#)/;
 
 const AGENT_FILES = [
   "AGENTS.md",
@@ -102,6 +108,12 @@ function checkLinks() {
     for (const m of readFileSync(path, "utf8").matchAll(/\]\(([^)\s]+)\)/g)) {
       checkTarget(path, m[1], file);
     }
+  }
+
+  // Why: a skill names doc pages from the repo root, so a deleted or moved page must fail here, not mislead a session later.
+  for (const path of markdownFiles(join(ROOT, "plugins/floc"))) {
+    const label = relative(ROOT, path).split(sep).join("/");
+    for (const href of docLinks(readFileSync(path, "utf8"))) checkTarget(join(ROOT, "AGENTS.md"), href, label);
   }
   return pages.length;
 }

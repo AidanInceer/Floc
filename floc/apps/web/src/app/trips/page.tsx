@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { requireUser } from "@/server/access";
 import { listFriendsFor, type Person } from "@/server/social/friends";
+import { listGroupsFor, type Group } from "@/server/social/groups";
 import { listPendingInvitesFor, type PendingInvite } from "@/server/trips/invites";
 import { newTripName } from "@/lib/landing/start-trip";
 import { loadTripCards } from "./cards";
@@ -30,10 +31,11 @@ export default async function TripsPage({
 
   const viewer = await requireUser("/trips");
 
-  const [cardRows, invites, friends] = await Promise.all([
+  const [cardRows, invites, friends, groups] = await Promise.all([
     loadTripCards(viewer.id, { archived: false }),
     listPendingInvitesFor(viewer.id),
     listFriendsFor(viewer.id),
+    listGroupsFor(viewer.id),
   ]);
 
   const cards = cardRows.map((c) => c.card);
@@ -50,9 +52,9 @@ export default async function TripsPage({
       <PageTitle className="sr-only">My trips</PageTitle>
       <header className="grid grid-cols-[minmax(0,1fr)] gap-1.5 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
         <div className="sm:col-start-2">
-          <NewTripField action={createTrip} friends={friends} asked={asked} />
+          <NewTripField action={createTrip} friends={friends} groups={groups} asked={asked} />
         </div>
-        <ButtonLink href="/trips/archived" variant="ghost" className="row-start-1 justify-self-end max-sm:h-11 sm:col-start-3">
+        <ButtonLink href="/trips/archived" variant="ghost" className="justify-self-end max-sm:hidden sm:col-start-3">
           Archived
         </ButtonLink>
       </header>
@@ -61,7 +63,7 @@ export default async function TripsPage({
 
       {live.length === 0 ? (
         <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <NewTripTile friends={friends} first={cards.length === 0} />
+          <NewTripTile friends={friends} groups={groups} first={cards.length === 0} />
         </ul>
       ) : null}
       {cards.length === 0 ? (
@@ -127,7 +129,7 @@ function PastTrips({ trips }: { trips: TripCardData[] }) {
 }
 
 /** The last row of the list is the way to add another one; with no trips yet it is the whole page's invitation. */
-function NewTripTile({ friends, first }: { friends: Person[]; first?: boolean }) {
+function NewTripTile({ friends, groups, first }: { friends: Person[]; groups: Group[]; first?: boolean }) {
   return (
     <li className="contents">
       <Sheet
@@ -151,13 +153,13 @@ function NewTripTile({ friends, first }: { friends: Person[]; first?: boolean })
           </span>
         }
         title="Start a trip"
-        body="split"
+        body="flush"
         triggerClassName={cx(
           "lift flex w-full flex-col justify-center rounded-md bg-sheet p-4 text-left shadow-[inset_0_0_0_1px_var(--rule-2)] hover:shadow-[inset_0_0_0_1px_var(--pen)]",
           first ? "min-h-40" : "",
         )}
       >
-        <NewTripForm action={createTrip} friends={friends} />
+        <NewTripForm action={createTrip} friends={friends} groups={groups} />
       </Sheet>
     </li>
   );
@@ -189,13 +191,13 @@ function InviteList({ invites }: { invites: PendingInvite[] }) {
             <div className="flex gap-2">
               <form action={acceptTripInvite}>
                 <input type="hidden" name="tripId" value={invite.tripId} />
-                <SubmitButton variant="primary" pendingLabel="Joining…">
+                <SubmitButton variant="primary">
                   Join
                 </SubmitButton>
               </form>
               <form action={declineTripInvite}>
                 <input type="hidden" name="tripId" value={invite.tripId} />
-                <SubmitButton variant="ghost" pendingLabel="Declining…">
+                <SubmitButton variant="ghost">
                   Decline
                 </SubmitButton>
               </form>
