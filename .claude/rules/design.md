@@ -41,6 +41,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - ✓ Depth comes only from `--shadow-sm`, `--shadow`, `--shadow-lift`. An inset or unblurred shadow may draw a line. If you notice the shadow first, it is wrong.
 - Every interactive surface shows a hover: a card lifts 1.5px (never more than 2px), a chip takes a border, a link turns blue. ✓ Never a grey fill; a button hovers to a pen wash.
 - Motion: 0.22s on `--ease`, colour and lift only in the workspace. Nothing under reduced motion. Never hijack the scroll.
+  - In the homepage feature tour, the feature icon takes the new slide's ink as its copy appears. The trip tab's icon and tile change colour together.
   - One exception: a booking site you just added washes pen on its new buttons for about a second (0.22s in, a hold, 0.22s out), so you see every row change ([ADR-037](../../docs/foundation/decisions.html#adr-037)). Colour only.
   - One exception: opening a trip from a My trips bar. The list sinks back and fades (0.3s) while the trip loads and the top bar’s beads join; then the Overview pours out of the bar onto the trip’s card on the beads’ skin, with their give and squash (about 1s; 1.3s in all). Nothing under reduced motion; a new tab or window opens plainly ([ADR-038](../../docs/foundation/decisions.html#adr-038), `lib/trip-open/`).
   - One exception: the top bar’s beads fuse as the page scrolls ([visual language](../../docs/design/visual-language.html#navigation-and-chrome)). Scroll sets how far the words have folded; the join plays once. No other workspace surface moves on scroll.
@@ -71,7 +72,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - A field draws one focus ring: the outline sits on the border, never a blue border plus an outline outside it.
 - A date is picked on Floc's own month calendar (the Dates grid), never the browser's or the phone's native date picker.
 - A text field is the house field (`Input`, `Textarea`): mono, hover to a darker border. Inside a panel, a field that holds prose — a place name, a note — is the same field in sans (`panelFieldClass`). No third field style.
-  - One exception: the top of My trips joins a house field, its mono label inside in `ink-2`, to New trip. The pair is one control: the button turns pen once a name is typed and shows hover in colour only, never a lift (`new-trip-field.tsx`).
+  - One exception: the top of My trips joins a house field, its mono label inside in `ink-2`, to New trip. The pair is one control: the button turns pen once a name is typed and shows hover in colour only, never a lift (`new-trip-field.tsx`). Below sm, a `…` menu holding Archived closes the control on the right.
 - Text never overlaps or clips. Test long names (South Africa, Bosnia and Herzegovina), many items and empty states. A chip fits its slot unless the name is long, then it wraps cleanly.
 - The page holds still. Switching a tab, day or filter never jumps the scroll or shifts the content above.
 - A card that opens something opens from anywhere on it, not only its title.

@@ -40,6 +40,16 @@ describe("fitRoute", () => {
     expect(fitRoute(route("RAIL"), tiny, ROOM, 3000).R).toBeGreaterThan(0);
   });
 
+  it("still fills a box shorter than the room, as on a phone's My trips bar", () => {
+    const rail = route("RAIL");
+    const short = { left: 24, top: 24, right: 303, bottom: 88 };
+    const { view, R } = fitRoute(rail, short, { x: 46, y: 34 }, 1e6);
+    const at = rail.stops.map((s) => project(view, s));
+    const wide = (Math.max(...at.map((q) => q.x)) - Math.min(...at.map((q) => q.x))) * R;
+    const tall = (Math.max(...at.map((q) => q.y)) - Math.min(...at.map((q) => q.y))) * R;
+    expect(Math.max(wide / 279, tall / 64)).toBeGreaterThan(0.4);
+  });
+
   it("looks at the middle of a one-stop trip", () => {
     const { view } = fitRoute(route("ONE_STOP"), BOX, ROOM, 3000);
     expect(view.lat).toBeCloseTo(40.611);

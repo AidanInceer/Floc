@@ -1,14 +1,6 @@
 /**
- * The port's settings half (tickets 07, 46, 236; split out of `api-port.ts`).
- *
- * SAME MODULES THE PAGES USE. Every read and write here goes through
- * `server/profile`, `server/auth` and `server/roster` — the ones `/settings`
- * and `/profile` already call. Nothing is reimplemented for the phone, which
- * is the whole point of the seam: a rule with two implementations is a rule
- * with two behaviours.
- *
- * ITS OWN FILE BECAUSE `api-port.ts` WAS FULL. The trip half and the account
- * half are two subjects, and a file whose name needs "and" is two files.
+ * Why: every read and write goes through the modules `/settings` and `/profile`
+ * already call — a rule with two implementations is a rule with two behaviours.
  */
 import "server-only";
 
@@ -67,6 +59,7 @@ export const settingsPort: SettingsPort = {
       visibilityVibeTags: profile.visibilityVibeTags,
       visibilityTravelMap: profile.visibilityTravelMap,
       visibilityFriends: profile.visibilityFriends,
+      visibilitySaved: profile.visibilitySaved,
       pastTripsShow: profile.pastTripsShow,
       vibeTags: readVibeTags(profile.vibeTags),
       packTier: profile.packTier,

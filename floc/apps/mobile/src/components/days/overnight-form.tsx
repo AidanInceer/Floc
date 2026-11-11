@@ -1,9 +1,9 @@
 /**
  * Where the group sleeps, from the phone (ticket 308).
  *
- * DAY-FIRST (rule 3). This writes a span of days, not a stop. The span starts
- * on the run the selected day already belongs to, so extending a stay is one
- * date away rather than a re-pick.
+ * DAY-FIRST (rule 3). This writes a span of days, not a stop. The first and last
+ * night are picked on the month calendar (wireframe/days-week F), with a line
+ * saying what the stay takes from another one.
  *
  * THE TRIP'S OWN PLACES COME FIRST. Sending the id back keeps the pin the map
  * draws from; re-typing the name would mint a second, coordinate-less row.
@@ -11,14 +11,17 @@
  * SEARCH MAY GIVE NOTHING (rule 11). The geocoder being down is not an error
  * state — the typed name is saved as it stands, and the map simply has no pin.
  */
-import { formatDate } from "@floc/core/dates/dates";
+import type { IsoDate } from "@floc/core/dates/dates";
+import { stayNights, stayOpening, stayWrites, type Night, type StayWrite } from "@floc/core/itinerary/stay/overnight-pick";
+import { previewNight, tapNight, type NightPick } from "@floc/core/itinerary/stay/stay-calendar";
 import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { useQuery } from "@tanstack/react-query";
 
+import { NightCalendar } from "./night-calendar";
 import { useTheme } from "../system/theme";
-import { Body, Button, Card, Dropdown, Field } from "../system/ui";
+import { Body, Button, Card, Field, Label } from "../system/ui";
 import { trpc } from "@/lib/api";
 import { fonts, radius, size, space } from "@/lib/theme";
 
@@ -34,14 +37,13 @@ export type OvernightChoice =
     };
 
 export type OvernightSpan = {
-  /** First day of the run the selected day belongs to. */
-  start: string;
-  /** Every date this stay could reach, the start included. */
-  dates: string[];
-  /** The run's current end, and its place if it has one. */
-  end: string;
+  /** The stop's first and last day, and its place if it has one. */
+  start: IsoDate;
+  end: IsoDate;
   placeId: number | null;
   placeName: string | null;
+  /** Every day of the trip, in order; the last is check-out, not a night. */
+  days: Night[];
 };
 
 export function OvernightForm({
@@ -57,14 +59,15 @@ export function OvernightForm({
   known: { id: number; name: string }[];
   busy: boolean;
   problem: string | null;
-  /** Null clears the span. */
-  onSave: (end: string, place: OvernightChoice | null) => void;
+  /** The writes in order: the stay first, then the old nights it gives back. Null clears. */
+  onSave: (writes: StayWrite[], place: OvernightChoice | null) => void;
   onCancel: () => void;
 }) {
+  const tripEnd = span.days.at(-1)?.date ?? span.end;
   const [typed, setTyped] = useState("");
   const [query, setQuery] = useState("");
-  const [pick, setPick] = useState<OvernightChoice | null>(null);
-  const [end, setEnd] = useState(span.end);
+  const [choice, setChoice] = useState<OvernightChoice | null>(null);
+  const [pick, setPick] = useState<NightPick>(() => ({ ...stayOpening(span, tripEnd), picking: false }));
 
   // A keystroke is not a search. Nominatim allows one call a second and the
   // trip is not waiting on the difference.
@@ -77,6 +80,12 @@ export function OvernightForm({
     trpc.places.search.queryOptions({ query }, { enabled: query.length > 2 }),
   );
 
+  const choose = (next: OvernightChoice, name: string) => {
+    setChoice(next);
+    setTyped(name);
+  };
+  const place = choice ?? (span.placeId !== null ? { placeId: span.placeId } : null);
+
   return (
     <Card>
       <View style={{ gap: space.md }}>
@@ -85,7 +94,7 @@ export function OvernightForm({
           value={typed}
           onChangeText={(text) => {
             setTyped(text);
-            setPick(text.trim() ? { name: text.trim(), providerId: null, lat: null, lng: null, countryCode: null } : null);
+            setChoice(text.trim() ? { name: text.trim(), providerId: null, lat: null, lng: null, countryCode: null } : null);
           }}
           autoFocus
         />
@@ -93,16 +102,13 @@ export function OvernightForm({
         {/* Hits and the trip's own places are the same gesture, so they are the
             same list — the trip's own on top, because they keep their pin. */}
         <View>
-          {known.map((place) => (
+          {known.map((row) => (
             <Choice
-              key={`known-${place.id}`}
-              label={place.name}
+              key={`known-${row.id}`}
+              label={row.name}
               note="already on this trip"
-              current={place.id === span.placeId}
-              onPress={() => {
-                setPick({ placeId: place.id });
-                setTyped(place.name);
-              }}
+              current={row.id === span.placeId}
+              onPress={() => choose({ placeId: row.id }, row.name)}
             />
           ))}
           {(hits.data ?? []).map((hit) => (
@@ -110,26 +116,14 @@ export function OvernightForm({
               key={hit.providerId}
               label={hit.name}
               note={hit.label}
-              onPress={() => {
-                setPick({
-                  name: hit.name,
-                  providerId: hit.providerId,
-                  lat: hit.lat,
-                  lng: hit.lng,
-                  countryCode: hit.countryCode,
-                });
-                setTyped(hit.name);
-              }}
+              onPress={() =>
+                choose({ name: hit.name, providerId: hit.providerId, lat: hit.lat, lng: hit.lng, countryCode: hit.countryCode }, hit.name)
+              }
             />
           ))}
         </View>
 
-        <Dropdown
-          label="Last night here"
-          value={end}
-          options={span.dates.map((date) => ({ value: date, label: formatDate(date) }))}
-          onChange={setEnd}
-        />
+        <StayNights span={span} pick={pick} name={typed.trim() || span.placeName || ""} onTap={(date) => setPick((p) => tapNight(p, date))} />
 
         {problem ? <Body tone="red">{problem}</Body> : null}
 
@@ -138,18 +132,12 @@ export function OvernightForm({
             <Button label="Cancel" variant="quiet" onPress={onCancel} />
           </View>
           <View style={{ flex: 2 }}>
-            <Button
-              label="Save"
-              busy={busy}
-              onPress={() =>
-                onSave(end, pick ?? (span.placeId !== null ? { placeId: span.placeId } : null))
-              }
-            />
+            <Button label="Save" busy={busy} onPress={() => place && onSave(stayWrites(span, pick.start, pick.end, tripEnd), place)} />
           </View>
         </View>
 
         {span.placeId !== null ? (
-          <NoOvernight onPress={() => onSave(end, null)} />
+          <NoOvernight onPress={() => onSave([{ start: span.start, end: span.end, clear: true }], null)} />
         ) : null}
 
       </View>
@@ -161,6 +149,31 @@ export function OvernightForm({
         </View>
       ) : null}
     </Card>
+  );
+}
+
+function StayNights({ span, pick, name, onTap }: { span: OvernightSpan; pick: NightPick; name: string; onTap: (date: IsoDate) => void }) {
+  const { c } = useTheme();
+  const nightDays = span.days.length > 1 ? span.days.slice(0, -1) : span.days;
+  const nights = stayNights(nightDays, { start: pick.start, placeId: span.placeId }, pick.end);
+  const placeOf = (date: IsoDate) =>
+    previewNight(date, nightDays.find((d) => d.date === date)?.placeName ?? null, pick, span, name);
+  const line = { color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.small };
+
+  return (
+    <View>
+      <View style={{ marginBottom: space.xs }}>
+        <Label>First and last night</Label>
+      </View>
+      <NightCalendar nights={nightDays.map((d) => d.date)} pick={pick} placeOf={placeOf} onTap={onTap} />
+      <Text accessibilityLiveRegion="polite" style={[line, { fontFamily: fonts.type, marginTop: space.sm }]}>{nights.label}</Text>
+      {/* Why: a line held open, so the sheet does not move under the next tap. */}
+      <View style={{ minHeight: 18, gap: space.xs }}>
+        {nights.taken.map((taken) => (
+          <Text key={taken} style={line}>{taken}</Text>
+        ))}
+      </View>
+    </View>
   );
 }
 

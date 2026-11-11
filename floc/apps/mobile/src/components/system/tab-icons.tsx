@@ -23,20 +23,19 @@ const STROKE = 1.2;
 
 type IconProps = { color: ColorValue };
 
-/** Explore — a magnifier. */
 export function ExploreIcon({ color }: IconProps) {
   return (
     <Svg width={SIZE} height={SIZE} viewBox="0 0 14 14" fill="none">
       <Circle
-        cx={6}
-        cy={6}
-        r={4}
+        cx={7}
+        cy={7}
+        r={5.25}
         stroke={color}
         strokeWidth={STROKE}
         strokeLinecap="round"
       />
       <Path
-        d="M9 9 12.2 12.2"
+        d="M1.75 7h10.5M7 1.75c1.6 1.5 2.4 3.25 2.4 5.25S8.6 10.75 7 12.25M7 1.75C5.4 3.25 4.6 5 4.6 7s.8 3.75 2.4 5.25"
         stroke={color}
         strokeWidth={STROKE}
         strokeLinecap="round"

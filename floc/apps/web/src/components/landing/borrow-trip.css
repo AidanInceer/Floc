@@ -325,6 +325,7 @@
   .borrow-bar > :is(button, a) { min-height: 44px; padding-block: 10px; font-size: 12px; }
   .borrow-go { justify-self: end; }
   .borrow-start { justify-self: start; white-space: nowrap; }
+  .borrow-start-still { display: none; }
 
   @media (max-width: 900px) {
     /* A phone: the globe on top grows into the map; the tiles under it fold away and the rail takes their place. */
@@ -376,6 +377,10 @@
       margin: calc(10px * (1 - var(--deep))) 0 calc(12px * (1 - var(--deep)));
     }
     .borrow-bar::before { content: ""; order: -1; flex-basis: 100%; }
+    /* Why: a spin changes the place, and a long one ("South Africa, Namibia, …") would push the page up and down; on a phone the heading and the button hold still and the tiles show the spin. */
+    .borrow-to,
+    .borrow-start-place { display: none; }
+    .borrow-start-still { display: inline; }
     .borrow-every { order: -2; }
     .borrow-panel {
       position: static;

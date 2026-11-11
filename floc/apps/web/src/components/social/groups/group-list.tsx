@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { GROUP_CAP, peopleCount } from "@floc/core/people/group-ticks";
+import { peopleCount } from "@floc/core/people/group-ticks";
 
 import { deleteGroupAction } from "@/app/friends/actions";
 import { ConfirmSubmit, Menu } from "@/components/system/client-ui";
-import { AvatarRow, Button, EmptyState, ErrorText, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
+import { AvatarRow, EmptyState, ErrorText, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
 import type { Group } from "@/server/social/groups";
 
 import { useGroupData } from "./group-data";
@@ -13,17 +13,10 @@ import type { GroupSheetMode } from "./group-sheet";
 
 export function GroupList({ onOpen }: { onOpen: (mode: GroupSheetMode) => void }) {
   const { groups } = useGroupData();
-  const full = groups.length >= GROUP_CAP;
   return (
     <div className="mt-3">
-      <div className="flex flex-wrap items-center justify-end gap-2">
-        {full ? <p className="text-xs text-ink-soft">You can keep {GROUP_CAP} groups at most.</p> : null}
-        <Button variant="primary" disabled={full} onClick={() => onOpen({ kind: "new", ticked: [] })}>
-          New group
-        </Button>
-      </div>
       {groups.length === 0 ? <EmptyState title="No groups yet" /> : (
-        <ul className="mt-3 border-t border-rule">
+        <ul className="border-t border-rule">
           {groups.map((group) => (
             <GroupRow key={group.id} group={group} onEdit={() => onOpen({ kind: "edit", group })} />
           ))}

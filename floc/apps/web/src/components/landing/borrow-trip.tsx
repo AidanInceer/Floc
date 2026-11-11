@@ -56,14 +56,19 @@ export function BorrowTrip({ cards, signedIn, explore }: { cards: Card[]; signed
   return (
     <div className="borrow text-center">
       <h2 className="band-title">
-        Borrow a trip to{" "}
-        <span aria-live="polite" className={cx("borrow-word transition-colors duration-500", litTone)}>
-          <span key={card.id} className="borrow-roll">
-            <span aria-hidden="true">{placeWords(card.place)}</span>
-            <span className="sr-only">{card.place}</span>
+        Borrow a trip
+        <span className="borrow-to">
+          {" "}to{" "}
+          <span className={cx("borrow-word transition-colors duration-500", litTone)}>
+            <span key={card.id} className="borrow-roll">
+              <span aria-hidden="true">{placeWords(card.place)}</span>
+              <span className="sr-only">{card.place}</span>
+            </span>
           </span>
         </span>
       </h2>
+      {/* Why: the place in the heading is hidden on a phone, so the spin is announced from here at every width. */}
+      <span aria-live="polite" className="sr-only">{card.place}</span>
       <p className="mx-auto mt-3.5 max-w-[40ch] text-md text-ink-soft">A finished route to start from. Change anything.</p>
       <div ref={stage} className="borrow-stage" data-deep={way ? "" : undefined} data-on={way?.on ? "" : undefined}>
         <div className="borrow-scene">

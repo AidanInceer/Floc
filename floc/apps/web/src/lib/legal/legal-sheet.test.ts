@@ -4,7 +4,7 @@ import { legalLinkFor, riseFrom } from "./legal-sheet";
 
 describe("legalLinkFor", () => {
   it("finds the legal page a path shows", () => {
-    expect(legalLinkFor("/cookies")).toEqual({ href: "/cookies", label: "Cookies" });
+    expect(legalLinkFor("/terms")).toEqual({ href: "/terms", label: "Terms of use", short: "Terms" });
   });
 
   it("has nothing for a path that is not a legal page", () => {

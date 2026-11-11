@@ -8,7 +8,7 @@ import { leadingBlanks } from "@/lib/landing/month-grid";
 import { Glyph } from "@/components/system/icons/landing";
 import { sampleGroup, sampleStops } from "../sample-trip";
 import { useScene } from "../use-scene";
-import { BEATS, DATED, kicker, ROUTED, SETTLED } from "./beats";
+import { BEATS, DATED, type DeckCard, kicker, playingCard, ROUTED, SETTLED } from "./beats";
 import { Flight } from "./flight";
 import { MoneyCard } from "./money-card";
 import { PackingCard } from "./packing-card";
@@ -27,7 +27,7 @@ function DatesCard({ step }: { step: number }) {
         <span className={kicker}>September</span>
         <Swap
           on={agreed}
-          className="text-xs font-semibold"
+          className="deck-note text-xs font-semibold"
           from="4 of 6 free"
           to={<span className="inline-flex items-center gap-1"><Glyph name="check" className="size-3" />All 6 free</span>}
         />
@@ -58,15 +58,15 @@ function DatesCard({ step }: { step: number }) {
 function TicketCard({ step }: { step: number }) {
   return (
     <div className="deck-card bg-sheet text-ink">
-      <div className="px-[26px] pb-[18px] pt-6">
+      <div className="deck-ticket-top px-[26px] pb-[18px] pt-6">
         <div className="flex items-start justify-between gap-3">
-          <p className="font-display text-[52px] font-semibold leading-[0.95] tracking-[-0.035em]">Sicily</p>
+          <p className="deck-name font-display text-[52px] font-semibold leading-[0.95] tracking-[-0.035em]">Sicily</p>
           <span className={cx("deck-stamp inline-flex items-center gap-1.5 rounded-full bg-pen px-3 py-1 font-display text-xs font-semibold text-sheet", step >= ROUTED && "is-on")}>
             <Glyph name="check" className="size-[11px]" />
             Agreed
           </span>
         </div>
-        <p className="mt-2 font-mono text-xs text-ink-soft">
+        <p className="deck-when mt-2 font-mono text-xs text-ink-soft">
           <Swap on={step >= ROUTED} from="Dates open · 6 asked" to="Sun 12 – Sun 19 Sep · 7 nights" />
         </p>
         <ol className={cx("deck-route relative mt-6 grid grid-cols-4", step >= ROUTED && "is-drawn")}>
@@ -82,9 +82,9 @@ function TicketCard({ step }: { step: number }) {
         </ol>
       </div>
       <div className="deck-perf" />
-      <div className="flex items-center justify-between gap-3 px-[26px] pb-5 pt-4 text-sm text-ink-soft">
+      <div className="deck-foot flex items-center justify-between gap-3 px-[26px] pb-5 pt-4 text-sm text-ink-soft">
         <span className="flex items-center gap-2.5 whitespace-nowrap">
-          <AvatarRow people={sampleGroup} max={6} size={26} />
+          <span className="deck-faces"><AvatarRow people={sampleGroup} max={6} size={26} /></span>
           6 going
         </span>
         <Swap on={step >= SETTLED} className="nums" from="Priya is owed £760.00" to={<span className="text-green">Square</span>} />
@@ -93,17 +93,19 @@ function TicketCard({ step }: { step: number }) {
   );
 }
 
-/** The hero's scene: one Sicily trip, fanned out as the cards a group hands round, each card playing after the one before while a plane crosses above. */
+/** The hero's scene: one Sicily trip, fanned out as the cards a group hands round, each card playing after the one before while a plane crosses behind them. */
 export function HeroDeck() {
   const { ref, step } = useScene<HTMLDivElement>(BEATS);
+  const now = playingCard(step);
+  const slot = (card: DeckCard) => cx("deck-slot", `deck-${card}`, now === card && "is-playing");
   return (
     <div ref={ref} className="hero-deck" role="img" aria-label="A sample trip to Sicily coming together: the vote, the dates, the route, the money and the packing">
       <Flight flying={step >= 1} />
-      <div className="deck-slot deck-votes"><VotesCard step={step} /></div>
-      <div className="deck-slot deck-dates"><DatesCard step={step} /></div>
-      <div className="deck-slot deck-ticket"><TicketCard step={step} /></div>
-      <div className="deck-slot deck-money"><MoneyCard step={step} /></div>
-      <div className="deck-slot deck-pack"><PackingCard step={step} /></div>
+      <div className={slot("votes")}><VotesCard step={step} /></div>
+      <div className={slot("dates")}><DatesCard step={step} /></div>
+      <div className={slot("ticket")}><TicketCard step={step} /></div>
+      <div className={slot("money")}><MoneyCard step={step} /></div>
+      <div className={slot("pack")}><PackingCard step={step} /></div>
     </div>
   );
 }

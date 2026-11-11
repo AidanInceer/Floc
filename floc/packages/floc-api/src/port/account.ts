@@ -51,6 +51,7 @@ export type MySettings = {
   visibilityVibeTags: Visibility;
   visibilityTravelMap: Visibility;
   visibilityFriends: Visibility;
+  visibilitySaved: Visibility;
   pastTripsShow: PastTripsShow;
   vibeTags: string[];
   /** The default a new trip starts from, never a trip's own choice (ticket 220). */
@@ -129,6 +130,8 @@ export type PublicProfileView = {
   been: number | null;
   wantToGo: number | null;
   map: { code: string; state: "green" | "yellow" }[] | null;
+  /** Listing ids they saved; null while their Saved ring shuts you out (#544). */
+  saved: string[] | null;
   pastTrips: {
     id: number;
     name: string;
@@ -187,9 +190,10 @@ export type AccountPort = {
     viewerId: string,
     input: {
       isPrivate: boolean;
-          visibilityVibeTags: Visibility;
+      visibilityVibeTags: Visibility;
       visibilityTravelMap: Visibility;
       visibilityFriends: Visibility;
+      visibilitySaved: Visibility;
       pastTripsShow: PastTripsShow;
     },
   ): Promise<void>;
