@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { isPubSubPush, readPlaySubscription } from "@/server/billing/store/play";
+import { capturedLogAsync } from "@/test/captured-log";
 
 const google = vi.hoisted(() => ({
   request: vi.fn(),
@@ -72,6 +73,13 @@ describe("reading a Play subscription", () => {
   it("is unavailable when Google is down", async () => {
     google.request.mockRejectedValue({ response: { status: 503 } });
     expect(await readPlaySubscription("token")).toBe("unavailable");
+  });
+
+  it("logs no status when Google gave no answer at all", async () => {
+    google.request.mockRejectedValue(new Error("socket hang up"));
+    const { result, lines } = await capturedLogAsync(() => readPlaySubscription("token"));
+    expect(result).toBe("unavailable");
+    expect(lines).toEqual([expect.objectContaining({ message: "billing.play-read-failed", status: null })]);
   });
 });
 

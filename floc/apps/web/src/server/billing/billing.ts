@@ -21,6 +21,8 @@ import type { Currency } from "@floc/core/money/currency";
 import { BILLING_INTERVALS, type BillingInterval } from "@floc/core/billing/plans";
 import { isLive } from "@floc/core/billing/subscription-copy";
 
+import { log } from "@/server/observability/log";
+
 import { endsWithoutRenewing } from "./cancellation";
 
 export { BILLING_INTERVALS, type BillingInterval };
@@ -158,7 +160,7 @@ export const proPrices = cache(async function proPrices(): Promise<ProPrice[]> {
               currency: price.currency.toUpperCase() as Currency,
             };
       } catch {
-        console.warn("[billing] could not read a price — selling without one");
+        log.warn("billing.price-unreadable");
         return null;
       }
     }),
