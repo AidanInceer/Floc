@@ -23,7 +23,8 @@ const config: NextConfig = {
   // a workspace package with no build step is one less thing to be stale in dev.
   transpilePackages: ["@floc/core", "@floc/editor", "@floc/globe"],
   // Better Auth + the libSQL driver both want the Node runtime, not Edge.
-  serverExternalPackages: ["@libsql/client", "better-auth"],
+  // Why (#613): the custom server loads yjs for live notes; bundling a second copy into Next logs "Yjs was already imported" and breaks constructor checks.
+  serverExternalPackages: ["@libsql/client", "better-auth", "yjs"],
   experimental: {
     // Why: a trip or tab opened in the last 30 s reopens from the client cache. Own edits still refresh at once
     // (a Server Action's revalidatePath clears it), and another member's edit clears it through the trip signal

@@ -20,6 +20,7 @@ import { webPort } from "@/server/api-port/api-port";
 import { auth } from "@/server/auth/auth";
 import { memberSession } from "@/server/auth/member-session";
 import { boundedRequest } from "@/server/http/request-body";
+import { reportTrpcError } from "@/server/observability/request-error";
 import { withRequestScope } from "@/server/request-scope";
 
 /** libSQL over HTTP, and a session read per request — nothing here is static. */
@@ -51,12 +52,7 @@ async function handler(req: Request) {
       req: bounded,
       router: appRouter,
       createContext: () => createContext(req),
-      onError({ error, path }) {
-        if (error.code === "INTERNAL_SERVER_ERROR") {
-          // Database errors can include query parameters containing PII.
-          console.error(`tRPC ${path ?? "<no path>"}: ${error.code}`);
-        }
-      },
+      onError: reportTrpcError,
     }),
   );
 }

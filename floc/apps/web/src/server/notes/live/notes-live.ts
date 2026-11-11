@@ -11,6 +11,8 @@ import { pageDocumentName, pagesDocumentName, readDocumentName, tripDocumentName
 import { tripSignal } from "@floc/core/notes/live/trip-signal";
 import { parsePageBody, serialisePage } from "@floc/core/notes/pages/page-blocks";
 import { readPageYjs, seedPageYjs } from "@floc/core/notes/pages/page-yjs";
+import { log } from "../../observability/log";
+
 import { isLiveMember, isOpenPage } from "./live-access";
 import { onNotesKick } from "./live-kick";
 import { onPagesChanged } from "./live-ping";
@@ -75,7 +77,7 @@ export function createNotesLive(options: {
       const since = (arrived.get(documentName) ?? 0) + update.byteLength;
       arrived.set(documentName, since < MEASURE_EVERY_BYTES ? since : 0);
       if (since < MEASURE_EVERY_BYTES || Y.encodeStateAsUpdate(document).byteLength <= LIVE_STATE_MAX_BYTES) return;
-      console.warn(`[notes] ${documentName} grew past the live limit; its editors were closed`);
+      log.warn("notes.live-limit", { doc: documentName });
       for (const connection of document.getConnections()) connection.close();
     },
 

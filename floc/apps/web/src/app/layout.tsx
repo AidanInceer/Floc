@@ -7,6 +7,7 @@ import localFont from "next/font/local";
 import { headers } from "next/headers";
 
 import { AppChrome } from "@/components/chrome/app-chrome";
+import { ClientErrorReporter } from "@/components/chrome/client-error-reporter";
 import { SiteFooter } from "@/components/chrome/site-footer";
 import { SessionRenewal } from "@/components/chrome/session-renewal";
 import { NONCE_HEADER } from "@/lib/http/csp";
@@ -118,6 +119,7 @@ export default async function RootLayout({
         <SiteFooter />
         {modal}
         {session?.user ? <SessionRenewal /> : null}
+        <ClientErrorReporter />
       </body>
     </html>
   );

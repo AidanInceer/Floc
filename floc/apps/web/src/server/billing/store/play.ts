@@ -6,6 +6,8 @@ import "server-only";
 
 import { GoogleAuth, OAuth2Client } from "google-auth-library";
 
+import { log } from "@/server/observability/log";
+
 import { playFacts, type PlaySubscription, type StoreFacts } from "./store-facts";
 
 const PUBLISHER = "https://androidpublisher.googleapis.com/androidpublisher/v3/applications";
@@ -34,7 +36,7 @@ export async function readPlaySubscription(
   } catch (error) {
     const status = (error as { response?: { status?: number } }).response?.status;
     if (status && REFUSED.has(status)) return "refused";
-    console.warn(`[billing] play subscription read failed: ${status ?? "no response"}`);
+    log.warn("billing.play-read-failed", { status: status ?? null });
     return "unavailable";
   }
 

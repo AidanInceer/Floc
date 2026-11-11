@@ -1,5 +1,7 @@
 /** Called every 5 minutes by the Railway cron (`scripts/cron-push.mjs`): reminders, then push, then the email fallback (#346), then archived notes pages past their week (#408), then guests a week old (#442). */
 import { sendEmails } from "@/server/auth/email";
+import { describeError } from "@/server/observability/describe-error";
+import { log } from "@/server/observability/log";
 import { isCronCaller } from "@/server/notifications/cron-caller";
 import { sendDueEmails } from "@/server/notifications/email-fallback";
 import { sendExpoPushes } from "@/server/notifications/expo-push";
@@ -15,7 +17,7 @@ async function attempt(name: string, work: () => Promise<number>): Promise<numbe
   try {
     return await work();
   } catch (error) {
-    console.error(`[cron] ${name} failed: ${error instanceof Error ? error.message : String(error)}`);
+    log.error("cron.failed", { job: name, ...describeError(error) });
     return null;
   }
 }
