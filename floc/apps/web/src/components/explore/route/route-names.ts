@@ -51,6 +51,12 @@ export function nameRoute(ctx: CanvasRenderingContext2D, shape: Shape, ink: Rout
   });
   const avoid = shape.pieces.flatMap((p) => (p.mark ? [tagBox(p, p.px[p.mid]!, p.mark === "full" ? width(p.time) : TAG.h + 6)] : []));
   const line = shape.pieces.flatMap((p) => p.px.filter((_, i) => i % 3 === 0));
-  const spots = placeTags(pins, names.map((n) => ({ width: n.w, height: n.h })), view, line, avoid);
-  return names.map((n, i) => ({ ...n, dx: spots[i]!.x, dy: spots[i]!.y }));
+  const sizes = names.map((n) => ({ width: n.w, height: n.h, ...(n.sub ? { short: { width: measure(ctx, f.stop, n.text), height: 15 } } : {}) }));
+  const spots = placeTags(pins, sizes, view, line, avoid);
+  return names.flatMap((n, i) => {
+    const at = spots[i];
+    if (!at) return [];
+    const kept = at.short ? { ...n, sub: "", w: sizes[i]!.short!.width, h: 15 } : n;
+    return [{ ...kept, dx: at.x, dy: at.y }];
+  });
 }

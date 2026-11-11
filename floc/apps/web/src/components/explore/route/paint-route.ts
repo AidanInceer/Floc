@@ -1,7 +1,7 @@
 import type { TransportType } from "@floc/core/vocabulary";
 
-import type { Point } from "@/components/explore/atlas/tag-place";
-import { cut, type Shape } from "@/lib/explore/route/route-shape";
+import { crowded, type Box, type Point } from "@/components/explore/atlas/tag-place";
+import { cut, type Piece, type Shape } from "@/lib/explore/route/route-shape";
 
 import { MODE_PATHS, UNSET_PATHS } from "./mode-paths";
 import { lineFor, ROUTE_SIZE, type RouteInk } from "./route-ink";
@@ -116,16 +116,34 @@ function arrow(ctx: CanvasRenderingContext2D, pts: Point[], mid: number, ink: Ro
   ctx.restore();
 }
 
+const around = (p: Point, r: number): Box => ({ left: p.x - r, top: p.y - r, right: p.x + r, bottom: p.y + r });
+
+/** Every dot on the map at the view the shape was built at: the stops, the ends and the tips of the days out. */
+function dotBoxes(shape: Shape): Box[] {
+  const tips = shape.pieces.flatMap((p) => (p.kind === "out" ? [around(p.px[p.mid]!, TIP)] : []));
+  return [...shape.stops.map((s) => around(s.px, s.role === "mid" ? MID.r : END_R)), ...tips];
+}
+
 /** Each leg's tag: the mode, and the time when the leg is long enough to hold it. */
-function tags(ctx: CanvasRenderingContext2D, shape: Shape, f: RouteFrame, ink: RouteInk, width: (time: string) => number) {
+function tags(ctx: CanvasRenderingContext2D, shape: Shape, f: RouteFrame, ink: RouteInk, list: Name[], width: (time: string) => number) {
+  const tagWidth = (p: Piece) => (p.mark === "full" ? width(p.time) : TAG.h + 2);
+  const hidden = crowded(
+    shape.pieces.map((p) => (p.mark ? tagBox(p, p.px[p.mid]!, tagWidth(p)) : null)),
+    list.map((n) => {
+      const at = n.of === "stop" ? shape.stops[n.k]!.px : shape.pieces[n.k]!.px[shape.pieces[n.k]!.mid]!;
+      return { left: at.x + n.dx, top: at.y + n.dy, right: at.x + n.dx + n.w, bottom: at.y + n.dy + n.h };
+    }),
+    dotBoxes(shape),
+  );
   shape.pieces.forEach((p, k) => {
     const seen = f.seen((p.a + p.b) / 2);
     if (!p.mark || seen <= 0) return;
-    const w = p.mark === "full" ? width(p.time) : TAG.h + 2;
-    const at = f.pieces[k]![p.mid]!;
-    const box = tagBox(p, { x: Math.round(at.x), y: Math.round(at.y) }, w);
     ctx.globalAlpha = f.alpha * seen;
     if (p.kind === "leg") arrow(ctx, f.pieces[k]!, p.mid, ink);
+    if (hidden.has(k)) return;
+    const w = tagWidth(p);
+    const at = f.pieces[k]![p.mid]!;
+    const box = tagBox(p, { x: Math.round(at.x), y: Math.round(at.y) }, w);
     pill(ctx, box.left, box.top, w, TAG.h, ink.sheet, p.mark === "icon" ? ink.ink : ink.rule);
     modeIcon(ctx, p.mode, { x: box.left + (p.mark === "full" ? 13 : w / 2), y: box.top + TAG.h / 2 }, 12, p.mode ? ink.ink : ink.ink2);
     if (p.mark === "full") {
@@ -214,7 +232,7 @@ export function paintRoute(ctx: CanvasRenderingContext2D, shape: Shape, f: Route
   const drawn = shape.pieces.map((p, k) => cut(f.pieces[k]!, p.cum, (f.drawn - p.a) / (p.b - p.a || 1)));
   const live = drawn.map((pts, k) => (f.drawn > shape.pieces[k]!.a ? pts : []));
   lines(ctx, shape, live, ink);
-  tags(ctx, shape, f, ink, width);
+  tags(ctx, shape, f, ink, list, width);
   const at = shape.pieces.findIndex((p) => f.drawn > p.a && f.drawn < p.b);
   if (at >= 0) dot(ctx, live[at]!.at(-1)!, 3.4, ink.ink, ink.sheet, 1.5);
   tips(ctx, shape, f, ink);

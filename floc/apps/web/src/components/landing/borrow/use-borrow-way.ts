@@ -12,7 +12,6 @@ type Way = { card: number; on: boolean; step: number };
 /** The way in to one trip: which card is open, the stop the map is on, and the nodes the globe draws into. */
 export function useBorrowWay(globe: RefObject<Globe | null>, cards: Card[]) {
   const stage = useRef<HTMLDivElement>(null);
-  const pins = useRef<HTMLDivElement>(null);
   const back = useRef<HTMLButtonElement>(null);
   const opener = useRef<HTMLElement | null>(null);
   const [way, setWay] = useState<Way | null>(null);
@@ -26,7 +25,7 @@ export function useBorrowWay(globe: RefObject<Globe | null>, cards: Card[]) {
   useEffect(() => {
     // Why: the tiles are inert while a trip is open, so focus can go back to the one that opened it only after they return.
     if (card === null) return opener.current?.focus({ preventScroll: true });
-    if (stage.current && pins.current) globe.current?.open(card, cards[card]!.stops, { stage: stage.current, pins: pins.current });
+    if (stage.current) globe.current?.open(card, cards[card]!, { stage: stage.current });
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && leave();
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -35,7 +34,6 @@ export function useBorrowWay(globe: RefObject<Globe | null>, cards: Card[]) {
   return {
     way,
     stage,
-    pins,
     back,
     leave,
     enter(index: number, from: HTMLElement) {

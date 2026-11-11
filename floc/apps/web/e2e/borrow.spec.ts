@@ -12,11 +12,12 @@ test("the borrow globe opens a trip's route stop by stop, and a spin brings up o
   expect(opening[0]).toBe("Tokyo to Osaka");
 
   await band.getByRole("button", { name: "See the route: Tokyo to Osaka" }).click();
-  const rail = band.locator(".borrow-rail");
+  const rail = band.locator(".bp");
   await expect(rail).toContainText("Stop 1 of 5");
+  await expect(rail.locator(".bp-tag")).toHaveText("Japan");
   await rail.getByRole("button", { name: "Next stop" }).click();
   await expect(rail).toContainText("Stop 2 of 5");
-  await expect(band.getByRole("button", { name: "Go to Hakone" })).toHaveAttribute("aria-current", "true");
+  await expect(rail.getByRole("button", { name: /^Hakone/ })).toHaveAttribute("aria-current", "step");
   await expect(rail.getByRole("link", { name: "See the full trip" })).toHaveAttribute("href", "/explore/japan-golden-route");
 
   await band.getByRole("button", { name: "Back to the globe" }).click();

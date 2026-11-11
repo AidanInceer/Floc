@@ -6,13 +6,13 @@ import { listingStartHref } from "@/lib/landing/start-trip";
 
 import { Glyph } from "@/components/system/icons/landing";
 
-type Props = { card: Card; signedIn: boolean; variant: "ghost" | "primary"; className?: string };
+type Props = { card: Card; signedIn: boolean; variant: "ghost" | "primary"; className?: string; label?: string };
 
 /** "Start from Japan": the listing on Explore with its copy sheet open, through sign-up for a visitor. */
-export function StartButton({ card, signedIn, variant, className }: Props) {
+export function StartButton({ card, signedIn, variant, className, label = `Start from ${card.place}` }: Props) {
   return (
     <ButtonLink href={listingStartHref(signedIn, card.id)} variant={variant} className={cx("borrow-start", className)}>
-      Start from {card.place} <Glyph name="arrow" />
+      {label} <Glyph name="arrow" />
     </ButtonLink>
   );
 }
