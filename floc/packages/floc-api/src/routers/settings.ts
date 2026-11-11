@@ -66,6 +66,7 @@ export const settingsRouter = router({
         visibilityVibeTags: visibility,
         visibilityTravelMap: visibility,
         visibilityFriends: visibility,
+        visibilitySaved: visibility,
         pastTripsShow: z.enum(["all", "latest"]),
       }),
     )

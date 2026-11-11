@@ -91,7 +91,12 @@ export default async function SettingsPage({
               title="Privacy"
               summary={privacySummary({
                 isPrivate: profile.isPrivate,
-                rings: [profile.visibilityVibeTags, profile.visibilityTravelMap, profile.visibilityFriends],
+                rings: [
+                  profile.visibilityVibeTags,
+                  profile.visibilityTravelMap,
+                  profile.visibilityFriends,
+                  profile.visibilitySaved,
+                ],
               })}
             >
               <AutoSaveForm action={updatePrivacy} className="flex flex-col gap-5">
@@ -101,6 +106,7 @@ export default async function SettingsPage({
                     visibilityVibeTags: profile.visibilityVibeTags,
                     visibilityTravelMap: profile.visibilityTravelMap,
                     visibilityFriends: profile.visibilityFriends,
+                    visibilitySaved: profile.visibilitySaved,
                   }}
                   pastTripsLatest={profile.pastTripsShow === "latest"}
                 />

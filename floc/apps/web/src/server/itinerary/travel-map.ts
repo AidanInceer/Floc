@@ -170,6 +170,49 @@ export async function travelMapFor(userId: string): Promise<TravelMap> {
   return mergeMarks(derived, manual);
 }
 
+/**
+ * Several people's maps in three reads, not three per person (#544). Why: the Saved tab asks for
+ * every friend's map at once, and `travelMapFor` in a loop is the N+1 ticket 114 removed.
+ */
+export async function travelMapsFor(userIds: string[]): Promise<Map<string, TravelMap>> {
+  const maps = new Map<string, TravelMap>();
+  if (userIds.length === 0) return maps;
+
+  const [memberships, marks] = await Promise.all([
+    db
+      .select({ userId: tripMembership.userId, id: trip.id, endDate: trip.endDate })
+      .from(tripMembership)
+      .innerJoin(trip, eq(trip.id, tripMembership.tripId))
+      .where(and(inArray(tripMembership.userId, userIds), isNull(tripMembership.deletedAt), isNull(trip.deletedAt)))
+      .limit(LIMITS.tripsPerUser * userIds.length)
+      .all(),
+    db
+      .select({ userId: userCountryMark.userId, countryCode: userCountryMark.countryCode, state: userCountryMark.state })
+      .from(userCountryMark)
+      .where(inArray(userCountryMark.userId, userIds))
+      .all(),
+  ]);
+
+  const trips = new Map(memberships.map((m) => [m.id, { id: m.id, endDate: m.endDate }]));
+  const byTrip = await countriesByTrip([...trips.values()]);
+
+  for (const userId of userIds) {
+    const derived: Record<string, MapState> = {};
+    for (const m of memberships.filter((row) => row.userId === userId)) {
+      for (const [code, state] of Object.entries(byTrip.get(m.id) ?? {})) {
+        derived[code] = strongest(derived[code], state);
+      }
+    }
+    const manual: Record<string, CountryMarkState> = {};
+    for (const mark of marks.filter((row) => row.userId === userId)) {
+      const code = readCountryCode(mark.countryCode);
+      if (code) manual[code] = mark.state;
+    }
+    maps.set(userId, mergeMarks(derived, manual));
+  }
+  return maps;
+}
+
 // `user_country_mark` writes (ticket 108) — kept here rather than
 // `profile/actions.ts` since a hand mark permanently overrides a derived one,
 // and paint/reject/take-back only make sense beside the derivation.

@@ -16,6 +16,7 @@ export type Rings = {
   visibilityVibeTags: Ring;
   visibilityTravelMap: Ring;
   visibilityFriends: Ring;
+  visibilitySaved: Ring;
   pastTripsShow: "latest" | "all";
 };
 
@@ -25,6 +26,8 @@ export type Profile = {
   rings: Rings;
   /** ISO alpha-2. Green = been, yellow = want to go. Trips add their own greens on read. */
   map?: { green?: string[]; yellow?: string[] };
+  /** Explore listing ids on their Saved list (#544). */
+  saves?: string[];
 };
 
 /** Everything shown to anyone you share a trip with. */
@@ -34,6 +37,7 @@ export const OPEN: Rings = {
   visibilityVibeTags: "trip_members",
   visibilityTravelMap: "trip_members",
   visibilityFriends: "trip_members",
+  visibilitySaved: "trip_members",
   pastTripsShow: "all",
 };
 
@@ -44,6 +48,7 @@ export const FRIENDS_ONLY: Rings = {
   visibilityVibeTags: "friends",
   visibilityTravelMap: "friends",
   visibilityFriends: "friends",
+  visibilitySaved: "friends",
   pastTripsShow: "all",
 };
 
@@ -57,5 +62,6 @@ export const MIXED: Rings = {
   visibilityVibeTags: "trip_members",
   visibilityTravelMap: "friends",
   visibilityFriends: "private",
+  visibilitySaved: "friends",
   pastTripsShow: "latest",
 };

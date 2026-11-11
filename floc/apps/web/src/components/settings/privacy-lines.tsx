@@ -14,6 +14,7 @@ const PARTS = [
   { name: "visibilityVibeTags", label: "Vibe tags" },
   { name: "visibilityTravelMap", label: "Travel map" },
   { name: "visibilityFriends", label: "Friends list" },
+  { name: "visibilitySaved", label: "Saved" },
 ] as const;
 
 type PartName = (typeof PARTS)[number]["name"];
