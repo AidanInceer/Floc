@@ -9,7 +9,8 @@ import type { Metadata } from "next";
 import { getSession } from "@/server/access";
 import { proPrices } from "@/server/billing/billing";
 import type { ProPrice } from "@/server/billing/billing";
-import { allFeaturesFree, appUrl } from "@/lib/env";
+import { allFeaturesFree } from "@/lib/env";
+import { publicMetadata } from "@/lib/seo/public-pages";
 import { formatMoney } from "@floc/core/money/money";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { ButtonLink, cx } from "@/components/system/ui";
@@ -29,14 +30,17 @@ import { listingRates, viewerCurrency } from "@/server/money/viewer-currency";
 import { landingFaq } from "@/lib/landing/faq";
 import "@/components/landing/landing.css";
 
+const LANDING = publicMetadata({
+  path: "/",
+  title: "Floc — Trip planning, sorted.",
+  description: "Floc keeps a group trip in one place: the notes, the route, the days, and who owes who.",
+});
+
 export const metadata: Metadata = {
-  metadataBase: new URL(appUrl()),
+  ...LANDING,
+  title: { absolute: "Floc — Trip planning, sorted." },
   openGraph: {
-    type: "website",
-    siteName: "Floc",
-    title: "Floc — Trip planning, sorted.",
-    description:
-      "Floc keeps a group trip in one place: the notes, the route, the days, and who owes who.",
+    ...LANDING.openGraph,
     images: [{
       url: "/floc-hero.png",
       width: 1246,
@@ -44,7 +48,6 @@ export const metadata: Metadata = {
       alt: "Trip planning, sorted. Floc's Sicily example trip, with destination votes, dates, shared costs and packing.",
     }],
   },
-  twitter: { card: "summary_large_image" },
 };
 
 // The Explore listings the Borrow band opens on, in this order; every other listing waits behind them.

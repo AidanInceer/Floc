@@ -7,6 +7,8 @@ import "server-only";
 import { and, eq, isNull, or } from "drizzle-orm";
 
 import { db } from "@/db";
+import { describeError } from "@/server/observability/describe-error";
+import { log } from "@/server/observability/log";
 import { capRequiredText } from "@floc/core/text/text";
 import { day, dayEvent, place } from "@/db/schema";
 import { readCountryCode } from "@floc/core/people/countries";
@@ -143,12 +145,12 @@ async function geocode(query: string): Promise<PlaceSearchResult[] | null> {
       }),
     );
     if (!res.ok) {
-      console.warn(`[geocoding] nominatim search failed: ${res.status}`);
+      log.warn("geocoding.failed", { status: res.status });
       return null;
     }
     hits = (await res.json()) as NominatimHit[];
   } catch (err) {
-    console.warn(`[geocoding] nominatim unreachable — falling back to free text: ${String(err)}`);
+    log.warn("geocoding.unreachable", describeError(err));
     return null;
   }
 

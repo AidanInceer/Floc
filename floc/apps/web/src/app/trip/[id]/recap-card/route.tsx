@@ -6,6 +6,7 @@ import { resolveColours } from "@floc/core/design/tokens";
 import { readTripColor, tripPastel, type TripColor } from "@floc/core/trip/trip-color";
 import { requireTripAccess } from "@/server/access";
 import { recapPictureFor } from "@/server/trips/recap-card";
+import { OgWordmark } from "@/components/system/og-card";
 
 export const runtime = "nodejs";
 
@@ -18,7 +19,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const picture = await recapPictureFor(trip);
   if (!picture) notFound();
   const { card, land, pins, map: MAP } = picture;
-  const c = resolveColours(new URL(request.url).searchParams.get("theme") === "dark" ? "dark" : "light");
+  const theme = new URL(request.url).searchParams.get("theme") === "dark" ? "dark" : "light";
+  const c = resolveColours(theme);
   const home = c[WASH[tripPastel(readTripColor(trip.colorKey), trip.id)]];
   const line = pins.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
   const list = card.stops.slice(0, 8);
@@ -27,9 +29,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     (
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", background: c.paper, padding: "64px 72px 56px", color: c.ink }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 30, color: c["ink-2"] }}>
-          <div style={{ display: "flex", fontSize: 38, fontWeight: 700, color: c.ink }}>
-            floc<span style={{ color: c.pen }}>.</span>
-          </div>
+          <OgWordmark theme={theme} />
           <div style={{ display: "flex" }}>{card.month}</div>
         </div>
         <div style={{ display: "flex", marginTop: 28, fontSize: 92, fontWeight: 700, lineHeight: 1.02, letterSpacing: -2 }}>{card.name}</div>

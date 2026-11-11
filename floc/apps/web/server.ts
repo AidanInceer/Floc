@@ -8,6 +8,8 @@ import { createNotesLive } from "./src/server/notes/live/notes-live.ts";
 import { attachNotesLive } from "./src/server/notes/live/live-socket.ts";
 import { sessionResolver } from "./src/server/notes/live/live-session.ts";
 import { limitWrites } from "./src/server/http/write-gate.ts";
+import { withRequestId } from "./src/server/http/request-id.ts";
+import { log } from "./src/server/observability/log.ts";
 
 const dev = process.argv.includes("--dev");
 // Why before importing next: it reads NODE_ENV at load, and `next start` used to set it.
@@ -22,7 +24,7 @@ const app = next({ dev, port });
 await app.prepare();
 
 const handle = app.getRequestHandler();
-const server = createServer(limitWrites(handle));
+const server = createServer(withRequestId(limitWrites(handle)));
 const live = createNotesLive({ resolveUser: sessionResolver(`http://127.0.0.1:${port}`) });
 attachNotesLive(server, live, app.getUpgradeHandler());
 
@@ -37,5 +39,5 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
 }
 
 server.listen(port, () => {
-  console.log(`floc-web ready on http://localhost:${port}`);
+  log.info("floc-web ready", { port });
 });

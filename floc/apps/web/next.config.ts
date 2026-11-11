@@ -23,11 +23,13 @@ const config: NextConfig = {
   // a workspace package with no build step is one less thing to be stale in dev.
   transpilePackages: ["@floc/core", "@floc/editor", "@floc/globe"],
   // Better Auth + the libSQL driver both want the Node runtime, not Edge.
-  serverExternalPackages: ["@libsql/client", "better-auth"],
+  // Why (#613): the custom server loads yjs for live notes; bundling a second copy into Next logs "Yjs was already imported" and breaks constructor checks.
+  serverExternalPackages: ["@libsql/client", "better-auth", "yjs"],
   experimental: {
     // Why: a trip or tab opened in the last 30 s reopens from the client cache. Own edits still refresh at once
-    // (a Server Action's revalidatePath clears it); another member's edit can show up to 30 s late. A tab loaded
-    // in full on hover counts as static, so `static` holds it the same 30 s rather than the default 5 minutes.
+    // (a Server Action's revalidatePath clears it), and another member's edit clears it through the trip signal
+    // (#577), so it stays for fast tab switches. A tab loaded in full on hover counts as static, so `static` holds
+    // it the same 30 s rather than the default 5 minutes.
     staleTimes: { dynamic: 30, static: 30 },
     // Next caps Server Action bodies at 1 MB, so a 2 MB upload threw before
     // `rejectUpload` saw it (ticket 239). Headroom over the 8 MB cap keeps

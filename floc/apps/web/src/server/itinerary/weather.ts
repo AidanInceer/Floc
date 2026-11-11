@@ -14,6 +14,8 @@ import { and, asc, eq, isNotNull, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { day, place } from "@/db/schema";
+import { describeError } from "@/server/observability/describe-error";
+import { log } from "@/server/observability/log";
 import { addDays, today, type IsoDate } from "@floc/core/dates/dates";
 import {
   HORIZON_DAYS,
@@ -123,12 +125,12 @@ export async function getTripForecast(tripId: number): Promise<TripForecast | nu
       signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) {
-      console.warn(`[weather] open-meteo failed: ${res.status}`);
+      log.warn("weather.failed", { status: res.status });
       return null;
     }
     body = (await res.json()) as OpenMeteoResponse;
   } catch (err) {
-    console.warn(`[weather] open-meteo unreachable — no forecast: ${String(err)}`);
+    log.warn("weather.unreachable", describeError(err));
     return null;
   }
 

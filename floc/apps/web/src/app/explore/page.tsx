@@ -14,8 +14,13 @@ import { getSession } from "@/server/access";
 import { savedTripIds } from "@/server/explore/explore-saves";
 import { loadFinder } from "@/server/explore/explore-finder";
 import { listingRates, viewerCurrency } from "@/server/money/viewer-currency";
+import { publicMetadata } from "@/lib/seo/public-pages";
 
-export const metadata = { title: "Explore" };
+export const metadata = publicMetadata({
+  path: "/explore",
+  title: "Explore",
+  description: "Ready-made group trips to borrow: the route, the days and the costs, ready to make your own.",
+});
 
 type Props = { searchParams: Promise<{ country?: string | string[] }> };
 

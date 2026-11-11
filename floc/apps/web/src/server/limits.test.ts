@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { isRefusal } from "@floc/core/errors/refusal";
 
 import { assertRoom, bounded, LIMITS, reportCeiling } from "@/server/limits";
+import { capturedLog } from "@/test/captured-log";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -18,29 +19,23 @@ describe("bounded", () => {
   });
 
   it("stays quiet below the ceiling", () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    bounded(new Array(LIMITS.days - 1).fill(0), "days", "trip 1");
-    expect(warn).not.toHaveBeenCalled();
+    expect(capturedLog(() => bounded(new Array(LIMITS.days - 1).fill(0), "days", "trip 1"))).toEqual([]);
   });
 
   it("reports once the read comes back at the ceiling", () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const rows = new Array(LIMITS.days).fill(0);
+    let kept: number[] = [];
     // Truncated, not thrown — rule 11 is degrade, don't crash.
-    expect(bounded(rows, "days", "trip 1")).toHaveLength(LIMITS.days);
-    expect(warn).toHaveBeenCalledTimes(1);
-    expect(String(warn.mock.calls[0][0])).toContain("days");
+    const lines = capturedLog(() => (kept = bounded(rows, "days", "trip 1")));
+    expect(kept).toHaveLength(LIMITS.days);
+    expect(lines).toEqual([expect.objectContaining({ level: "warn", limit: "days" })]);
   });
 });
 
 describe("reportCeiling", () => {
   it("names the limit and the scope, and nothing else", () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    reportCeiling("members", "trip 42");
-    const message = String(warn.mock.calls[0][0]);
-    expect(message).toContain("members");
-    expect(message).toContain("trip 42");
-    expect(message).toContain(String(LIMITS.members));
+    const [line] = capturedLog(() => reportCeiling("members", "trip 42"));
+    expect(line).toMatchObject({ message: "limit.ceiling", limit: "members", max: LIMITS.members, scope: "trip 42" });
   });
 });
 

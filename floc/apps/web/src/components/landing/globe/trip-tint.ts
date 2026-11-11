@@ -13,7 +13,10 @@ export function tripTint(land: readonly Piece[], { place, region, route }: Listi
   return { rings: ringsIn(land, [], tripCodes(place, route.stops, land)), tone: regionToneName(region) };
 }
 
-/** Why: the outline loads as the band nears the screen, so a trip opened first fills its countries once the outline arrives. */
+/**
+ * Why: the outline loads as the band nears the screen, so a trip opened first fills its countries once the outline arrives.
+ * An open trip fills at full strength from the way in on: the layer fades its tint in again on every move, which flashed a grey country on a blue sea.
+ */
 export function liveTint(drawn: Tint | undefined, open: TripTint | null): Tint | undefined {
-  return drawn && open ? { ...open, alpha: drawn.alpha } : drawn;
+  return open ? { ...open, alpha: 1 } : drawn;
 }

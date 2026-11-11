@@ -24,8 +24,12 @@ describe("tripTint", () => {
 describe("liveTint", () => {
   const late = { rings: new Set([[[0, 0]]]), tone: "yellow" };
 
-  it("fills the open trip with the outline that arrived after it opened, at the layer's fade", () => {
-    expect(liveTint({ rings: new Set(), tone: "yellow", alpha: 0.4 }, late)).toEqual({ ...late, alpha: 0.4 });
+  it("fills the open trip at full strength while the layer fades in, so a stop change never flashes", () => {
+    expect(liveTint({ rings: new Set(), tone: "yellow", alpha: 0.4 }, late)).toEqual({ ...late, alpha: 1 });
+  });
+
+  it("fills the open trip during the way in, before the layer draws a tint", () => {
+    expect(liveTint(undefined, late)).toEqual({ ...late, alpha: 1 });
   });
 
   it("leaves the fade out of a closed trip as the layer draws it", () => {
@@ -33,7 +37,7 @@ describe("liveTint", () => {
     expect(liveTint(fading, null)).toBe(fading);
   });
 
-  it("draws no tint when the layer draws none", () => {
-    expect(liveTint(undefined, late)).toBeUndefined();
+  it("draws no tint with no trip open", () => {
+    expect(liveTint(undefined, null)).toBeUndefined();
   });
 });
