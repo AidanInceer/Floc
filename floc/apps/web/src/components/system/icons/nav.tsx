@@ -3,8 +3,8 @@ import { FLIGHT_PATH } from "./travel-mode";
 const PATHS = {
   explore: (
     <>
-      <circle cx="7" cy="7" r="5" />
-      <path d="M9.2 4.8 8 8 4.8 9.2 6 6z" />
+      <circle cx="7" cy="7" r="5.25" />
+      <path d="M1.75 7h10.5M7 1.75c1.6 1.5 2.4 3.25 2.4 5.25S8.6 10.75 7 12.25M7 1.75C5.4 3.25 4.6 5 4.6 7s.8 3.75 2.4 5.25" />
     </>
   ),
   trips: <path d={FLIGHT_PATH} />,

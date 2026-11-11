@@ -13,11 +13,11 @@ import "./feature-tour.css";
 
 export type TourPanel = TourSlide & { shot: ReactNode };
 
-const REST: Record<SlideTone, string> = {
-  yellow: "bg-pastel-yellow text-pastel-yellow-ink",
-  blue: "bg-pastel-blue text-pastel-blue-ink",
-  red: "bg-pastel-red text-pastel-red-ink",
-  green: "bg-pastel-green text-pastel-green-ink",
+const INK: Record<SlideTone, string> = {
+  yellow: "text-pastel-yellow-ink",
+  blue: "text-pastel-blue-ink",
+  red: "text-pastel-red-ink",
+  green: "text-pastel-green-ink",
 };
 const WASH: Record<SlideTone, string> = {
   yellow: "bg-pastel-yellow",
@@ -81,10 +81,10 @@ export function FeatureTour({ slides }: { slides: TourPanel[] }) {
         aria-roledescription="carousel"
         aria-label="Features"
         {...tour.stageProps}
-        className={cx("tour-stage", REST[slides[rested].tone])}
+        className={cx("tour-stage", WASH[slides[rested].tone])}
       >
         <span ref={refs.wipe} aria-hidden className={cx("tour-wipe", WASH[slides[index].tone])} />
-        <div ref={refs.text} className="tour-copy" aria-live="polite">
+        <div ref={refs.text} className={cx("tour-copy", INK[slides[shown].tone])} aria-live="polite">
           {slides.map((s) => (
             <div key={s.key} aria-hidden inert className="tour-ghost">
               <Copy slide={s} fresh={false} />
