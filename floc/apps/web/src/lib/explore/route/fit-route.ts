@@ -35,11 +35,15 @@ const ROOM = { wide: { x: 74, y: 44 }, narrow: { x: 46, y: 34 } };
 
 export type RouteFraming = { view: LatLng; R: number; cx: number; cy: number; at: (s: LatLng) => { x: number; y: number } };
 
-/** How every globe frames a route in the part of the band left `clear`, so it reads the same on Explore and on a trip. `foot` px at the bottom stay empty. */
-export function frameRoute(route: TripRoute, clear: Box, foot = 0): RouteFraming {
+/**
+ * How every globe frames a route in the part of the band left `clear`, so it reads the same on Explore and on a trip.
+ * `foot` px at the bottom stay empty; `edge` px more room each side keep names in a small box.
+ */
+export function frameRoute(route: TripRoute, clear: Box, foot = 0, edge = 0): RouteFraming {
   const narrow = clear.right - clear.left < NARROW_BELOW;
   const box = { ...clear, bottom: clear.bottom - foot };
-  const { view, R } = fitRoute(route, box, narrow ? ROOM.narrow : ROOM.wide, narrow ? CLOSEST.narrow : CLOSEST.wide);
+  const room = narrow ? ROOM.narrow : ROOM.wide;
+  const { view, R } = fitRoute(route, box, { x: room.x + edge, y: room.y + edge }, narrow ? CLOSEST.narrow : CLOSEST.wide);
   const [cx, cy] = [(box.left + box.right) / 2, (box.top + box.bottom) / 2];
   const at = (s: LatLng) => {
     const q = project(view, s);

@@ -3,10 +3,15 @@ import { faced, facing, greatCircle, nearest, type LatLng } from "@floc/globe/sp
 
 import { frameLoop } from "@/components/globe/frame-loop";
 import { globeDrag } from "@/components/globe/globe-drag";
-import { drawPins } from "./globe-pins";
 import { globeTurn } from "@/components/globe/globe-turn";
 import { globePainter } from "@/components/globe/paint-globe";
-import { wayIn, type WayDom } from "./way-in";
+import type { Piece } from "@/components/explore/outline/land";
+import type { BorrowCard } from "@/lib/landing/borrow";
+
+import { drawPins } from "./globe-pins";
+import { tripTint } from "./trip-tint";
+import { tripView } from "./trip-view";
+import type { WayDom } from "./way-in";
 
 const LANDED = { route: 1, landing: 1, done: true };
 const GROUNDED = { route: 0, landing: 0, done: true };
@@ -29,19 +34,15 @@ export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, on
   if (!paint || places.length === 0) return null;
   const loop = frameLoop(step);
   const wake = loop.wake;
-  const way = wayIn(paint, onWay);
   const face = globeTurn(() => settle(800));
+  const trip = tripView(canvas, paint, face, onWay);
   const paths = places.map((p) => greatCircle(home, p));
-  let land: number[][][] = [];
-  let hand: number[] = [];
+  let [pieces, land, hand]: [readonly Piece[], number[][][], number[]] = [[], [], []];
   let [started, still] = [false, false];
-  let [at, lit, held] = [0, -1, -1];
-  let takeoff = 0;
+  let [at, lit, held, takeoff] = [0, -1, -1, 0];
 
   function light(i: number) {
-    if (i === lit) return;
-    lit = i;
-    onLight(i);
+    if (i !== lit) onLight((lit = i));
   }
 
   function glide(to: LatLng, ms: number, turns = 0, curve = easeInOut) {
@@ -50,6 +51,8 @@ export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, on
   }
 
   function show(i: number, ms = 1500, turns = 0, curve = easeInOut) {
+    // Why: the first sight of the band, a spin or a hover can land while a trip is open; the route holds the camera then.
+    if (trip.isOpen()) return;
     [at, takeoff] = [i, 0];
     if (!turns || still) light(i);
     glide(facing(places[i]!), ms, turns, curve);
@@ -64,17 +67,21 @@ export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, on
   const drag = globeDrag(canvas, {
     radius: paint.radius,
     view: face.view,
-    turnTo: face.turnTo,
+    // Why: a drag during a move would fight the camera; it takes hold once the map has arrived.
+    turnTo(view) {
+      if (!trip.running()) face.turnTo(view);
+    },
     onGrab() {
       face.halt();
       wake();
     },
     onRelease(speed) {
-      if (way.isOpen()) return;
+      if (trip.isOpen()) return;
       face.flick(speed);
       if (Math.abs(speed) < 0.04 || still) settle(700);
     },
   });
+  canvas.addEventListener("click", trip.skip);
 
   function flight(now: number, settled: boolean) {
     if (!started || !settled) return GROUNDED;
@@ -84,21 +91,22 @@ export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, on
   }
 
   function step(now: number, dt: number) {
-    way.advance(now);
-    if (!drag.held()) face.advance(now, dt);
+    const pose = trip.advance(now, still);
+    if (pose) face.turnTo(pose.centre);
+    else if (!drag.held()) face.advance(now, dt);
     const view = face.view();
-    const open = way.isOpen();
+    const open = trip.isOpen();
     const settled = open || !(face.coasting() || drag.held());
     light(!settled || face.spinning() ? nearest(view, places) : at);
-    const f = flight(now, settled);
+    const f = open ? GROUNDED : flight(now, settled);
     const pulsing = open ? -1 : held;
-    paint!.base(view, land, way.frame);
+    paint!.base(view, land, trip.fitNow, trip.tint());
     if (f.route) paint!.route(view, paths[at]!, f.route);
-    drawPins(paint!, { view, home, places, hand, at, held: pulsing, still }, now, way.deep());
+    drawPins(paint!, { view, home, places, hand, at, held: pulsing, still }, now, trip.deep());
     if (f.route) paint!.plane(view, paths[at]!, f.route, f.landing);
-    way.draw(view);
+    trip.draw(view);
     const flying = started && settled && !f.done;
-    const busy = [drag.held(), face.moving(), way.moving(), pulsing >= 0 && !still, flying];
+    const busy = [drag.held(), face.moving(), trip.moving(), pulsing >= 0 && !still, flying];
     return busy.some(Boolean);
   }
 
@@ -121,27 +129,34 @@ export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, on
       held = i;
       wake();
     },
-    open(i: number, stops: LatLng[], dom: WayDom) {
+    open(i: number, card: Pick<BorrowCard, "place" | "region" | "route">, dom: WayDom) {
       if (i !== at) [at, takeoff] = [i, 0];
       light(i);
-      way.open(stops, dom, still);
-      glide(stops[0]!, 900);
+      trip.open(card.route, () => tripTint(pieces, card), dom, still);
+      glide(card.route.stops[0]!, 900);
     },
     close() {
-      if (way.close(still)) glide(facing(places[at]!), 1100);
+      if (trip.close(still)) glide(facing(places[at]!), 1100);
     },
-    goTo: (k: number) => glide(way.goTo(k, still), 900),
+    goTo: (k: number) => (trip.goTo(k), wake()),
+    replay: () => (trip.replay(), wake()),
     start(reduced: boolean) {
       [started, still] = [true, reduced];
       show(at);
     },
-    setLand(rings: number[][][]) {
-      land = rings;
+    setLand(next: readonly Piece[]) {
+      [pieces, land] = [next, next.map((p) => p.ring)];
+      trip.retint();
       wake();
     },
-    redraw: wake,
+    redraw() {
+      const pose = trip.redraw();
+      if (pose) face.turnTo(pose.centre);
+      wake();
+    },
     stop() {
       loop.stop();
+      canvas.removeEventListener("click", trip.skip);
       drag.stop();
     },
   };
