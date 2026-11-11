@@ -25,7 +25,7 @@ export function NightCalendar({
 }) {
   const { c } = useTheme();
   const own = new Set(nights);
-  const months = [...new Set(nights.map(monthOf))];
+  const months = [...new Set(nights.map((night) => monthOf(night)))];
   const tripPlace = (date: IsoDate) => (own.has(date) ? placeOf(date) : undefined);
   const inPick = (date: IsoDate) => date >= pick.start && date <= pick.end;
 
