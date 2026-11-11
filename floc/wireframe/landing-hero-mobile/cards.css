@@ -1,0 +1,120 @@
+/* The live hero's cards and motion (components/landing/hero/hero.css), with dk- names. Sizes tuned for a phone. */
+.dk-scene {
+  --soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --bounce: cubic-bezier(0.34, 1.7, 0.5, 1);
+  --bounce-soft: cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+.ico { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.tone-blue { --t: var(--pastel-blue); --t-ink: var(--pastel-blue-ink); }
+.tone-green { --t: var(--pastel-green); --t-ink: var(--pastel-green-ink); }
+.tone-yellow { --t: var(--pastel-yellow); --t-ink: var(--pastel-yellow-ink); }
+.tone-red { --t: var(--pastel-red); --t-ink: var(--pastel-red-ink); }
+
+.dk-card { position: relative; border-radius: 18px; box-shadow: var(--shadow-lift); background: var(--t, var(--sheet)); color: var(--t-ink, var(--ink)); padding: 14px 15px 15px; text-align: left; }
+.dk-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.dk-kicker { font-family: var(--type); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; opacity: .8; }
+.dk-head-note { font-size: 12px; font-weight: 600; white-space: nowrap; }
+.dk-head-note .ico { margin-right: 3px; vertical-align: -1px; }
+
+.dk-swap { display: inline-grid; white-space: nowrap; }
+.dk-swap > * { grid-area: 1 / 1; transition: opacity .375s var(--ease), transform .5s var(--soft); }
+.dk-swap > :last-child { opacity: 0; transform: translateY(8px); }
+.dk-swap.on > :first-child { opacity: 0; transform: translateY(-8px); }
+.dk-swap.on > :last-child { opacity: 1; transform: none; }
+.dk-roll { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; animation: dk-roll .42s var(--bounce-soft) both; }
+@keyframes dk-roll { from { opacity: 0; transform: translateY(70%); } }
+
+/* Where to */
+.dk-vote-list { display: grid; gap: 7px; margin-top: 10px; font-size: 13px; }
+.dk-vote { display: grid; grid-template-columns: 4.2rem 1fr 1rem; align-items: center; gap: 8px; }
+.dk-vote.lead { font-weight: 600; }
+.dk-blocks { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; }
+.dk-blocks i { height: 10px; border-radius: 3px; background: color-mix(in srgb, currentColor 14%, transparent); }
+.dk-blocks i.on { background: currentColor; animation: dk-block .5s var(--bounce) both; }
+@keyframes dk-block { 0% { transform: scale(.2); } 60% { transform: scale(1.25, 1.5); } }
+.dk-n { text-align: right; display: inline-block; }
+.dk-voter { min-height: 20px; margin-top: 9px; font-size: 12px; }
+
+/* September */
+.dk-month { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-top: 9px; text-align: center; font-family: var(--type); font-size: 10px; }
+.dk-month b { font-weight: 500; opacity: .6; padding-bottom: 2px; }
+.dk-month span { display: grid; place-items: center; aspect-ratio: 1; border-radius: 6px; background: color-mix(in srgb, var(--pen) var(--heat), transparent); transition: opacity .5s var(--ease); }
+.dk-month.agreed span:not(.pick) { opacity: .55; }
+.dk-month.agreed .pick { font-weight: 600; animation: dk-day .69s var(--bounce) both; animation-delay: var(--delay); }
+@keyframes dk-day {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.4); background: var(--green); color: var(--sheet); border-radius: 50%; }
+  100% { transform: scale(1); background: var(--green); color: var(--sheet); }
+}
+
+/* The ticket */
+.dk-ticket { padding: 0; background: var(--sheet); color: var(--ink); }
+.dk-ticket-top { padding: 18px 18px 14px; }
+.dk-top { align-items: flex-start; }
+.dk-name { font-family: var(--display); font-size: 44px; font-weight: 600; line-height: .95; letter-spacing: -0.035em; }
+.dk-stamp { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 999px; background: var(--pen); color: var(--sheet); font-family: var(--display); font-size: 12px; font-weight: 600; opacity: 0; transform: scale(1.5) rotate(-8deg); transition: opacity .44s var(--soft), transform .625s var(--soft); }
+.dk-stamp.on { opacity: 1; transform: rotate(-4deg); }
+.dk-when i { font-style: normal; }
+.dk-when { margin-top: 8px; font-family: var(--type); font-size: 12px; color: var(--ink-2); }
+.dk-route { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 18px; padding: 0; list-style: none; }
+.dk-route::before { content: ""; position: absolute; left: 12.5%; right: 12.5%; top: 6px; border-top: 1.5px dashed var(--pen); clip-path: inset(0 100% 0 0); transition: clip-path 1.5s var(--soft); }
+.dk-route.drawn::before { clip-path: inset(0); }
+.dk-route li { position: relative; text-align: center; font-size: 12px; opacity: .3; transition: opacity .375s var(--ease); transition-delay: var(--delay); }
+.dk-route.drawn li { opacity: 1; }
+.dk-route i { display: block; width: 13px; height: 13px; margin: 0 auto 6px; border-radius: 50%; background: var(--pen); border: 2px solid var(--sheet); box-shadow: 0 0 0 1.5px var(--pen); }
+.dk-route span { display: block; font-family: var(--type); font-size: 10px; color: var(--ink-3); }
+.dk-perf { position: relative; border-top: 1.5px dashed var(--rule-2); margin: 0 14px; }
+.dk-foot { flex-wrap: wrap; row-gap: 6px; padding: 12px 18px 15px; font-size: 13px; color: var(--ink-2); }
+.dk-going { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.dk-going .avatar { border: 1.5px solid var(--sheet); }
+.dk-square { color: var(--green); }
+
+/* Each */
+.dk-each { margin-top: 6px; font-size: 28px; line-height: 1; letter-spacing: -0.02em; }
+.dk-spend { display: grid; gap: 5px; margin-top: 10px; font-size: 12px; transition: opacity .375s var(--ease), filter .375s var(--ease); }
+.dk-spend > div { display: flex; justify-content: space-between; gap: 8px; padding: 6px 10px; border-radius: 10px; background: color-mix(in srgb, var(--sheet) 60%, transparent); opacity: 0; transform: translateX(28px) rotate(2deg); }
+.dk-spend > div > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dk-spend > div.on { animation: dk-land .625s var(--bounce-soft) forwards; }
+@keyframes dk-land { to { opacity: 1; transform: none; } }
+.dk-money.settled { animation: dk-jolt .625s var(--bounce); }
+.dk-money.settled .dk-spend { opacity: .3; filter: blur(.6px); }
+@keyframes dk-jolt { 30% { transform: scale(1.04); } }
+.dk-settled { position: absolute; left: 50%; top: 64%; translate: -50% -50%; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; padding: 7px 15px 7px 7px; border-radius: 999px; background: var(--green); color: var(--sheet); font-family: var(--display); font-weight: 600; font-size: 15px; box-shadow: var(--shadow-lift); opacity: 0; transform: scale(.3) rotate(-12deg); }
+.dk-money.settled .dk-settled { animation: dk-settle .75s var(--bounce) .15s forwards; }
+@keyframes dk-settle { to { opacity: 1; transform: rotate(-4deg); } }
+.dk-tick { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 999px; background: var(--sheet); color: var(--green); }
+.dk-tick svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.dk-tick path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .5s var(--ease) .56s; }
+.dk-money.settled .dk-tick path { stroke-dashoffset: 0; }
+
+/* Packing */
+.dk-reels { display: grid; gap: 5px; margin-top: 10px; padding: 0; list-style: none; font-size: 13px; }
+.dk-reels li { display: flex; justify-content: space-between; gap: 10px; padding: 0 8px; margin: 0 -8px; border-radius: var(--radius-sm); box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 16%, transparent); }
+.dk-reels.on li { animation: dk-lock .625s var(--bounce) var(--lock) both; }
+.dk-reels.on li.you { animation-name: dk-lock-you; }
+.dk-reels li.you .right { font-weight: 600; }
+@keyframes dk-lock { 40% { transform: scale(1.06); } 100% { box-shadow: none; background: color-mix(in srgb, currentColor 9%, transparent); } }
+@keyframes dk-lock-you { 40% { transform: scale(1.06); } 100% { box-shadow: none; background: var(--red-solid); color: var(--red-solid-ink); } }
+.dk-reel { display: block; height: var(--rl, 22px); overflow: hidden; line-height: var(--rl, 22px); }
+.dk-reel.right { text-align: right; }
+.dk-strip { display: flex; flex-direction: column; }
+.dk-strip > span { height: var(--rl, 22px); white-space: nowrap; }
+.dk-reels.on .dk-strip { animation: dk-spin var(--spin) linear both; }
+@keyframes dk-spin {
+  0% { transform: translateY(0); filter: blur(0); animation-timing-function: cubic-bezier(.5, 0, .9, .5); }
+  14% { transform: translateY(-33px); filter: blur(1.6px); animation-timing-function: cubic-bezier(.12, .62, .28, 1); }
+  84% { transform: translateY(calc(-1 * var(--end) - 7.5px)); filter: blur(0); animation-timing-function: cubic-bezier(.4, 0, .3, 1); }
+  100% { transform: translateY(calc(-1 * var(--end))); filter: blur(0); }
+}
+
+/* The flight: a dashed trail uncovered behind the plane, both on one clock. */
+.dk-flight { position: absolute; inset: 0; pointer-events: none; color: var(--pen); }
+.dk-trail { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.dk-dash { fill: none; stroke: currentColor; stroke-width: 2; stroke-dasharray: 7 7; stroke-linecap: round; }
+.dk-reveal { fill: none; stroke: white; stroke-width: 8; stroke-linecap: round; }
+.dk-plane { position: absolute; translate: -50% -50%; opacity: 0; transition: opacity .3s var(--ease); }
+.dk-plane svg { display: block; width: 26px; height: 26px; fill: currentColor; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dk-scene *, .dk-scene *::before { animation-duration: 0s !important; animation-delay: 0s !important; transition-duration: 0s !important; transition-delay: 0s !important; }
+}

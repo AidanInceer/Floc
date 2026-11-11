@@ -71,7 +71,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - A field draws one focus ring: the outline sits on the border, never a blue border plus an outline outside it.
 - A date is picked on Floc's own month calendar (the Dates grid), never the browser's or the phone's native date picker.
 - A text field is the house field (`Input`, `Textarea`): mono, hover to a darker border. Inside a panel, a field that holds prose — a place name, a note — is the same field in sans (`panelFieldClass`). No third field style.
-  - One exception: the top of My trips joins a house field, its mono label inside in `ink-2`, to New trip. The pair is one control: the button turns pen once a name is typed and shows hover in colour only, never a lift (`new-trip-field.tsx`).
+  - One exception: the top of My trips joins a house field, its mono label inside in `ink-2`, to New trip. The pair is one control: the button turns pen once a name is typed and shows hover in colour only, never a lift (`new-trip-field.tsx`). Below sm, a `…` menu holding Archived closes the control on the right.
 - Text never overlaps or clips. Test long names (South Africa, Bosnia and Herzegovina), many items and empty states. A chip fits its slot unless the name is long, then it wraps cleanly.
 - The page holds still. Switching a tab, day or filter never jumps the scroll or shifts the content above.
 - A card that opens something opens from anywhere on it, not only its title.

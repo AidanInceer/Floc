@@ -530,5 +530,10 @@
   .who-8 { background: var(--who-8); color: var(--who-8-ink); }
 
   .pro-star { color: var(--pro-mark); }
+
+  /* Why: at the end of an Explore trip the floating copy bar would sit over the footer's links. */
+  @media (width < 64rem) {
+    body:has(.trip-copy-bar) { padding-bottom: 5.5rem; }
+  }
 }
 

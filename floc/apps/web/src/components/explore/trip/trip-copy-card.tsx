@@ -114,10 +114,13 @@ export function TripCopyCard({
   );
 }
 
-/** Phones only: the card sits below the days there, so the action stays in reach. */
+/**
+ * Phones only: the card sits below the days there, so the action stays in reach.
+ * Why it floats clear of the edges: a phone's curved screen corners cut into a bar that runs edge to edge.
+ */
 export function TripCopyBar({ trip, signedIn }: { trip: PresetTrip; signedIn: boolean }) {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-3 border-t border-rule-strong bg-sheet px-4 py-2.5 shadow-lifted lg:hidden">
+    <div className="trip-copy-bar fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 flex items-center justify-between gap-3 rounded-md border border-rule-strong bg-sheet py-1 pl-4 pr-1 shadow-lifted lg:hidden">
       <span className="grid min-w-0 text-sm">
         <b className="truncate font-semibold">{trip.title}</b>
         <span className="nums text-[11.5px] text-ink-soft">{trip.nights} nights</span>

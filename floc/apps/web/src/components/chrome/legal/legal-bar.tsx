@@ -11,12 +11,13 @@ export function LegalBar({ current, end, replace = false }: { current?: LegalHre
       <Link href="/" aria-label="Floc home">
         <FlocWordmark />
       </Link>
-      <nav aria-label="Legal" className="order-last flex basis-full flex-wrap items-center gap-x-5 gap-y-2 lg:order-none lg:basis-auto">
+      <nav aria-label="Legal" className="order-last flex basis-full items-center justify-between gap-x-2 sm:flex-wrap sm:justify-start sm:gap-x-5 sm:gap-y-2 lg:order-none lg:basis-auto">
         {LEGAL_LINKS.map((link) => (
           <Link key={link.href} href={link.href} replace={replace} scroll={false}
             aria-current={link.href === current ? "page" : undefined}
-            className="border-b-[1.5px] border-transparent py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink-soft hover:text-ink aria-[current=page]:border-ink aria-[current=page]:text-ink">
-            {link.label}
+            className="whitespace-nowrap border-b-[1.5px] border-transparent py-1 font-mono max-sm:relative max-sm:after:absolute max-sm:after:-inset-y-3 max-sm:after:inset-x-0 max-sm:after:content-[''] text-[10px] uppercase tracking-[0.12em] text-ink-soft hover:text-ink aria-[current=page]:border-ink aria-[current=page]:text-ink sm:tracking-[0.18em]">
+            <span className="sm:hidden">{link.short}</span>
+            <span className="max-sm:hidden">{link.label}</span>
           </Link>
         ))}
       </nav>
