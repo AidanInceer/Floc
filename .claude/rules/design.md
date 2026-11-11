@@ -30,7 +30,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - A busy button keeps its own words and adds an ellipsis (`busyMark` in `ui.tsx`), the one status mark that is not a word. It does not swap to "Saving…": the action must stay named, and a disabled button shows no cursor. Still to convert: sign-in, calendar fill and the phone.
 - Status always has a word. Never colour or an icon alone. One exception: a stop's hotel ribbon on the Overview has no visible word; the file chip beside it names the booking, and its title and label say Booked. Another: the save heart on Explore has no visible word; it fills red when saved, and its label says Save or Saved with `aria-pressed` (ADR-042).
 - Light and dark use the same token names. No `dark:` variant, no hex literal ✓. Values live in `@floc/core/design/tokens`. The theme choice lives in `localStorage`, never in a column.
-- The wordmark is **floc.** with a pen-blue dot, drawn only by `components/system/wordmark.tsx` and the invite OG card.
+- The wordmark is **floc.** with a pen-blue dot, drawn only by `components/system/wordmark.tsx`, the invite OG card and the recap share picture (`app/trip/[id]/recap-card/`). The two pictures keep ImageResponse's default face, not the house faces, so they render with no font fetch (rule 11).
 - An outside UI library only where building it would take months, and only if it takes our tokens, type and no-emoji rules.
 
 ## Shape, depth and motion
@@ -58,6 +58,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - No tiny all-caps kicker above a heading. The mono label names a value; it never introduces a section.
 - Sentence case. British English. Real content, never lorem ipsum.
 - ✓ A field starts empty: no placeholder, no example, nothing pre-filled the person did not choose. A visible label or an `aria-label` names it.
+  - One exception: *Plan the next one* on a finished trip's recap starts with the trip's other members ticked; the name field stays empty (#443).
 - ✓ Money is exact. No `≈` or `~`. A money figure anywhere matches the Money tab, which is the source of truth.
 
 ## Layout

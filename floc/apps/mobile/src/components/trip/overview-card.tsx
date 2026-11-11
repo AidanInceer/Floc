@@ -41,6 +41,7 @@ export function OverviewCard({
   onDates,
   children,
   files,
+  recap,
   onMoney,
 }: {
   trip: CardTrip;
@@ -52,6 +53,8 @@ export function OverviewCard({
   /** The group and Files lines, drawn by the screen so each loads on its own. */
   children?: ReactNode;
   files?: ReactNode;
+  /** The recap foot, once the end date has passed (#443). */
+  recap?: ReactNode;
   onMoney: () => void;
 }) {
   const { c } = useTheme();
@@ -142,6 +145,7 @@ export function OverviewCard({
         )}
         {children}
         {files}
+        {recap}
       </View>
     </View>
   );

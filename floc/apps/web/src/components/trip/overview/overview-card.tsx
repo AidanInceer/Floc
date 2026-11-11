@@ -47,12 +47,15 @@ export function OverviewCard({
   trip,
   position,
   ideas,
+  recap,
 }: {
   trip: OverviewTrip;
   /** Where the viewer stands with the group; null while nothing is logged. */
   position: Position | null;
   /** The ideas row, once the plan has a shape (ideasTucked). */
   ideas?: ReactNode;
+  /** The recap foot, once the end date has passed (#443). */
+  recap?: ReactNode;
 }) {
   const soon = countdownLabel(trip.startDate);
   return (
@@ -119,6 +122,7 @@ export function OverviewCard({
           <PositionLine position={position} />
         </Link>
         {ideas}
+        {recap}
       </div>
     </aside>
   );
