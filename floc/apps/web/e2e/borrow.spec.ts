@@ -14,7 +14,7 @@ test("the borrow globe opens a trip's route stop by stop, and a spin brings up o
   await band.getByRole("button", { name: "See the route: Tokyo to Osaka" }).click();
   const rail = band.locator(".bp");
   await expect(rail).toContainText("Stop 1 of 5");
-  await expect(rail.locator(".bp-tag")).toHaveText("Japan");
+  await expect(rail.locator(".bp-tag > [aria-hidden]")).toHaveText("Japan");
   await rail.getByRole("button", { name: "Next stop" }).click();
   await expect(rail).toContainText("Stop 2 of 5");
   await expect(rail.getByRole("button", { name: /^Hakone/ })).toHaveAttribute("aria-current", "step");
