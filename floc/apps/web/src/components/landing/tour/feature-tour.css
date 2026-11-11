@@ -30,7 +30,8 @@
   .tour-shot > * { width: 700px; zoom: var(--z, 1); }
 
   .tour-tile { transition: transform 0.65s var(--ease) 0.24s, background-color 0.45s var(--ease) 0.24s; }
-  .tour-glyph, .tour-tab { transition: color 0.35s var(--ease) 0.24s; }
+  .tour-glyph { transition: color 0.45s var(--ease) 0.24s; }
+  .tour-tab { transition: color 0.35s var(--ease) 0.24s; }
   .tour-pane { grid-area: 1 / 1; opacity: 0; visibility: hidden; transform: translateY(16px); transition: opacity 0.35s var(--ease), transform 0.6s var(--ease), visibility 0s 0.6s; }
   .tour-pane[data-on="true"] { opacity: 1; visibility: visible; transform: none; transition-delay: 0.14s, 0.14s, 0s; }
 

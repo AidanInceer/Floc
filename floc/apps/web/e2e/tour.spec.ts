@@ -34,3 +34,19 @@ test("a tab on the drawn trip page jumps to its feature", async ({ page }) => {
   await expect(page.getByText(/^\d+ \/ 7$/)).toHaveText("4 / 7");
   await expect(tour.getByRole("heading", { name: "Split the bill, not the group" })).toBeVisible();
 });
+
+test.describe("with motion", () => {
+  test.use({ reducedMotion: "no-preference" });
+
+  test("the new feature icon has its own colour as soon as its copy appears", async ({ page }) => {
+    await page.goto("/");
+    const tour = page.getByLabel("Features", { exact: true });
+    const title = tour.getByRole("heading", { name: "Split the bill, not the group" });
+
+    await tour.getByRole("button", { name: "Money", includeHidden: true }).click();
+    await expect(title).toBeVisible();
+
+    const stroke = await title.locator("..").locator("svg").evaluate((icon) => getComputedStyle(icon).stroke);
+    expect(stroke).toBe("rgb(163, 74, 49)");
+  });
+});
