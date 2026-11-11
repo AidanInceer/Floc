@@ -16,6 +16,7 @@ import "server-only";
 import { revalidatePath } from "next/cache";
 
 import type { NoteScope } from "@/db/schema";
+import { tripChanged } from "@/server/notes/live/live-trip";
 import { forgetRequestReads } from "@/server/request-scope";
 
 export type Fact =
@@ -141,6 +142,21 @@ export function pagesFor(facts: Fact[]): Target[] {
   return [...seen.values()];
 }
 
+/** Per trip, the tabs a set of facts makes stale; `trip` for the trip's layout, which every tab shows. */
+export function tripAreasFor(facts: Fact[]): Map<number, string[]> {
+  const areas = new Map<number, string[]>();
+  for (const target of pagesFor(facts)) {
+    const [, root, id, tab, ...rest] = target.path.split("/");
+    const tripId = Number(id);
+    if (root !== "trip" || !Number.isSafeInteger(tripId) || tripId <= 0 || rest.length) continue;
+    const area = target.type === "layout" ? "trip" : (tab ?? "trip");
+    const list = areas.get(tripId) ?? [];
+    if (!list.includes(area)) list.push(area);
+    areas.set(tripId, list);
+  }
+  return areas;
+}
+
 /** Announce what changed. Everything else is this module's problem. */
 export function refresh(...facts: Fact[]): void {
   forgetRequestReads();
@@ -148,4 +164,5 @@ export function refresh(...facts: Fact[]): void {
     if (target.type) revalidatePath(target.path, target.type);
     else revalidatePath(target.path);
   }
+  for (const [tripId, areas] of tripAreasFor(facts)) tripChanged(tripId, areas);
 }

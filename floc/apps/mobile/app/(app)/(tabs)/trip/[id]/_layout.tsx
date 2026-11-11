@@ -34,6 +34,7 @@ import { useEffect, useState } from "react";
 
 import { useTheme } from "@/components/system/theme";
 import { TripHeader, type Section } from "@/components/trip/trip-header";
+import { useTripLive } from "@/components/trip/use-trip-live";
 import { WalkthroughSheet } from "@/components/walkthrough/walkthrough-sheet";
 import { trpc } from "@/lib/api";
 import { viewerBalance } from "@/lib/balance";
@@ -73,6 +74,7 @@ export default function TripLayout() {
   const { data: session } = useSession();
 
   const trip = useQuery(trpc.trips.get.queryOptions({ tripId }, { enabled: ready }));
+  useTripLive(tripId, ready);
   const ledger = useQuery(trpc.money.ledger.queryOptions({ tripId }, { enabled: ready }));
 
   const pairs = useQuery(trpc.money.pairs.queryOptions({ tripId }, { enabled: ready }));

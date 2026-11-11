@@ -14,20 +14,17 @@ import { ImageResponse } from "next/og";
 
 import { findTripByInviteToken } from "@/server/trips/invites";
 import { formatDateRange } from "@floc/core/dates/dates";
-import { resolveColours } from "@floc/core/design/tokens";
+import { OG_COLOURS, OG_SIZE, OgWordmark } from "@/components/system/og-card";
 
 export const runtime = "nodejs";
-export const size = { width: 1200, height: 630 };
+export const size = OG_SIZE;
 export const contentType = "image/png";
 export const alt = "You're invited to a trip on Floc";
 
-// The image renderer cannot read CSS variables, so the light tokens are resolved here.
-const colours = resolveColours("light");
-const GROUND = colours.paper;
-const INK = colours.ink;
-const INK_SOFT = colours["ink-2"];
-const PEN = colours.pen;
-const BUTTER = colours["pastel-yellow"];
+const GROUND = OG_COLOURS.ground;
+const INK = OG_COLOURS.ink;
+const INK_SOFT = OG_COLOURS.inkSoft;
+const BUTTER = OG_COLOURS.butter;
 
 export default async function InviteOgImage({
   params,
@@ -63,14 +60,7 @@ export default async function InviteOgImage({
           padding: "72px 80px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", fontSize: 38, fontWeight: 700, color: INK }}>
-            <svg width={62} height={49} viewBox="0 0 28 22" fill="none" stroke={PEN} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 12 }}>
-              <path d="M3.4 16.5 7 12.9 10.6 16.5" />
-              <path d="M10.4 10 14 6.4 17.6 10" />
-              <path d="M17.4 16.5 21 12.9 24.6 16.5" />
-            </svg>
-          floc<span style={{ color: PEN }}>.</span>
-        </div>
+        <OgWordmark />
 
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ fontSize: 32, color: INK_SOFT }}>{kicker}</div>
@@ -102,9 +92,7 @@ export default async function InviteOgImage({
             >
               {when}
             </div>
-          ) : (
-            <span />
-          )}
+          ) : null}
           <div style={{ fontSize: 28, color: INK_SOFT }}>
             Have a look before you decide.
           </div>
