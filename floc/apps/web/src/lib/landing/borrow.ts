@@ -3,18 +3,20 @@ import type { PresetTrip, Region } from "@floc/core/trip/explore/preset-trips";
 import type { TransportType } from "@floc/core/vocabulary";
 import { listingPrice, type ListingRates } from "@floc/core/trip/explore/listing-price";
 
+import { tripRoute, type TripRoute } from "@/lib/explore/route/trip-route";
+
 type Hop = { mode: TransportType; detail: string };
 
-/** `hop` is the move that arrives at this stop, if the listing names one. */
+/** `hop` is the move that arrives at this stop, if the listing names one; `outs` are the day outs made from it. */
 type BorrowStop = {
   name: string;
   nights: number;
   lat: number;
   lng: number;
   hop?: Hop;
+  outs: string[];
 };
 
-/** `also` is a day trip from the last base: a move that ends the listing with no night of its own. */
 export type BorrowCard = {
   id: string;
   place: string;
@@ -23,7 +25,7 @@ export type BorrowCard = {
   nights: number;
   price: string;
   stops: BorrowStop[];
-  also?: Hop & { place: string };
+  route: TripRoute;
 };
 
 /** The listings the landing page rolls through, in the order given; a retired id is skipped. */
@@ -39,7 +41,8 @@ export function borrowCards(trips: PresetTrip[], ids: string[], rates: ListingRa
         title: trip.title,
         nights: trip.nights,
         price: listingPrice(trip, rates),
-        ...routeOf(trip),
+        route: tripRoute(trip),
+        stops: stopsFor(trip),
       },
     ];
   });
@@ -61,15 +64,13 @@ export function placeWords(place: string) {
 
 export const nightsWords = (n: number) => `${n} ${n === 1 ? "night" : "nights"}`;
 
-function routeOf(trip: PresetTrip): Pick<BorrowCard, "stops" | "also"> {
-  const all = stopsOf(trip);
-  const stops = all.map(({ place, nights, lat, lng, arrive }) => ({
+function stopsFor(trip: PresetTrip): BorrowStop[] {
+  return stopsOf(trip).map(({ place, nights, lat, lng, arrive, dayOuts }) => ({
     name: place,
     nights,
     lat,
     lng,
     ...(arrive && { hop: { mode: arrive.mode, detail: arrive.detail } }),
+    outs: dayOuts.map((out) => out.place),
   }));
-  const also = all.at(-1)?.dayOuts.at(-1);
-  return also ? { stops, also } : { stops };
 }

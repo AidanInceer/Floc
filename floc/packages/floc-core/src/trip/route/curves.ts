@@ -13,6 +13,8 @@ const HUG = 0.32;
 const LEAN = 10 * RAD;
 /** Below this share of its length, a leg is taken to run through the middle of the trip: it keeps the bend of the leg before. */
 const THROUGH = 0.06;
+/** A bow that passes closer than this share of its length to another stop bends the other way, if that side is clearer. */
+const CLEAR = 0.15;
 
 const sub = (a: Point, b: Point): Point => ({ x: a.x - b.x, y: a.y - b.y });
 const add = (a: Point, b: Point): Point => ({ x: a.x + b.x, y: a.y + b.y });
@@ -59,28 +61,66 @@ function sidesOf(stops: readonly Point[], legs: number): number[] {
 
 /**
  * The line from each stop to the next. A drive or a train flows through each stop with no corner,
- * a flight or a boat is an arc of its own, and every bend leans away from the middle of the trip.
+ * a flight or a boat is an arc of its own, and every bend leans away from the middle of the trip,
+ * unless that would run it over another stop. A road or rail run flips as one, so it stays smooth through its stops.
  */
 export function legCurves(stops: readonly Point[], modes: readonly Mode[], n: number): Point[][] {
   const sides = sidesOf(stops, modes.length);
-  return modes.map((mode, i) => {
-    const [a, b] = [stops[i], stops[i + 1]];
-    const d = sub(b, a);
-    const L = len(d);
-    const dh = unit(d);
-    const side = sides[i];
-    const out = mul({ x: -dh.y, y: dh.x }, side);
-    const arc = mode ? ARC[mode] : undefined;
-    if (arc !== undefined) {
-      const h = (4 / 3) * arc * L;
-      return cubic(a, add(add(a, mul(d, 1 / 3)), mul(out, h)), add(sub(b, mul(d, 1 / 3)), mul(out, h)), b, n);
-    }
-    const before = i > 0 && onGround(modes[i - 1]) ? stops[i - 1] : null;
-    const after = i < modes.length - 1 && onGround(modes[i + 1]) ? stops[i + 2] : null;
-    const c1 = before ? add(a, turn(sub(handle(before, a, b), a), LEAN * side)) : add(a, mul(turn(dh, TURN * side), L * HUG));
-    const c2 = after ? add(b, turn(sub(handle(after, b, a), b), -LEAN * side)) : sub(b, mul(turn(dh, -TURN * side), L * HUG));
-    return cubic(a, c1, c2, b, n);
+  const curves = modes.map((_, i) => legCurve(stops, modes, i, sides[i], n));
+  for (const run of runsOf(modes)) {
+    const near = worst(stops, run, (i) => curves[i]);
+    if (near >= 1) continue;
+    const flipped = [...curves];
+    for (const i of run) flipped[i] = legCurve(stops, modes, i, -sides[i], n);
+    if (worst(stops, run, (i) => flipped[i]) > near) for (const i of run) curves[i] = flipped[i];
+  }
+  return curves;
+}
+
+/** Legs drawn as one line: each flight or boat alone, and each unbroken stretch of road or rail. */
+function runsOf(modes: readonly Mode[]): number[][] {
+  const runs: number[][] = [];
+  modes.forEach((mode, i) => {
+    const last = runs.at(-1);
+    if (onGround(mode) && last && onGround(modes[last[last.length - 1]])) last.push(i);
+    else runs.push([i]);
   });
+  return runs;
+}
+
+/** How near a run's legs come to the stops they do not join, as a share of the room each leg should keep; under 1 is too near. */
+function worst(stops: readonly Point[], run: readonly number[], curve: (i: number) => Point[]): number {
+  return Math.min(
+    ...run.map((i) => {
+      const others = stops.filter((_, k) => k !== i && k !== i + 1);
+      return clearance(curve(i), others) / (CLEAR * len(sub(stops[i + 1], stops[i])) || 1);
+    }),
+  );
+}
+
+function clearance(leg: readonly Point[], others: readonly Point[]): number {
+  let best = Infinity;
+  for (const p of leg.slice(1, -1)) for (const q of others) best = Math.min(best, len(sub(p, q)));
+  return best;
+}
+
+function legCurve(stops: readonly Point[], modes: readonly Mode[], i: number, side: number, n: number): Point[] {
+  const [a, b] = [stops[i], stops[i + 1]];
+  const d = sub(b, a);
+  const L = len(d);
+  const dh = unit(d);
+  const out = mul({ x: -dh.y, y: dh.x }, side);
+  const mode = modes[i];
+  const arc = mode ? ARC[mode] : undefined;
+  if (arc !== undefined) {
+    const h = (4 / 3) * arc * L;
+    return cubic(a, add(add(a, mul(d, 1 / 3)), mul(out, h)), add(sub(b, mul(d, 1 / 3)), mul(out, h)), b, n);
+  }
+  const before = i > 0 && onGround(modes[i - 1]) ? stops[i - 1] : null;
+  const after = i < modes.length - 1 && onGround(modes[i + 1]) ? stops[i + 2] : null;
+  const c1 = before ? add(a, turn(sub(handle(before, a, b), a), LEAN * side)) : add(a, mul(turn(dh, TURN * side), L * HUG));
+  const c2 = after ? add(b, turn(sub(handle(after, b, a), b), -LEAN * side)) : sub(b, mul(turn(dh, -TURN * side), L * HUG));
+  return cubic(a, c1, c2, b, n);
 }
 
 /** A day out: straight out from the stop the way it is sent, `size` px, and back the same way. The tip is the middle point. */

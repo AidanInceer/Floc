@@ -49,6 +49,24 @@ describe("legCurves", () => {
     expect(legCurves(stops, [null, "car"], 10)).toEqual(legCurves(stops, ["car", "car"], 10));
   });
 
+  it("bends a leg the other way when its bow would run over another stop", () => {
+    const route = [{ x: 0, y: 0 }, { x: 200, y: 0 }, { x: 100, y: -60 }, { x: 100, y: 400 }, { x: 0, y: 400 }];
+    const [flight] = legCurves(route, ["flight", "car", "car", "car"], 40);
+    const nearest = Math.min(...flight.map((p) => Math.hypot(p.x - 100, p.y + 60)));
+    expect(nearest).toBeGreaterThan(30);
+    expect(flight[20].y).toBeGreaterThan(0);
+  });
+
+  it("flips a road run as one, so the line stays smooth through its stops", () => {
+    const route = [{ x: 0, y: 0 }, { x: 200, y: 0 }, { x: 100, y: -60 }, { x: 100, y: 400 }, { x: 0, y: 400 }];
+    const legs = legCurves(route, ["car", "car", "car", "car"], 40);
+    for (let i = 0; i < legs.length - 1; i++) {
+      const [into, out] = [legs[i], legs[i + 1]];
+      const bend = Math.abs(heading(into[39], into[40]) - heading(out[0], out[1])) % (2 * Math.PI);
+      expect(Math.min(bend, 2 * Math.PI - bend)).toBeLessThan((25 * Math.PI) / 180);
+    }
+  });
+
   it("keeps bending the same way across a leg that runs through the middle of the trip", () => {
     const zigzag = [{ x: 0, y: 0 }, { x: 100, y: 0 }, { x: 0, y: 1 }, { x: 100, y: 1 }];
     expect(legCurves(zigzag, ["car", "car", "car"], 10)).toHaveLength(3);

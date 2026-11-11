@@ -22,6 +22,14 @@ export const RAIL = listing([
 /** One stop and a day out by boat. */
 export const ONE_STOP = listing([base("Praiano", 40.611, 14.529, 7), hop("Positano, Amalfi, Capri", "ferry", "day hops")]);
 
+/** A day out from the first stop, then on to the next. */
+export const OUT_FIRST = listing([
+  base("Cape Town", -33.925, 18.424, 3),
+  hop("Cape Point", "car", "1h 15"),
+  hop("Hermanus", "car", "1h 30"),
+  base("Hermanus", -34.418, 19.234),
+]);
+
 /** Out and back: the route ends where it began. */
 export const ROUND = listing([
   base("Puerto Natales", -51.729, -72.507),
