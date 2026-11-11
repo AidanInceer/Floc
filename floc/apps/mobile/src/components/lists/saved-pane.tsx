@@ -3,34 +3,40 @@
  * Trips and countries sit in their own sections (A3); a country's name is its title. A row opens the trip or Explore searched for
  * the country; Start trip, in pen on its last line, starts one from it.
  * A country is the globe's yellow, so adding or removing one here paints the globe too.
+ * While your list is shared, one quiet line says who sees it; friends who saved a row too show as initials on it (#544).
  */
 import { wantToGoCountries } from "@floc/core/itinerary/travel-map";
 import { COUNTRIES } from "@floc/core/people/countries";
+import { savedSeenBy, type FriendSaves } from "@floc/core/people/shared-saves";
 import { listingsIn } from "@floc/core/trip/explore/listing-countries";
+import { listingPrice } from "@floc/core/trip/explore/listing-price";
 import { PRESET_TRIPS, type PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
-import { listingPrice } from "@floc/core/trip/explore/listing-price";
 import { RegionTags } from "@/components/explore/region-tag";
 import { useListingRates } from "@/components/explore/use-listing-rates";
 import { HeartButton, useSavedTrips } from "@/components/explore/save-heart";
+import { FriendFaces, SavedRow, SavedSection } from "@/components/lists/saved-row";
 import { PlusGlyph } from "@/components/system/glyphs";
 import { useTheme } from "@/components/system/theme";
-import { Body, Button, Card, Failed, Loading, SearchField, SectionTitle } from "@/components/system/ui";
+import { Body, Button, Card, Failed, Loading, SearchField } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { fonts, size, space } from "@/lib/theme";
 
 type Country = { code: string; name: string };
 
 const byId = new Map(PRESET_TRIPS.map((t) => [t.id, t]));
+const NO_FRIENDS: FriendSaves = { trips: {}, countries: {} };
 
 export function SavedPane() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const face = useQuery(trpc.me.profile.queryOptions());
+  const settings = useQuery(trpc.settings.get.queryOptions());
+  const friendSaves = useQuery(trpc.explore.friendSaves.queryOptions());
   const { ids, pending, failed, retry, toggle } = useSavedTrips();
   const rates = useListingRates();
   const [filter, setFilter] = useState("");
@@ -56,9 +62,13 @@ export function SavedPane() {
   const have = new Set(countries.map((c) => c.code));
   const needle = filter.trim().toLowerCase();
   const found = needle ? COUNTRIES.filter((c) => !have.has(c.code) && c.name.toLowerCase().includes(needle)).slice(0, 8) : [];
+  // Why: the faces are extra; a failed read leaves the rows as they were rather than failing the tab (#544).
+  const friends = friendSaves.data ?? NO_FRIENDS;
+  const seenBy = settings.data ? savedSeenBy(settings.data.visibilitySaved, settings.data.isPrivate) : null;
 
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }} keyboardShouldPersistTaps="handled">
+      {seenBy ? <SeenByLine text={seenBy} onPress={() => router.push("/settings")} /> : null}
       <View style={{ gap: space.sm }}>
         <SearchField label="Add a country" value={filter} onChangeText={setFilter} />
         {needle ? (
@@ -85,35 +95,34 @@ export function SavedPane() {
       ) : (
         <>
           {trips.length ? (
-            <Section title="Trips" count={trips.length}>
-          {trips.map((trip, i) => (
-            <SavedRow
-              key={trip.id}
-              first={i === 0}
-              tags={<RegionTags region={trip.region} countries={trip.country} />}
-              title={trip.title}
-              name={trip.title}
-              figures={`${trip.nights} ${trip.nights === 1 ? "night" : "nights"} · ${listingPrice(trip, rates)}`}
-              heart={<HeartButton saved label={trip.title} onPress={() => toggle(trip.id, false)} />}
-              onOpen={() => router.push({ pathname: "/explore/[preset]", params: { preset: trip.id } })}
-              onStart={() => router.push({ pathname: "/explore/[preset]", params: { preset: trip.id, start: "1" } })}
-            />
-          ))}
-            </Section>
+            <SavedSection title="Trips" count={trips.length}>
+              {trips.map((trip, i) => (
+                <SavedRow
+                  key={trip.id}
+                  first={i === 0}
+                  tags={<RegionTags region={trip.region} countries={trip.country} />}
+                  title={trip.title}
+                  figures={`${trip.nights} ${trip.nights === 1 ? "night" : "nights"} · ${listingPrice(trip, rates)}`}
+                  mark={<FriendFaces faces={friends.trips[trip.id]} />}
+                  heart={<HeartButton saved label={trip.title} onPress={() => toggle(trip.id, false)} />}
+                  onOpen={() => router.push({ pathname: "/explore/[preset]", params: { preset: trip.id } })}
+                  onStart={() => router.push({ pathname: "/explore/[preset]", params: { preset: trip.id, start: "1" } })}
+                />
+              ))}
+            </SavedSection>
           ) : null}
           {countries.length ? (
-            <Section title="Countries" count={countries.length}>
-          {countries.map((c, i) => (
-            <CountryRow
-              key={c.code}
-              country={c}
-              first={i === 0}
-              onDrop={() => mark.mutate({ code: c.code, state: "blank" })}
-              onOpen={() => router.push({ pathname: "/explore", params: { country: c.code } })}
-              onStart={() => router.push({ pathname: "/(app)/new-trip", params: { name: c.name } })}
-            />
-          ))}
-            </Section>
+            <SavedSection title="Countries" count={countries.length}>
+              {countries.map((c, i) => (
+                <CountryRow
+                  key={c.code}
+                  country={c}
+                  first={i === 0}
+                  mark={<FriendFaces faces={friends.countries[c.code]} />}
+                  heart={<HeartButton saved label={c.name} onPress={() => mark.mutate({ code: c.code, state: "blank" })} />}
+                />
+              ))}
+            </SavedSection>
           ) : null}
         </>
       )}
@@ -121,90 +130,34 @@ export function SavedPane() {
   );
 }
 
-function Section({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
-  const { c } = useTheme();
-  return (
-    <View style={{ gap: space.sm }}>
-      <View style={{ flexDirection: "row", alignItems: "baseline", gap: space.sm }}>
-        <SectionTitle>{title}</SectionTitle>
-        <Text style={{ color: c["ink-3"], fontFamily: fonts.type, fontSize: size.small }}>{count}</Text>
-      </View>
-      <Card style={{ padding: 0, gap: 0 }}>{children}</Card>
-    </View>
-  );
-}
-
-function CountryRow({ country, first, onDrop, onOpen, onStart }: { country: Country; first: boolean; onDrop: () => void; onOpen: () => void; onStart: () => void }) {
+/** A saved country as a row: Explore searched for it, or a new trip named for it. Also on a friend's profile (#544). */
+export function CountryRow({ country, first, mark, heart }: { country: Country; first: boolean; mark?: React.ReactNode; heart?: React.ReactNode }) {
+  const router = useRouter();
   const count = listingsIn(country.code).length;
   return (
     <SavedRow
       first={first}
       title={country.name}
       figures={count === 0 ? "No Explore trips" : `${count} Explore ${count === 1 ? "trip" : "trips"}`}
-      heart={<HeartButton saved label={country.name} onPress={onDrop} />}
-      onOpen={onOpen}
-      onStart={onStart}
-      name={country.name}
+      mark={mark}
+      heart={heart}
+      onOpen={() => router.push({ pathname: "/explore", params: { country: country.code } })}
+      onStart={() => router.push({ pathname: "/(app)/new-trip", params: { name: country.name } })}
     />
   );
 }
 
-function SavedRow({
-  first,
-  tags,
-  title,
-  figures,
-  heart,
-  onOpen,
-  onStart,
-  name,
-}: {
-  first: boolean;
-  tags?: React.ReactNode;
-  title: string;
-  figures: string;
-  heart: React.ReactNode;
-  onOpen: () => void;
-  onStart: () => void;
-  /** What the row is, for its Start trip's name. */
-  name: string;
-}) {
+function SeenByLine({ text, onPress }: { text: string; onPress: () => void }) {
   const { c } = useTheme();
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "flex-start",
-        gap: space.md,
-        paddingHorizontal: space.lg,
-        paddingTop: space.md,
-        paddingBottom: space.xs,
-        borderTopColor: c.rule,
-        borderTopWidth: first ? 0 : StyleSheet.hairlineWidth,
-      }}
+    <Pressable
+      accessibilityRole="link"
+      accessibilityHint="Opens Settings"
+      onPress={onPress}
+      style={({ pressed }) => ({ minHeight: 44, justifyContent: "center", alignSelf: "flex-start", opacity: pressed ? 0.6 : 1 })}
     >
-      <View style={{ flex: 1 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel={`${title}, ${figures}`} onPress={onOpen} style={({ pressed }) => ({ gap: space.xs + 2, paddingTop: space.xs, opacity: pressed ? 0.6 : 1 })}>
-          {tags}
-          <Text style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>{title}</Text>
-        </Pressable>
-        {/* Why: Start trip shares the figures' line (A3, #467), at full press height and clear of the heart above. */}
-        <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-          <Pressable accessible={false} onPress={onOpen} style={{ flex: 1, minHeight: 44, justifyContent: "center" }}>
-            <Text style={{ color: c["ink-2"], fontFamily: fonts.type, fontSize: size.small, fontVariant: ["tabular-nums"] }}>{figures}</Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={`Start trip from ${name}`}
-            onPress={onStart}
-            style={({ pressed }) => ({ minHeight: 44, justifyContent: "center", paddingLeft: space.sm, opacity: pressed ? 0.6 : 1 })}
-          >
-            <Text style={{ color: c.pen, fontFamily: fonts.sansBold, fontSize: size.small }}>Start trip</Text>
-          </Pressable>
-        </View>
-      </View>
-      {heart}
-    </View>
+      <Text style={{ color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.small }}>{text}</Text>
+    </Pressable>
   );
 }
 

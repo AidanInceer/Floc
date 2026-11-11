@@ -42,6 +42,9 @@
     "explore.saves": {
       "mobile": "yes"
     },
+    "explore.friendSaves": {
+      "mobile": "yes"
+    },
     "explore.setFinder": {
       "mobile": "yes"
     },

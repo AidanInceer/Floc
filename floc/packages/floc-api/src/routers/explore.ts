@@ -30,8 +30,11 @@ export const exploreRouter = router({
 
   setFinder: protectedProcedure.input(finder).mutation(({ ctx, input }) => ctx.port.setExploreFinder(ctx.viewer.id, input)),
 
-  /** Your saved Explore trips, newest first (#467). Only yours: saves are private (ADR-042). */
+  /** Your saved Explore trips, newest first (#467). Only yours; a friend's reach you through their profile (ADR-045). */
   saves: protectedProcedure.query(({ ctx }) => ctx.port.listSavedTrips(ctx.viewer.id)),
+
+  /** Friends who saved what you saved, for the initials on your Saved tiles (#544, ADR-045). */
+  friendSaves: protectedProcedure.query(({ ctx }) => ctx.port.friendsWhoSaved(ctx.viewer.id)),
 
   /** The heart. The host ignores an id Explore does not list. */
   setSaved: protectedProcedure

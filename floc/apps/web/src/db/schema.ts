@@ -175,6 +175,10 @@ export const userProfile = sqliteTable("user_profile", {
   visibilityFriends: text("visibility_friends", { enum: VISIBILITIES })
     .notNull()
     .default("friends"),
+  /** Saved trips start private (ADR-045, #544); want-to-go countries follow `visibility_travel_map`. */
+  visibilitySaved: text("visibility_saved", { enum: VISIBILITIES })
+    .notNull()
+    .default("private"),
   /** Rides `is_private`, not its own ring (ticket 46) — only truncates the list. */
   pastTripsShow: text("past_trips_show", { enum: PAST_TRIPS_SHOW })
     .notNull()

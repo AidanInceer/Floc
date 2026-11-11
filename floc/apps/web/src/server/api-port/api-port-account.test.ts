@@ -1,11 +1,6 @@
 /**
- * The account half of the port — settings, the travel map and saved lists.
- *
- * The point is not that the queries work; `profile.test.ts` and the rest cover
- * those. It is that the rules the web pages keep by hand survive the new door
- * the phone comes through: a seed-only tag list that a hand-made call must not
- * be able to widen, the refusal to unlink a last sign-in method, and a kit
- * that only ever resolves for its owner.
+ * Why: the rules the web pages keep by hand must survive the door the phone
+ * comes through — a seed-only tag list, the last sign-in method, an owner-only kit.
  */
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -30,6 +25,7 @@ describe("settings", () => {
     expect(settings.packTier).toBe("balanced");
     expect(settings.homeCurrency).toBe("GBP");
     expect(settings.vibeTags).toEqual([]);
+    expect(settings.visibilitySaved).toBe("private");
   });
 
   it("keeps every privacy field it was given", async () => {
@@ -38,12 +34,14 @@ describe("settings", () => {
       visibilityVibeTags: "friends",
       visibilityTravelMap: "trip_members",
       visibilityFriends: "private",
+      visibilitySaved: "friends",
       pastTripsShow: "latest",
     });
 
     const settings = await webPort.loadMySettings(world.member);
     expect(settings.isPrivate).toBe(true);
     expect(settings.visibilityVibeTags).toBe("friends");
+    expect(settings.visibilitySaved).toBe("friends");
     expect(settings.pastTripsShow).toBe("latest");
   });
 

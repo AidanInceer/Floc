@@ -82,9 +82,17 @@ undated trip with the highlights page only.
 **Start month** — a best month picked when copying. The trip starts on the 1st
 of the next such month still ahead and runs for the listing's nights.
 
-**Saved trip** — an Explore listing a person saved with its heart. Private: nobody
-else sees it, and Explore shows no count. It opens the listing with the copy
-choice open.
+**Saved trip** — an Explore listing a person saved with its heart. Private until
+the person shares it (see *Shared list*); Explore shows no count. It opens the
+listing with the copy choice open.
+
+**Shared list** — a person's saved trips, shown on their profile to the people
+their *Saved* privacy setting names: nobody, friends, or trip members. Their
+want-to-go countries show with it only where their Travel map setting allows.
+Packing lists are never part of it.
+
+**You both** — the mark on a saved trip or want-to-go country that the viewer and
+the list's owner both hold. Derived on read, never stored.
 
 **Want to go** — a country a person wants to visit. The same fact as the yellow
 on their profile globe: changing one changes the other.
