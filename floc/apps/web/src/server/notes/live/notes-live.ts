@@ -7,12 +7,14 @@ import { Hocuspocus } from "@hocuspocus/server";
 import * as Y from "yjs";
 
 import { stampEpoch } from "@floc/core/notes/live/live-epoch";
-import { pageDocumentName, pagesDocumentName, readDocumentName, type LiveDocument } from "@floc/core/notes/live/live-names";
+import { pageDocumentName, pagesDocumentName, readDocumentName, tripDocumentName, type LiveDocument } from "@floc/core/notes/live/live-names";
+import { tripSignal } from "@floc/core/notes/live/trip-signal";
 import { parsePageBody, serialisePage } from "@floc/core/notes/pages/page-blocks";
 import { readPageYjs, seedPageYjs } from "@floc/core/notes/pages/page-yjs";
 import { isLiveMember, isOpenPage } from "./live-access";
 import { onNotesKick } from "./live-kick";
 import { onPagesChanged } from "./live-ping";
+import { onTripChanged } from "./live-trip";
 import { LIVE_STATE_MAX_BYTES, loadPageState, storePageState } from "./page-live-store";
 
 type LiveContext = { userId: string; checkedAt: number };
@@ -32,7 +34,7 @@ async function mayOpen(target: LiveDocument | null, userId: string): Promise<boo
   if (!target) return false;
   const [member, open] = await Promise.all([
     isLiveMember(target.tripId, userId),
-    target.kind === "pages" || isOpenPage(target.tripId, target.pageId),
+    target.kind !== "page" || isOpenPage(target.tripId, target.pageId),
   ]);
   return member && open;
 }
@@ -54,8 +56,8 @@ export function createNotesLive(options: {
       if (!userId) throw new Error("Not signed in");
       const target = readDocumentName(documentName);
       if (!(await mayOpen(target, userId))) throw new Error("Not found");
-      // Why: the page list only carries who is where (awareness), so no client may write content into it.
-      if (connectionConfig && target?.kind === "pages") connectionConfig.readOnly = true;
+      // Why: the page list carries who is where and the trip channel only signals, so no client may write into either.
+      if (connectionConfig && target?.kind !== "page") connectionConfig.readOnly = true;
       context.userId = userId;
       context.checkedAt = Date.now();
     },
@@ -84,7 +86,7 @@ export function createNotesLive(options: {
     async onLoadDocument({ documentName, document }) {
       const target = readDocumentName(documentName);
       if (!target) throw new Error("Not found");
-      if (target.kind === "pages") return document;
+      if (target.kind !== "page") return document;
       const { state, body } = await loadPageState(target.pageId);
       if (state) Y.applyUpdate(document, state);
       else {
@@ -119,7 +121,10 @@ export function createNotesLive(options: {
     const gone = new Set(closed.map((pageId) => pageDocumentName(tripId, pageId)));
     closeWhere((name) => !gone.has(name));
   });
-  live.configure({ extensions: [{ async onDestroy() { stopKicks(); stopPings(); } }] });
+  const stopTrips = onTripChanged((tripId, areas) => {
+    live.documents.get(tripDocumentName(tripId))?.broadcastStateless(tripSignal(areas));
+  });
+  live.configure({ extensions: [{ async onDestroy() { stopKicks(); stopPings(); stopTrips(); } }] });
 
   return live;
 }

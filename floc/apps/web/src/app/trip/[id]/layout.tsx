@@ -9,6 +9,7 @@
 import type { Metadata } from "next";
 import { TripTabs } from "@/components/chrome/trip-tabs";
 import { TripMenu } from "@/components/trip/trip-menu";
+import { TripLive } from "@/components/trip/trip-live";
 import { requireTripAccess } from "@/server/access";
 import { leaveCostFor } from "@floc/core/trip/trip-state";
 import { readTripColor } from "@floc/core/trip/trip-color";
@@ -65,6 +66,7 @@ export default async function TripLayout({
           </TripTabs>
         </div>
       </div>
+      <TripLive tripId={trip.id} />
       {children}
     </div>
   );
