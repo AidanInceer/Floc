@@ -53,6 +53,7 @@ import { draggedPast, eventKeyGesture, eventLanding } from "@floc/core/dates/cal
 import { foldedClock, minuteAt, yAt } from "@floc/core/dates/clock-fold";
 import { addDays } from "@floc/core/dates/dates";
 import type { BandSpan } from "@floc/core/itinerary/overnight-band";
+import type { StayWrite } from "@floc/core/itinerary/stay/overnight-pick";
 
 export type { CalendarDay, CalendarEvent, OvernightPlace } from "@/components/days/days-calendar-shared";
 
@@ -315,9 +316,9 @@ export function DaysCalendar({
 
   /** The stay the overnight dialog is open on; the stop strip opens it. */
   const [banding, setBanding] = useState<BandSpan | null>(null);
-  const saveOvernight = (span: BandSpan, place: OvernightPlace | null) => {
+  const saveOvernight = (writes: StayWrite[], place: OvernightPlace | null) => {
     startTransition(async () => {
-      await setOvernight(span.start, span.end, place);
+      for (const w of writes) await setOvernight(w.start, w.end, w.clear ? null : place);
     });
   };
   const card = useHeightFloor<HTMLDivElement>();
@@ -590,19 +591,17 @@ export function DaysCalendar({
             groupSize={groupSize}
             bookingPrefill={bookingPrefill}
             onClose={() => setBanding(null)}
-            onSave={(end, place) => {
-              const span = { ...banding, end };
+            onSave={(writes, place) => {
+              const span = { ...banding, ...writes[0]! };
               setBanding(null);
-              saveOvernight(span, place);
-              say(
-                `${"name" in place ? place.name : (span.placeName ?? "Overnight place")} now ` +
-                  `${describeSpan(days, span)}.`,
-              );
+              saveOvernight(writes, place);
+              const who = "name" in place ? place.name : (span.placeName ?? "Overnight place");
+              say(`${who} now ${describeSpan(days, span)}.`);
             }}
             onClear={() => {
               const span = banding;
               setBanding(null);
-              saveOvernight(span, null);
+              saveOvernight([{ start: span.start, end: span.end, clear: true }], null);
               say(`No overnight place for ${describeSpan(days, span)}.`);
             }}
           />
