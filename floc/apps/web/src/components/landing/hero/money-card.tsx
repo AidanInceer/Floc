@@ -17,7 +17,7 @@ export function MoneyCard({ step }: { step: number }) {
   return (
     <div className={cx("deck-card deck-money-card relative bg-pastel-green px-5 py-[18px] text-pastel-green-ink", settled && "is-settled")}>
       <span className={kicker}>Each</span>
-      <p className="mt-1.5 font-mono text-[30px] leading-none tracking-[-0.02em]">
+      <p className="deck-each mt-1.5 font-mono text-[30px] leading-none tracking-[-0.02em]">
         <Roll value={EXPENSES[landed - 1]?.each ?? "£0.00"} />
       </p>
       <div className="deck-expenses mt-3 flex flex-col gap-[5px] text-xs">

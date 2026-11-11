@@ -13,12 +13,11 @@ const CLAIMS = [
 ];
 const POOL = ["Towels", "Snorkel", "Cards", "Hat", "Charger", "Bug spray", "First aid", "Frisbee", "Books", "Goggles", "Torch", "Tote bag"];
 const PEOPLE = ["Priya", "Alex", "Maya", "Kit", "Sam", "Jo"];
-const ROW = 22;
 
 function Reel({ spins, end, seconds, className }: { spins: string[]; end: string; seconds: number; className?: string }) {
   return (
     <span className={cx("deck-reel", className)}>
-      <span className="deck-strip" style={{ "--end": `${spins.length * ROW}px`, "--spin": `${seconds}s` } as CSSProperties}>
+      <span className="deck-strip" style={{ "--end": `calc(${spins.length} * var(--row))`, "--spin": `${seconds}s` } as CSSProperties}>
         {[...spins, end].map((word, i) => (
           <span key={i}>{word}</span>
         ))}
@@ -35,7 +34,7 @@ export function PackingCard({ step }: { step: number }) {
         <span className={kicker}>Packing</span>
         <Swap
           on={step >= CLAIMED}
-          className="text-xs font-semibold"
+          className="deck-note text-xs font-semibold"
           from={" "}
           to={<span className="inline-flex items-center gap-1"><Glyph name="check" className="size-3" />3 claimed</span>}
         />

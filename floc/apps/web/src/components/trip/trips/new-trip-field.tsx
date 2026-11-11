@@ -3,9 +3,11 @@
 import { useRef, useState } from "react";
 import { TEXT_CAPS } from "@floc/core/text/text";
 
-import { Sheet } from "@/components/system/client-ui";
+import Link from "next/link";
+
+import { Menu, Sheet } from "@/components/system/client-ui";
 import { PlusIcon } from "@/components/system/icons";
-import { cx } from "@/components/system/ui";
+import { cx, menuItemClass } from "@/components/system/ui";
 import { NewTripForm } from "@/components/trip/new-trip-form";
 import type { Person } from "@/server/social/friends";
 import type { Group } from "@/server/social/groups";
@@ -61,7 +63,7 @@ export function NewTripField({
           triggerVariant={ready ? "primary" : "secondary"}
           // Why: the button is half of one joined control, so it changes colour on hover and never lifts away from the field.
           triggerClassName={cx(
-            "h-11 shrink-0 whitespace-nowrap rounded-l-none border-l-0 hover:transform-none sm:h-[2.375rem]",
+            "h-11 shrink-0 whitespace-nowrap rounded-l-none border-l-0 hover:transform-none max-sm:rounded-r-none sm:h-[2.375rem]",
             ready && "hover:shadow-none",
           )}
           title="Start a trip"
@@ -70,6 +72,17 @@ export function NewTripField({
         >
           <NewTripForm action={action} friends={friends} groups={groups} name={name.trim()} />
         </Sheet>
+      </div>
+      {/* Why: on a phone Archived took a row of its own above the field; it joins the control as its last part. */}
+      <div className="flex sm:hidden">
+        <Menu
+          label="More on My trips"
+          triggerClassName="grid h-11 w-11 place-items-center rounded-r-sm border border-l-0 border-rule-strong bg-sheet text-ink-2 hover:bg-pen-soft hover:text-pen-deep data-[open=true]:bg-pen-soft data-[open=true]:text-pen-deep"
+        >
+          <Link href="/trips/archived" role="menuitem" className={menuItemClass}>
+            Archived
+          </Link>
+        </Menu>
       </div>
     </div>
   );

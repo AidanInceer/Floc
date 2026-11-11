@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Phone view · Floc wireframes</title>
+  <!-- Any prototype at a phone's width, in a phone-sized frame: /_house/phone.html#/<folder>/?variant=A -->
+  <link rel="stylesheet" href="/_house/house.css">
+  <script src="/_house/house.js" defer></script>
+  <style>
+    body { min-height: 100vh; background: var(--paper); }
+    .bar { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; padding: 12px 16px; background: var(--paper); border-bottom: 1px solid var(--rule); }
+    .bar select { height: 34px; max-width: 22rem; padding: 0 10px; font-family: var(--type); font-size: 12px; color: var(--ink); background: var(--sheet); border: 1px solid var(--rule-2); border-radius: var(--radius-sm); }
+    .seg { display: inline-flex; border: 1px solid var(--rule-2); border-radius: var(--radius-sm); overflow: hidden; background: var(--sheet); }
+    .seg button { height: 32px; padding: 0 12px; font-family: var(--type); font-size: 12px; color: var(--ink-2); transition: background .22s var(--ease), color .22s var(--ease); }
+    .seg button + button { border-left: 1px solid var(--rule-2); }
+    .seg button:hover { background: var(--pen-2); color: var(--pen-deep); }
+    .seg button[aria-pressed="true"] { background: var(--pen-2); color: var(--pen-deep); }
+    .stage { display: flex; justify-content: center; padding: 24px 16px 48px; }
+    .phone { padding: 12px; border-radius: 44px; background: var(--ink); box-shadow: var(--shadow-lift); }
+    .phone iframe { display: block; width: var(--w); height: min(var(--h), 100vh - 110px); border: 0; border-radius: 32px; background: var(--paper); }
+    /* Why: on a real phone the frame would only get in the way, so the page fills the screen. */
+    @media (max-width: 480px) {
+      .stage { padding: 0; }
+      .phone { padding: 0; border-radius: 0; background: none; box-shadow: none; }
+      .phone iframe { width: 100vw; height: calc(100vh - 60px); border-radius: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bar">
+    <select id="pick" aria-label="Prototype"></select>
+    <span class="seg" id="sizes" role="group" aria-label="Phone width">
+      <button type="button" data-w="360" data-h="780">360</button>
+      <button type="button" data-w="375" data-h="812">375</button>
+      <button type="button" data-w="390" data-h="844">390</button>
+      <button type="button" data-w="430" data-h="932">430</button>
+    </span>
+  </div>
+  <div class="stage"><div class="phone"><iframe id="view" title="Prototype at phone width"></iframe></div></div>
+  <script>
+    const view = document.getElementById("view");
+    const pick = document.getElementById("pick");
+    const phone = document.querySelector(".phone");
+    const SIZE = "wf-phone-size";
+    const path = () => decodeURIComponent(location.hash.slice(1)) || "/";
+
+    function size(w, h) {
+      phone.style.setProperty("--w", `${w}px`);
+      phone.style.setProperty("--h", `${h}px`);
+      document.querySelectorAll("#sizes button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.w === String(w))));
+      localStorage.setItem(SIZE, `${w}x${h}`);
+    }
+    function load() {
+      const p = path();
+      if (view.getAttribute("src") !== p) view.setAttribute("src", p);
+      const folder = p.split("/")[1] || "";
+      if ([...pick.options].some((o) => o.value === folder)) pick.value = folder;
+    }
+
+    document.querySelectorAll("#sizes button").forEach((b) => b.addEventListener("click", () => size(b.dataset.w, b.dataset.h)));
+    pick.addEventListener("change", () => { location.hash = `/${pick.value}/`; });
+    addEventListener("hashchange", load);
+    // Why: switching a variant inside the frame changes its address; the hash follows, so a reload or a shared link keeps the place.
+    view.addEventListener("load", () => {
+      try {
+        const inner = view.contentWindow.location;
+        const p = inner.pathname + inner.search;
+        if (p !== path()) history.replaceState(null, "", `#${p}`);
+        new MutationObserver(() => {
+          const now = inner.pathname + inner.search;
+          if (now !== path()) history.replaceState(null, "", `#${now}`);
+        }).observe(view.contentDocument.body, { childList: true, subtree: true });
+      } catch {}
+    });
+
+    const [w, h] = (localStorage.getItem(SIZE) || "375x812").split("x");
+    size(w, h);
+    fetch("/_house/list.json").then((r) => r.json()).then((list) => {
+      pick.innerHTML = `<option value="">All prototypes</option>` +
+        list.map((p) => `<option value="${p.folder}">${p.page ? `${p.page} · ` : ""}${p.title.replace(/^[^·]*·\s*/, "")}</option>`).join("");
+      load();
+    }).catch(load);
+  </script>
+</body>
+</html>

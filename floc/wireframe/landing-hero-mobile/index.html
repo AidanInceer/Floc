@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Landing · hero on a phone</title>
+  <meta name="wf-page" content="Landing">
+  <meta name="wf-route" content="/">
+  <meta name="wf-status" content="Chosen: O2">
+  <meta name="wf-picked" content="2026-11-11">
+  <meta name="description" content="How the Sicily hero reads on a phone. Rounds 1 to 4 (A–Q) closed; O2 chosen and built. O2: all five cards on screen at once, smaller, none over another, playing the live scene in place, above the fold (dashed lines mark 375×667 and 375×812); the ticket sits in the middle; the plane flies one soft arc behind the cards.">
+  <link rel="stylesheet" href="/_house/house.css">
+  <link rel="stylesheet" href="cards.css">
+  <link rel="stylesheet" href="hero.css">
+  <script src="/_house/house.js" defer></script>
+  <script src="main.js" type="module"></script>
+</head>
+<body>
+  <!-- PROTOTYPE — throwaway. ?variant=O2. State lives in memory; a reload starts over. -->
+  <header class="beads" aria-label="Site">
+    <span class="bead mark">
+      <svg viewBox="0 0 26 20" aria-hidden="true"><path d="M3 14 6.5 10.5 10 14"/><path d="M9.5 8.5 13 5 16.5 8.5"/><path d="M16 14 19.5 10.5 23 14"/></svg>
+      <b>floc<i>.</i></b>
+    </span>
+    <span class="bead pair"><a href="#">Sign in</a><a class="go" href="#">Sign up</a></span>
+  </header>
+  <section class="hm-top">
+    <h1 class="hm-h1">Trip planning, sorted.</h1>
+    <p class="hm-lede">Keep the destination, dates, route and costs in one place. Plan on your own, or with everyone who’s coming.</p>
+    <div class="hm-ctas"><a class="btn btn-primary" href="#">Start a trip — free</a><a class="btn" href="#">See example trips</a></div>
+  </section>
+  <main id="stage"></main>
+  <div class="ghost">Below: Everything in one place — unchanged</div>
+  <button type="button" class="replay" id="replay">Replay</button>
+  <div class="fold" style="top:667px"><span>Fold · 375×667</span></div>
+  <div class="fold" style="top:812px"><span>Fold · 375×812</span></div>
+</body>
+</html>

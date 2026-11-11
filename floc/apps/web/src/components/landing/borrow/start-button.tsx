@@ -12,7 +12,8 @@ type Props = { card: Card; signedIn: boolean; variant: "ghost" | "primary"; clas
 export function StartButton({ card, signedIn, variant, className }: Props) {
   return (
     <ButtonLink href={listingStartHref(signedIn, card.id)} variant={variant} className={cx("borrow-start", className)}>
-      Start from {card.place} <Glyph name="arrow" />
+      <span className="borrow-start-place">Start from {card.place}</span>
+      <span className="borrow-start-still">Start this trip</span> <Glyph name="arrow" />
     </ButtonLink>
   );
 }

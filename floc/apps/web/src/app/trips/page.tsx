@@ -54,7 +54,7 @@ export default async function TripsPage({
         <div className="sm:col-start-2">
           <NewTripField action={createTrip} friends={friends} groups={groups} asked={asked} />
         </div>
-        <ButtonLink href="/trips/archived" variant="ghost" className="row-start-1 justify-self-end max-sm:h-11 sm:col-start-3">
+        <ButtonLink href="/trips/archived" variant="ghost" className="justify-self-end max-sm:hidden sm:col-start-3">
           Archived
         </ButtonLink>
       </header>
