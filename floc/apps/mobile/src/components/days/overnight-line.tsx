@@ -4,12 +4,12 @@
  * DAY-FIRST (rule 3). `deriveStops` reads the run that starts on `openAt`;
  * saving writes `overnight_place_id` across that run's days. No stop is stored.
  */
-import { addDays, formatShortRange, nightsBetween } from "@floc/core/dates/dates";
 import { deriveStops } from "@floc/core/itinerary/stops";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { EventSheet } from "./event-sheet";
-import { OvernightForm } from "./overnight-form";
+import { OvernightForm, type OvernightChoice } from "./overnight-form";
+import type { StayWrite } from "@floc/core/itinerary/stay/overnight-pick";
 import { trpc } from "@/lib/api";
 import { shortPlace } from "@floc/core/itinerary/names/place-name";
 
@@ -49,15 +49,25 @@ export function OvernightLine({
   const queryClient = useQueryClient();
   const [problem, setProblem] = useState<string | null>(null);
 
-  const save = useMutation({
-    ...trpc.itinerary.setOvernight.mutationOptions(),
-    onSuccess: () => {
+  const save = useMutation(trpc.itinerary.setOvernight.mutationOptions());
+  const [busy, setBusy] = useState(false);
+
+  const saveStay = async (writes: StayWrite[], place: OvernightChoice | null) => {
+    setBusy(true);
+    try {
+      // Why: one write at a time, in order — parallel writes hit SQLITE_BUSY, and the set must land before the clears.
+      for (const w of writes) {
+        await save.mutateAsync({ tripId, startDate: w.start, endDate: w.end, place: w.clear ? null : place });
+      }
       setProblem(null);
       onClose();
+    } catch (error) {
+      setProblem(error instanceof Error ? error.message : "Could not save.");
+    } finally {
+      setBusy(false);
       queryClient.invalidateQueries({ queryKey: trpc.itinerary.days.queryKey({ tripId }) });
-    },
-    onError: (error) => setProblem(error.message),
-  });
+    }
+  };
 
   if (openAt === null) return null;
 
@@ -70,33 +80,28 @@ export function OvernightLine({
     })),
   ).find((run) => run.startDate === openAt);
   const start = openAt;
-  const checkOut = addDays(stop?.endDate ?? start, 1);
-  const nights = nightsBetween(start, checkOut);
 
   return (
     <EventSheet
       open
       title={stop?.placeName ? shortPlace(stop.placeName) : "Not set"}
-      subtitle={`${formatShortRange(start, checkOut)} · ${nights} ${nights === 1 ? "night" : "nights"}`}
       onClose={onClose}
     >
     <OvernightForm
       span={{
         start,
         end: stop?.endDate ?? start,
-        dates: days.map((row) => row.date).filter((row) => row >= start),
         placeId: stop?.placeId ?? null,
         placeName: stop?.placeName ?? null,
+        days: days.map((row) => ({ date: row.date, placeId: row.overnightPlaceId, placeName: row.overnightPlaceName })),
       }}
       // Sending an id back keeps the pin the map draws from; re-typing the
       // name would mint a second, coordinate-less place row.
       known={knownPlaces(days)}
-      busy={save.isPending}
+      busy={busy}
       problem={problem}
       onCancel={onClose}
-      onSave={(end, place) =>
-        save.mutate({ tripId, startDate: start, endDate: end, place })
-      }
+      onSave={saveStay}
     />
     </EventSheet>
   );

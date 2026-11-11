@@ -6,7 +6,7 @@ type Drawing = { paths: string[]; circles?: [number, number, number][] };
 const DRAWINGS: Record<string, Drawing> = {
   "": {
     paths: [
-      "M3.6 2h6.8A1.6 1.6 0 0 1 12 3.6v6.8a1.6 1.6 0 0 1-1.6 1.6H3.6A1.6 1.6 0 0 1 2 10.4V3.6A1.6 1.6 0 0 1 3.6 2ZM7 2v10M7 7h5",
+      "M2.4 6.4 7 2.4l4.6 4V12H8.4V9H5.6v3H2.4Z",
     ],
   },
   dates: {

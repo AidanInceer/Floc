@@ -106,6 +106,7 @@ function SettingsPanels({
     visibilityVibeTags: settings.visibilityVibeTags,
     visibilityTravelMap: settings.visibilityTravelMap,
     visibilityFriends: settings.visibilityFriends,
+    visibilitySaved: settings.visibilitySaved,
     pastTripsShow: settings.pastTripsShow,
   });
   const [tags, setTags] = useState<string[]>(settings.vibeTags);
@@ -172,7 +173,12 @@ function SettingsPanels({
           title="Privacy"
           summary={privacySummary({
             isPrivate: privacy.isPrivate,
-            rings: [privacy.visibilityVibeTags, privacy.visibilityTravelMap, privacy.visibilityFriends],
+            rings: [
+              privacy.visibilityVibeTags,
+              privacy.visibilityTravelMap,
+              privacy.visibilityFriends,
+              privacy.visibilitySaved,
+            ],
           })}
         >
           <SettingsPrivacy

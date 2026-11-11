@@ -12,8 +12,17 @@
  * that's #52/#53, and the roster would name third parties who never consented
  * to appear here.
  */
+import { wantToGoCountries } from "@floc/core/itinerary/travel-map";
+import { friendSavedPart } from "@floc/core/people/shared-saves";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { ListingRatesProvider } from "@/components/explore/listing-rates";
+import { SavedTripsProvider } from "@/components/explore/save/saved-trips";
+import { FriendSaved } from "@/components/lists/friend-saved";
+import { savedTripIds } from "@/server/explore/explore-saves";
+import { travelMapFor } from "@/server/itinerary/travel-map";
+import { listingRates, viewerCurrency } from "@/server/money/viewer-currency";
 import { requireUser } from "@/server/access";
 import { formatDateRange } from "@floc/core/dates/dates";
 import { friendStateWith } from "@/server/social/friends";
@@ -40,10 +49,14 @@ export default async function PublicProfilePage({
   // Independent of each other, so they go out together (ticket 114). The 404
   // for a stranger still comes from `requireProfileView` — it throws, and the
   // other promise is discarded with the render.
-  const [profile, friendState] = await Promise.all([
+  const [profile, friendState, yourTrips, yourMap, rates] = await Promise.all([
     requireProfileView(userId, viewer.id),
     friendStateWith(viewer.id, userId),
+    savedTripIds(viewer.id),
+    travelMapFor(viewer.id),
+    viewerCurrency(viewer.id, await headers()).then(listingRates),
   ]);
+  const saved = friendSavedPart(profile.saved, profile.travelMap);
 
   return (
     <AccountPage
@@ -83,6 +96,14 @@ export default async function PublicProfilePage({
 
       {profile.travelMap ? (
         <TravelMap title="Where they've been" states={profile.travelMap.states} />
+      ) : null}
+
+      {saved ? (
+        <ListingRatesProvider rates={rates}>
+          <SavedTripsProvider ids={yourTrips} signedIn>
+            <FriendSaved part={saved} yourCountries={wantToGoCountries(yourMap).map((c) => c.code)} />
+          </SavedTripsProvider>
+        </ListingRatesProvider>
       ) : null}
 
       {profile.pastTrips ? (

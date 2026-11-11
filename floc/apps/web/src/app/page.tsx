@@ -88,28 +88,28 @@ export default async function LandingPage() {
       {/* Up behind the top bar's beads (-mt-15 is the bar's height), so the bar has no band of its own. */}
       <div className="-mt-15 bg-sheet pb-4 pt-21 sm:pt-25">
         {/* ── hero ─────────────────────────────────────────────────────── */}
-        <section className="mx-auto max-w-[60rem] px-4 pt-12 text-center sm:px-6 sm:pt-16">
-          <h1 className="font-display text-[clamp(2.8rem,7.4vw,6rem)] font-semibold leading-none tracking-[-0.04em]">
+        <section className="mx-auto max-w-[60rem] px-4 text-center sm:px-6 sm:pt-16">
+          <h1 className="font-display text-[clamp(2.3rem,7.4vw,6rem)] font-semibold leading-none tracking-[-0.04em]">
             <span className="sr-only">Trip planning, sorted.</span>
             <span aria-hidden="true">Trip planning,</span>
             <TypedWord />
           </h1>
-          <p className="mx-auto mt-6 max-w-[44ch] text-md text-ink-soft">
+          <p className="mx-auto mt-3 max-w-[44ch] text-[15px] text-ink-soft sm:mt-6 sm:text-md">
             Keep the destination, dates, route and costs in one place. Plan on your own,
             or with everyone who&rsquo;s coming.
           </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <ButtonLink href={start} variant="primary" className="px-6 py-3 text-[12px]">
+          <div className="mt-4 flex justify-center gap-2 sm:mt-8 sm:flex-wrap sm:gap-3">
+            <ButtonLink href={start} variant="primary" className="whitespace-nowrap px-3 py-2.5 text-[12px] sm:px-6 sm:py-3">
               {signedIn ? "Get planning!" : "Start a trip — free"}
             </ButtonLink>
-            <ButtonLink href={inspire} variant="secondary" className="px-6 py-3 text-[12px]">
+            <ButtonLink href={inspire} variant="secondary" className="whitespace-nowrap px-3 py-2.5 text-[12px] sm:px-6 sm:py-3">
               See example trips
             </ButtonLink>
           </div>
         </section>
 
         {/* Illustrative sample, not a live query — one Sicily trip settling. */}
-        <div className="mt-16">
+        <div className="mt-2 sm:mt-16">
           <HeroDeck />
         </div>
       </div>

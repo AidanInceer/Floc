@@ -22,13 +22,23 @@ function rounds(list) {
   return out.sort((a, b) => b.n - a.n);
 }
 
+// Why: in the phone viewer the page sits in a phone-sized frame; its panel goes in the viewer's corner, by Desktop/Phone, not inside the phone.
+function hostWindow() {
+  try {
+    if (window !== window.top && window.parent.location.pathname === "/_house/phone.html") return window.parent;
+  } catch {}
+  return window;
+}
+
 export function mountVariants(list, { current, onPick }) {
   const picked = pickedCode();
-  const panel = document.createElement("aside");
+  const host = hostWindow();
+  host.document.querySelectorAll(".wf-vars").forEach((old) => old.remove());
+  const panel = host.document.createElement("aside");
   panel.className = "wf-vars";
   panel.setAttribute("aria-label", "Variants");
   const saved = localStorage.getItem(STORE);
-  const open = saved ? saved === "1" : matchMedia("(min-width: 821px)").matches;
+  const open = saved ? saved === "1" : host.matchMedia("(min-width: 821px)").matches;
   panel.dataset.open = String(open);
 
   const groups = rounds(list);
@@ -44,7 +54,7 @@ export function mountVariants(list, { current, onPick }) {
         return `<li><button type="button" data-i="${v.i}"><b class="nums">${esc(code)}</b><span>${esc(v.name)}</span>${isPick ? '<em class="typed">Picked</em>' : ""}${v.tag ? `<em class="typed">${esc(v.tag)}</em>` : ""}</button></li>`;
       }).join("")}</ul>`).join("") +
     `<p class="wf-vars-keys typed">← → to step</p></div>`;
-  document.body.appendChild(panel);
+  host.document.body.appendChild(panel);
 
   const head = panel.querySelector(".wf-vars-head");
   const now = panel.querySelector(".wf-vars-now");
@@ -59,7 +69,10 @@ export function mountVariants(list, { current, onPick }) {
     panel.querySelectorAll("[data-i]").forEach((b) => b.setAttribute("aria-current", String(Number(b.dataset.i) === index)));
     now.textContent = v.code || v.key;
     count.textContent = `${index + 1}/${list.length}`;
-    if (scroll) panel.querySelector(`[data-i="${index}"]`)?.scrollIntoView({ block: "nearest" });
+    const item = scroll && panel.querySelector(`[data-i="${index}"]`);
+    const body = panel.querySelector(".wf-vars-body");
+    // Why: scrollIntoView also scrolls the page under the panel, so a mockup opened part-way down.
+    if (item && body) body.scrollTop += item.getBoundingClientRect().top - body.getBoundingClientRect().top - (body.clientHeight - item.offsetHeight) / 2;
     onPick(v.key);
   };
   const toggle = () => {
@@ -74,11 +87,19 @@ export function mountVariants(list, { current, onPick }) {
     const b = e.target.closest("[data-i]");
     if (b) show(Number(b.dataset.i));
   });
-  document.addEventListener("keydown", (e) => {
-    if (e.target.closest?.("input, textarea, [contenteditable], [data-own-keys]")) return;
+  const step = (e) => {
+    if (e.target.closest?.("input, textarea, select, [contenteditable], [data-own-keys]")) return;
     if (e.key === "ArrowLeft") show(index - 1, true);
     if (e.key === "ArrowRight") show(index + 1, true);
-  });
+  };
+  document.addEventListener("keydown", step);
+  if (host !== window) {
+    host.document.addEventListener("keydown", step);
+    window.addEventListener("pagehide", () => {
+      host.document.removeEventListener("keydown", step);
+      panel.remove();
+    });
+  }
   show(index, true);
   return { show: (key) => show(Math.max(0, list.findIndex((v) => v.key === key))) };
 }

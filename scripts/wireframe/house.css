@@ -83,3 +83,4 @@ a { color: var(--pen); }
   text-transform: uppercase; letter-spacing: 0.06em; color: var(--paper); opacity: 0.6;
 }
 .wf-theme button[aria-pressed="true"] { background: var(--paper); color: var(--ink); opacity: 1; }
+.wf-theme-gap { width: 1px; margin: 4px 3px; background: var(--paper); opacity: 0.3; }
