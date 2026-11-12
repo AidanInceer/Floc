@@ -17,6 +17,7 @@ Read before editing. Only traps not already a rule in [`AGENTS.md`](AGENTS.md) l
 - **Shell calls that drift.** A `cd` persists, so the next `cd floc/apps/web` fails. Inline Python and long quoted `bash -c` lines break on quotes. Use absolute paths; put anything over one line in a scratchpad `.mjs` or `.ps1`. `Glob` a path before `Read` — `floc-core/src/design/tokens.ts` is a file, not a folder.
 - **Port 3000 held by another chat's `floc-web`.** Do not start a second one on 3001. Point the pane at the running server (`preview_start {url: "http://localhost:3000"}`) or ask the user to stop it.
 - **A shell edit in the main checkout** (`node -e`, `sed -i`, a copy). The guard sees only Edit and Write, but the rule is the same: the edit strands there, blocks the next pull and leaks into every session that starts there. Make the change in a task worktree.
+- **Deleting by hand** (`rm -r`, `Remove-Item -Recurse`, `taskkill`, a raw `git worktree remove`). Auto mode denies it and the retries waste the turn. Landed worktrees and their servers go with `pnpm workspace:sweep`, run alone; scratch files go in `$env:TEMP\claude`, never inside the repo.
 - **A plain string replace on a CRLF file.** Most files here are CRLF, so an LF-keyed match silently finds nothing. Normalise, patch, restore.
 
 ## App

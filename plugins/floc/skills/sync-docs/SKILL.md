@@ -16,7 +16,7 @@ shape. Most changes need nothing, or a sentence or two changed on a page that
 already exists. A new page is rare: ask him first. Leaving a doc alone is a
 good outcome; adding words is the cost.
 
-The docs live in the private `AidanInceer/floc-docs` repo. The main checkout holds the clone and every worktree's `docs/` links to it, so edit `docs/...` as usual. Doc edits never show in the Floc diff: list the pages you changed in your report, and hand that list to `/floc:push --docs`, which commits and pushes only those pages.
+The docs live in the private `AidanInceer/floc-docs` repo. The main checkout holds the clone. A task worktree's `docs/` is its own floc-docs worktree on `docs/<branch>`, cut from main, so edit `docs/...` as usual: no other session's pages are in it, and `pnpm delivery finish` merges the branch into floc-docs main after the code merges. Doc edits never show in the Floc diff: list the pages you changed in your report. An older worktree whose `docs/` is still a link to the shared clone hands that list to `/floc:push --docs` and claims its pages (step 5).
 
 ## 1. Read the change
 
@@ -100,7 +100,9 @@ API map, a broken link or anchor in `docs/`, `AGENTS.md` or a skill, a page miss
 `TREE`, a bad `related` id or `adr` number, or a feature page without *Built on*.
 It cannot see stale prose — that part is yours.
 
-## 5. Claim the pages
+## 5. Claim the pages (linked docs only)
+
+Skip this when `docs/` is the task's own floc-docs worktree (`pnpm workspace:prepare` says `"docs":"own"`).
 
 ```bash
 pnpm delivery claim --docs <page> <page>

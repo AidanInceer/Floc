@@ -6,4 +6,4 @@ function tests(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => entry.isDirectory()
     ? tests(join(dir, entry.name)) : entry.name.endsWith(".test.mjs") ? [join(dir, entry.name)] : []);
 }
-command(process.execPath, ["--test", ...tests("scripts")], { stdio: "inherit" });
+command(process.execPath, ["--test", ...tests("scripts"), ...tests("floc/apps/web/scripts")], { stdio: "inherit" });

@@ -10,6 +10,7 @@ import { insertNote, softDeleteNoteAndReplies } from "@/server/notes/notes";
 import { insertNudge, removeMembership } from "@/server/trips/roster";
 import { inviteToTrip } from "@/server/trips/invites";
 import { softDeleteTrip } from "@/server/trips/trips";
+import { tripHref } from "@floc/core/notifications/notification-href";
 import { countUnread, listInbox, listUnseen, markAllRead, markInboxSeen, openNotification } from "@/server/notifications/inbox";
 
 let world: Scenario;
@@ -106,12 +107,14 @@ describe("the inbox", () => {
   });
 
   it("pages 50 at a time", async () => {
-    // Why the backdating: one person may send only so many nudges a day, and this needs 51 items.
-    const yesterday = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
-    for (let i = 0; i < 51; i++) {
-      await nudge();
-      await db.update(schema.nudge).set({ createdAt: yesterday });
-    }
+    // Why one batch, not 51 nudge() calls: 100+ round trips timed out on a busy machine, and the daily nudge cap needs backdating.
+    const rows = Array.from({ length: 51 }, () => ({ tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab: "dates" as const, message: null }));
+    const nudges = await db.insert(schema.nudge).values(rows).returning({ id: schema.nudge.id });
+    const href = tripHref(world.ours.id, "dates");
+    const sent = await db.insert(schema.activity)
+      .values(nudges.map(({ id }) => ({ kind: "nudge_sent" as const, tripId: world.ours.id, actorId: world.admin, subjectId: id, href })))
+      .returning({ id: schema.activity.id });
+    await db.insert(schema.notification).values(sent.map(({ id }) => ({ activityId: id, userId: world.member, loud: true })));
     const first = await listInbox(world.member, null);
     const second = await listInbox(world.member, first.next);
 

@@ -7,6 +7,7 @@ import { requireReview } from "./review.mjs";
 import { mainCheckout, targetFor } from "../workspace/worktrees.mjs";
 import { sweep } from "../workspace/sweep.mjs";
 import { bumpPlugin } from "./plugin-version.mjs";
+import { HOLD, mergeMode } from "./ci.mjs";
 
 const PACKAGE = "floc/apps/web/package.json";
 
@@ -34,7 +35,7 @@ function safeSweep(main, current) {
  * pre-commit hook is the local gate and CI on the PR is the real one
  * (AGENTS.md, Guardrail gates). Docs go out after the merge, in finish.
  */
-export function publish(root, { messageFile }) {
+export function publish(root, { messageFile, hold = false }) {
   const branch = taskBranch(root);
   const target = targetFor(branch);
   const main = mainCheckout(root);
@@ -56,9 +57,16 @@ export function publish(root, { messageFile }) {
     gh(root, "pr", "create", "--base", target, "--head", branch, "--title", subject, "--body-file", resolve(messageFile));
     pr = pullRequest(root, branch, "open");
   }
-  const merging = autoMerge(root, pr.number, target);
+  const merging = mergeMode({ hold, pr }) === "hold" ? holdPull(root, pr) : autoMerge(root, pr.number, target);
   return {
     state: "published", pr: pr.url, number: pr.number, target, sha: git(root, "rev-parse", "HEAD"), ...(version && { version }), ...(plugin && { plugin }), autoMerge: merging, swept,
     next: `Start the floc:ci-watch agent in the background for PR #${pr.number}.`,
   };
+}
+
+function holdPull(root, pr) {
+  gh(root, "label", "create", HOLD, "--color", "B60205", "--description", "Review first: ci-watch reports green and never merges", "--force");
+  gh(root, "pr", "edit", String(pr.number), "--add-label", HOLD);
+  if (pr.autoMergeRequest) gh(root, "pr", "merge", String(pr.number), "--disable-auto");
+  return `held; remove the ${HOLD} label to let it merge`;
 }
