@@ -28,6 +28,7 @@ import type { TripsPort } from "./port/trips";
 import type { ItineraryPort } from "./port/itinerary";
 import type { MoneyPort } from "./port/money";
 import type { FilesPort } from "./port/files";
+import type { BookingsPort } from "./port/bookings";
 import type { IdeasPort } from "./port/ideas";
 import type { PackingPort } from "./port/packing";
 import type { FriendsPort } from "./port/friends";
@@ -39,6 +40,7 @@ export type * from "./port/trips";
 export type * from "./port/itinerary";
 export type * from "./port/money";
 export type * from "./port/files";
+export type * from "./port/bookings";
 export type * from "./port/ideas";
 export type * from "./port/packing";
 export type * from "./port/friends";
@@ -82,6 +84,7 @@ export type FlocPort = AccountPort &
   ItineraryPort &
   MoneyPort &
   FilesPort &
+  BookingsPort &
   IdeasPort &
   PackingPort &
   FriendsPort &

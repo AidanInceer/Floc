@@ -39,6 +39,7 @@ const EVERY_FACT: { [K in FactKind]: Extract<Fact, { kind: K }> } = {
   friendGroups: { kind: "friendGroups" },
   inbox: { kind: "inbox" },
   bell: { kind: "bell" },
+  bookings: { kind: "bookings" },
   explore: { kind: "explore" },
   savedTrips: { kind: "savedTrips" },
 };

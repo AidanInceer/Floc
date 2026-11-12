@@ -27,7 +27,7 @@ import { FileFilters, type FileFilter } from "@/components/files/file-filter";
 import { FileCard } from "@/components/files/file-card";
 import { UploadGlyph } from "@/components/system/glyphs";
 import { FileRow } from "@/components/files/file-row";
-import { InboxAddress } from "@/components/files/inbox-address";
+import { ForwardBookings } from "@/components/files/forward-bookings";
 import { StorageMeter } from "@/components/files/storage-meter";
 import { openFileNatively } from "@/components/files/open-file";
 import { Sheet } from "@/components/system/sheet";
@@ -157,7 +157,7 @@ export default function Files() {
         <ArchivedFiles tripId={tripId} viewerId={session?.user.id} filter={filter} />
       </View>
 
-      <InboxAddress tripId={tripId} />
+      <ForwardBookings tripId={tripId} />
 
       {usage.data && canAdd ? <StorageMeter {...usage.data} /> : null}
 

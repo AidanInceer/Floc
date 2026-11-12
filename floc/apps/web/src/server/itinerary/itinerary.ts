@@ -512,12 +512,16 @@ function eventValues(input: EventFields) {
   };
 }
 
-export async function insertEvent(dayId: number, input: EventFields, countSoFar?: number): Promise<void> {
+/** Returns the new event's id, for a caller that files something on it at once (#559). */
+export async function insertEvent(dayId: number, input: EventFields, countSoFar?: number): Promise<number> {
   const count = countSoFar ?? (await eventCount(dayId));
   assertRoom("eventsPerDay", count);
-  await db
+  const row = await db
     .insert(dayEvent)
-    .values({ dayId, orderIndex: count, ...eventValues(input) });
+    .values({ dayId, orderIndex: count, ...eventValues(input) })
+    .returning({ id: dayEvent.id })
+    .get();
+  return row.id;
 }
 
 // Filters deletedAt so a stale id cannot edit a deleted event (ticket 115).

@@ -43,6 +43,7 @@ export type Fact =
   | { kind: "friendGroups" }
   | { kind: "inbox" }
   | { kind: "bell" }
+  | { kind: "bookings" }
   | { kind: "explore" }
   | { kind: "savedTrips" };
 
@@ -98,6 +99,7 @@ const PAGES: Pages = {
   inbox: () => [{ path: "/inbox" }],
   // The bell hangs off the root layout, so it is stale on every page at once.
   bell: () => [{ path: "/", type: "layout" }],
+  bookings: () => [{ path: "/bookings" }],
   explore: () => [{ path: "/explore" }],
   savedTrips: () => [{ path: "/lists" }, { path: "/explore", type: "layout" }],
 };
@@ -106,6 +108,8 @@ const PAGES: Pages = {
 const IMPLIES: Partial<Record<FactKind, FactKind[]>> = {
   tripWindow: ["itinerary", "tripDates", "tripHeader"],
   inbox: ["bell"],
+  // Why: the "Which trip?" dialog and the menu's count hang off the root layout (#559).
+  bookings: ["bell"],
 };
 
 /** The tab a note thread is rendered on — notes hang off several surfaces. */

@@ -44,6 +44,7 @@ import { commentsPort } from "@/server/api-port/api-port-comments";
 import { pagesPort } from "@/server/api-port/pages/api-port-pages";
 import { ideasPort } from "@/server/api-port/ideas/ideas";
 import { filesPort } from "@/server/api-port/api-port-files";
+import { bookingsPort } from "@/server/api-port/bookings/bookings";
 import { explorePort } from "@/server/api-port/api-port-explore";
 import { kitsPort } from "@/server/api-port/api-port-kits";
 import { mapPort } from "@/server/api-port/api-port-map";
@@ -133,6 +134,7 @@ export const webPort: FlocPort = {
   ...mapPort,
   ...kitsPort,
   ...filesPort,
+  ...bookingsPort,
   ...commentsPort,
   ...pagesPort,
   ...ideasPort,
@@ -383,8 +385,9 @@ export const webPort: FlocPort = {
     await scoped(viewerId, tripId);
     // The viewer goes down to the query, which drops a private file that is
     // somebody else's rather than returning it flagged.
-    const rows = await listDocuments(tripId, viewerId);
+    const [rows, reads] = await Promise.all([listDocuments(tripId, viewerId), canUseFeature("bookings.autoFile", viewerId)]);
     return rows.map((d) => ({
+      booking: reads ? d.booking : null,
       id: d.id,
       name: d.name,
       mimeType: d.mimeType,

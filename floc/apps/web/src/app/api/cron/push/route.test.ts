@@ -8,6 +8,7 @@ vi.mock("@/server/notifications/email-fallback", () => ({ sendDueEmails: async (
 vi.mock("@/server/notes/pages/page-purge", () => ({ purgeArchivedPages: async () => 0 }));
 vi.mock("@/server/guests/guest-purge", () => ({ purgeOldGuests: async () => 0 }));
 vi.mock("@/server/documents/archive/archive", () => ({ purgeArchivedFiles: async () => 3 }));
+vi.mock("@/server/documents/bookings/booking-inbox", () => ({ purgeWaitingBookings: async () => 4 }));
 
 import { POST } from "./route";
 
@@ -25,6 +26,6 @@ it("runs the other jobs when one fails, and logs the failed one", async () => {
   vi.stubEnv("CRON_SECRET", "cron-secret");
   const { result, lines } = await capturedLogAsync(() => call("Bearer cron-secret"));
   expect(result.status).toBe(500);
-  expect(await result.json()).toEqual({ reminders: 1, pushes: null, emails: 2, pages: 0, guests: 0, files: 3 });
+  expect(await result.json()).toEqual({ reminders: 1, pushes: null, emails: 2, pages: 0, guests: 0, files: 3, bookings: 4 });
   expect(lines).toEqual([expect.objectContaining({ level: "error", message: "cron.failed", job: "push", errorType: "Error" })]);
 });

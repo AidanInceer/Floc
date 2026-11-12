@@ -1,12 +1,12 @@
 /**
- * Resend's received-email webhook (#328, ADR-027). The signature check is the
- * whole security of this route: without it anyone could post files into a
- * trip, so an unsigned body is refused before its JSON is read.
+ * Resend's received-email webhook (#328, #559). The signature check is the first gate of this route: without
+ * it anyone could post mail as a member, so an unsigned body is refused before its JSON is read.
  */
 import { documentsEnabled } from "@/server/documents/document-store";
+import { barcodeTexts } from "@/server/documents/inbound/barcode";
 import { receiveBookingMail } from "@/server/documents/inbound/booking-mail";
 import { resendAttachments } from "@/server/documents/inbound/resend-attachments";
-import { resendFromProven } from "@/server/documents/inbound/resend-authentication";
+import { resendReceived } from "@/server/documents/inbound/resend-received";
 import { webhookSigned } from "@/server/documents/inbound/webhook-signature";
 import { sendEmails } from "@/server/auth/email";
 
@@ -14,7 +14,7 @@ export const runtime = "nodejs";
 
 type Received = {
   type: string;
-  data: { email_id: string; from: string; to?: string[]; received_for?: string[]; subject?: string };
+  data: { email_id: string; from: string; to?: string[]; received_for?: string[] };
 };
 
 export async function POST(request: Request): Promise<Response> {
@@ -30,18 +30,15 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const event = JSON.parse(body) as Received;
-  if (event.type !== "email.received") return new Response("ok");
+  if (event.type !== "email.received" || typeof event.data?.email_id !== "string") return new Response("ok");
 
   const { data } = event;
   await receiveBookingMail(
+    { emailId: data.email_id, from: String(data.from ?? ""), to: [...(data.to ?? []), ...(data.received_for ?? [])] },
     {
-      from: data.from,
-      to: [...(data.to ?? []), ...(data.received_for ?? [])],
-      subject: data.subject ?? "",
-    },
-    {
+      received: () => resendReceived(data.email_id, apiKey),
       loadAttachments: () => resendAttachments(data.email_id, apiKey),
-      fromProven: () => resendFromProven(data.email_id, apiKey),
+      barcodes: barcodeTexts,
       send: sendEmails,
     },
   );

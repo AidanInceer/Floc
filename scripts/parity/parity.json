@@ -21,6 +21,21 @@
     "billing.status": {
       "mobile": "yes"
     },
+    "bookings.area": {
+      "mobile": "yes"
+    },
+    "bookings.place": {
+      "mobile": "yes"
+    },
+    "bookings.remove": {
+      "mobile": "yes"
+    },
+    "bookings.upload": {
+      "mobile": "yes"
+    },
+    "bookings.waitingCount": {
+      "mobile": "yes"
+    },
     "comments.add": {
       "mobile": "yes"
     },
@@ -464,6 +479,18 @@
       "path": "floc/apps/web/src/app/invite/[token]",
       "status": "wontfix",
       "why": "Answering on an invite link with a name and no account (#442, ADR-029) is for people without Floc, and the link opens in a browser. Anyone with the app already has an account, so there is nobody for a guest flow on the phone to serve. The phone shows guests read-only in Dates, through availability.guests; removing one stays on the web."
+    },
+    {
+      "id": "booking-add-to-days",
+      "path": "floc/apps/web/src/components/documents/add-to-days.tsx",
+      "status": "planned",
+      "why": "Add to Days on a Travel or Hotel file (#559) is a Server Action on the web's Files page, built first to settle the form. The phone has the rest of #559: the shared address, the Bookings screen and choosing a trip. The phone's own sheet needs a files procedure for the write and follows in its own ticket."
+    },
+    {
+      "id": "booking-which-trip-prompt",
+      "path": "floc/apps/web/src/components/bookings/which-trip-prompt.tsx",
+      "status": "planned",
+      "why": "The dialog that asks which trip a waiting booking is for when you open the site (#559). On the phone the Bookings row on You shows how many files wait, and the Bookings screen asks the same question. A prompt on opening the app follows with the phone's Add to Days."
     }
   ]
 }
