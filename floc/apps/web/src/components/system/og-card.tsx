@@ -3,7 +3,7 @@
  * light tokens, because the image renderer cannot read CSS variables. No custom font is loaded, so
  * a card always renders (rule 11).
  */
-import { resolveColours } from "@floc/core/design/tokens";
+import { resolveColours, type Theme } from "@floc/core/design/tokens";
 
 const colours = resolveColours("light");
 
@@ -17,9 +17,11 @@ export const OG_COLOURS = {
   butter: colours["pastel-yellow"],
 };
 
-export function OgWordmark() {
+/** Light by default; the recap picture can be sent in dark too (#443). */
+export function OgWordmark({ theme = "light" }: { theme?: Theme }) {
+  const ink = theme === "light" ? OG_COLOURS.ink : resolveColours(theme).ink;
   return (
-    <div style={{ display: "flex", alignItems: "center", fontSize: 38, fontWeight: 700, color: OG_COLOURS.ink }}>
+    <div style={{ display: "flex", alignItems: "center", fontSize: 38, fontWeight: 700, color: ink }}>
       <svg
         width={62}
         height={49}

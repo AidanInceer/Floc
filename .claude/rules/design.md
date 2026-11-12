@@ -58,6 +58,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - No tiny all-caps kicker above a heading. The mono label names a value; it never introduces a section.
 - Sentence case. British English. Real content, never lorem ipsum.
 - ✓ A field starts empty: no placeholder, no example, nothing pre-filled the person did not choose. A visible label or an `aria-label` names it.
+  - One exception: *Plan the next one* on a finished trip's recap starts with the trip's other members ticked; the name field stays empty (#443).
 - ✓ Money is exact. No `≈` or `~`. A money figure anywhere matches the Money tab, which is the source of truth.
 
 ## Layout

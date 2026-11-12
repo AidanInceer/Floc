@@ -23,7 +23,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text-summary", "html", "lcov"],
-      include: ["server.ts", "src/middleware.ts", "src/lib/**/*.ts", "src/server/**/*.ts", "src/app/**/actions.ts", "src/app/**/*-for.ts", "src/app/api/health/route.ts", "src/app/api/client-error/route.ts", "src/app/api/cron/push/route.ts", "src/app/api/trpc/[[]trpc]/route.ts", "src/instrumentation.ts","src/app/api/dev/enter/route.ts", "src/app/api/inbound/route.ts", "src/app/calendar/**/route.ts", "src/app/trip/*/calendar.ics/route.ts", "src/app/**/streamed.tsx", "src/app/trips/cards.ts", "src/app/not-found.tsx", "src/app/robots.txt/route.ts", "src/app/sitemap.xml/route.ts"],
+      include: ["server.ts", "src/middleware.ts", "src/lib/**/*.ts", "src/server/**/*.ts", "src/app/**/actions.ts", "src/app/**/*-for.ts", "src/app/api/health/route.ts", "src/app/api/client-error/route.ts", "src/app/api/cron/push/route.ts", "src/app/api/trpc/[[]trpc]/route.ts", "src/instrumentation.ts","src/app/api/dev/enter/route.ts", "src/app/api/inbound/route.ts", "src/app/calendar/**/route.ts", "src/app/trip/*/calendar.ics/route.ts", "src/app/trip/*/recap-card/route.tsx", "src/app/**/next-trip-actions.ts", "src/app/**/streamed.tsx", "src/app/trips/cards.ts", "src/app/not-found.tsx", "src/app/robots.txt/route.ts", "src/app/sitemap.xml/route.ts"],
       exclude: ["src/**/*.test.ts"],
       // At least 80% on every package; never lower one to make a run pass.
       thresholds: {

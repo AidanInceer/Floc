@@ -119,6 +119,18 @@ export function UploadIcon(props: IconProps) {
   );
 }
 
+/** Share: three nodes on two lines, the same drawing as the phone's `ShareGlyph`. */
+export function ShareIcon(props: IconProps) {
+  return (
+    <LineIcon {...props}>
+      <circle cx="10.5" cy="2.9" r="1.75" />
+      <circle cx="3.5" cy="7" r="1.75" />
+      <circle cx="10.5" cy="11.1" r="1.75" />
+      <path d="M5 7.9l4 2.3M9 3.8L5 6.1" />
+    </LineIcon>
+  );
+}
+
 /** Leaves Floc for another site. */
 export function OutIcon(props: IconProps) {
   return (
