@@ -22,8 +22,10 @@ import {
   inviteTrip,
   inviteViewer,
 } from "@/app/invite/[token]/invite-access";
+import { mintShareToken } from "@/server/trips/invite-link";
 
 let world: Scenario;
+const OURS_LINK = mintShareToken("token-ours");
 
 beforeAll(migrateTestDb);
 beforeEach(async () => {
@@ -33,7 +35,7 @@ beforeEach(async () => {
 
 describe("the token", () => {
   it("opens the trip it belongs to", async () => {
-    expect((await inviteTrip("token-ours"))?.id).toBe(world.ours.id);
+    expect((await inviteTrip(OURS_LINK))?.id).toBe(world.ours.id);
   });
 
   it("answers nothing for a token that never existed", async () => {
@@ -46,7 +48,7 @@ describe("the token", () => {
       .set({ deletedAt: new Date() })
       .where(eq(schema.trip.id, world.ours.id));
 
-    expect(await inviteTrip("token-ours")).toBeUndefined();
+    expect(await inviteTrip(OURS_LINK)).toBeUndefined();
   });
 });
 

@@ -4,6 +4,7 @@ import { MAX_DOCUMENT_BASE64_LENGTH } from "@floc/core/documents/documents";
 import type { FlocPort } from "@floc/api/port";
 
 import { scoped } from "@/server/api-port/api-port-scope";
+import { archivedFiles, restoreDocument } from "@/server/documents/archive/archive";
 import {
   categoriseDocument, fileDocumentOnEvent, removeDocument,
   renameDocument, saveDocument,
@@ -17,6 +18,7 @@ import { appUrl } from "@/lib/env";
 type FilesPort = Pick<FlocPort,
   | "uploadFile" | "deleteFile" | "setFileCategory" | "renameFile" | "fileUsage"
   | "attachFileToEvent" | "detachFileFromEvent" | "fileViewUrl" | "filesWritable" | "fileInboxAddress"
+  | "listArchivedFiles" | "restoreFile"
 >;
 
 export const filesPort: FilesPort = {
@@ -38,6 +40,15 @@ export const filesPort: FilesPort = {
 
   async deleteFile(viewerId, tripId, fileId) {
     await removeDocument(await scoped(viewerId, tripId), fileId);
+  },
+
+  async listArchivedFiles(viewerId, tripId) {
+    const files = await archivedFiles(await scoped(viewerId, tripId));
+    return files.map((file) => ({ ...file, archivedAt: file.archivedAt.toISOString() }));
+  },
+
+  async restoreFile(viewerId, tripId, fileId) {
+    return restoreDocument(await scoped(viewerId, tripId), fileId);
   },
 
   async attachFileToEvent(viewerId, tripId, fileId, dayEventId) {

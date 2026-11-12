@@ -24,9 +24,11 @@ import { DocumentRow } from "@/components/documents/document-row";
 import { DocumentFiling } from "@/components/documents/document-filing";
 import { DocumentUpload } from "@/components/documents/document-upload";
 import { DocumentRenameForm } from "@/components/documents/document-rename";
-import { ConfirmSubmit, Menu, Sheet } from "@/components/system/client-ui";
-import { cx, menuDangerItemClass, menuItemClass, PageTitle } from "@/components/system/ui";
-import { removeDocument, renameDocument } from "./actions";
+import { ArchivedFiles } from "@/components/documents/archived-files";
+import { archivedFiles } from "@/server/documents/archive/archive";
+import { Menu, Sheet } from "@/components/system/client-ui";
+import { cx, menuItemClass, PageTitle } from "@/components/system/ui";
+import { removeDocument, renameDocument, restoreDocument } from "./actions";
 
 export const metadata = { title: "Files" };
 
@@ -43,12 +45,12 @@ export default async function FilesPage({
   const viewerId = access.viewer.id;
 
   const category = parseCategoryFilter((await searchParams).category);
-  const [docs, space] = documentsEnabled()
-    ? await Promise.all([listDocuments(tripId, viewerId), storageUsage(tripId)])
-    : [[], null];
+  const [docs, space, archived] = documentsEnabled()
+    ? await Promise.all([listDocuments(tripId, viewerId), storageUsage(tripId), archivedFiles(access)])
+    : [[], null, []];
 
   const inbox = tripInboxAddress(tripId);
-  const keep = (d: TripDocument) => category === "all" || d.category === category;
+  const keep = (d: { category: DocCategory }) => category === "all" || d.category === category;
   const shared = docs.filter((d) => d.ownerId === null && keep(d));
   const mine = docs.filter((d) => d.ownerId !== null && keep(d));
 
@@ -122,6 +124,8 @@ export default async function FilesPage({
             />
           </div>
 
+          <ArchivedFiles files={archived.filter(keep)} viewerId={viewerId} now={new Date()} restore={restoreDocument.bind(null, tripId)} />
+
           {space ? <StorageMeter {...space} /> : null}
         </>
       )}
@@ -181,15 +185,9 @@ function FileCard({
                     />
                   </Sheet>
                   <form action={removeDocument.bind(null, tripId, doc.id)}>
-                    <ConfirmSubmit
-                      variant="ghost"
-                      confirmVariant="danger"
-                      confirmLabel="Remove it"
-                      message="Remove this file? It goes for everyone who could see it."
-                      className={menuDangerItemClass}
-                    >
-                      Remove
-                    </ConfirmSubmit>
+                    <button type="submit" role="menuitem" className={menuItemClass}>
+                      Archive
+                    </button>
                   </form>
                 </Menu>
               </DocumentRow>

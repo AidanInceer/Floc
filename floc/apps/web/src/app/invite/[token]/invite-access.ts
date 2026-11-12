@@ -15,11 +15,11 @@ import "server-only";
 import { cache } from "react";
 
 import { getInviteGuest, getSession } from "@/server/access";
-import { findTripByInviteToken } from "@/server/trips/invites";
+import { findTripByShareLink } from "@/server/trips/invites";
 import { isLiveMember } from "@/server/trips/roster";
 
 export const inviteTrip = cache(async (token: string) => {
-  return findTripByInviteToken(token);
+  return findTripByShareLink(token);
 });
 
 /** Where somebody on this link goes to stop being a guest. `via=link` marks a sign-up that arrived this way. */

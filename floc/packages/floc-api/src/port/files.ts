@@ -27,6 +27,20 @@ export type TripFile = {
   eventDayId: number | null;
 };
 
+/** A removed file waiting out its week (ADR-048). Its bytes cannot be opened; it can only be restored. */
+export type ArchivedTripFile = {
+  id: number;
+  name: string;
+  mimeType: string;
+  sizeBytes: number;
+  category: DocCategory;
+  uploadedBy: string;
+  uploaderName: string;
+  ownerId: string | null;
+  /** ISO 8601 instant: the week counts from here. */
+  archivedAt: string;
+};
+
 /** A file on its way up from a phone (tickets 239, 296). */
 export type FileUpload = {
   name: string;
@@ -68,8 +82,15 @@ export type FilesPort = {
   /**
    * Any member's to do, like a shared packing line. A private file is never
    * handed to anybody but its owner, so it is not addressable by the rest.
+   * The file goes to the archive for a week, not off the disk (ADR-048).
    */
   deleteFile(viewerId: string, tripId: number, fileId: number): Promise<void>;
+
+  /** Newest first: shared files and the viewer's own, removed in the last week (ADR-048). */
+  listArchivedFiles(viewerId: string, tripId: number): Promise<ArchivedTripFile[]>;
+
+  /** Puts an archived file back on the trip. Null when it is back, else the refusal in the words a form shows. */
+  restoreFile(viewerId: string, tripId: number, fileId: number): Promise<string | null>;
 
   /** Every member's live files count, private ones too, so this is a total and never a list (#285). */
   fileUsage(viewerId: string, tripId: number): Promise<{ usedBytes: number; quotaBytes: number }>;

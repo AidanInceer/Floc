@@ -2,6 +2,7 @@
 
 import { parseDocCategory, rejectUpload } from "@floc/core/documents/documents";
 import { requireTripAccess } from "@/server/access";
+import { restoreDocument as restore } from "@/server/documents/archive/archive";
 import { documentsEnabled } from "@/server/documents/document-store";
 import {
   categoriseDocument, fileDocumentOnEvent, removeDocument as remove,
@@ -29,6 +30,11 @@ export async function uploadDocument(tripId: number, formData: FormData): Promis
 
 export async function removeDocument(tripId: number, documentId: number) {
   await remove(await requireTripAccess(tripId), documentId);
+}
+
+export async function restoreDocument(tripId: number, documentId: number): Promise<{ error?: string }> {
+  const refusal = await restore(await requireTripAccess(tripId), documentId);
+  return refusal ? { error: refusal } : {};
 }
 
 export async function setCategory(tripId: number, documentId: number, formData: FormData) {

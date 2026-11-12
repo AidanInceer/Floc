@@ -21,7 +21,7 @@ describe("walkthroughFor", () => {
     expect(props.trip).toEqual({ id: 7, name: "Lisbon long weekend", joined: false, datesSet: false, placesSet: false });
     expect(props.firstName).toBe("Aidan");
     expect(props.preview.dates).toBeNull();
-    expect(props.preview.inviteUrl).toBe("https://floc.test/invite/tok");
+    expect(props.preview.inviteUrl).toMatch(/^https:\/\/floc\.test\/invite\/tok\.[0-9a-z]+\.[\w-]{22}$/);
   });
 
   it("marks someone who did not make the trip as joined", () => {

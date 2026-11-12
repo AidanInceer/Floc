@@ -1,5 +1,6 @@
 // Who's going, in one line: faces, a count and names. The faces open the full list.
 import { goingNames, goingNotes } from "@floc/core/trip/overview/going";
+import { INVITE_LINK_LIFE } from "@floc/core/trip/group/invite-link";
 import { AvatarRow, SheetFooter, Stack } from "@/components/system/ui";
 import { CopyLink, Sheet, SubmitButton } from "@/components/system/client-ui";
 import { FriendPicker } from "@/components/social/friend-picker";
@@ -100,8 +101,9 @@ function InviteSheet({ tripId, members, pendingInvitees, friends, inviteUrl }: P
       {friends.length === 0 ? (
         <Stack gap={3}>
           <p className="text-sm text-ink-soft">You have no friends on Floc yet. Share the trip link instead.</p>
-          <span>
+          <span className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <CopyLink value={inviteUrl} label="Copy invite link" variant="primary" icon={<LinkIcon />} />
+            <span className="text-sm text-ink-soft">{INVITE_LINK_LIFE}</span>
           </span>
         </Stack>
       ) : (
@@ -113,7 +115,8 @@ function InviteSheet({ tripId, members, pendingInvitees, friends, inviteUrl }: P
               excludeIds={[...members.map((m) => m.userId), ...pendingInvitees.map((p) => p.userId)]}
               emptyNote="Everyone you're friends with is already on this trip, or has been asked."
             />
-            <span className="flex flex-wrap justify-end gap-2">
+            <span className="flex flex-wrap items-center justify-end gap-2">
+              <span className="mr-auto text-sm text-ink-soft max-sm:basis-full">{INVITE_LINK_LIFE}</span>
               <CopyLink value={inviteUrl} label="Copy link" icon={<LinkIcon />} />
               <SubmitButton>Send invites</SubmitButton>
             </span>

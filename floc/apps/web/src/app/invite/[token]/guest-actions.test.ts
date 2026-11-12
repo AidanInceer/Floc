@@ -14,9 +14,11 @@ import { NOT_FOUND, currentUser } from "@/test/setup";
 import { migrateTestDb, resetDb, seedScenario, signIn, type Scenario } from "@/test/db";
 import { insertIdea } from "@/server/ideas/ideas";
 import { setAvailability } from "@/server/itinerary/availability";
+import { mintShareToken } from "@/server/trips/invite-link";
 import { guestSaveDates, guestStart, guestVoteIdea } from "./actions";
 
 let world: Scenario;
+const OURS_LINK = mintShareToken("token-ours");
 let ideaId: number;
 let made = 0;
 let callerIp = "1.2.3.4";
@@ -48,18 +50,18 @@ const userRow = (id: string) => db.select().from(schema.user).where(eq(schema.us
 
 describe("guestStart", () => {
   it("needs a name", async () => {
-    expect(await guestStart("token-ours", "  ")).toEqual({ error: "Give your name first." });
+    expect(await guestStart(OURS_LINK, "  ")).toEqual({ error: "Give your name first." });
     expect(made).toBe(0);
   });
 
   it("makes a named guest", async () => {
-    expect(await guestStart("token-ours", "Sam")).toEqual({});
+    expect(await guestStart(OURS_LINK, "Sam")).toEqual({});
     expect((await userRow(`g-made-${made}`))?.name).toBe("Sam");
   });
 
   it("keeps the guest a returning visitor already is", async () => {
-    await guestStart("token-ours", "Sam");
-    expect(await guestStart("token-ours", "Someone else")).toEqual({});
+    await guestStart(OURS_LINK, "Sam");
+    expect(await guestStart(OURS_LINK, "Someone else")).toEqual({});
     expect(made).toBe(1);
     expect((await userRow("g-made-1"))?.name).toBe("Sam");
   });
@@ -70,7 +72,7 @@ describe("guestStart", () => {
 
   it("sends a member to the trip rather than making a guest", async () => {
     signIn(world.member);
-    await expect(guestStart("token-ours", "Mo")).rejects.toThrow(`NEXT_REDIRECT:/trip/${world.ours.id}/overview`);
+    await expect(guestStart(OURS_LINK, "Mo")).rejects.toThrow(`NEXT_REDIRECT:/trip/${world.ours.id}/overview`);
   });
 
   it("makes no guest once the trip has its cap, as a form error", async () => {
@@ -78,7 +80,7 @@ describe("guestStart", () => {
       await db.insert(schema.user).values({ id: `g-${i}`, name: "G", email: `g-${i}@guest.test`, isAnonymous: true });
       await setAvailability(world.ours.id, `g-${i}`, ["2026-09-01"], true);
     }
-    expect((await guestStart("token-ours", "Sam")).error).toMatch(/full/);
+    expect((await guestStart(OURS_LINK, "Sam")).error).toMatch(/full/);
     expect(made).toBe(0);
   });
 
@@ -86,55 +88,55 @@ describe("guestStart", () => {
     callerIp = "9.9.9.9";
     for (let i = 0; i < GUEST_IP_LIMIT; i++) {
       signIn(null);
-      expect(await guestStart("token-ours", `G${i}`)).toEqual({});
+      expect(await guestStart(OURS_LINK, `G${i}`)).toEqual({});
     }
     signIn(null);
-    expect((await guestStart("token-ours", "One too many")).error).toMatch(/Too many/);
+    expect((await guestStart(OURS_LINK, "One too many")).error).toMatch(/Too many/);
     expect(await userRow(`g-made-${made}`)).toBeUndefined();
   });
 });
 
 describe("guestVoteIdea", () => {
   it("refuses somebody who has not given a name", async () => {
-    expect(await guestVoteIdea("token-ours", ideaId)).toEqual({ error: "Give your name first." });
+    expect(await guestVoteIdea(OURS_LINK, ideaId)).toEqual({ error: "Give your name first." });
     expect(await liveVotes()).toEqual([]);
   });
 
   it("casts and takes back a guest's vote", async () => {
-    await guestStart("token-ours", "Sam");
-    expect(await guestVoteIdea("token-ours", ideaId)).toEqual({});
+    await guestStart(OURS_LINK, "Sam");
+    expect(await guestVoteIdea(OURS_LINK, ideaId)).toEqual({});
     expect((await liveVotes()).map((v) => v.userId)).toEqual(["g-made-1"]);
-    expect(await guestVoteIdea("token-ours", ideaId)).toEqual({});
+    expect(await guestVoteIdea(OURS_LINK, ideaId)).toEqual({});
     expect(await liveVotes()).toEqual([]);
   });
 
   it("answers an idea from another trip as gone", async () => {
     const foreign = await insertIdea({ tripId: world.theirs.id, createdBy: world.outsider, title: "Oslo" });
-    await guestStart("token-ours", "Sam");
-    await expect(guestVoteIdea("token-ours", foreign)).rejects.toThrow(NOT_FOUND);
+    await guestStart(OURS_LINK, "Sam");
+    await expect(guestVoteIdea(OURS_LINK, foreign)).rejects.toThrow(NOT_FOUND);
   });
 
   it("refuses a guest new to a trip that filled up after they gave their name", async () => {
-    await guestStart("token-ours", "Sam");
+    await guestStart(OURS_LINK, "Sam");
     for (let i = 0; i < GUEST_CAP; i++) {
       await db.insert(schema.user).values({ id: `g-${i}`, name: "G", email: `g-${i}@guest.test`, isAnonymous: true });
       await setAvailability(world.ours.id, `g-${i}`, ["2026-09-01"], true);
     }
-    expect((await guestVoteIdea("token-ours", ideaId)).error).toMatch(/full/);
+    expect((await guestVoteIdea(OURS_LINK, ideaId)).error).toMatch(/full/);
   });
 });
 
 describe("guestSaveDates", () => {
   it("marks and unmarks the guest's own days", async () => {
-    await guestStart("token-ours", "Sam");
-    expect(await guestSaveDates("token-ours", ["2026-09-01", "2026-09-02"], [])).toEqual({});
-    expect(await guestSaveDates("token-ours", [], ["2026-09-02"])).toEqual({});
+    await guestStart(OURS_LINK, "Sam");
+    expect(await guestSaveDates(OURS_LINK, ["2026-09-01", "2026-09-02"], [])).toEqual({});
+    expect(await guestSaveDates(OURS_LINK, [], ["2026-09-02"])).toEqual({});
     const rows = await db.select().from(schema.availability).where(eq(schema.availability.tripId, world.ours.id)).all();
     expect(rows.filter((r) => r.available).map((r) => r.date)).toEqual(["2026-09-01"]);
   });
 
   it("refuses a date that is not a date, as a form error", async () => {
-    await guestStart("token-ours", "Sam");
-    expect(await guestSaveDates("token-ours", ["2026-02-31"], [])).toEqual({ error: "That is not a date." });
+    await guestStart(OURS_LINK, "Sam");
+    expect(await guestSaveDates(OURS_LINK, ["2026-02-31"], [])).toEqual({ error: "That is not a date." });
   });
 });

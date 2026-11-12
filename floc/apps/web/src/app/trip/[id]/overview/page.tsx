@@ -39,6 +39,7 @@ import { leftToSortFor, readSharedPacking } from "./left-to-sort-for";
 import { PanelPlaceholder, StreamedGroup } from "./streamed";
 import { WalkthroughDialog } from "@/components/walkthrough/walkthrough-dialog";
 import { walkthroughFor } from "./walkthrough-for";
+import { mintShareToken } from "@/server/trips/invite-link";
 
 export const metadata = { title: "Overview" };
 
@@ -157,7 +158,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
               viewerId={viewer.id}
               members={members}
               isAdmin={isAdmin}
-              inviteUrl={absoluteUrl(`/invite/${trip.inviteToken}`)}
+              inviteUrl={absoluteUrl(`/invite/${mintShareToken(trip.inviteToken)}`)}
               needDates={new Set(unresolved.availability.map((m) => m.userId))}
               extras={groupExtras}
             />

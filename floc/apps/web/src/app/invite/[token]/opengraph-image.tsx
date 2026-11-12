@@ -12,7 +12,7 @@
  */
 import { ImageResponse } from "next/og";
 
-import { findTripByInviteToken } from "@/server/trips/invites";
+import { findTripByShareLink } from "@/server/trips/invites";
 import { formatDateRange } from "@floc/core/dates/dates";
 import { OG_COLOURS, OG_SIZE, OgWordmark } from "@/components/system/og-card";
 
@@ -32,7 +32,7 @@ export default async function InviteOgImage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  const found = await findTripByInviteToken(token).catch(() => null);
+  const found = await findTripByShareLink(token).catch(() => null);
 
   const heading = found ? found.name : "Floc";
   const kicker = found
