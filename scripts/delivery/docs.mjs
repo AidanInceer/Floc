@@ -63,6 +63,30 @@ function retry(action) {
 }
 
 /**
+ * Lands a task's own docs branch on floc-docs main: commit what changed, merge
+ * main in (never rebase), push. Returns the pages it carried; none when nothing
+ * is left to land. A page conflict stops it for a person.
+ */
+export function landDocs(docs, subject) {
+  git(docs, "add", "-A");
+  if (git(docs, "diff", "--cached", "--name-only")) git(docs, "commit", "--quiet", "-m", subject);
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    git(docs, "fetch", "--quiet", "origin", "main");
+    const pages = git(docs, "diff", "--name-only", "origin/main...HEAD").split(/\r?\n/).filter(Boolean);
+    if (!pages.length) return [];
+    try { git(docs, "merge", "--quiet", "--no-edit", "origin/main"); }
+    catch (error) {
+      const files = git(docs, "diff", "--name-only", "--diff-filter=U");
+      git(docs, "merge", "--abort");
+      throw new Error(`Docs conflict with floc-docs main in ${files || error.message}. Merge origin/main in ${docs} by hand, then finish again.`);
+    }
+    // Why the retry: another session can land between this fetch and this push.
+    try { git(docs, "push", "--quiet", "origin", "HEAD:main"); return pages; } catch { /* fetch, merge and push again */ }
+  }
+  throw new Error(`Could not push ${docs} to floc-docs main after three tries.`);
+}
+
+/**
  * Commits only the pages this task changed, so two sessions never commit each
  * other's half-done edits to other pages from the shared clone.
  */

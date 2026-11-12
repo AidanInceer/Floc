@@ -61,6 +61,11 @@ In order: removes worktrees that already landed, commits (the pre-commit hook ru
 comments, secrets, repository rules; no tests), merges the latest `develop` in, pushes,
 opens the PR to `develop` and turns on auto-merge. It takes seconds, not minutes.
 
+- **"PR, but don't merge it"** → add `--hold`. The PR gets the `hold` label and no auto-merge;
+  ci-watch reports `held` when green and never merges it. Never hand-roll `git push` and
+  `gh pr create` to avoid the merge. When Aidan says merge it:
+  `gh pr edit <n> --remove-label hold --repo AidanInceer/Floc`, then start ci-watch again.
+
 - **Pre-commit fails** → fix the cause, publish again. Never `--no-verify`.
 - **A code conflict** → it names the files. Resolve them here, keeping both
   intents. If you cannot tell which intent wins, ask. Commit, publish again.
@@ -74,18 +79,21 @@ It reports one of:
   with a `fix` message, start ci-watch again. At most three rounds, then stop and report.
 - **conflict** → publish again (it merges develop in), start ci-watch again.
 - **merged** → step 5.
+- **held** → green and waiting for Aidan's review. Report `PR needs you`; step 5 runs after he merges.
 
 ## 5. Finish
 
 From the main checkout, so the worktree folder is free:
 
 ```bash
-cd C:/dev/Floc; pnpm delivery finish --pr <n> --docs <page> <page>
+cd C:/dev/Floc; pnpm delivery finish --pr <n>
 ```
 
-Leave out `--docs` when no page changed. It labels the tickets `on-develop` and pops them off
-the Priority stack, pushes only your doc pages to `floc-docs`, and removes this worktree and its
-branch. `docsAlsoCarry` in the result names pages that went out with another branch's unpushed
+It labels the tickets `on-develop` and pops them off the Priority stack, lands the task's docs
+branch on floc-docs main (merged, never rebased), and removes this worktree, its docs worktree and
+both branches. A docs conflict stops it with the page names: merge `origin/main` in the task's
+`docs/` by hand, then finish again. Only an older worktree with linked docs needs `--docs`; leave
+it out when no page changed. `docsAlsoCarry` in the result names pages that went out with another branch's unpushed
 edits on them: name those pages and branches in the report.
 
 ## 6. Report

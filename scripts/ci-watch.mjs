@@ -44,7 +44,7 @@ try {
   if (!number && !sha) throw new Error("Usage: node scripts/ci-watch.mjs --pr <number> [--for <seconds>]   or   node scripts/ci-watch.mjs <full commit sha>");
   const result = number ? await pull(number, Number(option("--for", 540))) : commit(sha);
   console.log(JSON.stringify(result));
-  process.exitCode = ["passed", "merged"].includes(result.state) ? 0 : result.state === "pending" ? 2 : 1;
+  process.exitCode = ["passed", "merged", "held"].includes(result.state) ? 0 : result.state === "pending" ? 2 : 1;
 } catch (error) {
   console.error(error.message);
   process.exitCode = 1;

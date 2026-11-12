@@ -6,7 +6,7 @@ Floc is group trip planning, simplified: where, when, in what order, and who owe
 
 ## Structure
 
-Next.js App Router, Turso (libSQL), Drizzle, Better Auth; Expo for the phone. **Feature → folder map: [`floc/FILES.md`](floc/FILES.md)** — look there before you search. Layers: [architecture](docs/engineering/index.html); `pnpm deps:check` enforces them. `docs/` is HTML with no markdown source, a link to the private `AidanInceer/floc-docs` clone. Area rules in [`.claude/rules/`](.claude/rules/) load by path; other agents read the one for the folder they edit.
+Next.js App Router, Turso (libSQL), Drizzle, Better Auth; Expo for the phone. **Feature → folder map: [`floc/FILES.md`](floc/FILES.md)** — look there before you search. Layers: [architecture](docs/engineering/index.html); `pnpm deps:check` enforces them. `docs/` is HTML with no markdown source from the private `AidanInceer/floc-docs` repo; in a task worktree it is that task's own docs branch. Area rules in [`.claude/rules/`](.claude/rules/) load by path; other agents read the one for the folder they edit.
 
 ## Environment
 
