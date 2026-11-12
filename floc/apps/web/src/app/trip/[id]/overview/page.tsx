@@ -24,6 +24,7 @@ import { hasEnded, nightsBetween, today, underway } from "@floc/core/dates/dates
 import { tripLegs } from "@floc/core/trip/overview/legs";
 import { ideasTucked } from "@floc/core/trip/ideas";
 import { overviewRoute } from "@floc/core/trip/overview/route";
+import { recapShows } from "@floc/core/trip/overview/recap";
 import { IdeasPanel } from "@/components/trip/ideas/ideas-panel";
 import { IdeasRow } from "@/components/trip/ideas/ideas-row";
 import { OverviewCard } from "@/components/trip/overview/overview-card";
@@ -33,6 +34,7 @@ import { OverviewStops } from "@/components/trip/overview/stops/overview-stops";
 import { OverviewMap } from "@/components/trip/overview/overview-map";
 import { TripArrival } from "@/components/trip/overview/trip-arrival";
 import { LeftToSort } from "@/components/trip/overview/left-to-sort";
+import { RecapFoot } from "@/components/trip/overview/recap/recap-foot";
 import { leftToSortFor, readSharedPacking } from "./left-to-sort-for";
 import { PanelPlaceholder, StreamedGroup } from "./streamed";
 import { WalkthroughDialog } from "@/components/walkthrough/walkthrough-dialog";
@@ -139,6 +141,13 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
               }}
               position={position}
             ideas={tucked ? <IdeasRow tripId={tripId} ideas={ideas} /> : null}
+              recap={recapShows(trip.endDate, now) ? (
+                <RecapFoot
+                  tripId={tripId}
+                  tripName={trip.name}
+                  others={members.filter((m) => m.userId !== viewer.id).map((m) => ({ id: m.userId, name: m.name }))}
+                />
+              ) : null}
             />
           </div>
         </div>

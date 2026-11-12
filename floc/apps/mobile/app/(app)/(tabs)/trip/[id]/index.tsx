@@ -24,6 +24,8 @@ import { LeftToSort } from "@/components/trip/left-to-sort";
 import { BookingsCard } from "@/components/trip/overview/bookings-card";
 import { FilesLine } from "@/components/trip/overview/files-line";
 import { OverviewCard } from "@/components/trip/overview-card";
+import { RecapFoot } from "@/components/trip/overview/recap-foot";
+import { recapShows } from "@floc/core/trip/overview/recap";
 import { TripMapSection } from "@/components/trip/route/trip-map-section";
 import { StopList } from "@/components/trip/stops/stop-list";
 import { TripSheet, draftFor, type TripDraft } from "@/components/trip/trip-sheet";
@@ -78,6 +80,7 @@ export default function Overview() {
         onEdit={() => setDraft(draftFor(trip.data))}
         onDates={() => go("dates")}
         onMoney={() => go("money")}
+        recap={recapShows(trip.data.endDate, today()) ? <RecapFoot tripId={tripId} tripName={trip.data.name} others={othersOf(trip.data, session?.user.id)} /> : null}
         files={<FilesLine tripId={tripId} files={files.data} failed={files.isError} onRetry={() => void files.refetch()} onOpen={() => go("files")} />}
       >
         <GoingLine
@@ -113,6 +116,11 @@ export default function Overview() {
       ) : null}
     </ScrollView>
   );
+}
+
+/** Everyone on the trip but you, to ask onto the next one (#443). */
+function othersOf(trip: Outputs["trips"]["get"], viewerId: string | undefined) {
+  return trip.members.filter((m) => m.userId !== viewerId).map((m) => ({ id: m.userId, name: m.name }));
 }
 
 function nightsOf(trip: Outputs["trips"]["get"]) {

@@ -10,7 +10,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { NOTE_SCOPES } from "@/db/schema";
-import { pagesFor, type Fact, type FactKind } from "@/server/freshness";
+import { pagesFor, tripAreasFor, type Fact, type FactKind } from "@/server/freshness";
 
 const TRIP = 7;
 
@@ -124,5 +124,24 @@ describe("composition", () => {
     ]);
     expect(pages).toContainEqual({ path: `/trip/${TRIP}`, type: "layout" });
     expect(pages).toContainEqual({ path: `/trip/${TRIP}/overview` });
+  });
+});
+
+describe("tripAreasFor (#577)", () => {
+  it("names each changed trip's tabs, and nothing else", () => {
+    const areas = tripAreasFor([{ kind: "money", tripId: TRIP }, { kind: "documents", tripId: 9 }, { kind: "inbox" }]);
+    expect(areas.get(TRIP)).toEqual(["money"]);
+    expect(areas.get(9)).toEqual(expect.arrayContaining(["files", "overview", "days", "dates"]));
+    expect(areas.size).toBe(2);
+  });
+
+  it("calls the trip header the whole trip", () => {
+    expect(tripAreasFor([{ kind: "tripHeader", tripId: TRIP }]).get(TRIP)).toEqual(["trip"]);
+  });
+
+  it("follows what a fact implies", () => {
+    expect(tripAreasFor([{ kind: "tripWindow", tripId: TRIP }]).get(TRIP)).toEqual(
+      expect.arrayContaining(["days", "overview", "dates", "trip"]),
+    );
   });
 });
