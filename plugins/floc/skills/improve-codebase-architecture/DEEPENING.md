@@ -8,7 +8,7 @@ kind decides how the change is tested.
 ### 1. Nothing outside itself
 
 Pure rules: dates, money, stops, routes, finder ranking. Move it to
-`@floc/core` (no I/O, no app imports — `pnpm deps:check`) and test it
+`@floc/core` (no I/O, no app imports — `pnpm --filter floc-web deps:check`) and test it
 there through the one function. No stand-in needed. Most Floc cards are this
 kind; prefer it.
 

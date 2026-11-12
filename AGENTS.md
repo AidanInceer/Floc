@@ -6,11 +6,11 @@ Floc is group trip planning, simplified: where, when, in what order, and who owe
 
 ## Structure
 
-Next.js App Router, Turso (libSQL), Drizzle, Better Auth; Expo for the phone. **Feature → folder map: [`floc/FILES.md`](floc/FILES.md)** — look there before you search. Layers: [architecture](docs/engineering/index.html); `pnpm deps:check` enforces them. `docs/` is HTML with no markdown source from the private `AidanInceer/floc-docs` repo; in a task worktree it is that task's own docs branch. Area rules in [`.claude/rules/`](.claude/rules/) load by path; other agents read the one for the folder they edit.
+Next.js App Router, Turso (libSQL), Drizzle, Better Auth; Expo for the phone. **Feature → folder map: [`floc/FILES.md`](floc/FILES.md)** — look there before you search. Layers: [architecture](docs/engineering/index.html); `pnpm --filter floc-web deps:check` enforces them. `docs/` is HTML with no markdown source from the private `AidanInceer/floc-docs` repo; in a task worktree it is that task's own docs branch. Area rules in [`.claude/rules/`](.claude/rules/) load by path; other agents read the one for the folder they edit.
 
 ## Environment
 
-Windows 11. Agent shells: PowerShell 7 and Git Bash. Create and change files with Write or Edit, not shell heredocs or string-replace scripts. Give the user PowerShell, never Unix commands. No `python`, no `sqlite3`: script in `node`.
+Windows 11. Agent shells: PowerShell 7 and Git Bash. Create and change files with Write or Edit: most files here are CRLF, so an inline `replace` or `sed` silently matches nothing or breaks on quoting, while Edit fails loudly. Give the user PowerShell, never Unix commands. No `python`, no `sqlite3`: script in `node`.
 
 ## Commands
 
@@ -58,7 +58,7 @@ The flow is fixed: start (ticket, analysis, or small fix) → worktree → `/flo
 
 ## Working and reporting
 
-- **Work silently.** No progress updates or narration. Message only when finished, blocked, or a decision is needed.
+- **Few words while working.** No running commentary. On a long task, one short line when the work moves to a new phase; otherwise message when finished, blocked, or a decision is needed.
 - **Final report:** a few bullets, one per piece of work, each with its checked state — `local, uncommitted` · `local` · `PR open` · `PR needs you` · `on develop` · `release PR open` · `live` · `not checked` — then one `Next:` line if Aidan must act. Screenshots for visual work.
 - **Say only what is checked.** "Live" only after `pnpm delivery finish` sees production serve it. Failed checks keep their full error. Always name a data model change and any surface not verified.
 - Audits, reviews, retros and research reports are the deliverable — write them in full.
