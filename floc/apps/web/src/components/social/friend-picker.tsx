@@ -20,12 +20,15 @@ export function FriendPicker({
   excludeIds = [],
   emptyNote,
   unbounded,
+  ticked,
 }: {
   friends: Person[];
   excludeIds?: string[];
   emptyNote: string;
   /** The container scrolls instead — a nested scroll area inside a scrolling sheet draws two bars. */
   unbounded?: boolean;
+  /** Start with everyone ticked: the same group again (#443). */
+  ticked?: boolean;
 }) {
   const excluded = new Set(excludeIds);
   const offered = friends.filter((f) => !excluded.has(f.id));
@@ -45,7 +48,7 @@ export function FriendPicker({
         <li key={f.id}>
           {/* The whole tile is the target; the checkbox itself is hidden and the mark says which state it is in. */}
           <label className="group flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-rule bg-sheet px-2.5 py-1.5 text-sm transition-colors hover:border-pen has-[:checked]:border-pen has-[:checked]:bg-pen-soft has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-pen">
-            <input type="checkbox" name="friendIds" value={f.id} className="peer sr-only" />
+            <input type="checkbox" name="friendIds" value={f.id} defaultChecked={ticked} className="peer sr-only" />
             <Avatar name={f.name} size={26} />
             <span className="min-w-0 flex-1 truncate">{f.name}</span>
             <svg

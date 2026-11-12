@@ -3,13 +3,12 @@
 import { useEffect, useMemo, useRef } from "react";
 
 import { Button, ButtonLink, cx } from "@/components/system/ui";
-import type { BorrowCard as Card } from "@/lib/landing/borrow";
+import { placeWords, type BorrowCard as Card } from "@/lib/landing/borrow";
 import { HAND } from "@/lib/landing/globe/hand";
 
 import { BorrowRail } from "./borrow/borrow-rail";
 import { BorrowTile } from "./borrow/borrow-tile";
 import { StartButton } from "./borrow/start-button";
-import { StopPins } from "./borrow/stop-pins";
 import { tone } from "./borrow/tones";
 import { useBorrowHand } from "./borrow/use-borrow-hand";
 import { useBorrowWay } from "./borrow/use-borrow-way";
@@ -29,7 +28,7 @@ export function BorrowTrip({ cards, signedIn, explore }: { cards: Card[]; signed
   const events = useRef<GlobeEvents>({});
   const { canvas, lit, globe } = useSpinGlobe(LONDON, places, events);
   const { faces, spin, settle } = useBorrowHand(places, globe);
-  const { way, stage, pins, back, enter, leave, go, changed } = useBorrowWay(globe, cards);
+  const { way, stage, back, enter, leave, go, changed } = useBorrowWay(globe, cards);
   useEffect(() => {
     events.current = { onSettle: settle, onWay: changed };
   }, [settle, changed]);
@@ -62,7 +61,8 @@ export function BorrowTrip({ cards, signedIn, explore }: { cards: Card[]; signed
           {" "}to{" "}
           <span className={cx("borrow-word transition-colors duration-500", litTone)}>
             <span key={card.id} className="borrow-roll">
-              {card.place}
+              <span aria-hidden="true">{placeWords(card.place)}</span>
+              <span className="sr-only">{card.place}</span>
             </span>
           </span>
         </span>
@@ -77,13 +77,15 @@ export function BorrowTrip({ cards, signedIn, explore }: { cards: Card[]; signed
           </ul>
           <div className="borrow-globe-box">
             <canvas ref={canvas} className="borrow-globe" role="img" aria-label="A globe. Drag to turn it, or flick it to spin." />
-            <div ref={pins} className="borrow-pins">
-              {open && way && <StopPins card={open} step={way.step} onStep={go} />}
-            </div>
             {way && (
-              <button ref={back} type="button" className="borrow-back" onClick={leave}>
-                <Glyph name="back" /> Back to the globe
-              </button>
+              <>
+                <button ref={back} type="button" className="borrow-back" onClick={leave}>
+                  <Glyph name="back" /> Back to the globe
+                </button>
+                <button type="button" className="borrow-back borrow-replay" aria-label="Replay the route" title="Replay the route" onClick={() => globe.current?.replay()}>
+                  <Glyph name="replay" />
+                </button>
+              </>
             )}
           </div>
           <ul className="borrow-list" data-side="right" inert={Boolean(way)}>

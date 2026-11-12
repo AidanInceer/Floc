@@ -4,11 +4,11 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  cursor: grab;
+  /* Why: the system hand, not grab/grabbing. Chrome draws its own grab bitmaps on Windows, and they can lose their dark outline over the white land. */
+  cursor: pointer;
   /* Why: pan-y leaves a vertical swipe to the page, so the globe never traps a phone's scroll. */
   touch-action: pan-y;
 }
-.explore-globe:active { cursor: grabbing; }
 
 /* The dome sinks into the page, so the band has no hard lower edge. */
 .explore-atlas::after {

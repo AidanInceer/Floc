@@ -41,7 +41,7 @@ export function useSpinGlobe(home: LatLng, places: LatLng[], events: RefObject<G
         if (!entry?.isIntersecting) return;
         near.disconnect();
         void loadLand("world").then((pieces) => {
-          if (live && pieces.length > 0) g.setLand(pieces.map((piece) => piece.ring));
+          if (live && pieces.length > 0) g.setLand(pieces);
         });
       },
       { rootMargin: "800px 0px" },

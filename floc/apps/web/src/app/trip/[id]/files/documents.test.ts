@@ -31,7 +31,7 @@ import {
 } from "@/server/documents/documents";
 import { FREE_TRIP_STORAGE_BYTES, PRO_TRIP_STORAGE_BYTES } from "@floc/core/documents/documents";
 import { storageUsage } from "@/server/documents/storage-quota";
-import { removeDocument, renameDocument, setCategory, uploadDocument } from "./actions";
+import { removeDocument, renameDocument, restoreDocument, setCategory, uploadDocument } from "./actions";
 
 let world: Scenario;
 const previousDir = process.env.FLOC_FILES_DIR;
@@ -164,14 +164,34 @@ describe("removeDocument", () => {
     await expectNotFound(() => removeDocument(world.ours.id, doc.id));
   });
 
-  it("takes the file out of the list and off the disk", async () => {
+  it("takes the file out of the list and keeps its bytes for the archive (ADR-048)", async () => {
     await uploadDocument(world.ours.id, form("shared"));
     const [doc] = await listDocuments(world.ours.id, world.member);
 
     await removeDocument(world.ours.id, doc.id);
 
     expect(await listDocuments(world.ours.id, world.member)).toEqual([]);
-    expect(await readdir(process.env.FLOC_FILES_DIR!)).toEqual([]);
+    expect(await readdir(process.env.FLOC_FILES_DIR!)).toHaveLength(1);
+  });
+
+  it("brings an archived file back, and says so in words when it cannot", async () => {
+    await uploadDocument(world.ours.id, form("shared"));
+    const [doc] = await listDocuments(world.ours.id, world.member);
+    await removeDocument(world.ours.id, doc.id);
+
+    signIn(world.admin);
+    expect(await restoreDocument(world.ours.id, doc.id)).toEqual({});
+    expect(await listDocuments(world.ours.id, world.member)).toHaveLength(1);
+    expect(await restoreDocument(world.ours.id, doc.id)).toEqual({ error: "That file is no longer in the archive." });
+  });
+
+  it("refuses a restore to somebody not on the trip", async () => {
+    await uploadDocument(world.ours.id, form("shared"));
+    const [doc] = await listDocuments(world.ours.id, world.member);
+    await removeDocument(world.ours.id, doc.id);
+
+    signIn(world.outsider);
+    await expectNotFound(() => restoreDocument(world.ours.id, doc.id));
   });
 });
 

@@ -4,6 +4,7 @@ const OWN_SECRET = {
   "calendar-feed": "FLOC_CALENDAR_LINK_SECRET",
   "file-view": "FLOC_FILE_LINK_SECRET",
   "inbound-address": "FLOC_INBOUND_ADDRESS_SECRET",
+  "invite-link": "FLOC_INVITE_LINK_SECRET",
 } as const;
 
 export type LinkKind = keyof typeof OWN_SECRET;

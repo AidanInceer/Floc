@@ -11,9 +11,9 @@
  * WITHOUT A VOLUME THERE IS NO UPLOAD DRAWN (rule 11). Not a dead button with a
  * sentence under it: the control is absent and the reason is said once.
  *
- * REMOVING A SHARED FILE IS ANY MEMBER'S, the way a shared packing line is. A
+ * ARCHIVING A SHARED FILE IS ANY MEMBER'S, the way a shared packing line is. A
  * private file is never handed to anybody but its owner, so it is not
- * addressable by the rest.
+ * addressable by the rest. An archived file waits a week, restorable (ADR-048).
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
@@ -21,6 +21,7 @@ import { useState } from "react";
 import { ScrollView, View } from "react-native";
 
 import { AddFile } from "@/components/files/add-file";
+import { ArchivedFiles } from "@/components/files/archived-files";
 import { FileActions } from "@/components/files/file-actions";
 import { FileFilters, type FileFilter } from "@/components/files/file-filter";
 import { FileCard } from "@/components/files/file-card";
@@ -58,6 +59,7 @@ export default function Files() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: trpc.files.list.queryKey({ tripId }) });
       queryClient.invalidateQueries({ queryKey: trpc.files.usage.queryKey({ tripId }) });
+      void queryClient.invalidateQueries({ queryKey: trpc.files.archived.queryKey({ tripId }) });
     },
   };
 
@@ -152,6 +154,7 @@ export default function Files() {
         >
           {rows(yours)}
         </FileCard>
+        <ArchivedFiles tripId={tripId} viewerId={session?.user.id} filter={filter} />
       </View>
 
       <InboxAddress tripId={tripId} />

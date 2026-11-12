@@ -1,5 +1,7 @@
-/** Called every 5 minutes by the Railway cron (`scripts/cron-push.mjs`): reminders, then push, then the email fallback (#346), then archived notes pages past their week (#408), then guests a week old (#442). */
+/** Called every 5 minutes by the Railway cron (`scripts/cron-push.mjs`): reminders, then push, then the email fallback (#346), then archived notes pages past their week (#408), then guests a week old (#442), then archived files past their week (ADR-048). */
 import { sendEmails } from "@/server/auth/email";
+import { describeError } from "@/server/observability/describe-error";
+import { log } from "@/server/observability/log";
 import { isCronCaller } from "@/server/notifications/cron-caller";
 import { sendDueEmails } from "@/server/notifications/email-fallback";
 import { sendExpoPushes } from "@/server/notifications/expo-push";
@@ -7,6 +9,7 @@ import { sendDuePushes } from "@/server/notifications/push";
 import { sendDueReminders } from "@/server/notifications/reminders";
 import { purgeArchivedPages } from "@/server/notes/pages/page-purge";
 import { purgeOldGuests } from "@/server/guests/guest-purge";
+import { purgeArchivedFiles } from "@/server/documents/archive/archive";
 
 export const runtime = "nodejs";
 
@@ -15,7 +18,7 @@ async function attempt(name: string, work: () => Promise<number>): Promise<numbe
   try {
     return await work();
   } catch (error) {
-    console.error(`[cron] ${name} failed: ${error instanceof Error ? error.message : String(error)}`);
+    log.error("cron.failed", { job: name, ...describeError(error) });
     return null;
   }
 }
@@ -28,6 +31,7 @@ export async function POST(request: Request): Promise<Response> {
     emails: await attempt("email", () => sendDueEmails(sendEmails)),
     pages: await attempt("pages", () => purgeArchivedPages()),
     guests: await attempt("guests", () => purgeOldGuests()),
+    files: await attempt("files", () => purgeArchivedFiles()),
   };
   const failed = Object.values(result).includes(null);
   return Response.json(result, { status: failed ? 500 : 200 });

@@ -36,19 +36,22 @@
     "comments.remove": {
       "mobile": "yes"
     },
+    "explore.friendSaves": {
+      "mobile": "yes"
+    },
     "explore.get": {
       "mobile": "yes"
     },
     "explore.saves": {
       "mobile": "yes"
     },
-    "explore.friendSaves": {
-      "mobile": "yes"
-    },
     "explore.setFinder": {
       "mobile": "yes"
     },
     "explore.setSaved": {
+      "mobile": "yes"
+    },
+    "files.archived": {
       "mobile": "yes"
     },
     "files.attach": {
@@ -70,6 +73,9 @@
       "mobile": "yes"
     },
     "files.rename": {
+      "mobile": "yes"
+    },
+    "files.restore": {
       "mobile": "yes"
     },
     "files.setCategory": {

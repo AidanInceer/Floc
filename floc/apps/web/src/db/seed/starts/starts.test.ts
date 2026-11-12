@@ -7,7 +7,7 @@ import { devAccountEmail } from "@/server/auth/dev-accounts";
 import { walkthroughDue } from "@/server/auth/tour";
 import { findGuest, listGuests } from "@/server/guests/guests";
 import { pendingMapPrompts } from "@/server/itinerary/travel-map";
-import { findTripByInviteToken } from "@/server/trips/invites";
+import { findTripByShareLink } from "@/server/trips/invites";
 import { isLiveMember } from "@/server/trips/roster";
 
 import { isSeedEmail } from "../identity.ts";
@@ -58,7 +58,8 @@ describe("dev starts", () => {
   it("join-link: signed out on Portugal's invite link, with ideas to vote on", async () => {
     const start = await buildStart("join-link");
     const portugal = await tripNamed("Portugal, late summer");
-    expect(start).toEqual({ as: null, to: `/invite/${portugal.inviteToken}` });
+    expect(start.as).toBeNull();
+    expect((await findTripByShareLink(tokenIn(start.to)))?.id).toBe(portugal.id);
     const ideas = await db.select().from(schema.idea).where(eq(schema.idea.tripId, portugal.id)).all();
     expect(ideas.length).toBeGreaterThan(0);
   });
@@ -66,7 +67,7 @@ describe("dev starts", () => {
   it("guest-account: guest Sam with answers on Portugal, on its invite page", async () => {
     const start = await buildStart("guest-account");
     const portugal = await tripNamed("Portugal, late summer");
-    expect(start.to).toBe(`/invite/${portugal.inviteToken}`);
+    expect((await findTripByShareLink(tokenIn(start.to)))?.id).toBe(portugal.id);
     expect(await findGuest(start.as!)).toEqual({ id: start.as, name: "Sam" });
     expect((await listGuests(portugal.id)).map((g) => g.name)).toEqual(["Sam"]);
     const marks = await db.select().from(schema.availability).where(eq(schema.availability.userId, start.as!)).all();
@@ -78,7 +79,7 @@ describe("dev starts", () => {
     const start = await buildStart("dead-link");
     expect(start.as).toBeNull();
     expect(start.to.startsWith("/invite/")).toBe(true);
-    expect(await findTripByInviteToken(tokenIn(start.to))).toBeFalsy();
+    expect(await findTripByShareLink(tokenIn(start.to))).toBeFalsy();
   });
 
   it("map-question: you, removed from Krakow by Mei, on your profile with the question", async () => {

@@ -38,6 +38,8 @@ export function toneOf(trip: PresetTrip): string {
   return REGION_TONE[trip.region];
 }
 
+export const regionToneName = (region: Region): string => REGION_TONE[region];
+
 type Move = ListingMove;
 type DayTrip = { mode: Move["mode"]; text: string };
 type RoutePart =

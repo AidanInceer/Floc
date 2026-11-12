@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { ONE_STOP, RAIL, UNSAID } from "@/test/route-listings";
+import { tripRoute } from "@/lib/explore/route/trip-route";
+import { ONE_STOP, OUT_FIRST, RAIL, UNSAID } from "@/test/route-listings";
 
 import { borrowCards, hopWords, leadFirst, nightsWords, placeWords } from "./borrow";
 
@@ -9,6 +10,7 @@ const PRESET_TRIPS = [
   { ...RAIL, id: "rail", country: "Japan", priceFromMinor: 185000, currency: "GBP" as const },
   { ...ONE_STOP, id: "one-stop" },
   { ...UNSAID, id: "unsaid" },
+  { ...OUT_FIRST, id: "out-first" },
 ];
 
 describe("borrowCards", () => {
@@ -38,6 +40,11 @@ describe("borrowCards", () => {
     expect(japan.region).toBe(RAIL.region);
   });
 
+  it("carries the route Explore draws, so the band draws the same map", () => {
+    const [japan] = borrowCards(PRESET_TRIPS, ["rail"]);
+    expect(japan.route).toEqual(tripRoute(PRESET_TRIPS[0]!));
+  });
+
   it("prices through the money formatter", () => {
     const [japan] = borrowCards(PRESET_TRIPS, ["rail"]);
     expect(japan.price).toBe("£1,850.00");
@@ -63,14 +70,14 @@ describe("borrowCards legs", () => {
 });
 
 describe("borrowCards day trips", () => {
-  it("keeps a day trip from the last base as a note", () => {
-    const [amalfi] = borrowCards(PRESET_TRIPS, ["one-stop"]);
-    expect(amalfi.also).toEqual({ place: "Positano, Amalfi, Capri", mode: "ferry", detail: "day hops" });
+  it("hangs each day out on the stop it is made from", () => {
+    const [cape] = borrowCards(PRESET_TRIPS, ["out-first"]);
+    expect(cape.stops.map((s) => s.outs)).toEqual([["Cape Point"], []]);
   });
 
-  it("has no note when the trip ends at a base", () => {
-    const [japan] = borrowCards(PRESET_TRIPS, ["rail"]);
-    expect(japan.also).toBeUndefined();
+  it("keeps a day out from the last stop", () => {
+    const [amalfi] = borrowCards(PRESET_TRIPS, ["one-stop"]);
+    expect(amalfi.stops.map((s) => s.outs)).toEqual([["Positano, Amalfi, Capri"]]);
   });
 });
 

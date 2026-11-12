@@ -55,7 +55,8 @@ import { calendarPort } from "@/server/api-port/api-port-calendar";
 import { notificationsPort } from "@/server/api-port/notifications/notifications";
 import { refresh } from "@/server/freshness";
 import { emailConfigured } from "@/server/auth/email";
-import { findTripByInviteToken, joinWithLink } from "@/server/trips/invites";
+import { findTripByShareLink, joinWithLink } from "@/server/trips/invites";
+import { mintShareToken } from "@/server/trips/invite-link";
 import {
   listDaysWithEvents,
 } from "@/server/itinerary/itinerary";
@@ -479,11 +480,11 @@ export const webPort: FlocPort = {
     assertAdmin(await scoped(viewerId, tripId));
     const minted = await resetInviteToken(tripId);
     refresh({ kind: "tripOverview", tripId });
-    return minted;
+    return mintShareToken(minted);
   },
 
   async joinByToken(viewerId, token) {
-    const found = await findTripByInviteToken(token);
+    const found = await findTripByShareLink(token);
     if (!found) return null;
     await ensureProfile(viewerId);
     await joinWithLink(found.id, viewerId);

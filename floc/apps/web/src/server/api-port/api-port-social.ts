@@ -61,11 +61,12 @@ import { today } from "@floc/core/dates/dates";
 import {
   acceptInvite,
   declineInvite,
-  findTripByInviteToken,
+  findTripByShareLink,
   inviteToTrip,
   listPendingInvitees,
   listPendingInvitesFor,
 } from "@/server/trips/invites";
+import { mintShareToken } from "@/server/trips/invite-link";
 import { relationTo, requireProfileView } from "@/server/auth/visibility";
 
 type SocialPort = Pick<
@@ -263,7 +264,7 @@ export const socialPort: SocialPort = {
     const onRoster = new Set(access.members.map((m) => m.userId));
 
     return {
-      token: access.trip.inviteToken,
+      token: mintShareToken(access.trip.inviteToken),
       pending: pending.map((p) => ({
         id: p.userId,
         name: p.name,
@@ -317,7 +318,7 @@ export const socialPort: SocialPort = {
   async previewInvite(token): Promise<InvitePreview | null> {
     // No viewer: the point of a share link is that it reads before you are
     // anybody. Nothing in it is a member's to know (ticket 147).
-    const found = await findTripByInviteToken(token);
+    const found = await findTripByShareLink(token);
     if (!found) return null;
     return {
       name: found.name,

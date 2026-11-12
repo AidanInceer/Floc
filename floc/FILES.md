@@ -15,7 +15,7 @@ Web routes are under `floc/apps/web/src/app/trip/[id]/`. Phone screens are under
 
 | Tab | Web components | Server | Core | Phone components |
 |---|---|---|---|---|
-| Overview | `floc/apps/web/src/components/trip/overview/` (stops, bookings card, left to sort, map, group, files) | `floc/apps/web/src/server/trips/` | `floc/packages/floc-core/src/trip/overview/` | `floc/apps/mobile/src/components/trip/` |
+| Overview | `floc/apps/web/src/components/trip/overview/` (stops, bookings card, left to sort, map, group, files, recap foot; share picture `app/trip/[id]/recap-card/`) | `floc/apps/web/src/server/trips/` | `floc/packages/floc-core/src/trip/overview/` | `floc/apps/mobile/src/components/trip/` |
 | Dates | `floc/apps/web/src/components/availability/` | `floc/apps/web/src/server/itinerary/`, `floc/apps/web/src/server/calendar/` | `floc/packages/floc-core/src/dates/` | `floc/apps/mobile/src/components/dates/`, `floc/apps/mobile/src/components/days/` |
 | Days | `floc/apps/web/src/components/days/` | `floc/apps/web/src/server/itinerary/` | `floc/packages/floc-core/src/itinerary/` | `floc/apps/mobile/src/components/days/` |
 | Ideas | `floc/apps/web/src/components/trip/ideas/` | `floc/apps/web/src/server/ideas/` | `floc/packages/floc-core/src/trip/` | `floc/apps/mobile/src/components/trip/ideas/` |
@@ -55,6 +55,7 @@ Bookings and site links: `floc/apps/web/src/components/booking/`,
 |---|---|
 | Mockups (`/floc:prototype`) | `floc/wireframe/` pages; shared kit `scripts/wireframe/`, served as `/_house/` by `scripts/wireframe-server.mjs` on :4100 |
 | Dev servers for the preview tools | `.claude/launch.json` |
+| Logs, error capture, request timing, tracing | `floc/apps/web/src/server/observability/`, `floc/apps/web/src/lib/client-error/` |
 | `pnpm verify`, `pnpm checks`, publish, release and quality gates | `scripts/checks/`, `scripts/delivery/`, `scripts/workspace/`, `scripts/quality/` |
 | Web checks (tokens, css, icons, bundle) and db scripts | `floc/apps/web/scripts/` |
 | End to end | `floc/apps/web/e2e/`, `floc/apps/mobile/.maestro/` |

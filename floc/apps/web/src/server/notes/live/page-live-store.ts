@@ -6,6 +6,7 @@
 import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
+import { log } from "@/server/observability/log";
 import { trip, tripPage } from "@/db/schema";
 import { PAGE_LIMITS, sizeRefusal } from "@floc/core/notes/pages/page-rules";
 
@@ -24,7 +25,7 @@ export async function loadPageState(pageId: number): Promise<{ state: Uint8Array
 /** Stores a page still open on a live trip. A page over 1 MB is not stored; the editor stops it growing first. */
 export async function storePageState(tripId: number, pageId: number, updatedBy: string, state: Uint8Array, body: string): Promise<void> {
   if (sizeRefusal(body) || state.byteLength > LIVE_STATE_MAX_BYTES) {
-    console.warn(`[notes] page ${pageId} is over the size limit and was not stored`);
+    log.warn("notes.page-too-big", { pageId });
     return;
   }
   const open = await db

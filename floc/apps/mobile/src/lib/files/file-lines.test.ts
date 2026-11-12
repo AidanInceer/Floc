@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { filterVisible, metaLine, splitByVisibility } from "./file-lines";
+import { archivedMetaLines, filterVisible, metaLine, splitByVisibility } from "./file-lines";
 
 const file = (id: number, ownerId: string | null) => ({ id, ownerId });
 
@@ -39,6 +39,23 @@ describe("a file's meta line", () => {
 
   it("drops a date it cannot read", () => {
     expect(metaLine({ ...base, uploadedAt: "nonsense", uploadedBy: "u2", uploaderName: "Sam" }, undefined)).toBe("2 KB · Sam");
+  });
+});
+
+describe("an archived file's meta line", () => {
+  const now = new Date("2026-10-10T12:00:00.000Z");
+  const base = { sizeBytes: 2048, uploadedBy: "u2", uploaderName: "Sam", archivedAt: "2026-10-08T12:00:00.000Z" };
+
+  it("says how long it has left and who can see it, then who added it", () => {
+    expect(archivedMetaLines({ ...base, ownerId: null }, "u1", now)).toEqual(["5 days left · Shared", "Sam · 2 KB"]);
+  });
+
+  it("does not name the owner of a private file twice", () => {
+    expect(archivedMetaLines({ ...base, uploadedBy: "u1", ownerId: "u1" }, "u1", now)).toEqual(["5 days left · Yours", "2 KB"]);
+  });
+
+  it("counts the last day as one", () => {
+    expect(archivedMetaLines({ ...base, ownerId: null, archivedAt: "2026-10-03T18:00:00.000Z" }, "u1", now)[0]).toBe("1 day left · Shared");
   });
 });
 

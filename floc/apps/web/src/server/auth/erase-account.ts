@@ -24,6 +24,7 @@ import {
   userProfile,
 } from "@/db/schema";
 import { revokeGoogleGrant } from "@/server/calendar/calendar-import";
+import { archivedKeysOwnedBy } from "@/server/documents/archive/archive-rows";
 import { dropDocument } from "@/server/documents/document-store";
 import { handOverAndLeaveAllTrips } from "@/server/trips/roster";
 
@@ -34,6 +35,8 @@ export async function eraseAccount(userId: string): Promise<void> {
   await handOverAndLeaveAllTrips(userId);
 
   const now = new Date();
+  // Why: an erased person's private files leave the disk now, the ones waiting in the archive too (ADR-048).
+  const archivedKeys = await archivedKeysOwnedBy(userId, now);
   const privateFiles = await db.transaction(async (tx) => {
     await tx
       .update(user)
@@ -111,5 +114,5 @@ export async function eraseAccount(userId: string): Promise<void> {
       .all();
   });
 
-  await Promise.all(privateFiles.map((file) => dropDocument(file.storageKey)));
+  await Promise.all([...privateFiles.map((file) => file.storageKey), ...archivedKeys].map(dropDocument));
 }

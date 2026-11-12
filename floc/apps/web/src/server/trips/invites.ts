@@ -28,6 +28,7 @@ import { ensureProfile } from "@/server/auth/profile";
 import { addMember, countMembers, isLiveMember } from "@/server/trips/roster";
 import { invitableIdsOf } from "@/server/social/groups";
 import { recordActivity } from "@/server/notifications/activity";
+import { readShareToken } from "@/server/trips/invite-link";
 
 /** Pre-auth teaser fields only (ticket 118) — no roster/money/notes; host name only, not email/id (ticket 147). */
 export type InviteTrip = {
@@ -65,6 +66,12 @@ export async function findTripByInviteToken(
     endDate: row.endDate,
     hostName: row.hostDisplayName ?? row.hostName ?? null,
   };
+}
+
+/** The trip a shared link opens: nothing for a link that is made up, reset or past its week (ADR-047). */
+export async function findTripByShareLink(link: string, now = Date.now()): Promise<InviteTrip | undefined> {
+  const token = readShareToken(link, now);
+  return token ? findTripByInviteToken(token) : undefined;
 }
 
 /** One open invite, as the invitee's own /trips banner needs to render it. */
