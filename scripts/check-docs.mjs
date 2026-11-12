@@ -55,7 +55,7 @@ function checkApiMap() {
 
 function htmlFiles(dir) {
   return readdirSync(dir).flatMap((name) => {
-    if (["private", "input", "samples", "mockups", "prototypes", "site-audit"].includes(name)) return [];
+    if (["private", "input", "samples", "mockups", "prototypes", "site-audit", "temp"].includes(name)) return [];
     const path = join(dir, name);
     if (statSync(path).isDirectory()) return name === "vendor" ? [] : htmlFiles(path);
     return name.endsWith(".html") ? [path] : [];

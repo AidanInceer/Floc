@@ -2,7 +2,8 @@ import { join, resolve } from "node:path";
 import { command, git } from "./process.mjs";
 import { afterRelease, closedBy, json, markLanded, repository, viewPull } from "./github.mjs";
 import { deploymentStatus } from "./deployment.mjs";
-import { commitDocs, sharedDocs } from "./docs.mjs";
+import { commitDocs, landDocs, sharedDocs } from "./docs.mjs";
+import { isOwnDocs } from "../workspace/docs-link.mjs";
 import { isAncestor } from "./sync.mjs";
 import { listWorktrees, mainCheckout, removeWorktree, TASK_BRANCH } from "../workspace/worktrees.mjs";
 
@@ -85,9 +86,13 @@ export async function finish(root, { pr: number, docs = [] }) {
     markLanded(main, issues, join(resolve(main), ".floc/tmp"));
     if (issues.length) result.onDevelop = issues;
   }
-  const shared = docs.length ? sharedDocs(main, pr.headRefName, docs) : {};
-  result.docs = docs.length ? commitDocs(main, docs, pr.title) : [];
-  if (result.docs.length && Object.keys(shared).length) result.docsAlsoCarry = shared;
+  const task = listWorktrees(main).find((w) => w.branch === pr.headRefName);
+  if (task && isOwnDocs(task.path)) result.docs = landDocs(join(task.path, "docs"), pr.title);
+  else {
+    const shared = docs.length ? sharedDocs(main, pr.headRefName, docs) : {};
+    result.docs = docs.length ? commitDocs(main, docs, pr.title) : [];
+    if (result.docs.length && Object.keys(shared).length) result.docsAlsoCarry = shared;
+  }
   result.worktree = cleanLocalBranch(main, pr);
   return { ...result, state: "done" };
 }

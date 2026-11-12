@@ -32,7 +32,7 @@ try {
   else if (action === "publish") {
     const messageFile = option("--message-file");
     if (!messageFile) throw new Error("publish needs --message-file <path>");
-    result = publish(root, { messageFile });
+    result = publish(root, { messageFile, hold: args.includes("--hold") });
   } else if (action === "finish") {
     const pr = option("--pr");
     if (!pr) throw new Error("finish needs --pr <number> [--docs <page>...]");
