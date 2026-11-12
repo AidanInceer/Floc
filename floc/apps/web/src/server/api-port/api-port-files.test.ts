@@ -159,6 +159,28 @@ describe("removing and re-filing", () => {
     expect(await webPort.listFiles(world.admin, world.ours.id)).toEqual([]);
   });
 
+  it("keeps a removed file in the archive, where any member can bring it back (ADR-048)", async () => {
+    const file = await oneFile();
+    await webPort.deleteFile(world.member, world.ours.id, file.id);
+
+    const [archived] = await webPort.listArchivedFiles(world.admin, world.ours.id);
+    expect(archived).toMatchObject({ id: file.id, name: "hotel.png", ownerId: null });
+    expect(Number.isNaN(Date.parse(archived.archivedAt))).toBe(false);
+
+    expect(await webPort.restoreFile(world.admin, world.ours.id, file.id)).toBeNull();
+    expect((await webPort.listFiles(world.member, world.ours.id)).map((f) => f.id)).toEqual([file.id]);
+    expect(await webPort.listArchivedFiles(world.admin, world.ours.id)).toEqual([]);
+  });
+
+  it("shows the archive to nobody off the trip, and restores nothing for them", async () => {
+    const file = await oneFile();
+    await webPort.deleteFile(world.member, world.ours.id, file.id);
+
+    await expect(webPort.listArchivedFiles(world.outsider, world.ours.id)).rejects.toThrow();
+    await expect(webPort.restoreFile(world.outsider, world.ours.id, file.id)).rejects.toThrow();
+    expect(await webPort.restoreFile(world.outsider, world.theirs.id, file.id)).toBe("That file is no longer in the archive.");
+  });
+
   it("lets any member re-file it — nothing is lost by moving it", async () => {
     const file = await oneFile();
     await webPort.setFileCategory(world.member, world.ours.id, file.id, "travel");

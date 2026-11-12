@@ -20,6 +20,7 @@ import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { webPort } from "@/server/api-port/api-port";
+import { mintShareToken, readShareToken } from "@/server/trips/invite-link";
 
 let world: Scenario;
 
@@ -122,7 +123,7 @@ describe("friend requests (ticket 46)", () => {
 describe("inviting (#312, ticket 146)", () => {
   it("gives a member the invite panel", async () => {
     const panel = await webPort.loadTripInvites(world.member, world.ours.id);
-    expect(panel.token).toBe("token-ours");
+    expect(readShareToken(panel.token)).toBe("token-ours");
   });
 
   it("refuses somebody not on the trip the panel and the invite", async () => {
@@ -134,7 +135,7 @@ describe("inviting (#312, ticket 146)", () => {
 
   it("gives an admin the share token, never the trip id", async () => {
     const panel = await webPort.loadTripInvites(world.admin, world.ours.id);
-    expect(panel.token).toBe("token-ours");
+    expect(readShareToken(panel.token)).toBe("token-ours");
     expect(panel.token).not.toContain(String(world.ours.id));
   });
 
@@ -172,7 +173,7 @@ describe("inviting (#312, ticket 146)", () => {
 
 describe("the share link (ticket 05, 147)", () => {
   it("reads without a viewer, and carries nothing a member owns", async () => {
-    const preview = await webPort.previewInvite("token-ours");
+    const preview = await webPort.previewInvite(mintShareToken("token-ours"));
     expect(preview?.name).toBe("Ours");
     expect(preview?.hostName).toBe("Ada");
     expect(Object.keys(preview ?? {}).sort()).toEqual([

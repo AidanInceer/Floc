@@ -1,4 +1,5 @@
 import { formatDate, readIsoDate } from "@floc/core/dates/dates";
+import { fileArchiveLeftLabel } from "@floc/core/documents/archive";
 import { DOC_CATEGORIES, formatBytes, type DocCategory } from "@floc/core/documents/documents";
 
 export function splitByVisibility<T extends { ownerId: string | null }>(files: T[]) {
@@ -25,6 +26,21 @@ export function metaLine(
   ]
     .filter(Boolean)
     .join(" · ");
+}
+
+/** Two lines, as the web draws below sm: the whole thing is too long for one row beside Restore, and neither half may be cut. */
+export function archivedMetaLines(
+  file: { sizeBytes: number; uploadedBy: string; uploaderName: string; ownerId: string | null; archivedAt: string },
+  viewerId: string | undefined,
+  now: Date,
+): [string, string] {
+  const size = formatBytes(file.sizeBytes);
+  const who = file.uploadedBy === viewerId ? "You" : file.uploaderName;
+  return [
+    `${fileArchiveLeftLabel(new Date(file.archivedAt), now)} · ${file.ownerId ? "Yours" : "Shared"}`,
+    // Why no name on a private file: only its owner sees it, so "Yours" has already said who.
+    file.ownerId ? size : `${who} · ${size}`,
+  ];
 }
 
 export function inFilter<T extends { category: DocCategory }>(files: T[], value: DocCategory | "all"): T[] {

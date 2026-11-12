@@ -68,6 +68,16 @@ export const filesRouter = router({
       await ctx.port.deleteFile(ctx.viewer.id, input.tripId, input.fileId);
     }),
 
+  /** Removed files waiting out their week (ADR-048). */
+  archived: tripProcedure.query(({ ctx, input }) =>
+    ctx.port.listArchivedFiles(ctx.viewer.id, input.tripId),
+  ),
+
+  /** Back on the trip, for any member who could see it. Null when it is back, else the refusal in words. */
+  restore: tripProcedure
+    .input(z.object({ fileId: z.number().int().positive() }))
+    .mutation(({ ctx, input }) => ctx.port.restoreFile(ctx.viewer.id, input.tripId, input.fileId)),
+
   /**
    * Filing, not ownership (ticket 325) — any member who can see the row may
    * park it on an event, and detaching leaves the file on the trip.

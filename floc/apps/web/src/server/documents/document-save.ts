@@ -8,6 +8,7 @@ import {
 import type { TripAccess } from "@/server/access";
 import { refresh } from "@/server/freshness";
 import { LIMITS } from "@/server/limits";
+import { trimArchive } from "./archive/archive";
 import { documentsEnabled, dropDocument, putDocument } from "./document-store";
 import {
   countDocuments, insertDocument, placeDocument, setDocumentCategory,
@@ -66,7 +67,7 @@ export async function saveDocument(access: Access, input: Upload): Promise<strin
 export async function removeDocument(access: Access, documentId: number): Promise<void> {
   const doc = await access.document(documentId);
   await softDeleteDocument(doc.id);
-  await dropDocument(doc.storageKey);
+  await trimArchive(access.trip.id);
   changed(access);
 }
 

@@ -13,7 +13,7 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import type { AllowedType } from "@floc/core/documents/documents";
@@ -65,6 +65,14 @@ export async function readDocument(
   } catch {
     return null;
   }
+}
+
+/** Whether the bytes are still on the disk: an archived file's row outlives them (ADR-048). */
+export async function hasDocument(storageKey: string): Promise<boolean> {
+  const dir = root();
+  const full = dir ? pathFor(dir, storageKey) : null;
+  if (!full) return false;
+  return stat(full).then((found) => found.isFile(), () => false);
 }
 
 /**

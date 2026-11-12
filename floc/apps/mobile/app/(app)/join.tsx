@@ -13,6 +13,7 @@
  * member yet (ticket 147).
  */
 import { formatDateRange } from "@floc/core/dates/dates";
+import { INVITE_LINK_DAYS } from "@floc/core/trip/group/invite-link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -22,6 +23,8 @@ import { Body, Button, Card, Field, Screen } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { askForPushOnce } from "@/lib/push/push";
 import { space } from "@/lib/theme";
+
+const DEAD_LINK = `This link no longer works. An invite link works for ${INVITE_LINK_DAYS} days. Ask whoever sent it for a fresh one.`;
 
 /** People paste the whole link, not the token out of it. */
 function tokenFrom(pasted: string): string {
@@ -47,7 +50,7 @@ export default function Join() {
     ...trpc.trips.join.mutationOptions(),
     onSuccess: (trip) => {
       if (!trip) {
-        setProblem("That link doesn't work any more.");
+        setProblem(DEAD_LINK);
         return;
       }
       queryClient.invalidateQueries({ queryKey: trpc.trips.list.queryKey() });
@@ -56,7 +59,7 @@ export default function Join() {
     },
     // A refusal carries its own sentence, such as a full trip; anything else is a dead link.
     onError: (error) =>
-      setProblem(error.data?.code === "BAD_REQUEST" ? error.message : "That link doesn't work any more."),
+      setProblem(error.data?.code === "BAD_REQUEST" ? error.message : DEAD_LINK),
   });
 
   return (

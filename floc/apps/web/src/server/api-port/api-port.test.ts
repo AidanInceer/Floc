@@ -16,8 +16,10 @@ import { db, schema } from "@/db";
 import { givePro, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { webPort } from "@/server/api-port/api-port";
 import { ensureProfile } from "@/server/auth/profile";
+import { mintShareToken, readShareToken } from "@/server/trips/invite-link";
 
 let world: Scenario;
+const OURS_LINK = mintShareToken("token-ours");
 
 beforeAll(migrateTestDb);
 beforeEach(async () => {
@@ -170,8 +172,8 @@ describe("the admin powers (rule 6)", () => {
   it("lets an admin reset the invite link, retiring the old token (#358)", async () => {
     const minted = await webPort.resetInviteLink(world.admin, world.ours.id);
 
-    expect(minted).not.toBe("token-ours");
-    expect(await webPort.previewInvite("token-ours")).toBeNull();
+    expect(readShareToken(minted)).not.toBe("token-ours");
+    expect(await webPort.previewInvite(OURS_LINK)).toBeNull();
     expect((await webPort.previewInvite(minted))?.name).toBe("Ours");
     // Re-locking the door does not put anybody outside it.
     expect(await webPort.loadTrip(world.member, world.ours.id)).not.toBeNull();
@@ -196,7 +198,7 @@ describe("the admin powers (rule 6)", () => {
     await expect(
       webPort.resetInviteLink(world.outsider, world.ours.id),
     ).rejects.toThrow();
-    expect((await webPort.previewInvite("token-ours"))?.name).toBe("Ours");
+    expect((await webPort.previewInvite(OURS_LINK))?.name).toBe("Ours");
   });
 
   it("lets any member leave, because leaving is not an admin power", async () => {
@@ -218,7 +220,7 @@ describe("the admin powers (rule 6)", () => {
 
 describe("joining", () => {
   it("joins by the share token", async () => {
-    const joined = await webPort.joinByToken(world.outsider, "token-ours");
+    const joined = await webPort.joinByToken(world.outsider, OURS_LINK);
     expect(joined).toEqual({ id: world.ours.id });
     expect(await webPort.loadTrip(world.outsider, world.ours.id)).not.toBeNull();
   });
@@ -273,7 +275,7 @@ describe("creating and patching a trip", () => {
     });
     const trip = await webPort.loadTrip(world.member, id);
     expect(trip?.role).toBe("admin");
-    // A trip with no dates is a normal trip (rule 9).
+    // Why: a trip with no dates is a normal trip (rule 9).
     expect(trip?.startDate).toBeNull();
   });
 
@@ -423,7 +425,7 @@ describe("money", () => {
   });
 
   it("lets only the payer or the receiver record a settlement", async () => {
-    await webPort.joinByToken(world.outsider, "token-ours");
+    await webPort.joinByToken(world.outsider, OURS_LINK);
     const between = [
       { fromUserId: world.admin, toUserId: world.outsider, amountMinor: 500, currency: "GBP" as const },
     ];

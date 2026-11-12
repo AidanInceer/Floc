@@ -7,9 +7,11 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, signIn, type Scenario } from "@/test/db";
+import { mintShareToken } from "@/server/trips/invite-link";
 import { joinTrip } from "./actions";
 
 let world: Scenario;
+const OURS_LINK = mintShareToken("token-ours");
 
 beforeAll(migrateTestDb);
 
@@ -35,7 +37,7 @@ describe("joining by link", () => {
   it("lets somebody with an unconfirmed inbox join", async () => {
     signIn(world.outsider);
 
-    await expect(joinTrip("token-ours")).rejects.toThrow(
+    await expect(joinTrip(OURS_LINK)).rejects.toThrow(
       `NEXT_REDIRECT:/trip/${world.ours.id}/overview`,
     );
     expect(await membershipRow(world.ours.id, world.outsider)).toBeDefined();
@@ -44,7 +46,7 @@ describe("joining by link", () => {
   it("takes a current member straight to the trip", async () => {
     signIn(world.member);
 
-    await expect(joinTrip("token-ours")).rejects.toThrow(
+    await expect(joinTrip(OURS_LINK)).rejects.toThrow(
       `NEXT_REDIRECT:/trip/${world.ours.id}/overview`,
     );
   });
@@ -52,8 +54,8 @@ describe("joining by link", () => {
   it("sends a signed-out visitor to sign in, then back to the link", async () => {
     signIn(null);
 
-    await expect(joinTrip("token-ours")).rejects.toThrow(
-      `NEXT_REDIRECT:/login?redirect=${encodeURIComponent("/invite/token-ours")}`,
+    await expect(joinTrip(OURS_LINK)).rejects.toThrow(
+      `NEXT_REDIRECT:/login?redirect=${encodeURIComponent(`/invite/${OURS_LINK}`)}`,
     );
   });
 });

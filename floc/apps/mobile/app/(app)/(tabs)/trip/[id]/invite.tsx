@@ -4,6 +4,7 @@
  * Why only friends are offered: somebody who has not agreed to know you would make a trip invite a backdoor friend
  * request (ticket 146). The server leaves out anyone already on the roster or asked.
  */
+import { INVITE_LINK_LIFE } from "@floc/core/trip/group/invite-link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
@@ -94,6 +95,7 @@ export default function Invite() {
               onPress={() => void Share.share({ message: inviteUrl(panel.data.token) })}
             />
           </View>
+          <Text style={{ color: c["ink-3"], fontFamily: fonts.sans, fontSize: size.small }}>{INVITE_LINK_LIFE}</Text>
           {isAdmin ? (
             <Pressable
               accessibilityRole="button"

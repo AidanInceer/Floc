@@ -16,6 +16,7 @@ import {
   declineInvite,
   findPendingInvite,
   findTripByInviteToken,
+  findTripByShareLink,
   inviteToTrip,
   joinWithLink,
   listDeclinedInvitees,
@@ -23,7 +24,8 @@ import {
   listPendingInvitesFor,
 } from "@/server/trips/invites";
 import { countMembers, removeMembership } from "@/server/trips/roster";
-import { setTripArchived, softDeleteTrip } from "@/server/trips/trips";
+import { resetInviteToken, setTripArchived, softDeleteTrip } from "@/server/trips/trips";
+import { mintShareToken } from "@/server/trips/invite-link";
 
 let world: Scenario;
 
@@ -65,6 +67,20 @@ describe("the share link", () => {
   it("resolves nothing once the trip is archived", async () => {
     await setTripArchived(world.ours.id, true);
     expect(await findTripByInviteToken("token-ours")).toBeUndefined();
+  });
+
+  it("opens the trip for a week from when it was shared, and not after (ADR-047)", async () => {
+    const shared = Date.UTC(2027, 0, 10);
+    const link = mintShareToken("token-ours", shared);
+    const day = 24 * 60 * 60 * 1000;
+    expect((await findTripByShareLink(link, shared + 6 * day))?.id).toBe(world.ours.id);
+    expect(await findTripByShareLink(link, shared + 8 * day)).toBeUndefined();
+  });
+
+  it("stops working when an admin resets the link, whatever its date", async () => {
+    const link = mintShareToken("token-ours");
+    await resetInviteToken(world.ours.id);
+    expect(await findTripByShareLink(link)).toBeUndefined();
   });
 
   it("lets nobody else in once the trip is full", async () => {

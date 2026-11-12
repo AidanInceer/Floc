@@ -1,7 +1,7 @@
 /**
  * What you can do to one file (#325 feedback) — behind the row's dots.
  *
- * OFF THE LINE, BEHIND A PRESS. A re-file dropdown and a Remove button on
+ * OFF THE LINE, BEHIND A PRESS. A re-file dropdown and an Archive button on
  * every row is three controls per file; the pile then reads as a stack of
  * forms rather than a list of files.
  */
@@ -50,7 +50,7 @@ export function FileActions({
           value={category}
           onChange={onRefile}
         />
-        <Button label="Remove" variant="danger" busy={busy} onPress={onRemove} />
+        <Button label="Archive" variant="quiet" busy={busy} onPress={onRemove} />
       </View>
     </Sheet>
   );

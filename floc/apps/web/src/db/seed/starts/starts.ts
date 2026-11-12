@@ -13,6 +13,7 @@ import { SEED_DOMAIN } from "../identity.ts";
 import { seedGuest, upsertAccount } from "../people.ts";
 import { OPEN } from "../profiles.ts";
 import { isoIn, makeTrip } from "../world.ts";
+import { mintShareToken } from "@/server/trips/invite-link";
 
 export const STARTS = ["new-user", "walkthrough", "join-link", "guest-account", "dead-link", "map-question"] as const;
 export type StartName = (typeof STARTS)[number];
@@ -63,7 +64,7 @@ async function portugalWithIdeas() {
 
 async function joinLink(): Promise<Start> {
   const { portugal } = await portugalWithIdeas();
-  return { as: null, to: `/invite/${portugal.inviteToken}` };
+  return { as: null, to: `/invite/${mintShareToken(portugal.inviteToken)}` };
 }
 
 async function guestAccount(): Promise<Start> {
@@ -73,13 +74,13 @@ async function guestAccount(): Promise<Start> {
   await db
     .insert(availability)
     .values([38, 39, 40].map((d) => ({ tripId: portugal.id, userId: sam, date: isoIn(d), available: true })));
-  return { as: sam, to: `/invite/${portugal.inviteToken}` };
+  return { as: sam, to: `/invite/${mintShareToken(portugal.inviteToken)}` };
 }
 
 async function deadLink(): Promise<Start> {
   const portugal = await tripNamed("Portugal, late summer");
   await db.update(trip).set({ inviteToken: randomUUID() }).where(eq(trip.id, portugal.id));
-  return { as: null, to: `/invite/${portugal.inviteToken}` };
+  return { as: null, to: `/invite/${mintShareToken(portugal.inviteToken)}` };
 }
 
 async function mapQuestion(): Promise<Start> {

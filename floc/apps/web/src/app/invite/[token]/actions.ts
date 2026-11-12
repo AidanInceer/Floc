@@ -16,12 +16,12 @@ import { assertGuestRoom } from "@/server/guests/guests";
 import { startGuest } from "@/server/guests/guest-start";
 import { findIdea, toggleIdeaVote } from "@/server/ideas/ideas";
 import { setAvailability } from "@/server/itinerary/availability";
-import { findTripByInviteToken, joinWithLink } from "@/server/trips/invites";
+import { findTripByShareLink, joinWithLink } from "@/server/trips/invites";
 
 export async function joinTrip(token: string) {
   const user = await requireUser(`/invite/${token}`);
 
-  const found = await findTripByInviteToken(token);
+  const found = await findTripByShareLink(token);
   if (!found) notFound();
 
   try {
@@ -35,7 +35,7 @@ export async function joinTrip(token: string) {
 }
 
 async function tripFor(token: string) {
-  const found = await findTripByInviteToken(token);
+  const found = await findTripByShareLink(token);
   if (!found) notFound();
   if (await getSession()) redirect(`/trip/${found.id}/overview`);
   return found;
