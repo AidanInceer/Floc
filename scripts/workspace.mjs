@@ -35,7 +35,7 @@ async function prepare() {
   const main = mainCheckout(root);
   const primary = isPrimary(root);
   const config = await prepareConfig(root, resolve(root, git(root, "rev-parse", "--git-common-dir")), { primary });
-  const docs = ensureDocs(root, main, { primary });
+  const docs = ensureDocs(root, main, { primary, branch: primary ? undefined : git(root, "branch", "--show-current") || undefined });
   const install = !args.includes("--no-install");
   if (install) command("pnpm", ["install", "--frozen-lockfile", "--config.confirmModulesPurge=false"], { cwd: root, stdio: "inherit" });
   if (!primary) copyDevAccount(root, main);

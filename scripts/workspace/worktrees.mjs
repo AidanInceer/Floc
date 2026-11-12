@@ -1,7 +1,8 @@
-import { existsSync, lstatSync, renameSync, unlinkSync } from "node:fs";
+import { renameSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { git } from "../delivery/process.mjs";
 import { stopServers } from "./servers.mjs";
+import { removeDocs } from "./docs-link.mjs";
 
 export const TASK_BRANCH = /^(feature|fix|chore|hotfix|release)\/[a-z0-9][a-z0-9._-]*$/;
 
@@ -108,8 +109,7 @@ function assertNotInUse(path) {
 export function removeWorktree(main, path, branch) {
   stopServers(path);
   assertNotInUse(path);
-  const docs = join(path, "docs");
-  if (existsSync(docs) && lstatSync(docs).isSymbolicLink()) unlinkSync(docs);
+  removeDocs(main, path);
   git(main, "worktree", "remove", path);
   // Why -D: git compares with the local develop, which may be behind; the caller has already checked origin holds every commit.
   if (branch) git(main, "branch", "-D", branch);
