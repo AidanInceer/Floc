@@ -148,18 +148,17 @@ for (const size of WIDTHS) {
     test.describe("signed in", () => {
       test.use({ storageState: priya.state });
 
-      test("the New group button sits beside the People tabs and opens the group dialog", async ({ page }) => {
-        await page.goto("/friends");
-        const tabs = page.getByRole("group", { name: "People" });
-        await tabs.getByRole("button", { name: /^Groups/ }).click();
+      test("the New group button sits beside the Groups heading and opens the group dialog", async ({ page }) => {
+        await page.goto("/friends/groups");
+        const heading = page.getByRole("heading", { name: /^Groups/, level: 2 });
         const create = page.getByRole("button", { name: "New group", exact: true });
         await expect(create).toBeVisible();
 
-        const tabBox = (await tabs.boundingBox())!;
+        const headBox = (await heading.boundingBox())!;
         const createBox = (await create.boundingBox())!;
-        expect(createBox.x).toBeGreaterThan(tabBox.x + tabBox.width);
-        expect(createBox.y).toBeGreaterThanOrEqual(tabBox.y);
-        expect(createBox.y + createBox.height).toBeLessThanOrEqual(tabBox.y + tabBox.height);
+        expect(createBox.x).toBeGreaterThan(headBox.x + headBox.width);
+        expect(createBox.y).toBeLessThan(headBox.y + headBox.height);
+        expect(createBox.y + createBox.height).toBeGreaterThan(headBox.y);
 
         await create.click();
         await expect(page.getByRole("dialog", { name: "New group" })).toBeVisible();
