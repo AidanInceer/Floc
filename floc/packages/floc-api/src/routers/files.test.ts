@@ -30,14 +30,14 @@ it("rejects oversized base64 before passing it to the file port", async () => {
   expect(uploadFile).not.toHaveBeenCalled();
 });
 
-it("asks the port for the viewer's trip address (#328)", async () => {
-  const fileInboxAddress = vi.fn().mockResolvedValue("trip-1-abc@in.floc.test");
+it("asks the port for the shared bookings address (#559)", async () => {
+  const fileInboxAddress = vi.fn().mockResolvedValue("bookings@in.floc.test");
   const caller = filesRouter.createCaller({
     viewer: { id: "u1", name: "Ada", email: "ada@example.com", image: null },
     port: { loadTrip: async () => ({ id: 1 }), fileInboxAddress } as unknown as FlocPort,
   });
 
-  await expect(caller.inboxAddress({ tripId: 1 })).resolves.toBe("trip-1-abc@in.floc.test");
+  await expect(caller.inboxAddress({ tripId: 1 })).resolves.toBe("bookings@in.floc.test");
   expect(fileInboxAddress).toHaveBeenCalledWith("u1", 1);
 });
 

@@ -43,8 +43,10 @@ export type Fact =
   | { kind: "friendGroups" }
   | { kind: "inbox" }
   | { kind: "bell" }
+  | { kind: "bookings" }
   | { kind: "explore" }
-  | { kind: "savedTrips" };
+  | { kind: "savedTrips" }
+  | { kind: "wishLists" };
 
 export type FactKind = Fact["kind"];
 
@@ -98,14 +100,19 @@ const PAGES: Pages = {
   inbox: () => [{ path: "/inbox" }],
   // The bell hangs off the root layout, so it is stale on every page at once.
   bell: () => [{ path: "/", type: "layout" }],
+  bookings: () => [{ path: "/bookings" }],
   explore: () => [{ path: "/explore" }],
   savedTrips: () => [{ path: "/lists" }, { path: "/explore", type: "layout" }],
+  // Why: a listing's Add to wish list menu reads your lists (#623).
+  wishLists: () => [{ path: "/lists/wish", type: "layout" }, { path: "/explore", type: "layout" }],
 };
 
 /** Facts a fact drags with it. Same shape of id, so the implied fact reuses it. */
 const IMPLIES: Partial<Record<FactKind, FactKind[]>> = {
   tripWindow: ["itinerary", "tripDates", "tripHeader"],
   inbox: ["bell"],
+  // Why: the "Which trip?" dialog and the menu's count hang off the root layout (#559).
+  bookings: ["bell"],
 };
 
 /** The tab a note thread is rendered on — notes hang off several surfaces. */

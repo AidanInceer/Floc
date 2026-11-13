@@ -4,6 +4,7 @@ import type { PlanStop } from "@floc/core/trip/explore/detail/preset-plan";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 
 import { CopySheet } from "@/components/explore/copy/copy-sheet";
+import { AddToWishList } from "@/components/lists/wish/listing-wish";
 import { listingStartHref } from "@/lib/landing/start-trip";
 import { CopyIcon } from "@/components/system/icons/explore-trip";
 import { CheckIcon, ChevronIcon } from "@/components/system/icons";
@@ -94,6 +95,7 @@ export function TripCopyCard({
       <h2 className="text-xl">Copy this trip</h2>
       {stops.some((s) => s.days.length > 0) ? <OpenDays stops={stops} open={open} onJump={onJump} /> : null}
       <CopyAction trip={trip} signedIn={signedIn} className="mt-4 w-full" defaultOpen={startOpen} />
+      {signedIn ? <AddToWishList presetId={trip.id} className="mt-2 w-full justify-center" /> : null}
       <p className="mt-2.5 text-center text-xs text-ink-faint">Free. Nothing is booked.</p>
       <details className="group mt-3.5 border-t border-dashed border-rule-strong pt-3">
         <summary className="flex cursor-pointer list-none items-center justify-between text-sm text-ink-soft [&::-webkit-details-marker]:hidden">

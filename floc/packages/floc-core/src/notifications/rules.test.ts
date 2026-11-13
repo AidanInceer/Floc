@@ -38,6 +38,12 @@ describe("recipientsFor", () => {
     }
   });
 
+  it("tells only the person themself about their own forwarded booking, quietly (#559)", () => {
+    for (const kind of ["booking_filed", "booking_waiting"] as const) {
+      expect(recipientsFor({ kind, actorId: "ada", affected: ["ada"], members })).toEqual([{ userId: "ada", loud: false }]);
+    }
+  });
+
   it("does not count the actor as affected by their own expense", () => {
     const out = recipientsFor({ kind: "expense_added", actorId: "ada", affected: ["ada", "mo"], members });
     expect(out).toEqual([

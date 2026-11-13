@@ -44,8 +44,10 @@ import { commentsPort } from "@/server/api-port/api-port-comments";
 import { pagesPort } from "@/server/api-port/pages/api-port-pages";
 import { ideasPort } from "@/server/api-port/ideas/ideas";
 import { filesPort } from "@/server/api-port/api-port-files";
+import { bookingsPort } from "@/server/api-port/bookings/bookings";
 import { explorePort } from "@/server/api-port/api-port-explore";
 import { kitsPort } from "@/server/api-port/api-port-kits";
+import { wishListsPort } from "@/server/api-port/wish-lists/wish-lists-port";
 import { mapPort } from "@/server/api-port/api-port-map";
 import { calendarImportPort } from "@/server/api-port/calendar-import/api-port-calendar-import";
 import { settingsPort } from "@/server/api-port/api-port-settings";
@@ -55,7 +57,7 @@ import { calendarPort } from "@/server/api-port/api-port-calendar";
 import { notificationsPort } from "@/server/api-port/notifications/notifications";
 import { refresh } from "@/server/freshness";
 import { emailConfigured } from "@/server/auth/email";
-import { findTripByShareLink, joinWithLink } from "@/server/trips/invites";
+import { findTripByShareLink, inviteToTrip, joinWithLink } from "@/server/trips/invites";
 import { mintShareToken } from "@/server/trips/invite-link";
 import {
   listDaysWithEvents,
@@ -132,7 +134,9 @@ export const webPort: FlocPort = {
   ...calendarImportPort,
   ...mapPort,
   ...kitsPort,
+  ...wishListsPort,
   ...filesPort,
+  ...bookingsPort,
   ...commentsPort,
   ...pagesPort,
   ...ideasPort,
@@ -383,8 +387,9 @@ export const webPort: FlocPort = {
     await scoped(viewerId, tripId);
     // The viewer goes down to the query, which drops a private file that is
     // somebody else's rather than returning it flagged.
-    const rows = await listDocuments(tripId, viewerId);
+    const [rows, reads] = await Promise.all([listDocuments(tripId, viewerId), canUseFeature("bookings.autoFile", viewerId)]);
     return rows.map((d) => ({
+      booking: reads ? d.booking : null,
       id: d.id,
       name: d.name,
       mimeType: d.mimeType,
@@ -423,11 +428,12 @@ export const webPort: FlocPort = {
     return { id: await startTrip(viewerId, input) };
   },
 
-  async startTripFromPreset(viewerId, choice) {
+  async startTripFromPreset(viewerId, choice, along = []) {
     await ensureProfile(viewerId);
     const id = await copyListing(viewerId, choice);
     if (id === null) return null;
     refresh({ kind: "tripList" });
+    if (along.length && (await inviteToTrip({ tripId: id, fromUserId: viewerId, toUserIds: along }))) refresh({ kind: "invites" });
     return { id };
   },
 

@@ -13,6 +13,10 @@ import { useListingRates } from "@/components/explore/listing-rates";
 
 export const tagClass = "typed w-fit max-w-full truncate rounded-sm px-2 py-1";
 
+/** The line under a tile's last line (#623): the same layer, without pushing itself down. */
+export const footLineClass =
+  "pointer-events-none relative z-10 flex items-center justify-between gap-2 [&_a]:pointer-events-auto [&_button]:pointer-events-auto";
+
 /** A tile's last line when it holds an action (#467): figures on the left, the action on the right, both above the stretched link. */
 export const lastLineClass =
   "pointer-events-none relative z-10 mt-auto flex items-center justify-between gap-2 [&_a]:pointer-events-auto [&_button]:pointer-events-auto";
@@ -59,7 +63,7 @@ export function ExploreTile({
       </Link>
       <SaveHeart presetId={trip.id} title={trip.title} className="absolute right-2.5 top-2.5 z-10" />
       {action ? (
-        <div className={cx(lastLineClass, "px-3.5 pb-3.5")}>
+        <div className={cx(lastLineClass, "px-3.5", footer ? "pb-1.5" : "pb-3.5")}>
           {/* Why: beside an action on a phone the figures stack, nights over price, rather than wrap at the dot. */}
           <span className="nums flex flex-col text-[11px] text-ink-faint sm:flex-row sm:gap-1">
             <span className="whitespace-nowrap">{nightsOf(trip.nights)}<span className="max-sm:hidden"> ·</span></span>
@@ -68,7 +72,7 @@ export function ExploreTile({
           {action}
         </div>
       ) : null}
-      {footer ? <div className="pointer-events-none relative z-10 mt-auto px-3.5 pb-3.5 [&_a]:pointer-events-auto [&_button]:pointer-events-auto">{footer}</div> : null}
+      {footer ? <div className={cx("pointer-events-none relative z-10 px-3.5 pb-3.5 [&_a]:pointer-events-auto [&_button]:pointer-events-auto", !action && "mt-auto")}>{footer}</div> : null}
     </div>
   );
 }

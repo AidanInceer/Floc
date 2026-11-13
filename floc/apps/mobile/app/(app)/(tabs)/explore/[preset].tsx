@@ -16,7 +16,7 @@
  */
 import { stopsOf } from "@floc/core/trip/explore/listing-stops";
 import { PRESET_TRIPS, type PresetTrip } from "@floc/core/trip/explore/preset-trips";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
@@ -39,7 +39,11 @@ function bases(trip: PresetTrip) {
 
 export default function PresetDetail() {
   const { c } = useTheme();
-  const { preset, start: asked } = useLocalSearchParams<{ preset: string; start?: string }>();
+  const { preset, start: asked, wish } = useLocalSearchParams<{ preset: string; start?: string; wish?: string }>();
+  // Why: a start from a wish list asks the list's people along (#623), as `?wish=` does on the web.
+  const wishId = Number(wish);
+  const along = useQuery({ ...trpc.wishes.peopleToAsk.queryOptions({ listId: wishId }), enabled: Number.isSafeInteger(wishId) && wishId > 0 });
+  const friendIds = along.data?.map((p) => p.id) ?? [];
   const router = useRouter();
   const trip = PRESET_TRIPS.find((candidate) => candidate.id === preset);
   // Why: a saved trip on Lists opens with the copy choice open, as on the web (ADR-025).
@@ -146,7 +150,7 @@ export default function PresetDetail() {
         busy={start.isPending}
         error={start.isError ? start.error.message : null}
         onClose={() => setSheet(false)}
-        onStart={(choice) => start.mutate(choice)}
+        onStart={(choice) => start.mutate({ ...choice, friendIds })}
       />
     </>
   );

@@ -29,7 +29,7 @@
  * the heavier face. Packing reads the first and has no use for a travel map.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
@@ -53,6 +53,7 @@ export default function Profile() {
   const router = useRouter();
   const me = useQuery(trpc.me.get.queryOptions());
   const billing = useQuery(trpc.billing.status.queryOptions());
+  const waitingBookings = useQuery(trpc.bookings.waitingCount.queryOptions()).data ?? 0;
   const face = useQuery(trpc.me.profile.queryOptions());
   const prompts = useQuery(trpc.me.mapPrompts.queryOptions());
 
@@ -157,6 +158,11 @@ export default function Profile() {
           <ProRow status={billing.data} onPress={() => router.push("/settings")} />
           <DrawerGroup>
             <DrawerLink first title="Settings" onPress={() => router.push("/settings")} />
+            <DrawerLink
+              title="Bookings"
+              summary={waitingBookings ? `${waitingBookings} waiting for a trip` : undefined}
+              onPress={() => router.push("/bookings" as Href)}
+            />
           </DrawerGroup>
         </View>
 

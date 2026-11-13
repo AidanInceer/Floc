@@ -37,7 +37,10 @@ export function AppChrome({
   notificationCount = 0,
   latest = [],
   isPro = false,
+  bookingCount = 0,
 }: {
+  /** Bookings waiting for a trip (#559), counted on the account menu's tile. */
+  bookingCount?: number;
   user: { id: string; name: string; email: string } | null;
   isPro?: boolean;
   /** Open trip invites for this account — badges the Trips link. */
@@ -99,6 +102,7 @@ export function AppChrome({
             isPro={isPro}
             unread={notificationCount}
             latest={latest}
+            waiting={bookingCount}
           />
         ) : (
           <div className={cx(BEAD, "shrink-0 gap-1")}>

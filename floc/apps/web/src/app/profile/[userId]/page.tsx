@@ -20,6 +20,8 @@ import { redirect } from "next/navigation";
 import { ListingRatesProvider } from "@/components/explore/listing-rates";
 import { SavedTripsProvider } from "@/components/explore/save/saved-trips";
 import { FriendSaved } from "@/components/lists/friend-saved";
+import { StartWishWith } from "@/components/lists/wish/start-wish-with";
+import { invitableIdsOf } from "@/server/social/groups";
 import { savedTripIds } from "@/server/explore/explore-saves";
 import { travelMapFor } from "@/server/itinerary/travel-map";
 import { listingRates, viewerCurrency } from "@/server/money/viewer-currency";
@@ -49,12 +51,13 @@ export default async function PublicProfilePage({
   // Independent of each other, so they go out together (ticket 114). The 404
   // for a stranger still comes from `requireProfileView` — it throws, and the
   // other promise is discarded with the render.
-  const [profile, friendState, yourTrips, yourMap, rates] = await Promise.all([
+  const [profile, friendState, yourTrips, yourMap, rates, askable] = await Promise.all([
     requireProfileView(userId, viewer.id),
     friendStateWith(viewer.id, userId),
     savedTripIds(viewer.id),
     travelMapFor(viewer.id),
     viewerCurrency(viewer.id, await headers()).then(listingRates),
+    invitableIdsOf(viewer.id, [userId]),
   ]);
   const saved = friendSavedPart(profile.saved, profile.travelMap);
 
@@ -101,6 +104,7 @@ export default async function PublicProfilePage({
       {saved ? (
         <ListingRatesProvider rates={rates}>
           <SavedTripsProvider ids={yourTrips} signedIn>
+            {askable.has(userId) ? <StartWishWith friendId={userId} name={profile.name} /> : null}
             <FriendSaved part={saved} yourCountries={wantToGoCountries(yourMap).map((c) => c.code)} />
           </SavedTripsProvider>
         </ListingRatesProvider>

@@ -8,9 +8,9 @@ const startClass =
   "-mr-2 inline-flex h-8 shrink-0 items-center gap-1.5 rounded-sm px-2 text-[13px] font-medium text-pen transition-colors hover:bg-pen-soft hover:text-pen-deep max-sm:w-8 max-sm:justify-center max-sm:px-0";
 
 /** Start a trip from a Saved tile at once: the right end of its last line. */
-export function StartTripButton({ saved, name }: { saved: SavedThing; name: string }) {
+export function StartTripButton({ saved, name, href }: { saved?: SavedThing; name: string; href?: string }) {
   return (
-    <Link href={savedStartHref(saved)} aria-label={`Start trip from ${name}`} className={startClass}>
+    <Link href={href ?? (saved ? savedStartHref(saved) : "/trips?new=")} aria-label={`Start trip from ${name}`} className={startClass}>
       <span className="max-sm:sr-only">Start trip</span>
       <Glyph name="arrow" />
     </Link>

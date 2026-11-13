@@ -191,42 +191,24 @@ export const emails = {
     cta: { label: "See the trip", url: absoluteUrl(`/invite/${args.token}`) },
   }),
 
-  /** Trigger: mail to a trip address from someone not on it, or to no trip at all — one answer for both (rule 5, #328). */
-  inboundRefused: (args: { to: string }): OutboundEmail => ({
-    to: args.to,
-    subject: "That address isn't on one of your trips",
-    lines: [
-      "Nothing was saved. A trip's address only takes mail from people on the trip, sent from the email they sign in to Floc with.",
-      "You'll find the address on the trip's Files page.",
-    ],
-  }),
-
   /** Trigger: mail from a member's address that their mail provider did not sign, so it may be forged (#328). */
-  inboundUnproven: (args: { to: string; tripName: string }): OutboundEmail => ({
+  inboundUnproven: (args: { to: string }): OutboundEmail => ({
     to: args.to,
     subject: "We couldn't confirm that email came from you",
     lines: [
-      `Nothing was saved to ${args.tripName}. Anyone can put your address on an email, so Floc only keeps files from mail your provider has signed as yours.`,
-      "If you sent it, upload the files on the trip's Files page instead. If you didn't, you can ignore this.",
+      "Nothing was saved. Anyone can put your address on an email, so Floc only keeps files from mail your provider has signed as yours.",
+      "If you sent it, upload the files in Bookings on Floc instead. If you didn't, you can ignore this.",
     ],
   }),
 
-  /** Trigger: a forwarded booking with no file Floc could keep, or one it had to leave out (#328). */
-  inboundPartlySaved: (args: {
-    to: string;
-    tripName: string;
-    savedCount: number;
-    refused: string[];
-  }): OutboundEmail => ({
+  /** Trigger: a forwarded booking with no file Floc could keep, or one it had to leave out (#328, #559). */
+  inboundPartlySaved: (args: { to: string; savedCount: number; refused: string[] }): OutboundEmail => ({
     to: args.to,
-    subject:
-      args.savedCount === 0
-        ? `Nothing was saved to ${args.tripName}`
-        : `Some files weren't saved to ${args.tripName}`,
+    subject: args.savedCount === 0 ? "Nothing was saved from your email" : "Some files weren't saved from your email",
     lines: [
       args.refused.length === 0
         ? "That email had no PDF or image attached. Floc keeps the attached files, not the email itself."
-        : `Saved ${args.savedCount} file${args.savedCount === 1 ? "" : "s"} to your files on the trip. These were left out:`,
+        : `Saved ${args.savedCount} file${args.savedCount === 1 ? "" : "s"} to Floc. These were left out:`,
       ...args.refused,
     ],
   }),

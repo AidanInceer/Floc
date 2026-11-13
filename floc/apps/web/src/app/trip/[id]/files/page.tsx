@@ -11,8 +11,11 @@ import { listDocuments } from "@/server/documents/documents";
 import { storageUsage } from "@/server/documents/storage-quota";
 import type { TripDocument } from "@/server/documents/documents";
 import { documentsEnabled } from "@/server/documents/document-store";
-import { tripInboxAddress } from "@/server/documents/inbound/inbound-address";
-import { InboxAddress } from "@/components/documents/inbox-address";
+import { bookingsInboxAddress } from "@/server/documents/inbound/inbound-address";
+import { ForwardBookings } from "@/components/documents/forward-bookings";
+import { AddToDays, type DayChoice } from "@/components/documents/add-to-days";
+import { canUseFeature } from "@/server/billing/entitlements";
+import { listDays } from "@/server/itinerary/itinerary";
 import {
   DOC_CATEGORIES,
   DOC_CATEGORY_LABELS,
@@ -45,11 +48,17 @@ export default async function FilesPage({
   const viewerId = access.viewer.id;
 
   const category = parseCategoryFilter((await searchParams).category);
-  const [docs, space, archived] = documentsEnabled()
-    ? await Promise.all([listDocuments(tripId, viewerId), storageUsage(tripId), archivedFiles(access)])
-    : [[], null, []];
+  const [docs, space, archived, tripDays, reads] = documentsEnabled()
+    ? await Promise.all([
+        listDocuments(tripId, viewerId), storageUsage(tripId), archivedFiles(access),
+        listDays(tripId), canUseFeature("bookings.autoFile", viewerId),
+      ])
+    : [[], null, [], [], false];
 
-  const inbox = tripInboxAddress(tripId);
+  const inbox = bookingsInboxAddress();
+  const days: DayChoice[] = tripDays.map((day) => ({ id: day.id, date: day.date }));
+  // Why: reading a booking is Pro (#559). On Free the form opens for the member to fill in.
+  const plan = { days, reads };
   const keep = (d: { category: DocCategory }) => category === "all" || d.category === category;
   const shared = docs.filter((d) => d.ownerId === null && keep(d));
   const mine = docs.filter((d) => d.ownerId !== null && keep(d));
@@ -72,8 +81,6 @@ export default async function FilesPage({
         <>
           {/* The pills scroll rather than wrap: wrapping dropped Upload onto a
               second line at phone width, where it read as a stray button. */}
-          {inbox ? <InboxAddress address={inbox} /> : null}
-
           <div className="mt-5 flex items-center justify-between gap-3">
             <div className="scroll-x-bare flex min-w-0 flex-1 items-center gap-1">
               {docs.length > 0 || category !== "all" ? (
@@ -93,7 +100,8 @@ export default async function FilesPage({
                 );
               })}
             </div>
-            <span className="shrink-0">
+            <span className="flex shrink-0 items-center gap-1.5">
+              {inbox ? <ForwardBookings address={inbox} /> : null}
               <DocumentUpload tripId={tripId} scope="shared" />
             </span>
           </div>
@@ -110,6 +118,7 @@ export default async function FilesPage({
               docs={shared}
               tripId={tripId}
               viewerId={viewerId}
+              plan={plan}
             />
 
             <FileCard
@@ -121,6 +130,7 @@ export default async function FilesPage({
               docs={mine}
               tripId={tripId}
               viewerId={viewerId}
+              plan={plan}
             />
           </div>
 
@@ -140,6 +150,7 @@ function FileCard({
   docs,
   tripId,
   viewerId,
+  plan,
 }: {
   title: string;
   note: string;
@@ -147,6 +158,7 @@ function FileCard({
   docs: TripDocument[];
   tripId: number;
   viewerId: string;
+  plan: { days: DayChoice[]; reads: boolean };
 }) {
   // No `overflow-hidden` on the card: a row's re-file menu opens inside it,
   // and clipping the frame clips the menu.
@@ -172,6 +184,16 @@ function FileCard({
                 }
               >
                 <Menu label={`More for ${doc.name}`}>
+                  {(doc.category === "travel" || doc.category === "hotel") && !doc.dayEventId && plan.days.length > 0 ? (
+                    <AddToDays
+                      tripId={tripId}
+                      documentId={doc.id}
+                      kind={doc.category}
+                      name={doc.name}
+                      days={plan.days}
+                      booking={plan.reads ? doc.booking : null}
+                    />
+                  ) : null}
                   <Sheet
                     bareTrigger
                     trigger="Rename"

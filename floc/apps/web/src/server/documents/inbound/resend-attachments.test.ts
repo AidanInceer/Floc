@@ -47,6 +47,32 @@ describe("attachments of a received email (#328)", () => {
     expect(files[0]).toMatchObject({ bytes: null, sizeBytes: 20 * 1024 * 1024 });
   });
 
+  it("downloads no more than ten files, and never a logo drawn inside the email (#559)", async () => {
+    const logo = row({ content_type: "image/png", content_disposition: "inline", filename: "logo.png" });
+    const fetcher = fakeFetch([logo, ...Array.from({ length: 40 }, (_, i) => row({ filename: `ticket-${i}.pdf` }))]);
+    const files = await resendAttachments("e", "k", fetcher);
+    expect(files).toHaveLength(10);
+    expect(files.map((file) => file.filename)).not.toContain("logo.png");
+    expect(fetcher).toHaveBeenCalledTimes(11);
+  });
+
+  it("refuses a file whose bytes are bigger than the size it was listed with", async () => {
+    const fetcher = vi.fn<Fetcher>(async (url) =>
+      url.includes("/emails/receiving/")
+        ? new Response(JSON.stringify({ data: [row()] }))
+        : new Response(new Uint8Array(9 * 1024 * 1024)),
+    );
+    const [file] = await resendAttachments("e", "k", fetcher);
+    expect(file).toMatchObject({ bytes: null, sizeBytes: 9 * 1024 * 1024 });
+  });
+
+  it("throws when a download fails, so the webhook is tried again", async () => {
+    const fetcher = vi.fn<Fetcher>(async (url) =>
+      url.includes("/emails/receiving/") ? new Response(JSON.stringify({ data: [row()] })) : new Response("no", { status: 500 }),
+    );
+    await expect(resendAttachments("e", "k", fetcher)).rejects.toThrow("500");
+  });
+
   it("throws when Resend will not list them, so the webhook is tried again", async () => {
     const fetcher = vi.fn<Fetcher>(async () => new Response("no", { status: 500 }));
     await expect(resendAttachments("e", "k", fetcher)).rejects.toThrow();

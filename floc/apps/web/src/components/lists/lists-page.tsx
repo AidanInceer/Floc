@@ -3,12 +3,12 @@ import type { ReactNode } from "react";
 import { AccountTabs } from "@/components/chrome/account-tabs";
 
 /** A Lists page under the account bar. Saved is wider, so a tile's figures and Start trip share one line (#467). */
-export function ListsPage({ current, children }: { current: "saved" | "packing"; children: ReactNode }) {
+export function ListsPage({ current, children, wide = current === "saved" }: { current: "saved" | "wish" | "packing"; children: ReactNode; wide?: boolean }) {
   return (
     <>
       <AccountTabs current={current} />
       <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
-        <div className={current === "saved" ? "mx-auto max-w-[64rem]" : "mx-auto max-w-[54rem]"}>{children}</div>
+        <div className={wide ? "mx-auto max-w-[64rem]" : "mx-auto max-w-[54rem]"}>{children}</div>
       </div>
     </>
   );

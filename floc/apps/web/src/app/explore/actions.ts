@@ -15,6 +15,8 @@ import { refresh } from "@/server/freshness";
 import { readFinder } from "@floc/core/trip/explore/finder/finder-read";
 import { saveFinder } from "@/server/explore/explore-finder";
 import { setTripSaved } from "@/server/explore/explore-saves";
+import { inviteToTrip } from "@/server/trips/invites";
+import { TRIP_INVITE_CAP } from "@floc/core/people/group-ticks";
 
 // No refresh: the page already holds the finder it just sent.
 export async function rememberFinder(value: unknown): Promise<void> {
@@ -29,6 +31,9 @@ export async function startTripFromPreset(formData: FormData): Promise<void> {
   const tripId = await copyListing(viewer.id, readCopyForm(formData));
   // A listing can be retired between render and click — degrade, don't crash.
   if (tripId === null) redirect("/explore");
+  // Why: a start from a wish list asks its people along (#623); inviteToTrip drops anyone you could not ask.
+  const along = [...new Set(formData.getAll("friendIds").map(String))].filter((id) => id && id.length <= 64).slice(0, TRIP_INVITE_CAP);
+  if (along.length && (await inviteToTrip({ tripId, fromUserId: viewer.id, toUserIds: along }))) refresh({ kind: "invites" });
 
   refresh({ kind: "tripList" });
   redirect(`/trip/${tripId}/overview`);

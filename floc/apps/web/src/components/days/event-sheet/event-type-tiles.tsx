@@ -15,7 +15,7 @@ const EDGE: Record<DayEventType, string> = {
   other: "border-rule-strong",
 };
 
-const HOW_LABELS: Record<TransportType, string> = {
+export const HOW_LABELS: Record<TransportType, string> = {
   flight: "Flight",
   train: "Train",
   car: "Car",

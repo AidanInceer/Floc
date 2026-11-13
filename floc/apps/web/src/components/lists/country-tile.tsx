@@ -4,7 +4,7 @@ import { listingsIn, regionOf } from "@floc/core/trip/explore/listing-countries"
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { lastLineClass } from "@/components/explore/all/explore-tile";
+import { footLineClass, lastLineClass } from "@/components/explore/all/explore-tile";
 import { regionLand } from "@/components/explore/listing";
 import { heartClass } from "@/components/explore/save/save-heart";
 import { ReactionGlyph } from "@/components/system/icons/reaction";
@@ -27,11 +27,16 @@ export function CountryTile({
   name,
   onDrop,
   children,
+  startHref,
+  footer,
 }: {
   code: string;
   name: string;
   onDrop?: () => void;
   children?: ReactNode;
+  /** Where Start trip goes when not the plain Saved path: a wish list asks its people along (#623). */
+  startHref?: string;
+  footer?: ReactNode;
 }) {
   const region = regionOf(code);
   return (
@@ -55,10 +60,11 @@ export function CountryTile({
           <ReactionGlyph kind="heart" mine size={16} />
         </button>
       ) : null}
-      <div className={cx(lastLineClass, "px-3 pb-2.5")}>
+      <div className={cx(lastLineClass, "px-3", footer ? "pb-1.5" : "pb-2.5")}>
         <span className="nums whitespace-nowrap text-[11px] text-ink-faint">{exploreTrips(listingsIn(code).length)}</span>
-        <StartTripButton saved={{ kind: "country", name }} name={name} />
+        <StartTripButton saved={{ kind: "country", name }} name={name} href={startHref} />
       </div>
+      {footer ? <div className={cx(footLineClass, "px-3 pb-2.5")}>{footer}</div> : null}
     </div>
   );
 }
