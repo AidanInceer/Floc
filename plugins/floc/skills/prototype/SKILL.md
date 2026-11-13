@@ -96,5 +96,5 @@ Use `Exploring: A–C` while the user compares options. Record a pick as `Chosen
 If the user says “implement A” or asks to close the round, prune it in the task worktree before starting the implementation:
 
 1. Keep the chosen variant and any variants explicitly marked as experiments. Delete the other renderers, variant registrations and assets used only by those options. Keep code shared by the surviving variants.
-2. Delete sibling prototype folders for the same decision when they contain no pick or experiment. Delete the whole prototype if the user closes it without either. Git holds the history.
+2. Delete sibling prototype folders for the same decision when they contain no pick or experiment. Delete the whole prototype if the user closes it without either. Git holds the history. Delete with `pnpm wireframe:delete <path> [...]`, paths relative to `floc/wireframe/`; it works in any worktree and refuses anything outside that folder. Never `rm -r` or `Remove-Item -Recurse`: both are denied.
 3. Update the metadata and variant list, and open the surviving variants to check their controls and assets. Include the deletions in the implementation PR.

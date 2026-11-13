@@ -37,6 +37,7 @@
       "Bash(rm floc-rotation.env)",
       "Bash(pnpm --filter floc-web db:query *)",
       "Bash(pnpm --filter floc-web db:trips)",
+      "Bash(pnpm wireframe:delete *)",
       "PowerShell(pnpm verify)",
       "PowerShell(pnpm checks *)",
       "PowerShell(pnpm delivery status)",
@@ -71,6 +72,7 @@
       "PowerShell(pnpm --filter floc-mobile test*)",
       "PowerShell(pnpm --filter floc-mobile maestro)",
       "PowerShell(pnpm comments*)",
+      "PowerShell(pnpm wireframe:delete *)",
       "PowerShell(Remove-Item floc-rotation.env)",
       "PowerShell(Remove-Item \"C:\\dev\\Floc\\floc-rotation.env\")"
     ]
