@@ -1,5 +1,5 @@
 /**
- * A member's Bookings area (#559, ADR-049): files that wait for them to choose a trip.
+ * A member's Bookings area (#559, ADR-050): files that wait for them to choose a trip.
  *
  * Why its own store of rows: a trip's file must have a trip, and these have none yet. Placing one hands its
  * bytes to an ordinary private file on the trip, so nothing here ever shows a file to anyone but its member.
@@ -140,7 +140,7 @@ export async function placeWaitingBooking(userId: string, id: number, tripId: nu
 
 /**
  * Off the list, and its bytes off the disk, at once. Why no wait: a waiting file has no archive to restore
- * from, and bytes kept after Remove would sit outside the list's space (ADR-049).
+ * from, and bytes kept after Remove would sit outside the list's space (ADR-050).
  */
 export async function removeWaitingBooking(userId: string, id: number, now = new Date()): Promise<void> {
   const [row] = await waitingRows(userId, now, id);

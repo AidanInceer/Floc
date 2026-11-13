@@ -45,7 +45,8 @@ export type Fact =
   | { kind: "bell" }
   | { kind: "bookings" }
   | { kind: "explore" }
-  | { kind: "savedTrips" };
+  | { kind: "savedTrips" }
+  | { kind: "wishLists" };
 
 export type FactKind = Fact["kind"];
 
@@ -102,6 +103,8 @@ const PAGES: Pages = {
   bookings: () => [{ path: "/bookings" }],
   explore: () => [{ path: "/explore" }],
   savedTrips: () => [{ path: "/lists" }, { path: "/explore", type: "layout" }],
+  // Why: a listing's Add to wish list menu reads your lists (#623).
+  wishLists: () => [{ path: "/lists/wish", type: "layout" }, { path: "/explore", type: "layout" }],
 };
 
 /** Facts a fact drags with it. Same shape of id, so the implied fact reuses it. */

@@ -1,4 +1,4 @@
-/** A member's Bookings area (#559, ADR-049): files wait there for a trip, and only for their own member. */
+/** A member's Bookings area (#559, ADR-050): files wait there for a trip, and only for their own member. */
 import { mkdtemp, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";

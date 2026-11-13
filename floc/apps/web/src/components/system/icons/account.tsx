@@ -36,6 +36,16 @@ export function TicketIcon() {
   );
 }
 
+/** Wish lists (#623): a list with the save heart on its first line. */
+export function WishListIcon() {
+  return (
+    <Line size={15}>
+      <path d="M6.6 4.2H12M2.2 7.6H12M2.2 10.8H12" />
+      <path d="M3.6 5.6 2.1 4.1a.95.95 0 0 1 1.5-1.2.95.95 0 0 1 1.5 1.2Z" />
+    </Line>
+  );
+}
+
 export function SignOutIcon() {
   return (
     <Line>

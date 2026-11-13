@@ -24,6 +24,8 @@ const LINES: Record<Change, { did: string; joins: string | null }> = {
   trip_invited: { did: "invited you", joins: "to" },
   friend_requested: { did: "sent you a friend request", joins: null },
   friend_accepted: { did: "accepted your friend request", joins: null },
+  wish_list_invited: { did: "invited you to a wish list", joins: null },
+  wish_list_joined: { did: "joined your wish list", joins: null },
 };
 
 const REMINDERS: Record<ReminderKind, { inbox: (trip: string, detail: string) => string; push: (detail: string) => string }> = {

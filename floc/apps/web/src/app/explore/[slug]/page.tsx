@@ -15,12 +15,15 @@ import { TripHero } from "@/components/explore/trip/trip-hero";
 import { TripKnow } from "@/components/explore/trip/trip-know";
 import { TripPlan } from "@/components/explore/trip/trip-plan";
 import { SavedTripsProvider } from "@/components/explore/save/saved-trips";
+import { ListingWishProvider } from "@/components/lists/wish/listing-wish";
+import { wishListParam } from "@/lib/landing/start-trip";
+import { listWishListsFor, wishListPeopleToAsk } from "@/server/wish-lists/wish-lists";
 import { getSession } from "@/server/access";
 import { savedTripIds } from "@/server/explore/explore-saves";
 import { listingRates, viewerCurrency } from "@/server/money/viewer-currency";
 import { publicMetadata } from "@/lib/seo/public-pages";
 
-type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ start?: string | string[] }> };
+type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ start?: string | string[]; wish?: string | string[] }> };
 
 const findTrip = (slug: string) => PRESET_TRIPS.find((t) => t.id === slug);
 
@@ -41,19 +44,26 @@ export default async function ExploreTripPage({ params, searchParams }: Props) {
   if (!trip) notFound();
   const session = await getSession();
   const userId = session?.user?.id ?? null;
-  const [rates, saved] = await Promise.all([
+  const query = await searchParams;
+  const wishId = wishListParam(query.wish);
+  const [rates, saved, wish, along] = await Promise.all([
     viewerCurrency(userId, await headers()).then(listingRates),
     userId ? savedTripIds(userId) : [],
+    userId ? listWishListsFor(userId) : null,
+    userId && wishId ? wishListPeopleToAsk(userId, wishId) : [],
   ]);
   const plan = buildPresetPlan(trip, presetDetail(trip.id));
+  const lists = wish?.lists.map(({ id, title }) => ({ id, title })) ?? [];
 
   return (
     <SavedTripsProvider ids={saved} signedIn={!!userId}>
-      <div className="mx-auto w-full max-w-[84rem] px-4 pb-32 pt-6 sm:px-6 lg:pb-24">
-        <TripHero trip={trip} figures={plan.inPlan} rates={rates} />
-        <TripPlan trip={trip} plan={plan} signedIn={!!userId} startOpen={(await searchParams).start !== undefined} />
-        <TripKnow know={tripKnow(trip.id)} />
-      </div>
+      <ListingWishProvider value={{ lists, along }}>
+        <div className="mx-auto w-full max-w-[84rem] px-4 pb-32 pt-6 sm:px-6 lg:pb-24">
+          <TripHero trip={trip} figures={plan.inPlan} rates={rates} />
+          <TripPlan trip={trip} plan={plan} signedIn={!!userId} startOpen={query.start !== undefined} />
+          <TripKnow know={tripKnow(trip.id)} />
+        </div>
+      </ListingWishProvider>
     </SavedTripsProvider>
   );
 }

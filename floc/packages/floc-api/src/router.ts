@@ -7,7 +7,7 @@
  */
 import { availabilityRouter } from "./routers/itinerary/availability";
 import { billingRouter } from "./routers/billing";
-import { bookingsRouter } from "./routers/bookings";
+import { bookingsRouter } from "./routers/bookings/bookings";
 import { commentsRouter } from "./routers/comments";
 import { exploreRouter } from "./routers/explore";
 import { filesRouter } from "./routers/files";
@@ -17,6 +17,7 @@ import { ideasRouter } from "./routers/itinerary/ideas";
 import { invitesRouter } from "./routers/invites";
 import { itineraryRouter } from "./routers/itinerary/itinerary";
 import { kitsRouter } from "./routers/kits";
+import { wishesRouter } from "./routers/wishes";
 import { meRouter } from "./routers/me";
 import { moneyRouter } from "./routers/money";
 import { notificationsRouter } from "./routers/notifications";
@@ -36,6 +37,7 @@ export const appRouter = router({
   settings: settingsRouter,
   kits: kitsRouter,
   bookings: bookingsRouter,
+  wishes: wishesRouter,
   trips: tripsRouter,
   explore: exploreRouter,
   ideas: ideasRouter,

@@ -1,7 +1,7 @@
 import { expect, it, vi } from "vitest";
 
 import { bookingsRouter } from "./bookings";
-import type { FlocPort } from "../port";
+import type { FlocPort } from "../../port";
 
 const viewer = { id: "u1", name: "Ada", email: "ada@example.com", image: null };
 const caller = (port: Partial<FlocPort>, signedIn = true) =>

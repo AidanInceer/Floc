@@ -26,3 +26,19 @@ export function newTripName(raw: string | string[] | undefined): string | null {
   if (value === undefined) return null;
   return value.trim().slice(0, TEXT_CAPS.tripName);
 }
+
+/** A wish list item to start a trip from (#623): a listing, or a name for a new trip. */
+export type WishThing = { kind: "explore"; presetId: string } | { kind: "country"; name: string } | { kind: "text"; text: string };
+
+/** Start trip on a wish list item: the same path as Saved, with the list's people asked along (`wish`). */
+export function wishStartHref(thing: WishThing, listId: number): string {
+  if (thing.kind === "explore") return `${listingStartHref(true, thing.presetId)}&wish=${listId}`;
+  const name = (thing.kind === "country" ? thing.name : thing.text).trim().slice(0, TEXT_CAPS.tripName);
+  return `/trips?new=${encodeURIComponent(name)}&wish=${listId}`;
+}
+
+/** `?wish=` on My trips and a listing: the list whose people come ticked, or null. */
+export function wishListParam(raw: string | string[] | undefined): number | null {
+  const value = Number(Array.isArray(raw) ? raw[0] : raw);
+  return Number.isSafeInteger(value) && value > 0 ? value : null;
+}

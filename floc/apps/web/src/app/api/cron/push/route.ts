@@ -1,4 +1,4 @@
-/** Called every 5 minutes by the Railway cron (`scripts/cron-push.mjs`): reminders, then push, then the email fallback (#346), then archived notes pages past their week (#408), then guests a week old (#442), then archived files past their week (ADR-048), then unplaced bookings past their month (ADR-049). */
+/** Called every 5 minutes by the Railway cron (`scripts/cron-push.mjs`): reminders, then push, then the email fallback (#346), then archived notes pages past their week (#408), then guests a week old (#442), then archived files past their week (ADR-048), then unplaced bookings past their month (ADR-050). */
 import { sendEmails } from "@/server/auth/email";
 import { describeError } from "@/server/observability/describe-error";
 import { log } from "@/server/observability/log";

@@ -22,6 +22,7 @@ import { PACK_CATEGORIES, PACK_ORIGINS, PACK_TIERS } from "@floc/core/packing/pa
 import { PLANS } from "@floc/core/billing/plans";
 import { AVATAR_ICONS } from "@floc/core/people/avatar-icon";
 import { PAGE_ICONS } from "@floc/core/notes/pages/page-icons";
+import { WISH_ITEM_KINDS, WISH_MEMBER_STATUSES } from "@floc/core/lists/wish-list";
 import { ACTIVITY_KINDS, REMINDER_KINDS } from "@floc/core/notifications/rules";
 import {
   blob,
@@ -305,6 +306,58 @@ export const friendGroupMember = sqliteTable(
     ...audit,
   },
   (t) => [uniqueIndex("friend_group_member_pair_idx").on(t.groupId, t.userId)],
+);
+
+/**
+ * A wish list (#623, ADR-049): trips, countries, ideas and links a few people keep before any trip exists.
+ * No owner column — every member is equal, and the list goes when the last one leaves. A null name means
+ * "named after its people", worked out on read.
+ */
+export const wishList = sqliteTable("wish_list", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name"),
+  ...audit,
+});
+
+// Why unique with no `deleted_at` in it: a new invite after leaving revives the row, as trip invites do.
+export const wishListMember = sqliteTable(
+  "wish_list_member",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    listId: integer("list_id")
+      .notNull()
+      .references(() => wishList.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    invitedBy: text("invited_by").references(() => user.id, { onDelete: "set null" }),
+    status: text("status", { enum: WISH_MEMBER_STATUSES }).notNull().default("invited"),
+    ...audit,
+  },
+  (t) => [
+    uniqueIndex("wish_list_member_pair_idx").on(t.listId, t.userId),
+    index("wish_list_member_user_idx").on(t.userId),
+  ],
+);
+
+/** One thing on a wish list. `kind` says which of the nullable columns holds it; `preset_id` is static data, so no FK. */
+export const wishListItem = sqliteTable(
+  "wish_list_item",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    listId: integer("list_id")
+      .notNull()
+      .references(() => wishList.id, { onDelete: "cascade" }),
+    addedBy: text("added_by").references(() => user.id, { onDelete: "set null" }),
+    kind: text("kind", { enum: WISH_ITEM_KINDS }).notNull(),
+    presetId: text("preset_id"),
+    countryCode: text("country_code"),
+    text: text("text"),
+    url: text("url"),
+    label: text("label"),
+    ...audit,
+  },
+  (t) => [index("wish_list_item_list_idx").on(t.listId)],
 );
 
 export const trip = sqliteTable(

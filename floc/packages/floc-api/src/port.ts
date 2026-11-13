@@ -34,6 +34,7 @@ import type { PackingPort } from "./port/packing";
 import type { FriendsPort } from "./port/friends";
 import type { NotificationsPort } from "./port/notifications";
 import type { CommentsPort } from "./port/comments";
+import type { WishListsPort } from "./port/wish-lists";
 
 export type * from "./port/account";
 export type * from "./port/trips";
@@ -46,6 +47,7 @@ export type * from "./port/packing";
 export type * from "./port/friends";
 export type * from "./port/notifications";
 export type * from "./port/comments";
+export type * from "./port/wish-lists";
 
 export type { Currency } from "@floc/core/money/currency";
 export type { DocCategory } from "@floc/core/documents/documents";
@@ -90,6 +92,7 @@ export type FlocPort = AccountPort &
   FriendsPort &
   NotificationsPort &
   CommentsPort &
+  WishListsPort &
   ExplorePort &
   PagesPort &
   import("./port-calendar").CalendarImportPort;

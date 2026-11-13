@@ -553,3 +553,13 @@ export function BulbGlyph({ color }: { color: string }) {
     </Svg>
   );
 }
+
+/** Wish lists (#623): a list with the save heart on its first line, the web's account-bar mark. */
+export function WishListGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
+      <Path d="M6.6 4.2H12M2.2 7.6H12M2.2 10.8H12" stroke={color} strokeWidth={STROKE} strokeLinecap="round" />
+      <Path d="M3.6 5.6 2.1 4.1a.95.95 0 0 1 1.5-1.2.95.95 0 0 1 1.5 1.2Z" stroke={color} strokeWidth={STROKE} strokeLinejoin="round" />
+    </Svg>
+  );
+}

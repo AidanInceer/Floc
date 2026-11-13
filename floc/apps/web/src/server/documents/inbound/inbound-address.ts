@@ -1,5 +1,5 @@
 /**
- * The one address every member forwards a booking to (#559, ADR-049).
+ * The one address every member forwards a booking to (#559, ADR-050).
  *
  * Why it carries no trip and no secret: the proven sender says whose files a booking lands in (ADR-039), and
  * the booking's own dates say which trip. An address a member must look up per trip was the thing in the way.

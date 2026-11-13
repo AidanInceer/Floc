@@ -1,5 +1,5 @@
 /**
- * A booking forwarded to the shared address (#559, ADR-049). The proven From says whose files it is; the
+ * A booking forwarded to the shared address (#559, ADR-050). The proven From says whose files it is; the
  * booking's own dates say which trip; anything Floc cannot place waits in the sender's Bookings area.
  *
  * Why the order: nothing is fetched or read until the sender is a known account, the mail is new and under the

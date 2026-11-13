@@ -1,5 +1,5 @@
 /**
- * The rules of a member's Bookings area (#559, ADR-049): files that wait for a trip.
+ * The rules of a member's Bookings area (#559, ADR-050): files that wait for a trip.
  *
  * Why two clocks: a file leaves the list after a week so an old forward never fills the space a new one needs,
  * and its bytes go for good after a month.

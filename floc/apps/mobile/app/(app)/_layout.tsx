@@ -57,6 +57,7 @@ export default function AppLayout() {
       <Stack.Screen name="settings" options={{ title: "Settings" }} />
       <Stack.Screen name="lists" options={{ title: "Lists" }} />
       <Stack.Screen name="bookings" options={{ title: "Bookings" }} />
+      <Stack.Screen name="wish/[id]" options={{ title: "" }} />
       <Stack.Screen name="inbox" options={{ title: "Notifications" }} />
       {/* The title is the person's name, so the screen sets it once it knows one. */}
       <Stack.Screen name="person/[userId]" options={{ title: "Profile" }} />

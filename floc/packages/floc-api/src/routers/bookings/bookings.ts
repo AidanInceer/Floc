@@ -10,7 +10,7 @@
 import { MAX_DOCUMENT_BASE64_LENGTH } from "@floc/core/documents/documents";
 import { z } from "zod";
 
-import { protectedProcedure, router } from "../trpc";
+import { protectedProcedure, router } from "../../trpc";
 
 const fileId = z.number().int().positive();
 

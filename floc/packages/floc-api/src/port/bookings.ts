@@ -41,6 +41,6 @@ export type BookingsPort = {
   /** Moves a waiting file to the viewer's private files on one of their trips. Null when it moved. */
   placeWaitingBooking(viewerId: string, fileId: number, tripId: number): Promise<string | null>;
 
-  /** Off the list at once. Its bytes are deleted with the month's sweep (ADR-049). */
+  /** Off the list, and its bytes off the disk, at once (ADR-050). */
   removeWaitingBooking(viewerId: string, fileId: number): Promise<void>;
 };

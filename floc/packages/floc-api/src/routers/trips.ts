@@ -53,9 +53,10 @@ export const tripsRouter = router({
         startDate: optionalDate.default(null),
         ideas: z.boolean().default(true),
         events: z.boolean().default(true),
+        friendIds: z.array(z.string().min(1).max(64)).max(TRIP_INVITE_CAP).default([]),
       }),
     )
-    .mutation(({ ctx, input }) => ctx.port.startTripFromPreset(ctx.viewer.id, input)),
+    .mutation(({ ctx, input: { friendIds, ...choice } }) => ctx.port.startTripFromPreset(ctx.viewer.id, choice, friendIds)),
 
   update: tripProcedure
     .input(

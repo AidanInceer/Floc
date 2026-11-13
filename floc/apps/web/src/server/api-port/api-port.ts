@@ -47,6 +47,7 @@ import { filesPort } from "@/server/api-port/api-port-files";
 import { bookingsPort } from "@/server/api-port/bookings/bookings";
 import { explorePort } from "@/server/api-port/api-port-explore";
 import { kitsPort } from "@/server/api-port/api-port-kits";
+import { wishListsPort } from "@/server/api-port/wish-lists/wish-lists-port";
 import { mapPort } from "@/server/api-port/api-port-map";
 import { calendarImportPort } from "@/server/api-port/calendar-import/api-port-calendar-import";
 import { settingsPort } from "@/server/api-port/api-port-settings";
@@ -56,7 +57,7 @@ import { calendarPort } from "@/server/api-port/api-port-calendar";
 import { notificationsPort } from "@/server/api-port/notifications/notifications";
 import { refresh } from "@/server/freshness";
 import { emailConfigured } from "@/server/auth/email";
-import { findTripByShareLink, joinWithLink } from "@/server/trips/invites";
+import { findTripByShareLink, inviteToTrip, joinWithLink } from "@/server/trips/invites";
 import { mintShareToken } from "@/server/trips/invite-link";
 import {
   listDaysWithEvents,
@@ -133,6 +134,7 @@ export const webPort: FlocPort = {
   ...calendarImportPort,
   ...mapPort,
   ...kitsPort,
+  ...wishListsPort,
   ...filesPort,
   ...bookingsPort,
   ...commentsPort,
@@ -426,11 +428,12 @@ export const webPort: FlocPort = {
     return { id: await startTrip(viewerId, input) };
   },
 
-  async startTripFromPreset(viewerId, choice) {
+  async startTripFromPreset(viewerId, choice, along = []) {
     await ensureProfile(viewerId);
     const id = await copyListing(viewerId, choice);
     if (id === null) return null;
     refresh({ kind: "tripList" });
+    if (along.length && (await inviteToTrip({ tripId: id, fromUserId: viewerId, toUserIds: along }))) refresh({ kind: "invites" });
     return { id };
   },
 
