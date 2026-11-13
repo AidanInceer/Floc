@@ -1,5 +1,5 @@
 /**
- * The top bar: three beads, centred — the wordmark, your places, you. The same
+ * The top bar: four beads, centred — the wordmark, your places, the inbox, you. The same
  * shape on every screen and at every size. The current place's glyph takes the
  * blue tile the trip tabs use below it, so the two bars say "here" one way.
  */
@@ -9,14 +9,14 @@ import Link from "next/link";
 import { ButtonLink, cx } from "@/components/system/ui";
 import { BEAD } from "@/components/chrome/bead";
 import { PlacesNav, type PlaceItem } from "@/components/chrome/places-nav";
-import { AccountMenu } from "@/components/chrome/account/account-menu";
+import { AccountBell } from "@/components/chrome/account/account-bell";
+import { ProfileLink } from "@/components/chrome/account/profile-link";
 import type { InboxPreviewItem } from "@/components/chrome/account/account-inbox";
 import { FuseBar } from "@/components/chrome/fuse-bar";
 import { FlocWordmark } from "@/components/system/wordmark";
 
 /**
- * How much is waiting behind a link — trip invites (ticket 146) and friend
- * requests (ticket 145). A count and not a dot: "2" says how much is behind the
+ * How much is waiting behind a link — trip invites (ticket 146). A count and not a dot: "2" says how much is behind the
  * link, which a dot never does, and the number is what the screen reader reads.
  */
 function WaitingCount({ count, label }: { count: number; label: string }) {
@@ -33,21 +33,13 @@ function WaitingCount({ count, label }: { count: number; label: string }) {
 export function AppChrome({
   user,
   inviteCount = 0,
-  friendRequestCount = 0,
   notificationCount = 0,
   latest = [],
-  isPro = false,
-  bookingCount = 0,
 }: {
-  /** Bookings waiting for a trip (#559), counted on the account menu's tile. */
-  bookingCount?: number;
   user: { id: string; name: string; email: string } | null;
-  isPro?: boolean;
   /** Open trip invites for this account — badges the Trips link. */
   inviteCount?: number;
-  /** Friend requests waiting on this account — badges the Friends link. */
-  friendRequestCount?: number;
-  /** Unseen notifications (#344) — badges the avatar. */
+  /** Unseen notifications (#344) — badges the bell. */
   notificationCount?: number;
   latest?: InboxPreviewItem[];
 }) {
@@ -61,17 +53,6 @@ export function AppChrome({
         <WaitingCount
           count={inviteCount}
           label={`trip ${inviteCount === 1 ? "invitation" : "invitations"}`}
-        />
-      ) : undefined,
-    },
-    {
-      href: "/friends",
-      label: "Friends",
-      glyph: "friends",
-      badge: friendRequestCount ? (
-        <WaitingCount
-          count={friendRequestCount}
-          label={`friend ${friendRequestCount === 1 ? "request" : "requests"}`}
         />
       ) : undefined,
     },
@@ -97,13 +78,11 @@ export function AppChrome({
         />
 
         {user ? (
-          <AccountMenu
-            user={user}
-            isPro={isPro}
-            unread={notificationCount}
-            latest={latest}
-            waiting={bookingCount}
-          />
+          <>
+            <AccountBell unread={notificationCount} latest={latest} />
+            {/* Why: your name opens your profile; every other account page is one tab away on its bar (#637). */}
+            <ProfileLink name={user.name} />
+          </>
         ) : (
           <div className={cx(BEAD, "shrink-0 gap-1")}>
             <ButtonLink href="/login" variant="ghost">

@@ -37,7 +37,7 @@ export default async function SavedPage() {
   const seenBy = savedSeenBy(profile?.visibilitySaved ?? "private", profile?.isPrivate ?? false);
 
   return (
-    <ListsPage current="saved">
+    <ListsPage current="saved" userId={viewer.id}>
       <PageTitle className="sr-only">Saved</PageTitle>
       {seenBy ? (
         <p className="mb-4">

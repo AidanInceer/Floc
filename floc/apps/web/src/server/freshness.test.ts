@@ -147,3 +147,13 @@ describe("tripAreasFor (#577)", () => {
     );
   });
 });
+
+describe("people pages (#637)", () => {
+  it("refreshes Groups, now a page of its own, when a group changes", () => {
+    expect(pagesFor([{ kind: "friendGroups" }]).map((t) => t.path)).toContain("/friends/groups");
+  });
+
+  it("refreshes Groups when a friendship changes, since its sheet picks from friends", () => {
+    expect(pagesFor([{ kind: "friendship", otherId: "u1" }]).map((t) => t.path)).toContain("/friends/groups");
+  });
+});

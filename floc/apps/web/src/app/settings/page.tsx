@@ -25,6 +25,8 @@ import { ProStatus } from "@/components/settings/pro-status";
 import { SettingsRow, SettingsSheet } from "@/components/settings/settings-row";
 import { TravelStyle } from "@/components/settings/travel-style";
 import { TripsFields } from "@/components/settings/trips-fields";
+import { ThemeSwitch } from "@/components/settings/theme-switch";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 import { PACK_TIER_LABELS } from "@floc/core/packing/packing";
 import { notificationSummary, privacySummary, travelStyleSummary, tripsSummary } from "@floc/core/people/settings-summary";
 import { readVibeTags } from "@floc/core/trip/vibe-tags";
@@ -52,6 +54,8 @@ const PROVIDER_LABELS: Record<string, string> = {
 };
 
 const accountLineClass = "flex flex-wrap items-center justify-between gap-3 py-2.5";
+const sheetLineClass = "flex items-center justify-between gap-3 px-[18px] py-3";
+const signOutClass = "-mr-2.5 inline-flex h-7 items-center gap-1.5 rounded-sm px-2.5 text-[13px] text-ink-soft hover:bg-pen-soft hover:text-pen-deep";
 
 const DELETE_WARNING =
   "Delete your Floc account? Trips you're the sole admin of will hand admin to their earliest-joined remaining member. This can't be undone from the app.";
@@ -82,7 +86,7 @@ export default async function SettingsPage({
 
   return (
     <>
-      <AccountTabs current="settings" />
+      <AccountTabs current="settings" userId={viewer.id} />
       <AccountPage title="Settings" titleInBar>
         <div className="mx-auto flex w-full max-w-[40rem] flex-col gap-3">
           <SettingsSheet>
@@ -198,6 +202,14 @@ export default async function SettingsPage({
                 Floc sends no marketing email and runs no analytics. Notification emails are about your own trips.
               </p>
             </SettingsRow>
+          </SettingsSheet>
+
+          {/* Why: the account drop-down is gone, so the theme and signing out live here (#637). */}
+          <SettingsSheet>
+            <div className={sheetLineClass}>
+              <ThemeSwitch />
+              <SignOutButton className={signOutClass} />
+            </div>
           </SettingsSheet>
 
           <SettingsSheet>
