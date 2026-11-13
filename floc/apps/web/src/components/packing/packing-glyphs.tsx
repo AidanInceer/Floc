@@ -17,7 +17,7 @@ export const tickBoxClass = (packed: boolean): string =>
     : "border-rule-strong bg-sheet text-ink-faint/60 hover:text-ink-soft";
 
 export const tickBoxBase =
-  `${pressArea} inline-flex size-[26px] shrink-0 items-center justify-center rounded-sm border`;
+  `${pressArea} inline-flex size-[26px] shrink-0 items-center justify-center rounded-sm border transition-colors duration-[0.22s] ease-(--ease)`;
 
 /**
  * The select box on a row (ticket 229). A real checkbox, associated to the bulk

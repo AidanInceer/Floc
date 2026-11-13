@@ -38,10 +38,10 @@ export function FocusHeads({
   removeControl: ReactNode;
 }) {
   return (
-    <div style={rowStyle} className="border-b border-rule bg-sheet">
+    <div style={rowStyle} data-days-row className="border-b border-rule bg-sheet">
       <div className="border-r border-rule bg-sheet" />
       {slots.map((day, i) => {
-        const side = i === 0 ? "left" : "right";
+        const side = i < slots.findIndex((d) => d.id === focus.day.id) ? "left" : "right";
         if (day.id === focus.day.id) {
           return <FocusHead key={day.id} focus={focus} onAdd={onAdd} removeControl={removeControl} />;
         }

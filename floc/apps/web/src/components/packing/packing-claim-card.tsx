@@ -7,8 +7,8 @@ import { TEXT_CAPS } from "@floc/core/text/text";
 import { ConfirmSubmit, Menu, SubmitButton } from "@/components/system/client-ui";
 import { InlineRename } from "@/components/system/inline-rename";
 import { menuDangerItemClass, menuItemClass } from "@/components/system/ui";
-import { SelectLineBox, tickBoxBase, tickBoxClass } from "@/components/packing/packing-glyphs";
-import { CheckIcon } from "@/components/system/icons";
+import { SelectLineBox } from "@/components/packing/packing-glyphs";
+import { PackTick } from "@/components/packing/pack-tick";
 
 export type PackingClaimant = {
   userId: string;
@@ -67,16 +67,10 @@ export function PackingClaimCard({
         <SelectLineBox formId={selectFormId} lineId={line.id} label={line.label} />
         {personId === viewerId && personClaim ? (
           <form action={actions.pack.bind(null, tripId, line.id, !packed)}>
-            <button
-              type="submit"
-              aria-label={packed ? `Unpack ${line.label}` : `Mark ${line.label} packed`}
-              className={`${tickBoxBase} ${tickBoxClass(packed)}`}
-            >
-              <CheckIcon />
-            </button>
+            <PackTick packed={packed} label={line.label} />
           </form>
         ) : null}
-        <span className="min-w-0 flex-1 truncate text-sm leading-snug">
+        <span className={`min-w-0 flex-1 truncate text-sm leading-snug transition-colors duration-[0.22s] ease-(--ease)${packed ? " text-ink-soft" : ""}`}>
           <InlineRename
             value={line.label}
             label={`Rename ${line.label}`}
