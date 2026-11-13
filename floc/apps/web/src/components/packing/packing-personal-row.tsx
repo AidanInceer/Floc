@@ -6,13 +6,10 @@ import { Badge, cx } from "@/components/system/ui";
 import { clampPackQuantity } from "@floc/core/packing/packing";
 import { InlineRename } from "@/components/system/inline-rename";
 import { TEXT_CAPS } from "@floc/core/text/text";
-import {
-  squareButton,
-  tickBoxBase,
-  tickBoxClass,
-} from "@/components/packing/packing-glyphs";
+import { squareButton } from "@/components/packing/packing-glyphs";
+import { PackTick } from "@/components/packing/pack-tick";
 import { SparkIcon } from "@/components/system/icons/packing";
-import { CheckIcon, CrossIcon } from "@/components/system/icons";
+import { CrossIcon } from "@/components/system/icons";
 import { PackingStepper } from "@/components/packing/packing-quantity";
 
 /**
@@ -73,19 +70,13 @@ export function PersonalPackingRow({
           await setPacked(tripId, lineId, !packed);
         }}
       >
-        <button
-          type="submit"
-          aria-label={packed ? `Unpack ${label}` : `Mark ${label} packed`}
-          className={cx(tickBoxBase, tickBoxClass(packed), "!rounded-sm")}
-        >
-          <CheckIcon />
-        </button>
+        <PackTick packed={packed} label={label} />
       </form>
 
       {/* The count sits ahead of the label and shows even at one, so a row
           never changes shape as you step it. */}
       <span
-        className={cx("flex min-w-0 flex-1 items-baseline whitespace-pre text-sm", packed && "text-ink-soft")}
+        className={cx("flex min-w-0 flex-1 items-baseline whitespace-pre text-sm transition-colors duration-[0.22s] ease-(--ease)", packed && "text-ink-soft")}
       >
         <span className="font-mono tabular-nums text-ink-faint">{shown}</span>
         <span className="text-ink-faint">{" — "}</span>

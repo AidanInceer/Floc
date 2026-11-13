@@ -123,7 +123,7 @@ export function TicketsScreen() {
         <span className="px-3 py-1 text-ink-soft">Stay · 1</span>
         <span className="px-3 py-1 text-ink-soft">Tickets · 2</span>
         <span className="px-3 py-1 text-ink-soft">Admin · 2</span>
-        <span className="ml-auto inline-flex items-center gap-1.5 rounded-sm bg-pen px-3 py-[5px] font-mono text-[10.5px] uppercase tracking-[0.06em] text-sheet">
+        <span className="ml-auto inline-flex items-center gap-1.5 rounded-sm bg-pen px-3 py-[5px] font-mono text-[11px] uppercase tracking-[0.06em] text-sheet">
           <UploadIcon size={11} /> Upload
         </span>
       </div>
@@ -135,7 +135,7 @@ export function TicketsScreen() {
         <span className="h-1 w-24 overflow-hidden rounded-full bg-rule">
           <span className="block h-full w-[12%] rounded-full bg-pen" />
         </span>
-        <span className="nums font-mono text-[10.5px] text-ink-soft">3 MB of 1 GB used</span>
+        <span className="nums font-mono text-[11px] text-ink-soft">3 MB of 1 GB used</span>
       </p>
     </>
   );

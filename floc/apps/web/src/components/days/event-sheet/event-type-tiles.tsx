@@ -64,7 +64,7 @@ function TypeTile({ type, on, compact, onPick }: { type: DayEventType; on: boole
       onClick={onPick}
       className={cx(
         "lift flex h-full min-w-0 flex-col items-center justify-center rounded-sm border px-1 transition-colors",
-        compact ? "gap-[5px] text-xs max-[480px]:px-0.5 max-[480px]:text-[10px]" : "gap-[7px] text-[13.5px]",
+        compact ? "gap-[5px] text-xs max-[480px]:px-0.5" : "gap-[7px] text-[13px]",
         on ? cx(category.tile, EDGE[type], "font-medium") : "border-rule-strong bg-sheet text-ink-soft hover:border-pen hover:text-ink",
       )}
     >
@@ -97,7 +97,7 @@ function TransportCell({ how, onHow }: { how: TransportType | null; onHow: (how:
             aria-checked={how === k}
             onClick={() => onHow(k)}
             className={cx(
-              "flex min-w-0 max-w-[38px] flex-1 flex-col items-center gap-0.5 rounded-sm border pb-1 pt-[5px] text-[10.5px] transition-colors max-[480px]:text-[10px]",
+              "flex min-w-0 max-w-[44px] flex-1 flex-col items-center gap-0.5 rounded-sm border pb-1 pt-[5px] text-[11px] transition-colors",
               how === k ? "border-current bg-sheet font-medium" : "border-transparent bg-sheet/55 hover:border-current",
             )}
           >

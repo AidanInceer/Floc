@@ -120,9 +120,9 @@ export default async function FriendsPage() {
 
         <div className="my-6 flex flex-col gap-3">
           <FindFriend />
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-ink-soft">Your friend tag</span>
-            <span className="min-w-0 break-words font-mono text-ink">{tag}</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-ink-soft">Your friend tag</span>
+            <span className="min-w-0 break-words font-mono text-xs text-ink">{tag}</span>
             <CopyLink value={tag} label="Copy friend tag" item="Friend tag" variant="secondary" />
           </div>
         </div>

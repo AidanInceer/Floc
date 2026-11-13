@@ -14,10 +14,10 @@ export function StopDay({ tripId, date, events }: { tripId: number; date: string
   const [first] = events;
   return (
     <li className="border-t border-rule">
-      <details className="group/day my-0.5 rounded-sm open:bg-paper">
+      <details className="grow-open group/day my-0.5 rounded-sm open:bg-paper">
         <summary className="grid cursor-pointer list-none grid-cols-[32px_26px_minmax(0,1fr)_auto_14px] items-center gap-3 rounded-sm px-1.5 py-2 hover:bg-paper [&::-webkit-details-marker]:hidden">
           <span className="nums grid size-8 place-content-center rounded-sm bg-sheet-2 text-center text-[13px] leading-none text-ink-soft group-open/day:bg-ink group-open/day:text-sheet">
-            <span className="mb-0.5 text-[7px] uppercase tracking-[0.08em]">{weekday}</span>
+            <span className="mb-0.5 text-[11px] uppercase tracking-[0.08em]">{weekday}</span>
             {day}
           </span>
           {first ? (
@@ -34,7 +34,7 @@ export function StopDay({ tripId, date, events }: { tripId: number; date: string
             </span>
           )}
           <span className="nums text-xs text-ink-faint">{events.length > 1 ? `+${events.length - 1}` : ""}</span>
-          <ChevronIcon direction="down" size={14} className="text-ink-faint transition-transform group-open/day:rotate-180" />
+          <ChevronIcon direction="down" size={14} className="text-ink-faint transition-transform duration-[0.22s] ease-(--ease) group-open/day:rotate-180" />
         </summary>
         {events.length > 0 ? (
           <ol className="relative grid pb-1 pl-2 pr-4 before:absolute before:bottom-[19px] before:left-[calc(0.5rem+44px+12px+12px)] before:top-[19px] before:w-0.5 before:rounded-full before:bg-rule-strong sm:pl-[50px] sm:before:left-[calc(50px+44px+12px+12px)]">

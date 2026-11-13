@@ -31,7 +31,7 @@ export type DocumentRowData = {
 /** Grey, so it does not compete with the category colour beside it. */
 export function KindChip({ mimeType }: { mimeType: string }) {
   return (
-    <span className="inline-flex w-10 shrink-0 justify-center rounded-full bg-sheet-3 py-0.5 font-mono text-[10px] text-ink-soft">
+    <span className="inline-flex w-10 shrink-0 justify-center rounded-full bg-sheet-3 py-0.5 font-mono text-[11px] text-ink-soft">
       {kindLabel(mimeType)}
     </span>
   );
@@ -42,7 +42,7 @@ export function CategoryChip({ category }: { category: DocCategory }) {
   return (
     <span
       className={cx(
-        "inline-flex shrink-0 rounded-full px-2.5 py-0.5 font-mono text-[10.5px] uppercase tracking-[0.05em]",
+        "inline-flex shrink-0 rounded-full px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-[0.05em]",
         DOC_CATEGORY_SKINS[category],
       )}
     >

@@ -79,7 +79,7 @@ export function PackingBulkBar({
 }
 
 const bulkVerb =
-  "rounded-sm px-3 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.06em] hover:bg-sheet";
+  "rounded-sm px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.06em] hover:bg-sheet";
 
 /** The category picker beside an add box — the one place a hand-typed row gets filed. */
 export function CategorySelect({ defaultValue }: { defaultValue?: PackCategory }) {

@@ -6,4 +6,37 @@
     color: var(--section-ink);
     background: var(--section-wash);
   }
+
+  /* Once the tile has a place (ADR-052), it is the open tab's wash; the glyph keeps its ink. */
+  [data-tile] .trip-tab[aria-current="page"] .trip-tab-icon,
+  [data-tile] .trip-tab[data-pressed] .trip-tab-icon,
+  [data-tile] .trip-tab:has([data-tab-pending]) .trip-tab-icon {
+    background: transparent;
+  }
+  /* Why: the pressed tab's hover wash fading out under the arriving tile reads as a second tile. */
+  [data-tile] .trip-tab[data-pressed] .trip-tab-icon {
+    transition-property: color;
+  }
+  .trip-tab-icon {
+    position: relative;
+    z-index: 1;
+    transition:
+      color 0.22s var(--ease),
+      background-color 0.22s var(--ease);
+  }
+  .trip-tab-tile {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: var(--radius-sm);
+    pointer-events: none;
+    transition: transform 0.26s var(--ease);
+  }
+  .trip-tab-tile[data-sliding] {
+    transition:
+      transform 0.26s var(--ease),
+      background-color 0.26s var(--ease);
+  }
 }

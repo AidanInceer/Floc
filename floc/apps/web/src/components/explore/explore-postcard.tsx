@@ -10,7 +10,7 @@ import "./explore-postcard.css";
 import { listingPrice } from "@floc/core/trip/explore/listing-price";
 import { useListingRates } from "@/components/explore/listing-rates";
 
-const kicker = "font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink-faint";
+const kicker = "font-mono text-[11px] uppercase tracking-[0.08em] text-ink-faint";
 
 export function ExplorePostcard({ trip, signedIn }: { trip: PresetTrip; signedIn: boolean }) {
   const rates = useListingRates();
@@ -21,7 +21,7 @@ export function ExplorePostcard({ trip, signedIn }: { trip: PresetTrip; signedIn
           <span className={kicker}>
             {trip.region} · {trip.country}
           </span>
-          <h2 className="mt-2 text-[30px] leading-none tracking-[-0.03em]">{trip.title}</h2>
+          <h2 className="mt-2 text-2xl leading-none tracking-[-0.03em]">{trip.title}</h2>
         </div>
         <PostcardStamp trip={trip} />
       </div>

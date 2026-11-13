@@ -28,7 +28,7 @@ export function AccountPass({
         href="/settings?section=billing"
         className="flex shrink-0 flex-col items-end gap-px rounded-sm px-2 py-1.5 hover:bg-pen-soft"
       >
-        <span className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-ink-faint">Plan</span>
+        <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-faint">Plan</span>
         <span className="inline-flex items-center gap-1 font-display text-[15px] font-semibold text-ink">
           {isPro ? (
             <>

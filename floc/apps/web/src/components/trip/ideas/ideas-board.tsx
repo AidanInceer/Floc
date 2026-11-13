@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { addIdea, removeIdea, voteIdea } from "@/app/trip/[id]/overview/actions";
-import { Avatar, EmptyState, Input } from "@/components/system/ui";
+import { Avatar, EmptyState, Input, cx, iconButtonClass } from "@/components/system/ui";
 import { ActionForm, PillToggle, SubmitButton } from "@/components/system/client-ui";
 import { readStored, writeStored } from "@/lib/storage/browser-storage";
 import { TEXT_CAPS } from "@floc/core/text/text";
@@ -95,7 +95,7 @@ function IdeaLine({ tripId, idea }: { tripId: number; idea: IdeaRow }) {
           type="submit"
           aria-label={`Remove “${idea.title}”`}
           title="Remove"
-          className="grid size-7 shrink-0 place-items-center rounded-sm text-ink-faint hover:bg-red-soft hover:text-red"
+          className={cx(iconButtonClass(false), "hover:!border-red/30 hover:!bg-red-soft hover:!text-red")}
         >
           <CrossIcon size={12} />
         </button>

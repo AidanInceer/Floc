@@ -15,7 +15,7 @@ import { startTripHref } from "@/lib/landing/start-trip";
 // Twelve tiles, your own first, fill four rows of three or six of two.
 const TILE_LIMIT = 11;
 
-const hit = "inline-flex items-center gap-1 rounded-full border border-rule-strong px-2 py-px text-[11.5px]";
+const hit = "inline-flex items-center gap-1 rounded-full border border-rule-strong px-2 py-px text-[11px]";
 
 /** The tags a tile shows: yours it has, then yours it lacks; with nothing liked, the first few it carries. */
 function TileTags({ row, likes }: { row: Ranked; likes: TripTag[] }) {

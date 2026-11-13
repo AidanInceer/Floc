@@ -102,10 +102,10 @@ export default async function LandingPage() {
             or with everyone who&rsquo;s coming.
           </p>
           <div className="mt-4 flex justify-center gap-2 sm:mt-8 sm:flex-wrap sm:gap-3">
-            <ButtonLink href={start} variant="primary" className="whitespace-nowrap px-3 py-2.5 text-[12px] sm:px-6 sm:py-3">
+            <ButtonLink href={start} variant="primary" className="whitespace-nowrap px-3 py-2.5 sm:px-6 sm:py-3">
               {signedIn ? "Get planning!" : "Start a trip — free"}
             </ButtonLink>
-            <ButtonLink href={inspire} variant="secondary" className="whitespace-nowrap px-3 py-2.5 text-[12px] sm:px-6 sm:py-3">
+            <ButtonLink href={inspire} variant="secondary" className="whitespace-nowrap px-3 py-2.5 sm:px-6 sm:py-3">
               See example trips
             </ButtonLink>
           </div>

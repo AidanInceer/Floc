@@ -27,7 +27,7 @@ export function PackingCube({
       <header className="flex items-baseline justify-between gap-2 border-b border-dotted border-rule-strong px-4 py-3">
         <h3 className="text-sm font-semibold">{heading}</h3>
         {ideaCount > 0 ? (
-          <span className="mr-auto inline-flex items-center gap-1 text-[11.5px] text-pen">
+          <span className="mr-auto inline-flex items-center gap-1 text-[11px] text-pen">
             <SparkIcon size={10} />
             {ideaCount} {ideaCount === 1 ? "idea" : "ideas"}
           </span>

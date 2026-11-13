@@ -1,12 +1,14 @@
 /** The button shapes both packing rows share (tickets 219, 220); their marks come from `system/icons`. */
 
+import { pressArea } from "@/components/system/ui";
+
 // `!` throughout to beat buttonBase's pill padding — Tailwind v4 specificity is
 // stylesheet order, not class-list order (same trick as `menuItemClass`).
 // No lift, either: these re-render under the cursor the moment they're
 // clicked, and the hover transform replaying on the fresh element reads as the
 // button bouncing (ticket 219). Colour still moves.
 export const squareButton =
-  "!size-6 !shrink-0 !p-0 !transition-colors hover:!translate-y-0 hover:!shadow-none sm:!size-7";
+  `${pressArea} !size-[26px] !shrink-0 !p-0 !transition-colors hover:!translate-y-0 hover:!shadow-none`;
 
 /** The tick box, styled by whether it's ticked. A plain button, deliberately. */
 export const tickBoxClass = (packed: boolean): string =>
@@ -15,7 +17,7 @@ export const tickBoxClass = (packed: boolean): string =>
     : "border-rule-strong bg-sheet text-ink-faint/60 hover:text-ink-soft";
 
 export const tickBoxBase =
-  "inline-flex size-6 shrink-0 items-center justify-center rounded-full border sm:size-7";
+  `${pressArea} inline-flex size-[26px] shrink-0 items-center justify-center rounded-sm border transition-colors duration-[0.22s] ease-(--ease)`;
 
 /**
  * The select box on a row (ticket 229). A real checkbox, associated to the bulk

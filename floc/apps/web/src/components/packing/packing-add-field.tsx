@@ -9,11 +9,11 @@ import { guessPackCategory } from "@floc/core/packing/packing-guess";
 import { TEXT_CAPS } from "@floc/core/text/text";
 
 /**
- * Your bag's one field, centred under the head, with its cube beside it.
+ * The one add field for both packing lists, with its cube beside it.
  * Why: the cube follows Floc's guess from the name until the person picks one,
  * so a wrong guess ("Card game" → Essentials) is fixed before it is added.
  */
-export function PackingAddField({ add }: { add: (formData: FormData) => Promise<void> }) {
+export function PackingAddField({ add, label: name = "Add to your bag" }: { add: (formData: FormData) => Promise<void>; label?: string }) {
   const [label, setLabel] = useState("");
   const [picked, setPicked] = useState<PackCategory | null>(null);
   const filled = label.trim() !== "";
@@ -31,7 +31,7 @@ export function PackingAddField({ add }: { add: (formData: FormData) => Promise<
       )}
     >
       <label className="h-full min-w-0 flex-1">
-        <span className="sr-only">Add to your bag</span>
+        <span className="sr-only">{name}</span>
         <input
           name="label"
           required

@@ -99,7 +99,7 @@
 .fe-page .remote-caret { position: relative; margin: 0 -1px; border-left: 2px solid var(--who-ink, var(--ink-3)); pointer-events: none; }
 .fe-page .remote-caret-name {
   position: absolute; bottom: 100%; left: -2px; white-space: nowrap; padding: 0 5px; border-radius: 4px 4px 4px 0;
-  font-family: var(--type); font-size: 0.625rem; letter-spacing: 0.04em; line-height: 16px; font-style: normal; font-weight: 400;
+  font-family: var(--type); font-size: 11px; letter-spacing: 0.04em; line-height: 16px; font-style: normal; font-weight: 400;
 }
 .fe-page .remote-selection { background: color-mix(in srgb, var(--who, var(--pen-2)) 60%, transparent); }
 .who-1 { --who: var(--who-1); --who-ink: var(--who-1-ink); }

@@ -5,10 +5,8 @@ import type { BookingLink } from "@floc/core/trip/booking/booking-links";
 import { useBookingSites } from "@/components/booking/booking-sites";
 import { Menu } from "@/components/system/client-ui";
 import { CheckIcon, ChevronIcon, OutIcon } from "@/components/system/icons";
-import { ExternalButtonLink, cx } from "@/components/system/ui";
+import { ExternalButtonLink, cx, iconFrameClass } from "@/components/system/ui";
 
-const CHEVRON =
-  "grid h-[30px] w-[30px] place-items-center rounded-sm border border-rule-strong bg-sheet text-ink-2 hover:border-pen hover:bg-pen-soft hover:text-pen-deep data-[open=true]:border-pen data-[open=true]:bg-pen-soft data-[open=true]:text-pen-deep";
 const SITE_MENU_PANEL =
   "w-max min-w-[15rem] max-w-[min(20rem,calc(100vw-2rem))] rounded-md border border-rule-strong bg-sheet p-1 text-left shadow-raised";
 
@@ -20,6 +18,7 @@ export function SitePicker({
   head,
   align = "right",
   drop = "down",
+  split = false,
   className,
 }: {
   kind: SiteKind;
@@ -31,20 +30,24 @@ export function SitePicker({
   align?: "left" | "right";
   /** Up near the foot of a dialog, which would otherwise clip it. */
   drop?: "down" | "up";
+  /** Below sm, in a wrapping row: the links take their own line and the chevron stays on the caller's first line. */
+  split?: boolean;
   className?: string;
 }) {
   const { sites, fresh } = useBookingSites();
   const { mine } = splitBySites(links, sites[kind]);
   return (
-    <div className={cx("flex flex-wrap items-center gap-2", className)}>
-      {mine.map((l) => (
-        <ExternalButtonLink key={l.site} href={l.url} className={cx("max-sm:px-2.5", l.site === fresh && "site-fresh")}>
-          {l.site}
-          <OutIcon size={11} />
-          <span className="sr-only">(opens another site)</span>
-        </ExternalButtonLink>
-      ))}
-      <Menu label={`More sites: ${label}`} align={align} drop={drop} trigger={<ChevronIcon direction="down" size={12} />} triggerClassName={CHEVRON} panelClassName={SITE_MENU_PANEL}>
+    <div className={cx("flex items-start gap-2", split && "max-sm:contents", className)}>
+      <div className={cx("flex min-w-0 flex-wrap items-center gap-2", split && "max-sm:order-1 max-sm:basis-full")}>
+        {mine.map((l) => (
+          <ExternalButtonLink key={l.site} href={l.url} className={cx("max-sm:px-2.5", l.site === fresh && "site-fresh")}>
+            {l.site}
+            <OutIcon size={11} />
+            <span className="sr-only">(opens another site)</span>
+          </ExternalButtonLink>
+        ))}
+      </div>
+      <Menu label={`More sites: ${label}`} align={align} drop={drop} trigger={<ChevronIcon direction="down" />} triggerClassName={iconFrameClass()} panelClassName={SITE_MENU_PANEL}>
         <SiteMenuList kind={kind} links={links} head={head} />
       </Menu>
     </div>

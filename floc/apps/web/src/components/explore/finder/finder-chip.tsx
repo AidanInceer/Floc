@@ -34,4 +34,4 @@ export function FinderChip({
   );
 }
 
-export const linkClass = "inline-flex items-center gap-1 whitespace-nowrap text-[12.5px] text-ink-soft underline decoration-rule-strong underline-offset-[3px] hover:text-ink";
+export const linkClass = "inline-flex items-center gap-1 whitespace-nowrap text-[13px] text-ink-soft underline decoration-rule-strong underline-offset-[3px] hover:text-ink";

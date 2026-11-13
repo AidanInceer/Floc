@@ -38,10 +38,10 @@ export function FocusHeads({
   removeControl: ReactNode;
 }) {
   return (
-    <div style={rowStyle} className="border-b border-rule bg-sheet">
+    <div style={rowStyle} data-days-row className="border-b border-rule bg-sheet">
       <div className="border-r border-rule bg-sheet" />
       {slots.map((day, i) => {
-        const side = i === 0 ? "left" : "right";
+        const side = i < slots.findIndex((d) => d.id === focus.day.id) ? "left" : "right";
         if (day.id === focus.day.id) {
           return <FocusHead key={day.id} focus={focus} onAdd={onAdd} removeControl={removeControl} />;
         }
@@ -84,12 +84,12 @@ function FocusHead({
   return (
     <div className={cx("flex min-w-0 items-center justify-between gap-2 border-l border-rule py-2 pl-2.5 pr-1 sm:py-2.5 sm:pl-3.5 sm:pr-2", day.isToday && "bg-pen-soft")}>
       <div className="min-w-0">
-        <h2 className="truncate font-display text-[15px] font-semibold tracking-[-0.01em] sm:text-[19px]">
+        <h2 className="truncate font-display text-[15px] font-semibold tracking-[-0.01em] sm:text-lg">
           <span className="max-sm:hidden">{day.longLabel}</span>
           <span className="nums sm:hidden">{day.shortLabel}</span>
           {day.isToday ? <span className="text-pen"> · today</span> : null}
         </h2>
-        <p className="truncate text-[12.5px] text-ink-soft">
+        <p className="truncate text-[13px] text-ink-soft">
           Day {focus.dayNumber} of {focus.tripLength}
           <span className="max-sm:hidden">
             {" · "}

@@ -3,7 +3,6 @@ import { readPackingBoard } from "@/server/packing/packing-board";
 import { packedLineCount, packingCubes } from "@floc/core/packing/packing";
 import { arrangePackingLanes } from "@floc/core/packing/packing-lanes";
 import {
-  CategorySelect,
   PackingBulkBar,
   PackingBagMore,
 } from "@/components/packing/packing-controls";
@@ -16,7 +15,6 @@ import { PackingClaimCard } from "@/components/packing/packing-claim-card";
 import { Avatar, PageTitle } from "@/components/system/ui";
 import { LockIcon } from "@/components/system/icons/packing";
 import { PackingIdeaRow } from "@/components/packing/packing-idea-row";
-import { SubmitButton } from "@/components/system/client-ui";
 import { PersonalPackingRow } from "@/components/packing/packing-personal-row";
 import type { PackingClaimant } from "@/components/packing/packing-claim-card";
 import {
@@ -94,25 +92,13 @@ export default async function PackingPage({
     rename: renamePackingLine,
   };
 
-  const addBox = (label: string, fullWidth = false) => (
-    <label className={fullWidth ? "min-w-0 basis-full" : "min-w-0 basis-full flex-1 sm:basis-auto"}>
-      <span className="sr-only">{label}</span>
-      <input
-        name="label"
-        required
-        maxLength={200}
-        className="w-full rounded-sm border border-rule bg-sheet px-4 py-2.5 text-sm placeholder:text-ink-faint focus-visible:border-pen"
-      />
-    </label>
-  );
-
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
       <PageTitle className="sr-only">Packing</PageTitle>
 
       <section className="grid gap-4">
         <header className="flex flex-wrap items-baseline gap-3">
-          <h2 className="text-2xl">Your bag</h2>
+          <h2 className="text-xl">Your bag</h2>
           <PackingCount total={mine.length} packed={bagPacked} />
           <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-ink-faint max-sm:self-center">
             <LockIcon />
@@ -176,7 +162,7 @@ export default async function PackingPage({
 
       <section className="mt-10">
         <header className="flex flex-wrap items-baseline gap-3">
-          <h2 className="text-2xl">Shared packing</h2>
+          <h2 className="text-xl">Shared packing</h2>
           <PackingCount total={lines.length} packed={sharedPacked} />
           {lines.length > 0 ? (
             <div className="ml-auto self-center">
@@ -195,11 +181,7 @@ export default async function PackingPage({
 
         <div className="mt-4 grid items-start gap-3 md:grid-cols-2 xl:grid-cols-3">
           <PackingLane name="Up for grabs" count={lanes.open.length} open add={
-            <form action={addPackingLine.bind(null, tripId)} className="flex flex-wrap items-stretch gap-2">
-              {addBox("Add something for everyone", true)}
-              <CategorySelect />
-              <SubmitButton className="shrink-0 !px-3">Add to group</SubmitButton>
-            </form>
+            <PackingAddField add={addPackingLine.bind(null, tripId)} label="Add something for everyone" />
           }>
             {lanes.open.map((line) => (
               <PackingClaimCard

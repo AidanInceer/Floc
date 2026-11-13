@@ -24,6 +24,7 @@
     "wireframe": "node scripts/wireframe-server.mjs",
     "wireframe:tags": "node scripts/wireframe-tags.mjs",
     "wireframe:shoot": "node scripts/wireframe/kit/shoot.mjs",
+    "wireframe:delete": "node scripts/wireframe/delete.mjs",
     "comments": "node scripts/check-comments.mjs --working",
     "marketing": "node floc/marketing/src/cli.ts",
     "explore:new": "node scripts/new-explore-trip.mjs",

@@ -3,7 +3,7 @@
 import { useId, type MouseEvent } from "react";
 
 import type { Gap, LeftToSort as SortList, Sorted } from "@floc/core/trip/overview/left-to-sort";
-import { ButtonLink, cx } from "@/components/system/ui";
+import { ButtonLink, cx, iconButtonClass } from "@/components/system/ui";
 import { ChevronIcon } from "@/components/system/icons";
 import { STACK_COLUMNS, SortCard } from "./sort/sort-card";
 import { SortCubes } from "./sort/sort-cubes";
@@ -44,7 +44,7 @@ export function LeftToSort({ tripId, list }: { tripId: number; list: SortList })
             aria-expanded={open}
             aria-controls={id}
             aria-label={open ? "Hide what is left" : "Show what is left"}
-            className="ml-auto grid size-8 place-items-center rounded-sm text-ink-soft hover:bg-sheet-2 hover:text-ink sm:ml-0"
+            className={cx(iconButtonClass(open), "ml-auto sm:ml-0")}
           >
             <span ref={chevron} className="grid place-items-center">
               <ChevronIcon direction="down" size={13} />

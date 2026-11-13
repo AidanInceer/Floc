@@ -50,7 +50,7 @@ export function WalkthroughDialog({ trip, firstName, preview }: { trip: TripFact
   return (
     <Dialog open={open} onClose={close} title="Welcome to Floc" className={DIALOG}>
       <header className="flex items-center justify-between pl-5 pr-3 pt-2.5 max-sm:pl-4 max-sm:pr-2">
-        <span className="truncate font-mono text-[12.5px] text-ink-faint">{tripName}</span>
+        <span className="truncate font-mono text-[13px] text-ink-faint">{tripName}</span>
         <DialogClose />
       </header>
       <div className="px-5 pb-3.5 max-sm:px-4">
@@ -140,7 +140,7 @@ function StartCard({ step, datesSet, preview }: { step: WalkthroughStep; datesSe
         <span className="grid min-w-0 gap-0.5">
           <span className="flex flex-wrap items-baseline gap-x-2.5">
             <b className="text-[15px] font-semibold">{step.title}</b>
-            <span className="font-mono text-[11.5px]">Start here</span>
+            <span className="font-mono text-[11px]">Start here</span>
           </span>
           <span className="text-[13px] opacity-85">{step.line}</span>
         </span>

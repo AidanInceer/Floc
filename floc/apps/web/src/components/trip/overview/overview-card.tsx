@@ -6,7 +6,7 @@ import type { TripMark } from "@floc/core/trip/mark/trip-mark";
 import { countdownLabel, formatDateRange } from "@floc/core/dates/dates";
 import { positionLines, type Position } from "@floc/core/money/position";
 import { Menu } from "@/components/system/client-ui";
-import { Badge, PASTEL_BY_KEY, cx } from "@/components/system/ui";
+import { Badge, PASTEL_BY_KEY, cx, iconButtonClass } from "@/components/system/ui";
 import { TripColorPicker } from "@/components/trip/trip-color-picker";
 import { TripMarkPicker } from "@/components/trip/trip-mark-picker";
 import { TripMarkIcon } from "@/components/system/icons/trip-mark";
@@ -105,9 +105,9 @@ export function OverviewCard({
             href={`/trip/${trip.id}/dates`}
             aria-label={trip.startDate ? "Change dates" : "Pick dates"}
             title={trip.startDate ? "Change dates" : "Pick dates"}
-            className="grid size-6 place-items-center rounded-sm text-ink-faint hover:bg-sheet-2 hover:text-ink"
+            className={iconButtonClass(false)}
           >
-            <PencilIcon size={12} />
+            <PencilIcon />
           </Link>
         </p>
       </div>
@@ -153,7 +153,7 @@ function Stamp({ trip }: { trip: OverviewTrip }) {
       </span>
       {trip.mark ? <TripMarkIcon mark={trip.mark} size={24} /> : <span className="size-6" />}
       {trip.startDate ? (
-        <span className="nums text-[9px] tracking-[0.08em]">
+        <span className="nums text-[11px] tracking-[0.08em]">
           {Number(day)} {MONTHS[Number(month) - 1]}
         </span>
       ) : null}

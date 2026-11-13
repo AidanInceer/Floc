@@ -15,6 +15,15 @@ function drawsDepth(part) {
 }
 const GREY_FILL = /^(sheet-2|sheet-3|paper|rule|rule-strong)$/;
 const GREY_VAR = /background(-color)?\s*:\s*var\(--(sheet-2|sheet-3|paper|rule|rule-2)\)/;
+// Why: one type scale (globals.css --text-xs to --text-3xl); a size between two steps is how 36 sizes got in.
+const TYPE_SCALE = [11, 13, 15, 17, 20, 25, 31, 39];
+const onScale = (value) => /^[\d.]+px$/.test(value) && TYPE_SCALE.includes(Number.parseFloat(value));
+const SCALE_HINT = "a step on the type scale: 11, 13, 15, 17, 20, 25, 31 or 39px (text-xs to text-3xl)";
+const ICON_FILE = new RegExp("(^|/)icons/");
+const UI_FILE = /components\/system\/(ui|client-ui)\.tsx$/;
+const SQUARE = /(?:^|[\s"'`:!])size-(?:\[\d+px\]|\d+)(?=[\s"'`]|$)|(?:^|[\s"'`:!])h-(\[\d+px\]|\d+)\s(?:[^"'`]*\s)?!?w-\1(?=[\s"'`]|$)/;
+const CENTRED = /place-items-center|items-center[^"'`]*justify-center|justify-center[^"'`]*items-center/;
+
 const CLASSY = /className|class=|\bcn\(|clsx|cva\(|["'`]/;
 
 const isComment = (line) => /^\s*(\/\/|\/\*|\*)/.test(line);
@@ -51,11 +60,31 @@ function cssLine(line, inHover, report) {
     const parts = splitTopLevel(value.replace(/!important/, "").trim());
     if (parts.some(drawsDepth)) report("shadow", "depth comes from var(--shadow-sm|shadow|shadow-lift)");
   }
+  for (const [, value] of line.matchAll(/font-size\s*:\s*([\d.]+(?:px|rem))\s*(?:!important)?\s*[;}]/g)) {
+    if (!onScale(value)) report("type-size", SCALE_HINT);
+  }
   if ((inHover || /:hover/.test(line)) && GREY_VAR.test(line)) report("hover-grey", "hover lifts, takes a border or a pen wash");
 }
 
-function scriptLine(line, report) {
+function iconLine(line, report) {
+  for (const [, n] of line.matchAll(/stroke(?:W|-w)idth=[{"']?([\d.]+)/g)) {
+    if (Number(n) < 1.15 || Number(n) > 1.25) report("icon-stroke", `stroke ${n} → 1.15 to 1.25`);
+  }
+  for (const [, n] of line.matchAll(/\bsize = (\d+)/g)) {
+    if (Number(n) !== 13) report("icon-size", `default size ${n} → 13; a caller that needs another passes it`);
+  }
+}
+
+function scriptLine(file, line, report) {
+  if (ICON_FILE.test(file)) iconLine(line, report);
   if (CLASSY.test(line)) {
+    for (const { token } of classTokens(line, "text")) {
+      const size = token.match(/^text-\[([\d.]+(?:px|rem))\]!?$/);
+      if (size && !onScale(size[1])) report("type-size", `${token} → ${SCALE_HINT}`);
+    }
+    if (!UI_FILE.test(file) && SQUARE.test(line) && CENTRED.test(line) && /hover:/.test(line)) {
+      report("icon-box", "an icon button takes its box from ui.tsx: iconButtonClass, iconFrameClass() or iconFrameClass(\"row\")");
+    }
     for (const { token } of classTokens(line, "rounded")) {
       if (!RADIUS_CLASS.test(token)) report("radius", `${token} → rounded-sm, rounded-md or rounded-full`);
     }
@@ -93,7 +122,7 @@ export function findViolations(file, text) {
       if (/:hover[^{]*\{/.test(line)) inHover = true;
       cssLine(line, inHover, report);
       if (line.includes("}")) inHover = false;
-    } else scriptLine(line, report);
+    } else scriptLine(file, line, report);
     if (/\p{Extended_Pictographic}/u.test(line)) report("emoji", "use a line icon from components/system/icons");
   });
   return out;

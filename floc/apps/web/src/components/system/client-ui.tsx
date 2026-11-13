@@ -16,6 +16,7 @@ import { useFormStatus } from "react-dom";
 import { usePathname, useSearchParams } from "next/navigation";
 
 import { Button, Card, ErrorText, busyMark, cx, iconButtonClass, segmentTrack } from "./ui";
+import { CheckIcon } from "./icons";
 
 // Server-rendered children can't take a close callback as a prop — a form
 // that wants to close only on successful submit reads it from here instead.
@@ -347,23 +348,37 @@ export function CopyLink({
   icon?: ReactNode;
 }) {
   const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
+  const copiedNow = status === "copied";
+  const reset = useRef<ReturnType<typeof setTimeout>>(undefined);
   return (
     <>
+      {/* Why: a copy keeps the button's words, holds a pen wash for a second and shows a tick (ADR-053); the tick is what hover never shows. */}
       <Button
         variant={variant}
+        className={cx(copiedNow && "relative", copiedNow && variant !== "primary" && "!border-pen !bg-pen-soft !text-pen-deep")}
         onClick={async () => {
+          let copied = true;
           try {
             await navigator.clipboard.writeText(value);
             setStatus("copied");
           } catch {
+            copied = false;
             setStatus("failed");
           }
-          setTimeout(() => setStatus("idle"), 2500);
+          // The wash lasts 1.2s; a failure keeps its words long enough to read.
+          clearTimeout(reset.current);
+          reset.current = setTimeout(() => setStatus("idle"), copied ? 1300 : 2500);
         }}
       >
-        {status === "copied" ? "Copied" : status === "failed" ? "Copy failed" : (
+        {status === "failed" ? "Copy failed" : (
           <>
-            {icon}
+            {/* Why: with no icon to stand in for, the tick sits in the left padding, so the button keeps its width. */}
+            {copiedNow && icon ? <CheckIcon /> : icon}
+            {copiedNow && !icon ? (
+              <span aria-hidden className="absolute left-[3px] top-1/2 -translate-y-1/2">
+                <CheckIcon size={11} />
+              </span>
+            ) : null}
             {label}
           </>
         )}
@@ -473,7 +488,7 @@ export function Menu({
         // A caller with its own trigger (account pill) replaces these outright and styles off data-open.
         className={
           triggerClassName
-            ? cx("transition-colors", triggerClassName)
+            ? cx(!triggerClassName.includes("lift") && "transition-colors", triggerClassName)
             : iconButtonClass(open)
         }
       >
@@ -507,15 +522,15 @@ export function Menu({
 function MoreIcon() {
   return (
     <svg
-      viewBox="0 0 24 24"
-      width="16"
-      height="16"
+      viewBox="0 0 14 14"
+      width="13"
+      height="13"
       fill="currentColor"
       aria-hidden="true"
     >
-      <circle cx="5.5" cy="12" r="1.6" />
-      <circle cx="12" cy="12" r="1.6" />
-      <circle cx="18.5" cy="12" r="1.6" />
+      <circle cx="2.5" cy="7" r="1" />
+      <circle cx="7" cy="7" r="1" />
+      <circle cx="11.5" cy="7" r="1" />
     </svg>
   );
 }
