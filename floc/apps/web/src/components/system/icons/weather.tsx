@@ -26,6 +26,9 @@ const PATHS: Record<WeatherCondition, string[]> = {
   ],
 };
 
+/** The sun's strokes, for an icon drawn inside another frame (Explore's season order, #624). */
+export const SUN_PATHS = PATHS.sun;
+
 export function WeatherGlyph({
   condition,
   size = 13,

@@ -34,6 +34,7 @@ export function ExploreTile({
   children,
   footer,
   action,
+  mark,
   href,
 }: {
   trip: PresetTrip;
@@ -41,6 +42,8 @@ export function ExploreTile({
   children?: ReactNode;
   footer?: ReactNode;
   action?: ReactNode;
+  /** Sits in the map's top-left corner, opposite the heart: a top pick's sun (#624). */
+  mark?: ReactNode;
 }) {
   const rates = useListingRates();
   const figures = (
@@ -60,6 +63,7 @@ export function ExploreTile({
           {action ? null : figures}
           {children}
         </span>
+        {mark}
       </Link>
       <SaveHeart presetId={trip.id} title={trip.title} className="absolute right-2.5 top-2.5 z-10" />
       {action ? (

@@ -9,7 +9,17 @@ import { ExplorePostcard } from "@/components/explore/explore-postcard";
 import { ExploreFinder } from "@/components/explore/finder/explore-finder";
 
 /** Explore, top to bottom: the map and its postcard, then every trip with the finder beside it. */
-export function ExploreFront({ signedIn, initialFinder, blankName = null }: { signedIn: boolean; initialFinder: Finder; blankName?: string | null }) {
+export function ExploreFront({
+  signedIn,
+  initialFinder,
+  season,
+  blankName = null,
+}: {
+  signedIn: boolean;
+  initialFinder: Finder;
+  season: number[];
+  blankName?: string | null;
+}) {
   const [picked, setPicked] = useState(PRESET_TRIPS[0].id);
   const [route, setRoute] = useState<AtlasRoute | null>(null);
   const card = useRef<HTMLDivElement>(null);
@@ -35,7 +45,7 @@ export function ExploreFront({ signedIn, initialFinder, blankName = null }: { si
         </div>
       </section>
 
-      <ExploreFinder signedIn={signedIn} initialFinder={initialFinder} blankName={blankName} />
+      <ExploreFinder signedIn={signedIn} initialFinder={initialFinder} blankName={blankName} season={season} />
     </>
   );
 }
