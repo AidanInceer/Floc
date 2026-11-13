@@ -52,7 +52,7 @@ export function TripHero({ trip, figures, rates }: { trip: PresetTrip; figures: 
           {figures.map((f) => (
             <li key={f.label} className="grid content-start gap-0.5 rounded-md bg-sheet-2 px-3.5 py-3">
               <b className="nums font-display text-[length:var(--text-2xl)] font-semibold leading-tight tracking-[-0.02em]">{f.value}</b>
-              <span className="text-[12.5px] text-ink-soft">{f.label}</span>
+              <span className="text-[13px] text-ink-soft">{f.label}</span>
             </li>
           ))}
         </ul>

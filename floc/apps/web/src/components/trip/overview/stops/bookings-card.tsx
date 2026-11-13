@@ -7,7 +7,7 @@ import type { TripDocument } from "@/server/documents/documents";
 import { DocCategoryIcon } from "@/components/system/icons/doc-category";
 import { DocumentUpload } from "@/components/documents/document-upload";
 import { UploadIcon } from "@/components/system/icons";
-import { cx } from "@/components/system/ui";
+import { cx, iconFrameClass } from "@/components/system/ui";
 import { DOC_CATEGORY_CHIPS } from "@floc/core/documents/documents";
 import { StopNo } from "./stop-parts";
 import { shortPlace } from "@floc/core/itinerary/names/place-name";
@@ -18,8 +18,7 @@ type Props = {
   wholeTrip: TripDocument[];
 };
 
-const RING =
-  "grid size-6 place-items-center rounded-sm border border-rule-strong text-ink-soft hover:border-pen hover:bg-pen-soft hover:text-pen-deep";
+const RING = iconFrameClass("row");
 
 // Why: this card is only for uploading bookings; finding a stay lives on Dates and the Days overnight dialog.
 export function BookingsCard({ tripId, legs, wholeTrip }: Props) {
@@ -41,7 +40,7 @@ export function BookingsCard({ tripId, legs, wholeTrip }: Props) {
 function StopRow({ tripId, leg }: { tripId: number; leg: Leg<TripDocument> }) {
   const place = shortPlace(leg.placeName);
   return (
-    <li className="grid grid-cols-[auto_minmax(0,1fr)_auto_1.5rem] items-center gap-x-2.5 gap-y-1.5 border-t border-rule py-2.5">
+    <li className="grid grid-cols-[auto_minmax(0,1fr)_auto_26px] items-center gap-x-2.5 gap-y-1.5 border-t border-rule py-2.5">
       <a href={`#stop-${leg.no}`} className="group col-span-3 grid grid-cols-subgrid items-center text-ink">
         <StopNo no={leg.no} small />
         <span className="truncate font-medium group-hover:underline">{place}</span>

@@ -39,7 +39,7 @@ function DateTile({ trip, tone }: { trip: TripCardData; tone: string }) {
   const date = fromIsoDate(trip.startDate);
   return (
     <div aria-hidden="true" className={cx(size, "flex flex-col items-center justify-center rounded-sm border border-rule-strong", tone)}>
-      <span className="nums text-2xl leading-none sm:text-[28px]">{date.getUTCDate()}</span>
+      <span className="nums text-xl leading-none">{date.getUTCDate()}</span>
       <span className="typed !text-current">{date.toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" })}</span>
     </div>
   );

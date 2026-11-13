@@ -30,7 +30,7 @@ export function AttachExistingFile({
       <ActionForm action={attachToEvent.bind(null, tripId, dayEventId)}>
         <div className="flex flex-wrap items-end gap-3">
           <label className="block min-w-0 flex-1">
-            <span className="mb-1.5 block font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-soft">
+            <span className="mb-1.5 block font-mono text-[11px] uppercase tracking-[0.06em] text-ink-soft">
               Which file
             </span>
             <Select name="documentId" defaultValue={String(choices[0]?.id ?? "")}>

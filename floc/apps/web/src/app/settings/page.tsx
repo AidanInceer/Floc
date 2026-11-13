@@ -178,7 +178,7 @@ export default async function SettingsPage({
                 {calendarGranted ? (
                   <li className={accountLineClass}>
                     <span className="inline-flex items-center gap-2 text-sm">
-                      <GoogleCalendarIcon />
+                      <GoogleCalendarIcon size={18} />
                       Google Calendar
                       <span className="text-xs text-ink-faint">Reads when you&rsquo;re busy</span>
                     </span>

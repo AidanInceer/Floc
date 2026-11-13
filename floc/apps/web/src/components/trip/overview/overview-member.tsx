@@ -12,7 +12,7 @@ import { TAB_LABELS } from "@/lib/tabs";
 import { kickMember, promoteMember, sendNudge } from "@/app/trip/[id]/overview/actions";
 
 const row = "flex min-h-[52px] items-center gap-3 px-4 py-2";
-const word = "shrink-0 font-mono text-[10px] uppercase tracking-[0.06em]";
+const word = "shrink-0 font-mono text-[11px] uppercase tracking-[0.06em]";
 
 export function MemberRow({
   tripId,

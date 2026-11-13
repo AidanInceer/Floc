@@ -56,7 +56,7 @@ export function CountryTile({
         </button>
       ) : null}
       <div className={cx(lastLineClass, "px-3 pb-2.5")}>
-        <span className="nums whitespace-nowrap text-[11.5px] text-ink-faint">{exploreTrips(listingsIn(code).length)}</span>
+        <span className="nums whitespace-nowrap text-[11px] text-ink-faint">{exploreTrips(listingsIn(code).length)}</span>
         <StartTripButton saved={{ kind: "country", name }} name={name} />
       </div>
     </div>

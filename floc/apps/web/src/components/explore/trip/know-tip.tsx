@@ -24,7 +24,7 @@ export function KnowTipRow({ tip }: { tip: TipRow }) {
         <KnowGlyphIcon name={tip.icon} />
       </span>
       <div className="grid gap-[3px] pt-[3px]">
-        {tip.place ? <span className="text-[12.5px] text-ink-faint">{tip.place}</span> : null}
+        {tip.place ? <span className="text-[13px] text-ink-faint">{tip.place}</span> : null}
         <b className="text-base leading-snug">
           <Figures text={tip.title} />
         </b>
@@ -32,7 +32,7 @@ export function KnowTipRow({ tip }: { tip: TipRow }) {
           <Figures text={tip.text} />
         </p>
         {tip.temporary ? (
-          <span className="mt-0.5 inline-flex items-center gap-1.5 py-0.5 text-[12.5px] text-ink-faint">
+          <span className="mt-0.5 inline-flex items-center gap-1.5 py-0.5 text-[13px] text-ink-faint">
             <KnowGlyphIcon name="clock" size={12} />
             Temporary · {tip.temporary}
           </span>

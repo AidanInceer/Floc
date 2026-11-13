@@ -8,6 +8,7 @@ import { LengthFacet, PriceFacet, WhenFacet, WhereFacet } from "@/components/exp
 import { LikeCloud } from "@/components/explore/finder/like-cloud";
 import { ChevronIcon } from "@/components/system/icons";
 import { CrossIcon } from "@/components/system/icons";
+import { iconButtonClass } from "@/components/system/ui";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -50,7 +51,7 @@ export function FinderRail({
             Clear all
           </button>
           {onClose ? (
-            <button type="button" onClick={onClose} aria-label="Close" className="grid size-9 place-items-center rounded-sm text-ink-soft hover:text-ink">
+            <button type="button" onClick={onClose} aria-label="Close" className={iconButtonClass(false)}>
               <CrossIcon />
             </button>
           ) : null}

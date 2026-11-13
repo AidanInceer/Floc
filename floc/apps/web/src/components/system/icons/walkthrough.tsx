@@ -37,7 +37,7 @@ const PATHS: Record<WalkthroughStepKey | keyof Sorted, React.ReactNode> = {
   book: <path d="M1.8 11.6V3.2M1.8 8.8h10.4v2.8M1.8 6.6h3.6v2.2M5.4 6.6h5a1.8 1.8 0 0 1 1.8 1.8v.4" />,
 };
 
-export function StepGlyph({ step, size = 14, className }: { step: WalkthroughStepKey | keyof Sorted; size?: number; className?: string }) {
+export function StepGlyph({ step, size = 13, className }: { step: WalkthroughStepKey | keyof Sorted; size?: number; className?: string }) {
   return (
     <LineIcon size={size} className={className}>
       {PATHS[step]}

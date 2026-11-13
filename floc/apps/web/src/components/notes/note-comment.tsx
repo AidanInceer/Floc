@@ -9,7 +9,7 @@ import { ReactionGlyph } from "@/components/system/icons/reaction";
 import { ActionForm, ConfirmSubmit, Menu, SubmitButton } from "@/components/system/client-ui";
 import { deleteNote, editNote, react } from "@/app/trip/[id]/notes-actions";
 
-const metaFigure = "font-mono text-[10.5px] tracking-[0.02em] text-ink-faint";
+const metaFigure = "font-mono text-[11px] tracking-[0.02em] text-ink-faint";
 
 /** One heart, inline after Reply (event comments D): yours fills in pen, the count says how many. */
 function HeartButton({ tripId, note }: { tripId: number; note: NoteRow }) {
@@ -87,7 +87,6 @@ function OwnMenu({
     <Menu
       label="More for your comment"
       align="left"
-      triggerClassName="inline-grid size-[26px] place-items-center rounded-sm text-ink-soft hover:bg-pen-soft hover:text-pen-deep data-[open=true]:bg-pen-soft data-[open=true]:text-pen-deep max-sm:size-9"
     >
       <button type="button" role="menuitem" onClick={onEdit} className={menuItemClass}>
         Edit

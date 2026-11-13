@@ -123,7 +123,7 @@ export function TripCopyBar({ trip, signedIn }: { trip: PresetTrip; signedIn: bo
     <div className="trip-copy-bar fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 flex items-center justify-between gap-3 rounded-md border border-rule-strong bg-sheet py-1 pl-4 pr-1 shadow-lifted lg:hidden">
       <span className="grid min-w-0 text-sm">
         <b className="truncate font-semibold">{trip.title}</b>
-        <span className="nums text-[11.5px] text-ink-soft">{trip.nights} nights</span>
+        <span className="nums text-[11px] text-ink-soft">{trip.nights} nights</span>
       </span>
       <CopyAction trip={trip} signedIn={signedIn} className="shrink-0" />
     </div>

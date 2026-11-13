@@ -77,7 +77,7 @@ export function DateCell(p: DateCellProps) {
         {Number(p.date.slice(8, 10))}
       </span>
       {p.hi !== undefined ? (
-        <span aria-hidden className="nums absolute right-2 top-[7px] text-[10px] leading-none opacity-85">
+        <span aria-hidden className="nums absolute right-2 top-[7px] text-[11px] leading-none opacity-85">
           {p.hi}°
         </span>
       ) : null}

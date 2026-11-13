@@ -43,7 +43,7 @@ export function ForecastPanel({
           const w = byDate[d];
           const { weekday, day: n } = dayParts(d);
           const when = <span className="nums font-mono text-ink">{weekday} {n}</span>;
-          const row = cx("grid w-full items-center gap-2.5 rounded-sm px-2 py-2 text-left text-[13.5px]", i > 0 && "border-t border-rule");
+          const row = cx("grid w-full items-center gap-2.5 rounded-sm px-2 py-2 text-left text-[13px]", i > 0 && "border-t border-rule");
           return (
             <li key={d}>
               {w ? (
@@ -52,7 +52,7 @@ export function ForecastPanel({
                   <span className="text-ink-soft"><WeatherGlyph condition={w.condition} /></span>
                   <span className="truncate text-ink-soft">{w.label}</span>
                   <span className="nums">
-                    {w.hi}°<small className="ml-1 text-[11.5px] text-ink-faint">{w.lo}°</small>
+                    {w.hi}°<small className="ml-1 text-[11px] text-ink-faint">{w.lo}°</small>
                   </span>
                 </button>
               ) : (
@@ -88,8 +88,8 @@ function DayHours({ date, day, points, back }: { date: IsoDate; day: DailyForeca
         <span className="text-ink-soft">
           <WeatherGlyph condition={day.condition} size={30} />
         </span>
-        <b className="nums font-display text-[38px] font-semibold leading-none tracking-[-0.02em]">{day.hi}°</b>
-        <span className="text-[12.5px] leading-snug text-ink-soft">
+        <b className="nums font-display text-[39px] font-semibold leading-none tracking-[-0.02em]">{day.hi}°</b>
+        <span className="text-[13px] leading-snug text-ink-soft">
           {day.label}
           <br />
           Low {day.lo}°
@@ -99,7 +99,7 @@ function DayHours({ date, day, points, back }: { date: IsoDate; day: DailyForeca
         {points.map((h) => (
           <li
             key={h.hour}
-            className="grid grid-cols-[3.4rem_16px_minmax(0,1fr)_auto] items-center gap-2.5 border-t border-rule px-0.5 py-2 text-[13.5px]"
+            className="grid grid-cols-[3.4rem_16px_minmax(0,1fr)_auto] items-center gap-2.5 border-t border-rule px-0.5 py-2 text-[13px]"
           >
             <span className="nums font-mono text-ink-soft">{h.hour}</span>
             <span className="text-ink-soft"><WeatherGlyph condition={h.condition} /></span>

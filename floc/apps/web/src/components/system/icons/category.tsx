@@ -37,7 +37,7 @@ const PATHS: Record<ExpenseCategory, React.ReactNode> = {
 
 export function CategoryIcon({
   category,
-  size = 18,
+  size = 13,
   className,
 }: {
   category: ExpenseCategory;

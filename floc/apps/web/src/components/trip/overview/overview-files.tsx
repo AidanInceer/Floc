@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { DOC_CATEGORY_LABELS, DOC_CATEGORY_SKINS, type DocCategory } from "@floc/core/documents/documents";
 import { filesByCategory } from "@floc/core/trip/overview/legs";
-import { cx } from "@/components/system/ui";
+import { cx, iconFrameClass } from "@/components/system/ui";
 import { DocCategoryIcon } from "@/components/system/icons/doc-category";
 import { DocumentUpload } from "@/components/documents/document-upload";
 import { UploadIcon } from "@/components/system/icons";
@@ -40,7 +40,7 @@ export function OverviewFiles({ tripId, files }: { tripId: number; files: { cate
         tripId={tripId}
         scope="shared"
         bareTrigger
-        className="grid h-[30px] w-[30px] place-items-center rounded-sm border border-rule-strong bg-sheet text-ink-soft hover:bg-sheet-2 hover:text-ink max-md:ml-auto"
+        className={cx(iconFrameClass(), "max-md:ml-auto")}
         trigger={
           <>
             <UploadIcon />

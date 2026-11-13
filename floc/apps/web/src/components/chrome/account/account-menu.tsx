@@ -41,7 +41,7 @@ export function AccountMenu({
             {unread ? (
               <span
                 aria-hidden
-                className="absolute -right-2 -top-1.5 min-w-4 rounded-full border-2 border-sheet bg-pen px-1 text-center text-[9.5px] font-semibold leading-[13px] text-sheet"
+                className="absolute -right-2 -top-1.5 min-w-4 rounded-full border-2 border-sheet bg-pen px-1 text-center text-[11px] font-semibold leading-[13px] text-sheet"
               >
                 {shown}
               </span>

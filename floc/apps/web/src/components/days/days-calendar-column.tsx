@@ -122,7 +122,7 @@ export function DayColumn({
           key={from}
           type="button"
           onClick={() => onAdd(day.id, from, to)}
-          className="absolute inset-x-1.5 z-[1] flex items-center justify-center gap-1.5 rounded-sm border-[1.5px] border-dashed border-rule-strong text-[12.5px] text-ink-faint transition-colors hover:border-pen hover:bg-pen-soft hover:text-pen-deep"
+          className="absolute inset-x-1.5 z-[1] flex items-center justify-center gap-1.5 rounded-sm border-[1.5px] border-dashed border-rule-strong text-[13px] text-ink-faint transition-colors hover:border-pen hover:bg-pen-soft hover:text-pen-deep"
           style={{ top: minutesToY(from) + 4, height: minutesToY(to) - minutesToY(from) - 8 }}
         >
           <PlusIcon size={12} />
@@ -184,7 +184,7 @@ function ColumnMarks({
       {hover !== null ? (
         <span
           aria-hidden
-          className="nums pointer-events-none absolute left-1 z-10 -translate-y-1/2 rounded-full bg-pen px-1.5 text-[10px] text-sheet"
+          className="nums pointer-events-none absolute left-1 z-10 -translate-y-1/2 rounded-full bg-pen px-1.5 text-[11px] text-sheet"
           style={{ top: minutesToY(hover) }}
         >
           + {toHhmm(hover)}
@@ -197,7 +197,7 @@ function ColumnMarks({
           className="pointer-events-none absolute inset-x-0 z-10 border-t-2 border-dashed border-pen"
           style={{ top: minutesToY(toMinutes(incoming.time) ?? 0) }}
         >
-          <span className="nums ml-1 rounded-full bg-pen px-1.5 text-[10px] text-sheet">
+          <span className="nums ml-1 rounded-full bg-pen px-1.5 text-[11px] text-sheet">
             {formatSpan({ ...incoming, allDay: false })}
           </span>
         </div>
@@ -329,7 +329,7 @@ function BlockText({
     <>
       {time}
       {title}
-      <span className={cx("mt-0.5 flex items-center gap-1.5", focus ? "text-[12.5px]" : "text-[11.5px]", words)}>
+      <span className={cx("mt-0.5 flex items-center gap-1.5", focus ? "text-[13px]" : "text-[11px]", words)}>
         <EventGlyph type={event.type} transportType={event.transportType} size={12} />
         {focus && event.placeName ? <span className="truncate">{event.placeName}</span> : null}
         <span className="ml-auto flex items-center gap-1.5">
@@ -337,7 +337,7 @@ function BlockText({
         </span>
       </span>
       {focus && event.note ? (
-        <span className="mt-1 line-clamp-2 text-[12.5px] leading-snug text-ink-soft">{event.note}</span>
+        <span className="mt-1 line-clamp-2 text-[13px] leading-snug text-ink-soft">{event.note}</span>
       ) : null}
     </>
   );

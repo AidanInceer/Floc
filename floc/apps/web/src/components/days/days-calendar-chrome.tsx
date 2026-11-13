@@ -18,7 +18,7 @@ import { DayColumn, type ColumnVariant } from "@/components/days/days-calendar-c
 import { FoldIcon } from "@/components/system/icons/days";
 import { Dialog } from "@/components/system/dialog";
 import { ChevronIcon, PlusIcon } from "@/components/system/icons";
-import { Button, cx } from "@/components/system/ui";
+import { Button, cx, iconFrameClass } from "@/components/system/ui";
 import {
   OUTSIDE_DAY_CLASS,
   type CalendarDay,
@@ -50,16 +50,15 @@ export function CalendarToolbar({
   onToggleFold: () => void;
   onAdd: () => void;
 }) {
-  const step = "!size-8 !p-0";
   return (
     <div className="flex flex-wrap items-center gap-2 border-b border-rule px-3 py-2.5">
       {nav.hasToday ? <Button onClick={nav.onToday}>Today</Button> : null}
-      <Button onClick={nav.goPrev} disabled={!nav.canPrev} aria-label="Day before" title={nav.canPrev ? "Day before" : "The trip starts here"} className={step}>
+      <button type="button" onClick={nav.goPrev} disabled={!nav.canPrev} aria-label="Day before" title={nav.canPrev ? "Day before" : "The trip starts here"} className={iconFrameClass()}>
         <ChevronIcon direction="left" />
-      </Button>
-      <Button onClick={nav.goNext} disabled={!nav.canNext} aria-label="Day after" title={nav.canNext ? "Day after" : "The trip ends here"} className={step}>
+      </button>
+      <button type="button" onClick={nav.goNext} disabled={!nav.canNext} aria-label="Day after" title={nav.canNext ? "Day after" : "The trip ends here"} className={iconFrameClass()}>
         <ChevronIcon direction="right" />
-      </Button>
+      </button>
       {/* Announced, not drawn: the focus head already says which day you are
           on. Live so the arrows still report where they landed. */}
       <p className="sr-only" aria-live="polite">
@@ -106,10 +105,9 @@ export function AllDayStrip({
 
   return (
     <div style={rowStyle} className="border-b border-rule bg-sheet-2">
-      {/* Not `.typed`: "All day" wrapped to two lines in a gutter sized for
-          "00:00" at that size. */}
+      {/* Why not `.typed`: its wider tracking wraps "All day" to two lines in the gutter. */}
       <div className="flex items-center justify-end border-r border-rule bg-sheet-2 px-1 py-1.5 sm:px-1.5">
-        <span className="whitespace-nowrap font-mono text-[9px] uppercase tracking-[0.02em] text-ink-faint">
+        <span className="whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.02em] text-ink-faint">
           All day
         </span>
       </div>

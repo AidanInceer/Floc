@@ -10,7 +10,7 @@ import { EventGlyph } from "@/components/system/icons/days";
 import { cx } from "@/components/system/ui";
 
 const NAME =
-  "block w-full border-0 border-b-[1.5px] border-current/30 bg-transparent pb-1.5 pt-0.5 font-display text-[24px] font-semibold leading-tight tracking-[-0.015em] text-inherit transition-colors hover:border-current/55 focus:border-current focus:outline-none max-sm:text-[21px]";
+  "block w-full border-0 border-b-[1.5px] border-current/30 bg-transparent pb-1.5 pt-0.5 font-display text-xl font-semibold leading-tight tracking-[-0.015em] text-inherit transition-colors hover:border-current/55 focus:border-current focus:outline-none max-sm:text-lg";
 const TIME =
   "rounded-sm border border-transparent bg-transparent px-1.5 py-1 font-mono text-[17px] tabular-nums text-inherit transition-colors hover:border-current/35 focus:border-current focus:outline-none max-sm:text-[15px] max-sm:[&::-webkit-calendar-picker-indicator]:hidden";
 
@@ -41,7 +41,7 @@ export function EventHead({
 }) {
   return (
     <div className={cx("px-5 pb-4 pt-2.5 transition-colors max-sm:px-4", EVENT_CATEGORIES[type].tile)}>
-      <div className="mb-1.5 flex items-center justify-between gap-3 font-mono text-[12.5px]">
+      <div className="mb-1.5 flex items-center justify-between gap-3 font-mono text-[13px]">
         <span>{dateLabel}</span>
         <span className="flex items-center gap-2">
           {aside}

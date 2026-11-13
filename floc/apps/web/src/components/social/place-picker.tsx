@@ -29,7 +29,7 @@ type PickerLook = "box" | "panel" | "display";
 
 const LOOK: Record<Exclude<PickerLook, "box">, string> = {
   panel: panelFieldClass,
-  display: "block w-full border-0 border-b-[1.5px] border-current/30 bg-transparent pb-1.5 pt-0.5 font-display text-[24px] font-semibold leading-tight tracking-[-0.015em] text-inherit transition-colors hover:border-current/55 focus:border-current focus:outline-none max-sm:text-[21px]",
+  display: "block w-full border-0 border-b-[1.5px] border-current/30 bg-transparent pb-1.5 pt-0.5 font-display text-[25px] font-semibold leading-tight tracking-[-0.015em] text-inherit transition-colors hover:border-current/55 focus:border-current focus:outline-none max-sm:text-[20px]",
 };
 
 export function PlacePicker({

@@ -25,7 +25,7 @@ export function IdeasPanel({
         <ChevronIcon direction="down" size={15} className="shrink-0 -rotate-90 text-ink-faint transition-transform group-open/ideas:rotate-0" />
         <h2 className="font-display text-lg">Ideas</h2>
         {ideas.length > 0 ? (
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">
+          <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
             {ideas.length === 1 ? "1 idea" : `${ideas.length} ideas`}
           </span>
         ) : null}

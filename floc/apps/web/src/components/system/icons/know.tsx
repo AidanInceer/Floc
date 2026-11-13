@@ -31,7 +31,7 @@ const PATHS: Record<KnowGlyphName, string[]> = {
   external: ["M5 2.5h6.5V9M11.5 2.5 2.5 11.5"],
 };
 
-export function KnowGlyphIcon({ name, size = 14, className }: { name: KnowGlyphName; size?: number; className?: string }) {
+export function KnowGlyphIcon({ name, size = 13, className }: { name: KnowGlyphName; size?: number; className?: string }) {
   return (
     <LineIcon size={size} className={className}>
       {PATHS[name].map((d) => (

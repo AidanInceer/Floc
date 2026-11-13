@@ -3,7 +3,7 @@
  * (#444). Brand colours are Google's, not ours to repaint — the same exception as the G on the
  * sign-in button.
  */
-export function GoogleCalendarIcon({ size = 18 }: { size?: number }) {
+export function GoogleCalendarIcon({ size = 13 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 200 200" aria-hidden="true" className="shrink-0">
       <path fill="#fff" d="M152.637 47.363H47.363v105.274h105.274z" />

@@ -153,7 +153,7 @@ function FileCard({
   return (
     <section className="min-w-0">
       <header className="mb-2 flex items-baseline gap-2.5">
-        <h2 className="font-display text-[1.05rem] font-semibold">{title}</h2>
+        <h2 className="font-display text-xl font-semibold">{title}</h2>
         <span className="text-xs text-ink-soft">{note}</span>
       </header>
       <div className="rounded-md border border-rule bg-sheet">

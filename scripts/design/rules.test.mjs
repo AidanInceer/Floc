@@ -84,3 +84,35 @@ test("comment lines are not checked", () => {
   assert.deepEqual(rules("a.tsx", "// was rounded-[10px] before #300"), []);
   assert.deepEqual(rules("a.css", "/* border-radius: 4px was too round */"), []);
 });
+
+test("a text size is a step on the type scale", () => {
+  assert.deepEqual(rules("a.tsx", '<p className="text-[12.5px] text-ink" />'), ["type-size"]);
+  assert.deepEqual(rules("a.tsx", '<p className="sm:text-[1.05rem]" />'), ["type-size"]);
+  assert.deepEqual(rules("a.tsx", '<p className="text-[13px] text-sm text-xl" />'), []);
+  assert.deepEqual(rules("a.tsx", '<h1 className="text-[clamp(1.9rem,4vw,2.8rem)]" />'), []);
+  assert.deepEqual(rules("a.tsx", '<p className="text-[var(--text-lg)] text-[color:var(--pen)]" />'), []);
+  assert.deepEqual(rules("a.css", ".x { font-size: 12px; }"), ["type-size"]);
+  assert.deepEqual(rules("a.css", ".x { font-size: 11px; }"), []);
+  assert.deepEqual(rules("a.css", ".x { font-size: var(--text-sm); }"), []);
+});
+
+test("an icon's stroke is 1.15 to 1.25", () => {
+  assert.deepEqual(rules("components/system/icons/nav.tsx", "<path strokeWidth={1} />"), ["icon-stroke"]);
+  assert.deepEqual(rules("components/system/icons/nav.tsx", '<path strokeWidth="1.9" />'), ["icon-stroke"]);
+  assert.deepEqual(rules("components/system/icons/nav.tsx", "<path strokeWidth={1.2} />"), []);
+  assert.deepEqual(rules("components/map/route.tsx", "<path strokeWidth={3} />"), []);
+});
+
+test("an icon draws at 13px unless the caller sizes it", () => {
+  assert.deepEqual(rules("components/system/icons/nav.tsx", "export function HomeIcon({ size = 16 }: IconProps) {"), ["icon-size"]);
+  assert.deepEqual(rules("components/system/icons/nav.tsx", "export function HomeIcon({ size = 13 }: IconProps) {"), []);
+});
+
+test("an icon button takes its box from the house classes", () => {
+  const own = '<button className="grid h-[30px] w-[30px] place-items-center rounded-sm border hover:border-pen" />';
+  assert.deepEqual(rules("components/booking/site-picker.tsx", own), ["icon-box"]);
+  assert.deepEqual(rules("a.tsx", '<a className="flex size-6 items-center justify-center hover:text-pen" />'), ["icon-box"]);
+  assert.deepEqual(rules("components/system/ui.tsx", own), []);
+  assert.deepEqual(rules("a.tsx", '<span className="grid size-6 place-items-center rounded-sm bg-pastel-blue" />'), []);
+  assert.deepEqual(rules("a.tsx", "<button className={iconFrameClass()} />"), []);
+});

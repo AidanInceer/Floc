@@ -22,7 +22,7 @@ import { FlocWordmark } from "@/components/system/wordmark";
 function WaitingCount({ count, label }: { count: number; label: string }) {
   return (
     <span
-      className="ml-1.5 inline-flex min-w-[17px] items-center justify-center rounded-full bg-pen px-1 text-[10.5px] font-semibold leading-[17px] text-sheet"
+      className="ml-1.5 inline-flex min-w-[17px] items-center justify-center rounded-full bg-pen px-1 text-[11px] font-semibold leading-[17px] text-sheet"
       aria-label={`${count} ${label} waiting`}
     >
       {count}

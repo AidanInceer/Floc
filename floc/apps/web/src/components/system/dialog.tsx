@@ -3,6 +3,7 @@
 import { useEffect, useRef, type ReactNode } from "react";
 
 import { CrossIcon } from "./icons";
+import { iconInkClass } from "./ui";
 
 export function Dialog({ open, onClose, title, className, children }: {
   open: boolean;
@@ -58,7 +59,7 @@ export function Dialog({ open, onClose, title, className, children }: {
  * Closes the dialog it sits in, from anywhere in its body — a form's own head can
  * carry the ✕ (wireframe/modal-forms B3). The dialog's close event calls `onClose`.
  */
-const CLOSE = "inline-flex size-8 items-center justify-center rounded-sm transition-colors hover:text-pen";
+const CLOSE = iconInkClass;
 
 export function DialogClose({ className, children }: { className?: string; children?: ReactNode }) {
   return (
@@ -69,7 +70,7 @@ export function DialogClose({ className, children }: { className?: string; child
       onClick={(event) => event.currentTarget.closest("dialog")?.close()}
       className={className ?? CLOSE}
     >
-      {children ?? <CrossIcon size={14} />}
+      {children ?? <CrossIcon />}
     </button>
   );
 }

@@ -40,7 +40,7 @@ export function ExploreTile({
 }) {
   const rates = useListingRates();
   const figures = (
-    <span className="nums text-[11.5px] text-ink-faint">
+    <span className="nums text-[11px] text-ink-faint">
       {nightsOf(trip.nights)} · {listingPrice(trip, rates)}
     </span>
   );
@@ -61,7 +61,7 @@ export function ExploreTile({
       {action ? (
         <div className={cx(lastLineClass, "px-3.5 pb-3.5")}>
           {/* Why: beside an action on a phone the figures stack, nights over price, rather than wrap at the dot. */}
-          <span className="nums flex flex-col text-[11.5px] text-ink-faint sm:flex-row sm:gap-1">
+          <span className="nums flex flex-col text-[11px] text-ink-faint sm:flex-row sm:gap-1">
             <span className="whitespace-nowrap">{nightsOf(trip.nights)}<span className="max-sm:hidden"> ·</span></span>
             <span className="whitespace-nowrap">{listingPrice(trip, rates)}</span>
           </span>

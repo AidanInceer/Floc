@@ -51,7 +51,7 @@ export function RangeBars({
         />
         <input type="range" aria-label={`${label}, to`} value={high} onChange={(e) => onChange([low, Math.max(Number(e.target.value), low)])} {...common} />
       </div>
-      <div className="nums flex justify-between text-[12.5px] [&>:last-child]:text-ink-faint">{children}</div>
+      <div className="nums flex justify-between text-[13px] [&>:last-child]:text-ink-faint">{children}</div>
     </div>
   );
 }

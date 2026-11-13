@@ -20,7 +20,7 @@ function Pill({ dark = false, onClick, children }: { dark?: boolean; onClick: ()
       type="button"
       onClick={onClick}
       className={cx(
-        "group inline-flex min-h-7 items-center gap-1.5 rounded-full pl-[11px] pr-2 text-[12.5px]",
+        "group inline-flex min-h-7 items-center gap-1.5 rounded-full pl-[11px] pr-2 text-[13px]",
         dark ? "bg-pen-soft text-pen-deep" : "bg-sheet-3 text-ink",
       )}
     >
