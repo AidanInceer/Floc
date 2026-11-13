@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
-import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { test } from "node:test";
 
 import { wireframeTarget } from "./delete.mjs";
 
-const root = join("C:", "dev", "Floc", ".claude", "worktrees", "some-task");
+// Why: an absolute root on whatever platform runs the test; CI is Linux, where "C:" is not absolute.
+const root = resolve(tmpdir(), "worktrees", "some-task");
 const wireframe = join(root, "floc", "wireframe");
 
 test("a folder name is taken inside floc/wireframe of the checkout it runs in", () => {
