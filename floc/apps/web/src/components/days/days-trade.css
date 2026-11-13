@@ -1,0 +1,11 @@
+/* The columns trading places on a step of one day (ADR-051, use-column-trade.ts). */
+@layer components {
+  /* A track heading for 0px must not be held open by its words. Not the gutter: its first and last hours hang past it. */
+  [data-days-trade] [data-days-row] > :not(:first-child, [data-days-overlay]) {
+    min-width: 0;
+    overflow: hidden;
+  }
+  [data-days-trade="moving"] [data-days-row] {
+    transition: grid-template-columns 0.45s var(--ease-even);
+  }
+}

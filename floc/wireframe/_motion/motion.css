@@ -1,0 +1,64 @@
+.page { max-width: 860px; margin: 20px auto 96px; padding: 0 20px; }
+.brief { margin-bottom: 16px; }
+.brief h1 { font-family: var(--display); font-size: 25px; font-weight: 600; line-height: 1.15; }
+.brief p { margin-top: 6px; font-size: 13px; color: var(--ink-2); }
+.brief .spec { font-family: var(--type); font-size: 11px; color: var(--ink-2); }
+.brief .last { font-family: var(--type); font-size: 11px; color: var(--pen-deep); min-height: 16px; }
+.stage { position: relative; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--radius-md); padding: 16px; }
+.stage h2 { font-family: var(--display); font-size: 20px; font-weight: 600; }
+.row-line { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 6px 4px; border-top: 1px solid var(--rule); font-size: 13px; }
+.row-line:first-of-type { border-top: 0; }
+.row-line .grow { flex: 1; min-width: 0; }
+.row-line small { display: block; font-family: var(--type); font-size: 11px; color: var(--ink-2); }
+.sq { display: inline-grid; place-items: center; width: 26px; height: 26px; flex: none; border-radius: var(--radius-sm); border: 1px solid transparent; color: var(--ink-2); }
+.sq:hover { border-color: var(--rule-2); color: var(--ink); }
+.sq.framed { width: 31px; height: 31px; border-color: var(--rule-2); background: var(--sheet); }
+.sq.framed:hover { border-color: var(--pen); background: var(--pen-2); color: var(--pen-deep); }
+.sq[disabled] { opacity: 0.4; pointer-events: none; }
+.tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* 2 Rows that open */
+.stop { border-top: 1px solid var(--rule); }
+.stop:first-of-type { border-top: 0; }
+.stop > button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 6px 4px; text-align: left; }
+.stop > button b { flex: 1; font-family: var(--display); font-size: 17px; font-weight: 600; }
+.stop > button small { font-family: var(--type); font-size: 11px; color: var(--ink-2); }
+.stop > button .g { transition: transform 0.22s var(--ease); color: var(--ink-2); }
+.stop[data-open="true"] > button .g { transform: rotate(180deg); }
+.stop-body { display: grid; grid-template-rows: 0fr; }
+.stop-body > div { overflow: hidden; }
+.stop[data-open="true"] .stop-body { grid-template-rows: 1fr; }
+.m-2A .stop-body { transition: grid-template-rows 0.22s var(--ease); }
+.stop-body .ln { display: flex; gap: 10px; padding: 7px 4px 7px 36px; font-size: 13px; color: var(--ink-2); }
+.stop-body .ln time { font-family: var(--type); font-size: 11px; width: 52px; flex: none; }
+.stop-body .pad { padding-bottom: 8px; }
+
+/* 4 Ticked items */
+.tick { display: inline-grid; place-items: center; width: 26px; height: 26px; flex: none; border-radius: var(--radius-pill); border: 1px solid var(--rule-2); color: transparent; transition: background 0.22s var(--ease), border-color 0.22s var(--ease); }
+.tick svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.tick path { stroke-dasharray: 12; stroke-dashoffset: 12; transition: stroke-dashoffset 0.22s var(--ease) 0.05s; }
+.item[data-done="true"] .tick { background: var(--pastel-green); border-color: var(--pastel-green-edge); color: var(--pastel-green-ink); }
+.item[data-done="true"] .tick path { stroke-dashoffset: 0; }
+.item { overflow: hidden; }
+.item .label { position: relative; transition: color 0.22s var(--ease); }
+.item[data-done="true"] .label { color: var(--ink-2); }
+.count { font-family: var(--type); font-size: 11px; color: var(--ink-2); margin-left: auto; }
+
+/* 7 Copy */
+.inbox { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.inbox .grow { flex: 1; min-width: 200px; }
+.inbox p { font-size: 11px; color: var(--ink-2); }
+.addr { display: inline; font-family: var(--type); font-size: 13px; word-break: break-all; }
+.copy { transition: background 0.22s var(--ease), border-color 0.22s var(--ease), color 0.22s var(--ease); }
+.copy.washed { background: var(--pen-2); border-color: var(--pen); color: var(--pen-deep); }
+.copy span { display: inline-flex; align-items: center; gap: 6px; }
+.split { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--rule); }
+
+@media (max-width: 700px) {
+  .page { padding: 0 12px; }
+  .stage { padding: 12px; }
+  .stop-body .ln { padding-left: 4px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage * { transition: none !important; animation: none !important; }
+}

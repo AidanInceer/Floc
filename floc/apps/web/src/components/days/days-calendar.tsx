@@ -37,6 +37,7 @@ import { OvernightDialog } from "@/components/days/days-overnight-dialog";
 import { StopStrip } from "@/components/days/days-stop-strip";
 import { dayStay } from "@/lib/days/day-stay";
 import { useHeightFloor } from "@/components/days/use-height-floor";
+import { useColumnTrade } from "@/components/days/use-column-trade";
 import {
   FOCUS_COLUMNS,
   FOCUS_TEMPLATE,
@@ -246,25 +247,26 @@ export function DaysCalendar({
 
   const focusIndex = clamp(anchor, 0, days.length - 1);
   const focus = days[focusIndex];
+  const trade = useColumnTrade(focusIndex, gridRef);
+  const slotKey = trade.indices.join();
+  // Why: a slot past either end is a cap with its own key; a trade can need two on one side.
   const slots = useMemo(
-    () => [
-      days[focusIndex - 1] ?? cap(-1, addDays(days[focusIndex].date, -1)),
-      days[focusIndex],
-      days[focusIndex + 1] ?? cap(-2, addDays(days[focusIndex].date, 1)),
-    ],
-    [days, focusIndex],
+    () => slotKey.split(",").map(Number).map((i) => days[i] ?? cap(i < 0 ? i : -10 - (i - days.length), addDays(days[focusIndex].date, i - focusIndex))),
+    [days, focusIndex, slotKey],
   );
 
   // Laid out from what is written, not the drag in progress: a fold opening
   // under the pointer would move the very hour it is aiming at.
+  // The three days at rest: the hours and the all-day row do not change shape under a trade.
+  const restIds = useMemo(() => new Set(days.slice(Math.max(0, focusIndex - 1), focusIndex + 2).map((d) => d.id)), [days, focusIndex]);
   const clock = useMemo(() => {
-    const ids = new Set(slots.filter((d) => !d.outside).map((d) => d.id));
+    const ids = restIds;
     const spans = committed.flatMap((e) => {
       const span = ids.has(e.dayId) ? spanOf(e) : null;
       return span ? [span] : [];
     });
     return foldedClock(spans, { hourPx: HOUR_PX, foldPx: FOLD_PX, unfold });
-  }, [committed, slots, unfold]);
+  }, [committed, restIds, unfold]);
 
   const minutesToY = useCallback((m: number) => yAt(clock, m), [clock]);
   const yToMinutes = useCallback((y: number) => minuteAt(clock, y), [clock]);
@@ -305,13 +307,15 @@ export function DaysCalendar({
     return null;
   }, []);
 
+  // Why: a step mid-move would start the next move from a half-drawn shape (ADR-051).
+  const moving = trade.phase !== undefined;
   const step = useCallback(
-    (by: -1 | 1) => setAnchor((a) => clamp(a + by, 0, days.length - 1)),
-    [days.length],
+    (by: -1 | 1) => { if (!moving) setAnchor((a) => clamp(a + by, 0, days.length - 1)); },
+    [days.length, moving],
   );
   const goTo = (dayId: number) => {
     const index = days.findIndex((d) => d.id === dayId);
-    if (index >= 0) setAnchor(index);
+    if (index >= 0 && !moving) setAnchor(index);
   };
 
   /** The stay the overnight dialog is open on; the stop strip opens it. */
@@ -507,13 +511,13 @@ export function DaysCalendar({
   return (
     <EventDraftProvider value={drafts.api}>
     <div style={{ minHeight: card.floor }}>
-      <div ref={card.ref} className={cx("overflow-hidden rounded-md bg-sheet", FOCUS_COLUMNS)}>
+      <div ref={card.ref} data-days-trade={trade.phase} style={trade.style} className={cx("overflow-hidden rounded-md bg-sheet", FOCUS_COLUMNS)}>
         <StopStrip days={days} tripEnd={tripEnd} focusId={focus.id} onGoTo={goTo} onStop={openBandDialog} />
 
         <CalendarToolbar
           nav={{
             hasToday,
-            onToday: () => setAnchor(todayIndex),
+            onToday: () => { if (!moving) setAnchor(todayIndex); },
             goPrev: () => step(-1),
             goNext: () => step(1),
             canPrev: focusIndex > 0,
@@ -540,7 +544,7 @@ export function DaysCalendar({
               <AllDayStrip
                 slots={slots}
                 focusId={focus.id}
-                events={shown}
+                events={trade.phase ? shown.filter((e) => restIds.has(e.dayId)) : shown}
                 rowStyle={rowStyle}
                 selected={selected}
                 onSelect={select}
