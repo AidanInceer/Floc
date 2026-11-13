@@ -1,14 +1,14 @@
 import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 
-import { PersonIcon, SlidersIcon } from "@/components/system/icons/account";
+import { PersonIcon, SlidersIcon, WishListIcon } from "@/components/system/icons/account";
 import { NavGlyph } from "@/components/system/icons/nav";
 import { ReactionGlyph } from "@/components/system/icons/reaction";
 import "./trip-tabs.css";
 
-export type AccountTabKey = "profile" | "settings" | "saved" | "packing";
+export type AccountTabKey = "profile" | "settings" | "saved" | "wish" | "packing";
 
-// Why: Lists' two pages are tabs of their own, so the bar is the same four on every account page and nothing opens or moves (#467).
+// Why: Lists' pages are tabs of their own, so the bar is the same on every account page and nothing opens or moves (#467, #623).
 const TABS: {
   key: AccountTabKey;
   href: string;
@@ -18,6 +18,7 @@ const TABS: {
   { key: "profile", href: "/profile", label: "Profile", icon: <PersonIcon /> },
   { key: "settings", href: "/settings", label: "Settings", icon: <SlidersIcon /> },
   { key: "saved", href: "/lists", label: "Saved", icon: <ReactionGlyph kind="heart" mine={false} /> },
+  { key: "wish", href: "/lists/wish", label: "Wish lists", icon: <WishListIcon /> },
   { key: "packing", href: "/lists/packing", label: "Packing", icon: <NavGlyph name="packing" /> },
 ];
 
@@ -44,7 +45,7 @@ export function AccountTabs({ current }: { current: AccountTabKey }) {
               <span className="trip-tab-icon inline-flex size-8 items-center justify-center rounded-sm transition-colors sm:size-6">
                 {tab.icon}
               </span>
-              {/* Why: four names do not fit a phone's width; the glyphs stay, and the names stay for readers. */}
+              {/* Why: five names do not fit a phone's width; the glyphs stay, and the names stay for readers. */}
               <span className="max-sm:sr-only">{tab.label}</span>
             </Link>
           ))}

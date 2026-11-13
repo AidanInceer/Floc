@@ -21,11 +21,14 @@ export function NewTripField({
   friends,
   groups,
   asked,
+  along,
 }: {
   action: (formData: FormData) => Promise<void>;
   friends: Person[];
   groups: Group[];
   asked: string | null;
+  /** People who come ticked: a wish list's members (#623). */
+  along?: Person[];
 }) {
   const [name, setName] = useState(asked ?? "");
   const trigger = useRef<HTMLDivElement>(null);
@@ -70,7 +73,7 @@ export function NewTripField({
           body="flush"
           defaultOpen={asked !== null}
         >
-          <NewTripForm action={action} friends={friends} groups={groups} name={name.trim()} />
+          <NewTripForm action={action} friends={friends} groups={groups} name={name.trim()} along={along} />
         </Sheet>
       </div>
       {/* Why: on a phone Archived took a row of its own above the field; it joins the control as its last part. */}

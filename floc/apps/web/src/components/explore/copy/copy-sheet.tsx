@@ -12,6 +12,7 @@ import { AskStep } from "@/components/explore/copy/ask-step";
 import { ExtrasStep } from "@/components/explore/copy/extras-step";
 import { UndatedStep } from "@/components/explore/copy/undated-step";
 import { WhenStep } from "@/components/explore/copy/when-step";
+import { CopyAlong } from "@/components/lists/wish/listing-wish";
 import { Sheet, SubmitButton } from "@/components/system/client-ui";
 import { Button, SheetFooter, cx } from "@/components/system/ui";
 
@@ -73,6 +74,7 @@ function CopyForm({ trip }: { trip: PresetTrip }) {
         </div>
         <div data-step="extras" hidden={step !== "extras"}><ExtrasStep start={start} nights={trip.nights} onChange={back} /></div>
         <div data-step="undated" hidden={step !== "undated"}><UndatedStep highlights={trip.highlights} /></div>
+        <CopyAlong />
       </div>
       <div className={step === "ask" ? "max-sm:hidden" : undefined}>
         <SheetFooter note={step === "when" ? null : <span className="max-sm:hidden">You can change all of it later.</span>}>{footer[step]}</SheetFooter>

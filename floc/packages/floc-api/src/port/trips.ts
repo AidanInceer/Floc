@@ -101,7 +101,8 @@ export type TripsPort = {
    * Starts a trip from an Explore listing (ADR-025), copied, never linked.
    * Null when the listing has been retired since it was drawn (rule 11).
    */
-  startTripFromPreset(viewerId: string, choice: CopyChoice): Promise<{ id: number } | null>;
+  /** `along`: people to invite, such as a wish list's members (#623). The host drops anyone the viewer could not ask. */
+  startTripFromPreset(viewerId: string, choice: CopyChoice, along?: string[]): Promise<{ id: number } | null>;
 
   updateTrip(viewerId: string, tripId: number, patch: TripPatch): Promise<void>;
 
