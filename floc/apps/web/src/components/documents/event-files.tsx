@@ -59,7 +59,7 @@ export function EventFiles({
               mine={doc.uploadedBy === viewerId}
             >
               {doc.ownerId !== null ? (
-                <span className="shrink-0 font-mono text-[10.5px] uppercase tracking-[0.05em] text-ink-faint">
+                <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.05em] text-ink-faint">
                   Just you
                 </span>
               ) : null}

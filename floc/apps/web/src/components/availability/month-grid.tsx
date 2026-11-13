@@ -16,7 +16,7 @@ export function MonthGrid({ month, view }: { month: IsoMonth; view: (date: strin
       aria-label={formatMonth(month)}
     >
       {WEEKDAY_LABELS.map((l, i) => (
-        <span key={i} aria-hidden className="pb-1 text-center font-mono text-[10px] text-ink-faint">
+        <span key={i} aria-hidden className="pb-1 text-center font-mono text-[11px] text-ink-faint">
           {l}
         </span>
       ))}

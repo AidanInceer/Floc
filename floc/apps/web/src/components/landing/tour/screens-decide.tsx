@@ -43,7 +43,7 @@ export function WhereScreen() {
         <div className="flex items-center gap-3 px-4 py-3">
           <ChevronIcon direction="down" size={15} className="shrink-0 text-ink-faint" />
           <h4 className="font-display text-lg">Ideas</h4>
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">{IDEAS.length} ideas</span>
+          <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">{IDEAS.length} ideas</span>
         </div>
         <div className="flex flex-col gap-3 border-t border-rule px-4 pb-4 pt-3">
           <div className="flex items-center gap-2">
@@ -174,7 +174,7 @@ export function WhenScreen() {
               ))}
             </div>
           ))}
-          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1.5 text-[10.5px] text-ink-soft">
+          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1.5 text-[11px] text-ink-soft">
             <span className="flex items-center gap-1.5">
               <span aria-hidden className="size-3 rounded-full bg-ink-soft/20" />
               You can do
@@ -189,7 +189,7 @@ export function WhenScreen() {
         <div className="flex flex-col border-l border-rule bg-sheet-2 px-3 py-3">
           <span className="font-mono text-[9.5px] uppercase tracking-[0.06em] text-ink-faint">Best fit</span>
           <p className="nums mt-1.5 text-[13px] font-medium">{spanLabel(BEST.start, BEST.end)}</p>
-          <p className="nums mt-0.5 text-[10.5px] text-ink-faint">8 days · 6 of 6 free</p>
+          <p className="nums mt-0.5 text-[11px] text-ink-faint">8 days · 6 of 6 free</p>
           <span className="mt-2.5"><FakeButton small>Use these</FakeButton></span>
           <span className="mt-4 flex justify-between font-mono text-[9.5px] uppercase tracking-[0.06em] text-ink-faint">
             Who has answered <span>6 of 6</span>
@@ -199,7 +199,7 @@ export function WhenScreen() {
               <li key={who.name} className="flex items-center gap-2 text-xs">
                 <Avatar name={who.name} tone={who.tone} size={18} />
                 <span className="flex-1">{who.name}</span>
-                <span className="nums text-[10.5px] text-ink-faint">{days} days</span>
+                <span className="nums text-[11px] text-ink-faint">{days} days</span>
               </li>
             ))}
           </ul>

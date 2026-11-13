@@ -473,7 +473,7 @@ export function Menu({
         // A caller with its own trigger (account pill) replaces these outright and styles off data-open.
         className={
           triggerClassName
-            ? cx("transition-colors", triggerClassName)
+            ? cx(!triggerClassName.includes("lift") && "transition-colors", triggerClassName)
             : iconButtonClass(open)
         }
       >
@@ -507,15 +507,15 @@ export function Menu({
 function MoreIcon() {
   return (
     <svg
-      viewBox="0 0 24 24"
-      width="16"
-      height="16"
+      viewBox="0 0 14 14"
+      width="13"
+      height="13"
       fill="currentColor"
       aria-hidden="true"
     >
-      <circle cx="5.5" cy="12" r="1.6" />
-      <circle cx="12" cy="12" r="1.6" />
-      <circle cx="18.5" cy="12" r="1.6" />
+      <circle cx="2.5" cy="7" r="1" />
+      <circle cx="7" cy="7" r="1" />
+      <circle cx="11.5" cy="7" r="1" />
     </svg>
   );
 }

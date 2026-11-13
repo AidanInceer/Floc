@@ -10,7 +10,7 @@ import { cx } from "@/components/system/ui";
 function Summary({ day }: { day: PlanDay }) {
   if (day.highlight) {
     return (
-      <span className="flex items-center gap-1.5 text-[12.5px] text-highlight-ink">
+      <span className="flex items-center gap-1.5 text-[13px] text-highlight-ink">
         <StarIcon className="fill-current" />
         {day.highlight}
       </span>
@@ -44,7 +44,7 @@ function DayRail({ day }: { day: PlanDay }) {
           <span className={cx(item.highlight && "font-semibold", item.free && "italic text-green")}>
             {item.text}
             {item.highlight ? (
-              <span className="typed ml-2 inline-flex items-center gap-1 align-[1px] text-[10px] font-normal text-highlight-ink">
+              <span className="typed ml-2 inline-flex items-center gap-1 align-[1px] text-[11px] font-normal text-highlight-ink">
                 <StarIcon size={10} className="fill-current" />
                 Highlight
               </span>
@@ -79,7 +79,7 @@ export function DayRow({ day, open, onToggle }: { day: PlanDay; open: boolean; o
             open ? "bg-pen-soft text-pen-deep" : "bg-sheet-2 text-ink-soft",
           )}
         >
-          <span className="mb-0.5 text-[8px] uppercase tracking-[0.08em]">Day</span>
+          <span className="mb-0.5 text-[11px] uppercase tracking-[0.08em]">Day</span>
           {day.n}
         </span>
         <span className="grid gap-[3px]">

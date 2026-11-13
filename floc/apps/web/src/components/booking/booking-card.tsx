@@ -31,7 +31,7 @@ export function BookingCard({ tripId, plan, files, sites }: { tripId: number; pl
           <EventGlyph type="transport" transportType="flight" className="text-ink-soft" />
           Flights
         </h3>
-        <SitePicker kind="flights" links={plan.flights} label="Search flights" className="sm:justify-end" />
+        <SitePicker kind="flights" links={plan.flights} label="Search flights" split className="sm:justify-end" />
       </div>
 
       <div className={`mt-3 ${panelClass}`}>
@@ -46,18 +46,18 @@ export function BookingCard({ tripId, plan, files, sites }: { tripId: number; pl
         ) : (
           <ul className="mt-1 divide-y divide-rule">
             {plan.stays.map((row) => (
-              <li key={row.checkIn} className="flex flex-wrap items-center justify-between gap-2 py-2">
+              <li key={row.checkIn} className="flex flex-wrap items-center justify-between gap-2 py-2 max-sm:gap-y-1">
                 {row.kind === "stop" ? (
                   <>
-                    <div>
-                      <p className="text-sm">{row.placeName}</p>
-                      <p className="nums font-mono text-[11px] text-ink-faint">{nightsLabel(row)}</p>
+                    <div className="max-sm:contents">
+                      <p className="text-sm max-sm:flex-1">{row.placeName}</p>
+                      <p className="nums font-mono text-[11px] text-ink-faint max-sm:order-1 max-sm:basis-full">{nightsLabel(row)}</p>
                     </div>
-                    <div className="min-w-0 max-sm:order-2 max-sm:basis-full sm:ml-auto">
-                      {row.hotel ? <BookedPill tripId={tripId} hotel={row.hotel} /> : <SitePicker kind="stays" links={row.links} label={`Find a stay in ${row.placeName}`} head={`${row.placeName} · ${formatShortRange(row.checkIn, row.checkOut)}`} className="sm:justify-end" />}
+                    <div className="min-w-0 max-sm:contents sm:ml-auto">
+                      {row.hotel ? <span className="flex min-w-0 max-sm:order-1 max-sm:basis-full"><BookedPill tripId={tripId} hotel={row.hotel} /></span> : <SitePicker kind="stays" links={row.links} label={`Find a stay in ${row.placeName}`} head={`${row.placeName} · ${formatShortRange(row.checkIn, row.checkOut)}`} split className="sm:justify-end" />}
                     </div>
                     {files ? (
-                      <div className="max-sm:order-1 max-sm:ml-auto">
+                      <div>
                         <HotelUpload tripId={tripId} dayId={row.dayId} place={row.placeName} />
                       </div>
                     ) : null}

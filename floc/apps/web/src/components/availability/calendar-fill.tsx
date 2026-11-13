@@ -21,7 +21,7 @@ function GoogleCalendarButton({ reading, onClick }: { reading: boolean; onClick:
       disabled={reading}
       className="lift flex w-full items-center justify-center gap-2.5 whitespace-nowrap rounded-sm border border-[#747775] bg-white px-3 py-2.5 text-sm font-medium text-[#1f1f1f] disabled:pointer-events-none disabled:opacity-60"
     >
-      <GoogleCalendarIcon />
+      <GoogleCalendarIcon size={18} />
       {reading ? "Reading your calendar…" : LABEL}
     </button>
   );

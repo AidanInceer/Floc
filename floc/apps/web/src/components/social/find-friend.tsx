@@ -105,7 +105,7 @@ export function FindFriend() {
 
   return (
     <div className="flex flex-col gap-3">
-      <label htmlFor="friend-search" className="text-sm text-ink">Name or full friend tag</label>
+      <label htmlFor="friend-search" className="typed">Name or full friend tag</label>
       {/* One field, submitted with Enter — the form's implicit submit, so there is no Find button to aim at. */}
       <form
         className="flex h-10 items-center gap-2 rounded-sm border border-rule-strong bg-sheet px-3 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-pen"

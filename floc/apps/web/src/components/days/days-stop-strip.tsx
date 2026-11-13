@@ -118,7 +118,7 @@ function pillLabel(stop: Stop): string {
 
 function pillClass({ cutLeft, cutRight, span }: WeekSegment, named: boolean): string {
   return cx(
-    "flex h-7 min-w-0 items-center gap-1 overflow-hidden whitespace-nowrap rounded-sm border px-1.5 text-left text-[12.5px] transition-colors sm:gap-1.5 sm:px-2",
+    "flex h-7 min-w-0 items-center gap-1 overflow-hidden whitespace-nowrap rounded-sm border px-1.5 text-left text-[13px] transition-colors sm:gap-1.5 sm:px-2",
     named
       ? "border-pastel-blue-edge bg-pastel-blue text-pastel-blue-ink hover:border-pastel-blue-ink"
       : "border-dashed border-highlight-edge bg-highlight text-highlight-ink hover:border-highlight-ink",

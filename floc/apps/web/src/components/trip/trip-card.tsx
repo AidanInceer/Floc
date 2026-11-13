@@ -110,7 +110,7 @@ export function TripCard({
             which is where colour, rename, archive and delete now live. */}
         {past ? (
           <>
-            <span className="ml-auto font-mono text-[11.5px]">
+            <span className="ml-auto font-mono text-[11px]">
               {trip.role === "admin" ? "Admin" : "Member"}
             </span>
             {actions ? (
@@ -281,8 +281,8 @@ function StateFlag({ label, bg, inline }: { label: string; bg: string; inline?: 
         "pointer-events-none rounded-full font-mono font-semibold uppercase tracking-[0.08em] text-sheet",
         bg,
         inline
-          ? "px-2 py-0.5 text-[9px]"
-          : "absolute right-4 top-4 z-10 px-2.5 py-1 text-[10px]",
+          ? "px-2 py-0.5 text-[11px]"
+          : "absolute right-4 top-4 z-10 px-2.5 py-1 text-[11px]",
       )}
     >
       {label}

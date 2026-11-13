@@ -1,4 +1,5 @@
 import { PlusIcon } from "@/components/system/icons";
+import { iconFrameClass } from "@/components/system/ui";
 
 /**
  * One idea at the foot of a cube (#469, prototype A): a tinted row under a
@@ -21,9 +22,9 @@ export function PackingIdeaRow({
         <button
           type="submit"
           aria-label={`Add ${label} to my bag`}
-          className="inline-flex size-6 shrink-0 items-center justify-center rounded-sm border-[1.5px] border-dashed border-pen-edge text-pen transition-colors hover:border-solid hover:border-pen hover:bg-pen hover:text-sheet sm:size-7"
+          className={iconFrameClass("row")}
         >
-          <PlusIcon size={11} />
+          <PlusIcon />
         </button>
       </form>
       <span className="flex min-w-0 flex-1 items-baseline whitespace-pre text-sm text-ink-soft">

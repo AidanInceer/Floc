@@ -136,7 +136,8 @@ describe("inviting (#312, ticket 146)", () => {
   it("gives an admin the share token, never the trip id", async () => {
     const panel = await webPort.loadTripInvites(world.admin, world.ours.id);
     expect(readShareToken(panel.token)).toBe("token-ours");
-    expect(panel.token).not.toContain(String(world.ours.id));
+    // Why by part: the signature is random, so a substring test fails whenever it happens to hold the id's digits.
+    expect(panel.token.split(".")).not.toContain(String(world.ours.id));
   });
 
   it("offers only accepted friends, and never one already on the roster", async () => {

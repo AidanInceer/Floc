@@ -17,7 +17,7 @@ const tileClass =
 
 /** One count badge for the avatar and the Bookings tile, so the two read as the same mark. */
 const badgeClass =
-  "absolute -right-2 -top-1.5 min-w-4 rounded-full border-2 border-sheet bg-pen px-1 text-center text-[9.5px] font-semibold leading-[13px] text-sheet";
+  "absolute -right-2 -top-1.5 min-w-4 rounded-full border-2 border-sheet bg-pen px-1 text-center text-[11px] font-semibold leading-[13px] text-sheet";
 
 export function AccountMenu({
   user,

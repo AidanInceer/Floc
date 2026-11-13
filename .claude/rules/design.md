@@ -38,6 +38,9 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 ## Shape, depth and motion
 
 - ✓ Three radii, nothing between: `rounded-sm` / `radius.sm` / `var(--radius-sm)` (8px) for controls, tiles, avatars and rows inside a surface; `rounded-md` (12px) for cards, panels, popovers and dialogs; `rounded-full` / `radius.pill` for chips, badges and dots. A 12px surface holding an 8px row 4px in keeps corners concentric.
+- ✓ One type scale, nothing between: 11, 13, 15, 17, 20, 25, 31, 39px (`text-xs` to `text-3xl`, `--text-*` in `globals.css`). A page's sections head at 25px (`SectionHeading`); a card or group inside one heads at 20px. An email is not a screen and keeps its own sizes. Never a size such as 12.5px or 1.05rem to make something fit.
+- ✓ Controls in one row share one height. A text button is 31px. An icon on its own takes its box from `ui.tsx`, never a hand-sized square: `iconFrameClass()` (31px, framed, lifts) for an action beside text buttons; `iconFrameClass("row")` (26px, framed) for an action in a list row; `iconButtonClass` (26px, bare) for a `…` menu, a toggle, a pencil and a chevron that opens or closes something, wherever they sit. Below sm all three keep their drawn size and grow their press area. On a coloured head the bare one takes the head's ink (`iconInkClass`).
+- One add field per kind of list: both packing lists use `PackingAddField`. A field's visible label is the mono `typed` label.
 - Buttons, switches, segments and vote controls are rounded squares (`rounded-sm`), never circles. A chip you press to pick or tick, such as a vibe tag or a part of your profile, is a button too: `rounded-sm`, never a pill.
 - A selected thing is never a solid block. The phone's bottom tab bar says the open tab in colour and weight only, with no tile behind it; a selected day or stub is a `pen-2` wash with `pen-deep` ink. ✓ On the web that is `bg-pen-soft text-pen-deep`: `--pen-2` is the variable, and a `bg-pen-2` class draws nothing. Inactive marks stay `ink-2`, not dimmed further, or they read as disabled.
 - ✓ Depth comes only from `--shadow-sm`, `--shadow`, `--shadow-lift`. An inset or unblurred shadow may draw a line. If you notice the shadow first, it is wrong.
@@ -50,7 +53,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 
 ## Words
 
-- ✓ No emoji. Icons are line art: 14×14 `viewBox`, ~13px, `fill="none"`, stroke 1.15–1.25, `currentColor`. Web icons live in `components/system/icons/`.
+- ✓ No emoji. Icons are line art: 14×14 `viewBox`, `fill="none"`, `currentColor`. ✓ An icon draws at 13px with a stroke of 1.15–1.25; one that must be another size gets it from its caller, not a new default. Web icons live in `components/system/icons/`.
 - A flight is an aeroplane, never a paper plane. Upload is the upload glyph, never a plus.
 - No small picture that needs a key to read (dots and hatched squares standing for days): it reads as noise. A glyph and words do the job.
 - Never ask what the data already answers. A question about a trip starts from what the trip holds (dates set, places on the route), and a preview of a page shows that trip's own content, or says what is missing.

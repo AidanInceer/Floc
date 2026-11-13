@@ -101,7 +101,7 @@ function UploadForm({ tripId, dayEventId, dayId, children }: { tripId: number; d
   );
 }
 
-const LABEL = "block font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-soft";
+const LABEL = "block font-mono text-[11px] uppercase tracking-[0.06em] text-ink-soft";
 
 function FilePicker() {
   const input = useRef<HTMLInputElement>(null);

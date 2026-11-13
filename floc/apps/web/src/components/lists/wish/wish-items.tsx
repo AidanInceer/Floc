@@ -87,7 +87,7 @@ function NoteTile({ listId, item }: { listId: number; item: WishItem }) {
   const body = (
     <>
       <span className="text-sm font-semibold leading-snug [overflow-wrap:anywhere]">{shown}</span>
-      {host && host !== shown ? <span className="nums mt-1 block truncate font-mono text-[11.5px] text-ink-faint">{host}</span> : null}
+      {host && host !== shown ? <span className="nums mt-1 block truncate font-mono text-[11px] text-ink-faint">{host}</span> : null}
     </>
   );
   return (

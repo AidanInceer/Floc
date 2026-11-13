@@ -23,7 +23,7 @@ const rule = "my-1 border-t border-rule";
 function SavedLists({ kits, apply }: { kits: Kit[]; apply: (kitId: number) => Promise<void> }) {
   return (
     <div>
-      <p className="px-2.5 pb-0.5 pt-1.5 text-[11.5px] text-ink-faint">Packing lists</p>
+      <p className="px-2.5 pb-0.5 pt-1.5 text-[11px] text-ink-faint">Packing lists</p>
       {kits.map((kit) => (
         <form key={kit.id} action={apply.bind(null, kit.id)}>
           <SubmitButton variant="ghost" className={cx(menuItemClass, "!flex w-full items-center gap-2.5 !text-ink")}>
@@ -52,7 +52,7 @@ function TierTrack({ tier, setTier }: Pick<FillAuto, "tier" | "setTier">) {
           value={t}
           aria-pressed={t === tier}
           className={cx(
-            "flex-1 rounded-sm py-1 text-[12.5px] transition-colors",
+            "flex-1 rounded-sm py-1 text-[13px] transition-colors",
             t === tier ? "bg-sheet text-ink shadow-card" : "text-ink-soft hover:text-ink",
           )}
         >

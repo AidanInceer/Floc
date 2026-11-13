@@ -13,7 +13,7 @@ export const FOLD_PX = 30;
 
 /** The gutter, the day before, the focus day, the day after (B5). The neighbours shrink to slivers on a phone. */
 export const FOCUS_COLUMNS =
-  "[--days-gutter:44px] [--days-side:38px] sm:[--days-gutter:60px] sm:[--days-side:11rem]";
+  "[--days-gutter:56px] [--days-side:38px] sm:[--days-gutter:60px] sm:[--days-side:11rem]";
 export const FOCUS_TEMPLATE = "var(--days-gutter) var(--days-side) minmax(0, 1fr) var(--days-side)";
 
 /** A slot with no trip day in it: before the first day or after the last. */

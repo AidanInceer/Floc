@@ -101,13 +101,31 @@ export const busyMark = (busy: boolean): string | null => (busy ? "…" : null);
 /** The house button look, for a control that cannot be a `Button` — a menu trigger, a bare `Link`. */
 export const buttonClass = (variant: Variant = "secondary"): string => cx(buttonBase, variants[variant]);
 
-/** The bare icon button: no frame until hovered, framed while `on` (a menu open, a star set). */
+/** Why: a 26px mark is too small for a thumb, so below sm the press area grows 6px each way and the drawing stays put. */
+export const pressArea = "relative max-sm:after:absolute max-sm:after:-inset-1.5 max-sm:after:content-['']";
+
+/** The bare icon button: no frame until hovered, framed while `on` (a menu open, a star set). 26px, the one size for an icon on its own in a row. */
 export const iconButtonClass = (on: boolean): string =>
   cx(
-    "flex h-[26px] w-[26px] items-center justify-center rounded-sm border transition-colors",
+    pressArea,
+    "flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-sm border transition-colors",
     on
       ? "border-rule-strong bg-sheet-2 text-ink"
-      : "border-transparent text-ink-faint hover:border-rule-strong hover:bg-sheet-2 hover:text-ink",
+      : "border-transparent text-ink-faint hover:border-pen hover:bg-pen-soft hover:text-pen-deep",
+  );
+
+/** The bare icon button on a coloured head, where it takes the head's own ink: a dialog's close. */
+export const iconInkClass = cx(
+  pressArea,
+  "flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-sm border border-transparent text-current transition-colors hover:border-current",
+);
+
+/** The framed icon button. `button` is as tall as a house button (31px) and lifts with them, for an icon in a row of them; `row` is 26px, for a list row. */
+export const iconFrameClass = (fit: "button" | "row" = "button"): string =>
+  cx(
+    pressArea,
+    fit === "button" ? "lift h-[31px] w-[31px]" : "h-[26px] w-[26px] transition-colors",
+    "grid shrink-0 place-items-center rounded-sm border border-rule-strong bg-sheet text-ink-2 disabled:pointer-events-none disabled:opacity-50 hover:border-pen hover:bg-pen-soft hover:text-pen-deep hover:shadow-[inset_0_0_0_1px_var(--pen)] data-[open=true]:border-pen data-[open=true]:bg-pen-soft data-[open=true]:text-pen-deep",
   );
 
 /** The grey groove a row of segments sits in: 12px out from their 8px, 4px apart, so the corners stay concentric. */
@@ -178,7 +196,7 @@ export function Badge({
   return (
     <span
       className={cx(
-        "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-mono text-[10.5px] uppercase tracking-[0.06em]",
+        "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-[0.06em]",
         tones[tone],
         className,
       )}
@@ -212,7 +230,7 @@ export function Segmented({ children }: { children: ReactNode }) {
 // `sr-only` radio, and the ring has to land on the shape, not the hidden input.
 export const segmentClass = (on: boolean): string =>
   cx(
-    "rounded-sm px-2 py-1 font-mono text-[10.5px] uppercase tracking-[0.06em] transition-colors sm:px-3 focus-within:outline focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-pen",
+    "rounded-sm px-2 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors sm:px-3 focus-within:outline focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-pen",
     on ? "bg-pen text-sheet" : "text-ink-soft hover:bg-sheet-2 hover:text-ink",
   );
 
@@ -299,20 +317,23 @@ export function AvatarRow({
 }) {
   const shown = people.slice(0, max);
   const extra = people.length - shown.length;
+  // Why: a fixed 8px overlap covered the second initial on a small face; a seventh of the face never reaches the letters.
+  const overlap = -Math.round(size / 7);
   return (
     <span className={cx("flex items-center", spaced && "gap-1")}>
       {/* inline-flex, not default inline — avoids a 1px leading offset (ticket 133). */}
       {shown.map((p, i) => (
         <span
           key={`${p.name}-${i}`}
-          className={cx("inline-flex rounded-sm ring-[1.5px] ring-sheet", !spaced && i > 0 && "-ml-2")}
+          className="inline-flex rounded-sm ring-[1.5px] ring-sheet"
+          style={!spaced && i > 0 ? { marginLeft: overlap } : undefined}
         >
           <Avatar name={p.name} size={size} tone={p.tone} />
         </span>
       ))}
       {extra > 0 ? (
-        <span className={cx("inline-flex items-center justify-center rounded-sm border border-rule-strong bg-sheet-2 px-1.5 font-mono text-xs font-semibold text-ink-soft", !spaced && "-ml-2")}
-          style={{ height: size, minWidth: size }}
+        <span className="inline-flex items-center justify-center rounded-sm border border-rule-strong bg-sheet-2 px-1.5 font-mono text-xs font-semibold text-ink-soft"
+          style={{ height: size, minWidth: size, marginLeft: spaced ? undefined : overlap }}
         >
           +{extra}
         </span>

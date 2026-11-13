@@ -76,7 +76,7 @@ export function PersonalPackingRow({
         <button
           type="submit"
           aria-label={packed ? `Unpack ${label}` : `Mark ${label} packed`}
-          className={cx(tickBoxBase, tickBoxClass(packed), "!rounded-sm")}
+          className={cx(tickBoxBase, tickBoxClass(packed))}
         >
           <CheckIcon />
         </button>

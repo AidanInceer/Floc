@@ -23,7 +23,7 @@ export function ArchivedFiles({
   return (
     <section className="mt-6 min-w-0">
       <header className="mb-2 flex items-baseline gap-2.5">
-        <h2 className="font-display text-[1.05rem] font-semibold">Archived</h2>
+        <h2 className="font-display text-xl font-semibold">Archived</h2>
         <span className="text-xs text-ink-soft">{fileArchiveNote}</span>
       </header>
       <ul className="divide-y divide-rule rounded-md border border-rule bg-sheet">

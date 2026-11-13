@@ -9,7 +9,7 @@ export function PackingCount({
 }) {
   if (total === 0) return null;
   return (
-    <span className="font-mono text-[10.5px] uppercase tracking-[0.06em] text-ink-faint">
+    <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
       {thingCount(total)}
       {packed > 0 ? ` · ${packed} packed` : null}
     </span>

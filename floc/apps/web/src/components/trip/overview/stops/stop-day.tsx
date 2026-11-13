@@ -17,7 +17,7 @@ export function StopDay({ tripId, date, events }: { tripId: number; date: string
       <details className="group/day my-0.5 rounded-sm open:bg-paper">
         <summary className="grid cursor-pointer list-none grid-cols-[32px_26px_minmax(0,1fr)_auto_14px] items-center gap-3 rounded-sm px-1.5 py-2 hover:bg-paper [&::-webkit-details-marker]:hidden">
           <span className="nums grid size-8 place-content-center rounded-sm bg-sheet-2 text-center text-[13px] leading-none text-ink-soft group-open/day:bg-ink group-open/day:text-sheet">
-            <span className="mb-0.5 text-[7px] uppercase tracking-[0.08em]">{weekday}</span>
+            <span className="mb-0.5 text-[11px] uppercase tracking-[0.08em]">{weekday}</span>
             {day}
           </span>
           {first ? (

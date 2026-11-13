@@ -89,7 +89,7 @@ export function PackingClaimCard({
         </span>
         {open ? (
           <form action={actions.claim.bind(null, tripId, line.id, true)} className="shrink-0">
-            <SubmitButton variant="secondary" className="!px-2 !py-1">
+            <SubmitButton variant="secondary" className="!px-2">
               I’ll bring it
             </SubmitButton>
           </form>

@@ -28,7 +28,7 @@ const PATHS: Record<WeatherCondition, string[]> = {
 
 export function WeatherGlyph({
   condition,
-  size = 14,
+  size = 13,
 }: {
   condition: WeatherCondition;
   size?: number;

@@ -75,7 +75,7 @@ export function OvernightDialog({
   return (
     <Dialog open onClose={onClose} title={`Overnight from ${startLabel}`} className={CALENDAR_DIALOG}>
       <div className="bg-pastel-blue px-5 pb-4 pt-2.5 text-pastel-blue-ink max-sm:px-4">
-        <div className="mb-1.5 flex items-center justify-between font-mono text-[12.5px]">
+        <div className="mb-1.5 flex items-center justify-between font-mono text-[13px]">
           <span>Overnight from {startLabel}</span>
           <DialogClose />
         </div>

@@ -50,7 +50,7 @@ export function WhenFacet({ finder, counts, onChange }: Facet) {
               )}
             >
               <b className="text-[13px] font-medium">{name}</b>
-              <span className={cx("nums text-[10.5px]", on ? "opacity-70" : "text-ink-faint")}>{counts.months[i]}</span>
+              <span className={cx("nums text-[11px]", on ? "opacity-70" : "text-ink-faint")}>{counts.months[i]}</span>
             </button>
           );
         })}

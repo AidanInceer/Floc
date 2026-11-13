@@ -34,7 +34,7 @@ function IdeasPreview({ ideas }: { ideas: PreviewData["ideas"] }) {
       {ideas.map((idea) => (
         <span key={idea.title} className="grid min-w-0 gap-2 rounded-sm border border-rule px-2.5 py-2">
           <b className="truncate font-display text-sm font-semibold">{idea.title}</b>
-          <span className="font-mono text-[11.5px] text-ink-soft">{idea.votes === 1 ? "1 vote" : `${idea.votes} votes`}</span>
+          <span className="font-mono text-[11px] text-ink-soft">{idea.votes === 1 ? "1 vote" : `${idea.votes} votes`}</span>
         </span>
       ))}
     </div>
@@ -62,7 +62,7 @@ function FindDatesPreview() {
       {FREE.map((free, n) => (
         <span
           key={n}
-          className={cx("grid h-7 place-items-center rounded-sm font-mono text-[11.5px]", FREE_SKIN[free], n >= 4 && n <= 6 && "ring-[1.5px] ring-inset ring-pen")}
+          className={cx("grid h-7 place-items-center rounded-sm font-mono text-[11px]", FREE_SKIN[free], n >= 4 && n <= 6 && "ring-[1.5px] ring-inset ring-pen")}
         >
           {n + 1}
         </span>

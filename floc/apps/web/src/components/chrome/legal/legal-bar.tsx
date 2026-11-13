@@ -15,7 +15,7 @@ export function LegalBar({ current, end, replace = false }: { current?: LegalHre
         {LEGAL_LINKS.map((link) => (
           <Link key={link.href} href={link.href} replace={replace} scroll={false}
             aria-current={link.href === current ? "page" : undefined}
-            className="whitespace-nowrap border-b-[1.5px] border-transparent py-1 font-mono max-sm:relative max-sm:after:absolute max-sm:after:-inset-y-3 max-sm:after:inset-x-0 max-sm:after:content-[''] text-[10px] uppercase tracking-[0.12em] text-ink-soft hover:text-ink aria-[current=page]:border-ink aria-[current=page]:text-ink sm:tracking-[0.18em]">
+            className="whitespace-nowrap border-b-[1.5px] border-transparent py-1 font-mono max-sm:relative max-sm:after:absolute max-sm:after:-inset-y-3 max-sm:after:inset-x-0 max-sm:after:content-[''] text-[11px] uppercase tracking-[0.12em] max-sm:tracking-[0.06em] text-ink-soft hover:text-ink aria-[current=page]:border-ink aria-[current=page]:text-ink sm:tracking-[0.18em]">
             <span className="sm:hidden">{link.short}</span>
             <span className="max-sm:hidden">{link.label}</span>
           </Link>

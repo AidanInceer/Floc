@@ -29,7 +29,7 @@ export function SignOutButton({
       }}
       className={
         className ??
-        "inline-flex h-7 items-center gap-1.5 rounded-sm px-2.5 text-[12.5px] text-ink-soft hover:bg-sheet-3 hover:text-ink"
+        "inline-flex h-7 items-center gap-1.5 rounded-sm px-2.5 text-[13px] text-ink-soft hover:bg-sheet-3 hover:text-ink"
       }
     >
       <SignOutIcon />

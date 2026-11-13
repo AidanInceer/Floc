@@ -20,6 +20,9 @@ const SCAN = [
 const EXEMPT = [
   { rule: "emoji", path: /notes\/pages\/emoji|db\/seed\// },
   { rule: "radius", path: /opengraph-image/ },
+  // Why: the landing page sets display type and draws the app small inside phone and tour pictures; the walkthrough and share cards are pictures too.
+  { rule: "type-size", path: new RegExp("components/(landing|walkthrough)/|wordmark|og-card|opengraph-image|scripts/wireframe/|server/auth/email") },
+  { rule: "icon-box", path: new RegExp("components/landing/") },
 ];
 
 function files(dir, pattern) {
@@ -50,8 +53,10 @@ const baseline = existsSync(BASELINE) ? JSON.parse(readFileSync(BASELINE, "utf8"
 
 if (process.argv.includes("--write-baseline")) {
   const next = {};
+  // Why: a rule added after the first baseline starts from what exists; once it has an entry it only shrinks, like the rest.
+  const known = new Set(Object.keys(baseline ?? {}).map((key) => key.split(" ")[0]));
   for (const [key, n] of Object.entries(counts)) {
-    const allowed = baseline ? Math.min(n, baseline[key] ?? 0) : n;
+    const allowed = baseline && known.has(key.split(" ")[0]) ? Math.min(n, baseline[key] ?? 0) : n;
     if (allowed > 0) next[key] = allowed;
   }
   writeFileSync(BASELINE, `${JSON.stringify(next, Object.keys(next).sort(), 2)}\n`);

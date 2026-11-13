@@ -66,13 +66,13 @@ function Stub({ stub, selected, onOpen }: { stub: TabStub; selected: boolean; on
       </span>
       <span className="typed hidden min-w-0 items-center gap-1.5 truncate lg:flex">{stub.label}</span>
       <span className="hidden items-center lg:flex">{stub.corner}</span>
-      <b className="min-w-0 max-w-full truncate text-[13px] font-semibold lg:col-span-3 lg:mt-1.5 lg:font-display lg:text-[19px] lg:leading-tight lg:tracking-[-0.015em]">
+      <b className="min-w-0 max-w-full truncate text-[13px] font-semibold lg:col-span-3 lg:mt-1.5 lg:font-display lg:text-lg lg:leading-tight lg:tracking-[-0.015em]">
         <span className="lg:hidden">{summary.short}</span>
         <span className="hidden lg:inline">{summary.value}</span>
       </b>
       <small
         className={cx(
-          "hidden truncate text-[12.5px] lg:col-span-3 lg:block",
+          "hidden truncate text-[13px] lg:col-span-3 lg:block",
           summary.open ? "text-highlight-ink" : "text-ink-soft",
         )}
       >
