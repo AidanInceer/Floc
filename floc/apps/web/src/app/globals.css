@@ -138,6 +138,8 @@
      prefers-reduced-motion block that removes the movement but not the
      feedback. */
   --ease: cubic-bezier(0.2, 0.85, 0.3, 1);
+  /* Why: a larger move (ADR-051) starts as gently as it ends; `--ease`'s fast start read as busy there. */
+  --ease-even: cubic-bezier(0.45, 0, 0.25, 1);
   --shadow-sm: 0 1px 2px rgb(20 20 26 / 0.05);
   --shadow: 0 1px 2px rgb(20 20 26 / 0.05), 0 6px 14px -12px rgb(20 20 26 / 0.3);
   --shadow-lift: 0 2px 4px rgb(20 20 26 / 0.06), 0 14px 28px -16px rgb(20 20 26 / 0.35);
@@ -456,6 +458,32 @@
   .site-fresh {
     animation: site-fresh 1.2s var(--ease);
   }
+  /* A <details> row that grows to its height (ADR-053); a browser without ::details-content opens it at once. */
+  .grow-open {
+    interpolate-size: allow-keywords;
+  }
+  .grow-open::details-content {
+    height: 0;
+    overflow: clip;
+    transition:
+      height 0.22s var(--ease),
+      content-visibility 0.22s allow-discrete;
+  }
+  .grow-open[open]::details-content {
+    height: auto;
+  }
+
+  /* A packed thing's tick draws itself as its box turns green (ADR-053); only on the press, never at load. */
+  .tick-draw path {
+    stroke-dasharray: 16;
+    animation: tick-draw 0.22s var(--ease);
+  }
+  @keyframes tick-draw {
+    from {
+      stroke-dashoffset: 16;
+    }
+  }
+
   @keyframes site-fresh {
     18%,
     80% {

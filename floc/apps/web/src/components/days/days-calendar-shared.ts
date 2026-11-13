@@ -11,10 +11,13 @@ export const HOUR_PX = 56;
 /** Two or more empty hours in a row draw as one bar this tall. */
 export const FOLD_PX = 30;
 
-/** The gutter, the day before, the focus day, the day after (B5). The neighbours shrink to slivers on a phone. */
+/**
+ * The gutter, the day before, the focus day, the day after (B5). The neighbours shrink to slivers on a phone.
+ * `--days-tracks` holds the day tracks alone, so a step of one day can move them (ADR-051, use-column-trade).
+ */
 export const FOCUS_COLUMNS =
-  "[--days-gutter:56px] [--days-side:38px] sm:[--days-gutter:60px] sm:[--days-side:11rem]";
-export const FOCUS_TEMPLATE = "var(--days-gutter) var(--days-side) minmax(0, 1fr) var(--days-side)";
+  "[--days-gutter:56px] [--days-side:38px] sm:[--days-gutter:60px] sm:[--days-side:11rem] [--days-tracks:var(--days-side)_minmax(0,1fr)_var(--days-side)]";
+export const FOCUS_TEMPLATE = "var(--days-gutter) var(--days-tracks)";
 
 /** A slot with no trip day in it: before the first day or after the last. */
 export const OUTSIDE_DAY_CLASS =

@@ -94,6 +94,7 @@ export const lightTokens = {
   "red-solid-ink": "#ffffff",
 
   ease: "cubic-bezier(0.2, 0.85, 0.3, 1)",
+  "ease-even": "cubic-bezier(0.45, 0, 0.25, 1)",
   "shadow-sm": "0 1px 2px rgb(20 20 26 / 0.05)",
   shadow:
     "0 1px 2px rgb(20 20 26 / 0.05), 0 6px 14px -12px rgb(20 20 26 / 0.3)",
@@ -231,10 +232,8 @@ export const fontStacks = {
 const ALIAS = /^var\(--([\w-]+)\)$/;
 
 /**
- * One flat map of resolved values for a caller with no cascade — React Native.
- * `var()` aliases are followed to what they point at; a cycle or a dangling
- * alias resolves to `undefined` and is dropped rather than throwing, so one bad
- * token can never take a screen down with it.
+ * Why: React Native has no cascade, so `var()` aliases are followed here; a cycle or a
+ * dangling alias is dropped rather than thrown, so one bad token never takes a screen down.
  */
 export function resolveTokens(theme: Theme = "light"): Record<TokenName, string> {
   const raw: Record<string, TokenValue> = { ...lightTokens };

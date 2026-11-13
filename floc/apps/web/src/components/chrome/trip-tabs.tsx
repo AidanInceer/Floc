@@ -8,6 +8,7 @@ import { SECTION_COLOURS } from "@floc/core/design/section-colours";
 
 import { NavGlyph } from "@/components/system/icons/nav";
 import { useEdgeFade } from "@/components/chrome/use-edge-fade";
+import { useTabTile } from "@/components/chrome/use-tab-tile";
 import { activeHref } from "@/lib/active-href";
 import { type TabState } from "@/lib/tabs";
 import "./trip-tabs.css";
@@ -29,6 +30,7 @@ export function TripTabs({ tripId, tabs, children }: { tripId: number; tabs: Tab
   };
   const fade = useEdgeFade<HTMLElement>();
   const nav = fade.ref;
+  const tile = useTabTile(nav, current);
 
   // On a phone the row scrolls, and the tab you opened can sit cut off at the edge.
   useEffect(() => {
@@ -44,8 +46,10 @@ export function TripTabs({ tripId, tabs, children }: { tripId: number; tabs: Tab
         onScroll={fade.onScroll}
         style={fade.style}
         aria-label="Trip sections"
-        className="scroll-x-bare flex h-11 max-w-full items-center gap-2 sm:gap-5"
+        data-tile={tile.placed ? "" : undefined}
+        className="scroll-x-bare relative flex h-11 max-w-full items-center gap-2 sm:gap-5"
       >
+        <span ref={tile.tile} aria-hidden hidden className="trip-tab-tile" />
         {tabs.map((tab) => (
           <Link
             key={tab.key}
@@ -58,9 +62,11 @@ export function TripTabs({ tripId, tabs, children }: { tripId: number; tabs: Tab
             onMouseEnter={warm(tab)}
             onFocus={warm(tab)}
             onTouchStart={warm(tab)}
+            onClick={tile.press(hrefOf(tab))}
+            data-pressed={tile.pressed === hrefOf(tab) ? "" : undefined}
             className="trip-tab flex h-full min-w-8 shrink-0 items-center justify-center gap-1.5 text-sm font-medium text-ink-faint transition-colors hover:text-ink-soft aria-[current=page]:text-ink has-[[data-tab-pending]]:text-ink sm:min-w-0"
           >
-            <span className="trip-tab-icon inline-flex size-[26px] items-center justify-center rounded-sm transition-colors">
+            <span className="trip-tab-icon inline-flex size-[26px] items-center justify-center rounded-sm">
               <NavGlyph name={tab.key} />
             </span>
             <span className="sr-only sm:not-sr-only">{tab.label}</span>

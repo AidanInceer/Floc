@@ -104,7 +104,7 @@ export function AllDayStrip({
   const [overDay, setOverDay] = useState<number | null>(null);
 
   return (
-    <div style={rowStyle} className="border-b border-rule bg-sheet-2">
+    <div style={rowStyle} data-days-row className="border-b border-rule bg-sheet-2">
       {/* Why not `.typed`: its wider tracking wraps "All day" to two lines in the gutter. */}
       <div className="flex items-center justify-end border-r border-rule bg-sheet-2 px-1 py-1.5 sm:px-1.5">
         <span className="whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.02em] text-ink-faint">
@@ -192,7 +192,7 @@ export function CalendarGrid({
   const last = clock.segments[clock.segments.length - 1];
   const marks = [...clock.segments.map((s) => ({ y: s.y, minute: s.from })), { y: clock.height, minute: last.to }];
   return (
-    <div style={rowStyle} ref={gridRef} className="relative my-2.5">
+    <div style={rowStyle} ref={gridRef} data-days-row className="relative my-2.5">
       <div className="relative border-r border-rule bg-sheet" style={{ height: clock.height }}>
         {marks.map(({ y, minute }) => (
           <span
@@ -211,7 +211,7 @@ export function CalendarGrid({
         <DayColumn key={day.id} {...column(day, day.id === focusId ? "focus" : "side")} />
       ))}
 
-      <div className="pointer-events-none absolute inset-y-0 right-0 left-[var(--days-gutter)]">
+      <div data-days-overlay className="pointer-events-none absolute inset-y-0 right-0 left-[var(--days-gutter)]">
         {marks.map(({ y, minute }) => (
           <i key={minute} className="absolute inset-x-0 z-[1] border-t border-rule" style={{ top: y }} />
         ))}
@@ -247,7 +247,7 @@ export function CalendarGrid({
  */
 function FoldGround({ slots, focusId }: { slots: CalendarDay[]; focusId: number }) {
   return (
-    <span aria-hidden className="absolute inset-0 grid grid-cols-[var(--days-side)_minmax(0,1fr)_var(--days-side)]">
+    <span aria-hidden data-days-row className="absolute inset-0 grid grid-cols-[var(--days-tracks)]">
       {slots.map((day) => (
         <span key={day.id} className={cx("border-l border-rule", !day.outside && (day.id === focusId ? "bg-sheet" : "bg-sheet-2"))} />
       ))}
