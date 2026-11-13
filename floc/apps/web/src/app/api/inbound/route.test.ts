@@ -34,7 +34,7 @@ function signed(event: unknown) {
 
 const received = {
   type: "email.received",
-  data: { email_id: "e1", from: "ada@example.test", to: ["trip-1-abc@in.floc.test"], received_for: ["x@in.floc.test"], subject: "Hotel" },
+  data: { email_id: "e1", from: "ada@example.test", to: ["bookings@in.floc.test"], received_for: ["x@in.floc.test"], subject: "Hotel" },
 };
 
 describe("the inbound mail webhook (#328)", () => {
@@ -42,18 +42,24 @@ describe("the inbound mail webhook (#328)", () => {
     const response = await POST(signed(received));
     expect(response.status).toBe(200);
     expect(receiveBookingMail).toHaveBeenCalledWith(
-      { from: "ada@example.test", to: ["trip-1-abc@in.floc.test", "x@in.floc.test"], subject: "Hotel" },
+      { emailId: "e1", from: "ada@example.test", to: ["bookings@in.floc.test", "x@in.floc.test"] },
       expect.anything(),
     );
+  });
+
+  it("drops a received event that names no email", async () => {
+    const response = await POST(signed({ type: "email.received", data: { from: "ada@example.test" } }));
+    expect(response.status).toBe(200);
+    expect(receiveBookingMail).not.toHaveBeenCalled();
   });
 
   it("asks Resend whether the From was proven, for this email", async () => {
     const fetchMock = vi.fn(async () => new Response(JSON.stringify({ authentication: { dkim: "pass" } })));
     vi.stubGlobal("fetch", fetchMock);
     await POST(signed(received));
-    const [, deps] = receiveBookingMail.mock.calls[0] as [unknown, { fromProven: () => Promise<boolean> }];
+    const [, deps] = receiveBookingMail.mock.calls[0] as [unknown, { received: () => Promise<{ proven: boolean }> }];
 
-    expect(await deps.fromProven()).toBe(true);
+    expect((await deps.received()).proven).toBe(true);
     expect(fetchMock).toHaveBeenCalledWith("https://api.resend.com/emails/receiving/e1", expect.anything());
     vi.unstubAllGlobals();
   });

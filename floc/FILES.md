@@ -27,6 +27,11 @@ Web routes are under `floc/apps/web/src/app/trip/[id]/`. Phone screens are under
 Bookings and site links: `floc/apps/web/src/components/booking/`,
 `floc/packages/floc-core/src/trip/booking/` (links, and your own sites).
 
+Forwarded bookings (#559): the mail path `floc/apps/web/src/server/documents/inbound/`; your Bookings area
+`floc/apps/web/src/server/documents/bookings/`, `floc/apps/web/src/app/bookings/`,
+`floc/apps/web/src/components/bookings/`, phone `floc/apps/mobile/app/(app)/bookings.tsx`; what Floc reads
+from a booking `floc/packages/floc-core/src/documents/booking/`.
+
 ## Around the trip
 
 | Area | Web | Phone |

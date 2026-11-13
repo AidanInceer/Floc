@@ -7,6 +7,7 @@
  */
 import { availabilityRouter } from "./routers/itinerary/availability";
 import { billingRouter } from "./routers/billing";
+import { bookingsRouter } from "./routers/bookings/bookings";
 import { commentsRouter } from "./routers/comments";
 import { exploreRouter } from "./routers/explore";
 import { filesRouter } from "./routers/files";
@@ -35,6 +36,7 @@ export const appRouter = router({
   me: meRouter,
   settings: settingsRouter,
   kits: kitsRouter,
+  bookings: bookingsRouter,
   wishes: wishesRouter,
   trips: tripsRouter,
   explore: exploreRouter,

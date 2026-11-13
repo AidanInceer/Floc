@@ -1,6 +1,11 @@
-import { isReminder, type ActivityKind, type ReminderKind } from "./rules";
+import { isReceipt, isReminder, type ActivityKind, type ReceiptKind, type ReminderKind } from "./rules";
 
-type Change = Exclude<ActivityKind, ReminderKind>;
+type Change = Exclude<ActivityKind, ReminderKind | ReceiptKind>;
+
+const RECEIPTS: Record<ReceiptKind, (trip: string) => string> = {
+  booking_filed: (trip) => `Your booking was saved to ${trip}`,
+  booking_waiting: () => "A booking is waiting for you to choose its trip",
+};
 
 /** What the person did, and the word that joins it to the trip — null when there is no trip to name. */
 const LINES: Record<Change, { did: string; joins: string | null }> = {
@@ -36,6 +41,7 @@ type Parts = { actor: string; trip: string | null; detail?: string | null };
 export function notificationText(kind: ActivityKind, { actor, trip, detail }: Parts): string {
   const tripName = trip ?? "a trip";
   if (isReminder(kind)) return REMINDERS[kind].inbox(tripName, detail ?? "");
+  if (isReceipt(kind)) return RECEIPTS[kind](tripName);
   const { did, joins } = LINES[kind];
   if (joins === null) return `${actor} ${did}`;
   return [actor, did, joins, tripName].filter(Boolean).join(" ");
@@ -44,6 +50,7 @@ export function notificationText(kind: ActivityKind, { actor, trip, detail }: Pa
 /** The push body: its title is already the trip, so the trip is not said twice (#345). */
 export function pushText(kind: ActivityKind, { actor, detail }: Omit<Parts, "trip">): string {
   if (isReminder(kind)) return REMINDERS[kind].push(detail ?? "");
+  if (isReceipt(kind)) return RECEIPTS[kind]("your trip");
   const { did, joins } = LINES[kind];
   return joins === "" ? `${actor} ${did} the trip` : `${actor} ${did}`;
 }
