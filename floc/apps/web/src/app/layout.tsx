@@ -14,17 +14,13 @@ import { SessionRenewal } from "@/components/chrome/session-renewal";
 import { NONCE_HEADER } from "@/lib/http/csp";
 import { themeBootstrap } from "@/lib/theme";
 import { getSession } from "@/server/access";
-import { allFeaturesFree, appUrl } from "@/lib/env";
-import { isLive } from "@floc/core/billing/subscription-copy";
-import { topBarFor } from "@/server/chrome/top-bar";
-
-const ACCOUNT_MENU_PREVIEW = 3;
+import { appUrl } from "@/lib/env";
+import { topBarFor, TOP_BAR_PREVIEW } from "@/server/chrome/top-bar";
 
 const SIGNED_OUT: Awaited<ReturnType<typeof topBarFor>> = {
   inviteCount: 0,
   friendRequestCount: 0,
   profile: undefined,
-  proRow: null,
   notificationCount: 0,
   latest: [],
   bookings: { files: [], trips: [] },
@@ -77,12 +73,10 @@ export default async function RootLayout({
 }) {
   const [session, nonce] = await Promise.all([getSession(), headers().then((h) => h.get(NONCE_HEADER) ?? undefined)]);
 
-  // The badges on Trips (ticket 146) and Friends (ticket 145): an invite and a
-  // friend request are the two things that arrive while you're elsewhere in the
-  // app, so both have to be visible from anywhere. Counts, not the things
-  // themselves — the answering happens on the page behind each link.
-  const { inviteCount, friendRequestCount, profile, proRow, notificationCount, latest, bookings } =
-    session?.user ? await topBarFor(session.user.id, ACCOUNT_MENU_PREVIEW) : SIGNED_OUT;
+  // The badge on Trips (ticket 146): an invite arrives while you're elsewhere in the app, so it shows from
+  // anywhere. Friend requests count on the account bar's Friends tab (#637).
+  const { inviteCount, profile, notificationCount, latest, bookings } =
+    session?.user ? await topBarFor(session.user.id, TOP_BAR_PREVIEW) : SIGNED_OUT;
 
   // The header must key the avatar off the same identity a roster does
   // (`displayName ?? name`), so the viewer is the same initials and colour
@@ -112,11 +106,8 @@ export default async function RootLayout({
         <AppChrome
           user={chromeUser}
           inviteCount={inviteCount}
-          friendRequestCount={friendRequestCount}
           notificationCount={notificationCount}
           latest={latest}
-          isPro={!allFeaturesFree() && proRow !== null && isLive(proRow)}
-          bookingCount={bookings.files.length}
         />
         <main>{children}</main>
         {bookings.files.length > 0 ? <WhichTripPrompt files={bookings.files} trips={bookings.trips} /> : null}

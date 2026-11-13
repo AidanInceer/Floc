@@ -94,9 +94,9 @@ const PAGES: Pages = {
   accountSettings: () => [{ path: "/settings" }],
   profileTrips: () => [{ path: "/profile" }],
   packingKits: () => [{ path: "/lists/packing" }],
-  friendship: ({ otherId }) => [{ path: "/friends" }, { path: `/profile/${otherId}` }],
+  friendship: ({ otherId }) => [{ path: "/friends" }, { path: "/friends/groups" }, { path: `/profile/${otherId}` }],
   // Why: the new-trip sheet on /trips ticks people by group (#545).
-  friendGroups: () => [{ path: "/friends" }, { path: "/trips" }],
+  friendGroups: () => [{ path: "/friends" }, { path: "/friends/groups" }, { path: "/trips" }],
   inbox: () => [{ path: "/inbox" }],
   // The bell hangs off the root layout, so it is stale on every page at once.
   bell: () => [{ path: "/", type: "layout" }],

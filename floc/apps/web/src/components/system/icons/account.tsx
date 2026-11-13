@@ -19,29 +19,33 @@ export function SlidersIcon() {
   );
 }
 
-export function ListIcon() {
+/** Groups: three people, so it reads apart from Friends' two at glyph size (#637). */
+export function GroupIcon() {
   return (
     <Line size={15}>
-      <path d="M5.4 3.6H12M5.4 7H12M5.4 10.4H12M2.2 3.6h1.1M2.2 7h1.1M2.2 10.4h1.1" />
+      <circle cx="7" cy="4.2" r="1.6" />
+      <circle cx="2.9" cy="6.4" r="1.2" />
+      <circle cx="11.1" cy="6.4" r="1.2" />
+      <path d="M4.2 11.6c.4-2 1.4-3.1 2.8-3.1s2.4 1.1 2.8 3.1M1.2 11c.2-1.2.8-1.9 1.7-1.9M12.8 11c-.2-1.2-.8-1.9-1.7-1.9" />
     </Line>
   );
 }
 
-/** A ticket with its stub: bookings waiting for a trip (#559). */
-export function TicketIcon() {
+/** Bookings arrive as a forwarded confirmation email, so the mark is the envelope (#559, #637). */
+export function EnvelopeIcon() {
   return (
     <Line size={15}>
-      <path d="M2 4.4a.9.9 0 0 1 .9-.9h8.2a.9.9 0 0 1 .9.9v1.3a1.3 1.3 0 0 0 0 2.6v1.3a.9.9 0 0 1-.9.9H2.9a.9.9 0 0 1-.9-.9V8.3a1.3 1.3 0 0 0 0-2.6zM8.6 3.5v1.2M8.6 6.4v1.2M8.6 9.3v1.2" />
+      <rect x="1.6" y="3" width="10.8" height="8" rx="1.2" />
+      <path d="M1.9 3.6 7 7.6l5.1-4" />
     </Line>
   );
 }
 
-/** Wish lists (#623): a list with the save heart on its first line. */
-export function WishListIcon() {
+/** Wish lists: a bookmark, filled while its page is open (#637). */
+export function BookmarkIcon({ filled = false }: { filled?: boolean }) {
   return (
     <Line size={15}>
-      <path d="M6.6 4.2H12M2.2 7.6H12M2.2 10.8H12" />
-      <path d="M3.6 5.6 2.1 4.1a.95.95 0 0 1 1.5-1.2.95.95 0 0 1 1.5 1.2Z" />
+      <path d="M3.6 1.9h6.8v10.2L7 9.7l-3.4 2.4Z" fill={filled ? "currentColor" : "none"} />
     </Line>
   );
 }

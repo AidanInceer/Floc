@@ -1,55 +1,76 @@
 import Link from "next/link";
-import type { CSSProperties, ReactNode } from "react";
+import { Fragment, type CSSProperties, type ReactNode } from "react";
 
-import { PersonIcon, SlidersIcon, WishListIcon } from "@/components/system/icons/account";
+import { ACCOUNT_CLUSTERS, accountTabCounts, type AccountTabKey } from "@/lib/chrome/account-tabs";
+import { topBarFor, TOP_BAR_PREVIEW } from "@/server/chrome/top-bar";
+import { BookmarkIcon, EnvelopeIcon, GroupIcon, PersonIcon, SlidersIcon } from "@/components/system/icons/account";
 import { NavGlyph } from "@/components/system/icons/nav";
 import { ReactionGlyph } from "@/components/system/icons/reaction";
 import "./trip-tabs.css";
 
-export type AccountTabKey = "profile" | "settings" | "saved" | "wish" | "packing";
+export type { AccountTabKey };
 
-// Why: Lists' pages are tabs of their own, so the bar is the same on every account page and nothing opens or moves (#467, #623).
-const TABS: {
-  key: AccountTabKey;
-  href: string;
-  label: string;
-  icon: ReactNode;
-}[] = [
-  { key: "profile", href: "/profile", label: "Profile", icon: <PersonIcon /> },
-  { key: "settings", href: "/settings", label: "Settings", icon: <SlidersIcon /> },
-  { key: "saved", href: "/lists", label: "Saved", icon: <ReactionGlyph kind="heart" mine={false} /> },
-  { key: "wish", href: "/lists/wish", label: "Wish lists", icon: <WishListIcon /> },
-  { key: "packing", href: "/lists/packing", label: "Packing", icon: <NavGlyph name="packing" /> },
-];
+function iconFor(key: AccountTabKey, open: boolean): ReactNode {
+  switch (key) {
+    case "profile": return <PersonIcon />;
+    case "settings": return <SlidersIcon />;
+    case "friends": return <NavGlyph name="friends" />;
+    case "groups": return <GroupIcon />;
+    case "wish": return <BookmarkIcon filled={open} />;
+    case "saved": return <ReactionGlyph kind="heart" mine={open} size={14} />;
+    case "packing": return <NavGlyph name="packing" />;
+    case "bookings": return <EnvelopeIcon />;
+  }
+}
 
-// Why: no feature pastel — these pages are not a feature area, so the open tab takes the plain selected wash.
-const SELECTED = {
-  "--section-wash": "var(--pen-2)",
-  "--section-ink": "var(--pen-deep)",
-} as CSSProperties;
+// Why: these pages are not a feature area, so the open tab takes the plain selected wash; Saved and Wish lists wear their own marks' colours (#637).
+const SELECTED = { "--section-wash": "var(--pen-2)", "--section-ink": "var(--pen-deep)" } as CSSProperties;
+const WASH: Partial<Record<AccountTabKey, CSSProperties>> = {
+  saved: { "--section-wash": "var(--pastel-red)", "--section-ink": "var(--pastel-red-ink)" } as CSSProperties,
+  wish: { "--section-wash": "var(--pen-2)", "--section-ink": "var(--pen)" } as CSSProperties,
+};
 
-/** The bar under the header on your own account pages, drawn like the trip bar. */
-export function AccountTabs({ current }: { current: AccountTabKey }) {
+const pipClass =
+  "absolute -right-1.5 -top-1.5 min-w-4 rounded-full border-2 border-paper bg-pen px-1 text-center font-mono text-[11px] font-semibold leading-[13px] text-sheet";
+
+/** The bar under the header on every account page: one level, three clusters, the same on each (#467, #623, #637). */
+export async function AccountTabs({ current, userId }: { current: AccountTabKey; userId: string }) {
+  const { friendRequestCount, bookings } = await topBarFor(userId, TOP_BAR_PREVIEW);
+  const counts = accountTabCounts({ friendRequestCount, bookingCount: bookings.files.length });
+  const open = ACCOUNT_CLUSTERS.flat().find((tab) => tab.key === current);
+
   return (
     <div className="bg-paper">
-      <div className="mx-auto flex w-full max-w-[84rem] items-center justify-center px-4 py-2.5 sm:px-6">
-        <nav aria-label="Your account" className="flex items-center gap-3 sm:gap-5">
-          {TABS.map((tab) => (
-            <Link
-              key={tab.key}
-              href={tab.href}
-              style={SELECTED}
-              aria-current={tab.key === current ? "page" : undefined}
-              className="trip-tab flex shrink-0 items-center gap-1.5 py-1.5 text-sm font-medium text-ink-faint transition-colors hover:text-ink-soft aria-[current=page]:text-ink"
-            >
-              <span className="trip-tab-icon inline-flex size-8 items-center justify-center rounded-sm transition-colors sm:size-6">
-                {tab.icon}
-              </span>
-              {/* Why: five names do not fit a phone's width; the glyphs stay, and the names stay for readers. */}
-              <span className="max-sm:sr-only">{tab.label}</span>
-            </Link>
+      <div className="mx-auto flex w-full max-w-[84rem] flex-col items-center px-2 py-2.5 sm:px-6">
+        <nav aria-label="Your account" className="flex w-full items-center justify-between sm:w-auto sm:justify-center sm:gap-5">
+          {ACCOUNT_CLUSTERS.map((cluster, i) => (
+            <Fragment key={cluster[0].key}>
+              {i ? <span aria-hidden className="h-5 w-px shrink-0 bg-rule-strong sm:mx-0.5" /> : null}
+              {cluster.map((tab) => {
+                const isOpen = tab.key === current;
+                const count = counts[tab.key];
+                return (
+                  <Link
+                    key={tab.key}
+                    href={tab.href}
+                    style={WASH[tab.key] ?? SELECTED}
+                    aria-current={isOpen ? "page" : undefined}
+                    aria-label={count ? `${tab.label}, ${count} waiting` : tab.label}
+                    className="trip-tab flex shrink-0 items-center justify-center gap-1.5 max-sm:flex-1 whitespace-nowrap py-1.5 text-sm font-medium text-ink-faint transition-colors hover:text-ink-soft aria-[current=page]:text-ink"
+                  >
+                    <span className="trip-tab-icon relative inline-flex size-8 items-center justify-center rounded-sm transition-colors sm:size-6">
+                      {iconFor(tab.key, isOpen)}
+                      {count ? <span aria-hidden className={pipClass}>{count > 99 ? "99+" : count}</span> : null}
+                    </span>
+                    {/* Why: eight names do not fit a phone's width; the glyphs stay, and the open page is named below. */}
+                    <span aria-hidden className="max-sm:hidden">{tab.label}</span>
+                  </Link>
+                );
+              })}
+            </Fragment>
           ))}
         </nav>
+        {open ? <p aria-hidden className="pt-1 text-[13px] font-medium text-ink sm:hidden">{open.label}</p> : null}
       </div>
     </div>
   );

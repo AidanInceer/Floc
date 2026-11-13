@@ -31,6 +31,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - Status always has a word. Never colour or an icon alone. The word may live only in the label (title, `aria-label`, `aria-pressed`) when the mark sits where its meaning is plain:
   - A stop's hotel ribbon on the Overview: the file chip beside it names the booking, and its title and label say Booked.
   - The save heart on Explore fills red when saved; its label says Save or Saved with `aria-pressed` (ADR-042).
+  - A top pick's sun on Explore: on a web tile opposite the heart, on a phone row beside the chevron. Its title and label say "Top pick for December to February", and the sort that brings the picks first is the same sun (#624, Aidan's pick of J3).
 - Light and dark use the same token names. No `dark:` variant, no hex literal ✓. Values live in `@floc/core/design/tokens`. The theme choice lives in `localStorage`, never in a column.
 - The wordmark is **floc.** with a pen-blue dot, drawn only by `components/system/wordmark.tsx` and, for share cards, `components/system/og-card.tsx`. Share cards use the image renderer's default face: it cannot read our `.woff2` files, and a card must always render (rule 11).
 - An outside UI library only where building it would take months, and only if it takes our tokens, type and no-emoji rules.
@@ -61,8 +62,9 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - No small picture that needs a key to read (dots and hatched squares standing for days): it reads as noise. A glyph and words do the job.
 - Never ask what the data already answers. A question about a trip starts from what the trip holds (dates set, places on the route), and a preview of a page shows that trip's own content, or says what is missing.
 - If the drawing is clear, say nothing. No heading above a heading, no caption that decodes the design, no instruction, no text that repeats a control. Exceptions: what is missing, and status.
-- The account bar is the same five tabs on every account page — Profile, Settings, Saved, Wish lists, Packing — so nothing opens or moves between them; below sm it shows glyphs only (#467, #623).
-- A page its tab bar already names (a trip tab, My trips, Friends, Profile, Settings, Saved, Wish lists, Packing) shows no visible page title; the `h1` stays for screen readers (`sr-only`).
+- The account bar is the same eight tabs on every account page, in three clusters split by hairlines — Profile, Settings | Friends, Groups, Wish lists | Saved, Packing, Bookings — so nothing hides in a segment inside a tab (#637). Below sm it shows glyphs only, with the open page named under it. The open Saved tab is a filled red heart on the red wash; the open Wish lists tab is a filled pen bookmark.
+- The top bar is four beads: the wordmark, Explore and Trips, the inbox bell, and your name. Your name is a link to Profile, not a menu (#637).
+- A page its tab bar already names (a trip tab, My trips, Friends, Groups, Profile, Settings, Saved, Wish lists, Packing, Bookings) shows no visible page title; the `h1` stays for screen readers (`sr-only`).
 - No tiny all-caps kicker above a heading. The mono label names a value; it never introduces a section.
 - Sentence case. British English. Real content, never lorem ipsum.
 - ✓ A field starts empty: no placeholder, no example, nothing pre-filled the person did not choose. A visible label or an `aria-label` names it.

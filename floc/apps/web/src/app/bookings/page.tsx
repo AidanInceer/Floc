@@ -9,6 +9,7 @@ import { bookingInboxUsage, tripsForPlacing, waitingBookings } from "@/server/do
 import { documentsEnabled } from "@/server/documents/document-store";
 import { bookingsInboxAddress } from "@/server/documents/inbound/inbound-address";
 import { AccountPage, Panel } from "@/components/auth/account-ui";
+import { AccountTabs } from "@/components/chrome/account-tabs";
 import { BookingUpload } from "@/components/bookings/booking-upload";
 import { WaitingFileRow } from "@/components/bookings/waiting-file-row";
 import { StorageMeter } from "@/components/documents/storage-meter";
@@ -33,7 +34,10 @@ export default async function BookingsPage() {
   const choices = trips.map((trip) => ({ id: trip.id, name: trip.name }));
 
   return (
-    <AccountPage title="Bookings" actions={enabled ? <BookingUpload /> : null}>
+    <>
+    <AccountTabs current="bookings" userId={viewer.id} />
+    <AccountPage title="Bookings" titleInBar>
+      {enabled ? <div className="flex justify-end"><BookingUpload /></div> : null}
       {!enabled ? (
         <EmptyState title={bookingsNoStorageWords} />
       ) : (
@@ -84,5 +88,6 @@ export default async function BookingsPage() {
         </>
       )}
     </AccountPage>
+    </>
   );
 }

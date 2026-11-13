@@ -11,7 +11,7 @@ export default async function PackingListsPage() {
   const viewer = await requireUser("/lists/packing");
   const kits = await listPackingKitsWithItems(viewer.id);
   return (
-    <ListsPage current="packing">
+    <ListsPage current="packing" userId={viewer.id}>
       <PageTitle className="sr-only">Packing lists</PageTitle>
       <PackingLists kits={kits} />
     </ListsPage>

@@ -6,6 +6,7 @@
 import { EMPTY_FINDER, finderCounts, type Finder } from "@floc/core/trip/explore/finder/finder";
 import { rankTrips, type FinderSort } from "@floc/core/trip/explore/finder/finder-rank";
 import { finderPills } from "@floc/core/trip/explore/finder/finder-words";
+import { comingSeason, seasonPicks, seasonWords } from "@floc/core/trip/explore/finder/season-picks";
 import { listingPrice } from "@floc/core/trip/explore/listing-price";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -27,9 +28,18 @@ import { trpc } from "@/lib/api";
 import { fonts, radius, size, space } from "@/lib/theme";
 
 const ROW_LIMIT = 10;
+// Why: the UTC month, as the web reads it on the server, so one person sees the same picks on both (#624).
+function useTopPicks() {
+  const month = new Date().getUTCMonth() + 1;
+  return useMemo(() => {
+    const season = comingSeason(month);
+    return { ids: seasonPicks(PRESET_TRIPS, season).map((t) => t.id), words: `Top pick for ${seasonWords(season)}` };
+  }, [month]);
+}
 
 export default function Explore() {
   const router = useRouter();
+  const top = useTopPicks();
   const { c } = useTheme();
   const pendingSave = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -61,7 +71,7 @@ export default function Explore() {
 
   const trip = PRESET_TRIPS.find((t) => t.id === picked) ?? PRESET_TRIPS[0];
   // Why: saved trips are read when the list loads or the finder or sort changes, never on a heart press, so the list holds still.
-  const rows = useMemo(() => rankTrips(PRESET_TRIPS, finder, sort, null, new Set(saves.data ?? [])), [finder, sort, saves.isSuccess]);
+  const rows = useMemo(() => rankTrips(PRESET_TRIPS, finder, sort, null, new Set(saves.data ?? []), top.ids), [finder, sort, saves.isSuccess, top.ids]);
   const counts = useMemo(() => finderCounts(PRESET_TRIPS, finder), [finder]);
   const pills = finderPills(finder, state.data?.rates ?? null);
   const shown = showAll ? rows : rows.slice(0, ROW_LIMIT);
@@ -120,6 +130,7 @@ export default function Explore() {
                 key={row.trip.id}
                 trip={row.trip}
                 figures={`${row.trip.nights} nights · from ${listingPrice(row.trip, state.data?.rates ?? null)}`}
+                pick={top.ids.includes(row.trip.id) ? top.words : undefined}
                 last={i === shown.length - 1}
                 onOpen={() => open(row.trip.id)}
               />
