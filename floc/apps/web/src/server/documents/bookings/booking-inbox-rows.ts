@@ -4,8 +4,9 @@
  */
 import "server-only";
 
-import { and, asc, count, desc, eq, gt, isNull, lte, sum } from "drizzle-orm";
+import { and, asc, count, desc, eq, gt, gte, isNull, lte, or, sum } from "drizzle-orm";
 
+import { today as todayIso, type IsoDate } from "@floc/core/dates/dates";
 import { BOOKING_INBOX_FILES, bookingInboxCutoff, bookingInboxDeleteCutoff } from "@floc/core/documents/booking/booking-inbox";
 import type { DatedTrip } from "@floc/core/documents/booking/booking-trip";
 import type { DocCategory } from "@floc/core/documents/documents";
@@ -122,14 +123,25 @@ export async function waitingKeysOwnedBy(userId: string, now: Date): Promise<str
   return everyKey(and(eq(bookingInbox.userId, userId), isNull(bookingInbox.placedAt), gt(bookingInbox.createdAt, bookingInboxDeleteCutoff(now))));
 }
 
-/** The trips a member is on now and has not archived: the only trips a booking of theirs can go to. */
-export async function tripsToPlaceIn(userId: string): Promise<(DatedTrip & { name: string })[]> {
+/**
+ * The only trips a booking of a member's can go to: ones they are on now, not deleted, not archived and not
+ * over. A trip with no dates yet counts, since it is still being planned (rule 9). Soonest first.
+ */
+export async function tripsToPlaceIn(userId: string, today: IsoDate = todayIso()): Promise<(DatedTrip & { name: string })[]> {
   return db
     .select({ id: trip.id, name: trip.name, startDate: trip.startDate, endDate: trip.endDate })
     .from(tripMembership)
     .innerJoin(trip, eq(trip.id, tripMembership.tripId))
-    .where(and(eq(tripMembership.userId, userId), isNull(tripMembership.deletedAt), isNull(trip.deletedAt), isNull(trip.archivedAt)))
-    .orderBy(desc(trip.startDate), desc(trip.id))
+    .where(
+      and(
+        eq(tripMembership.userId, userId),
+        isNull(tripMembership.deletedAt),
+        isNull(trip.deletedAt),
+        isNull(trip.archivedAt),
+        or(isNull(trip.endDate), gte(trip.endDate, today)),
+      ),
+    )
+    .orderBy(asc(trip.startDate), asc(trip.id))
     .limit(LIMITS.tripsPerUser)
     .all();
 }

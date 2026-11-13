@@ -10,7 +10,7 @@ import { useEffect, useRef } from "react";
 
 import { WaitingFileRow } from "@/components/bookings/waiting-file-row";
 import type { TripChoice, WaitingFile } from "@floc/core/documents/booking/booking-inbox";
-import { Card } from "@/components/system/ui";
+import { Card, cx } from "@/components/system/ui";
 
 const ASKED = "floc.bookings.asked";
 
@@ -38,31 +38,33 @@ export function WhichTripPrompt({ files, trips }: { files: WaitingFile[]; trips:
   };
 
   if (files.length === 0) return null;
+  // Why nothing is clipped for a short list: a row's trip list opens past the dialog's edge. A long list must scroll, so it clips.
+  const many = files.length > 5;
+  const clip = many ? "overflow-hidden" : "overflow-visible";
   return (
     <dialog
       ref={ref}
       aria-labelledby="which-trip-title"
       onClose={() => window.sessionStorage.setItem(ASKED, String(newest))}
       onClick={(event) => { if (event.target === event.currentTarget) dismiss(); }}
-      className="m-0 max-h-[90dvh] w-full max-w-lg overflow-hidden bg-transparent p-0 backdrop:bg-black/40 sm:m-auto"
+      className={cx("m-0 max-h-[90dvh] w-full max-w-lg bg-transparent p-0 backdrop:bg-black/40 sm:m-auto", clip)}
       style={{ marginTop: "auto" }}
     >
-      <Card className="flex max-h-[90dvh] flex-col overflow-hidden rounded-b-none bg-sheet sm:rounded-md">
+      <Card className={cx("flex max-h-[90dvh] flex-col rounded-b-none bg-sheet sm:rounded-md", clip)}>
         <div className="flex items-center justify-between border-b border-dotted border-rule-strong px-4 py-3">
           <h2 id="which-trip-title" className="font-display text-base font-semibold">
-            {/* Why: with one trip there is nothing to ask, so the title names it and each row only says Add. */}
-            {trips.length === 1 ? `Add to ${trips[0].name}?` : "Which trip is this for?"}
+            Which trip is this for?
           </h2>
           <button type="button" onClick={dismiss} aria-label="Close" className="rounded-sm px-2 text-lg leading-none text-ink-faint hover:text-ink">
             ×
           </button>
         </div>
-        <ul className="scroll-thin min-h-0 flex-1 divide-y divide-rule overflow-y-auto">
+        <ul className={cx("min-h-0 flex-1 divide-y divide-rule", many && "scroll-thin overflow-y-auto")}>
           {files.map((file) => (
-            <WaitingFileRow key={file.id} file={file} trips={trips} oneTripLabel="Add" />
+            <WaitingFileRow key={file.id} file={file} trips={trips} />
           ))}
         </ul>
-        <footer className="flex items-center justify-between gap-3 border-t border-rule bg-sheet-2 px-4 py-3">
+        <footer className="flex items-center justify-between gap-3 border-t border-rule bg-sheet-2 px-4 py-3 sm:rounded-b-md">
           <Link href="/bookings" onClick={dismiss} className="text-xs text-pen hover:text-pen-deep">
             Open Bookings
           </Link>

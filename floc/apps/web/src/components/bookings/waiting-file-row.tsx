@@ -1,26 +1,23 @@
 "use client";
 
 /** One file waiting for a trip (#559): what it is, and the one thing to do with it — choose its trip. */
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import { placeBooking } from "@/app/bookings/actions";
 import { KindChip } from "@/components/documents/document-row";
-import { ActionForm, SubmitButton } from "@/components/system/client-ui";
-import { Select } from "@/components/system/ui";
+import { Menu } from "@/components/system/client-ui";
+import { ErrorText, buttonClass, cx, menuItemClass } from "@/components/system/ui";
 import { bookingSummary } from "@floc/core/documents/booking/booking-details";
 import { bookingInboxLeftWords, type TripChoice, type WaitingFile } from "@floc/core/documents/booking/booking-inbox";
 import { formatBytes } from "@floc/core/documents/documents";
 
-type Props = {
-  file: WaitingFile;
-  trips: TripChoice[];
-  /** The button's words when there is one trip. The dialog's title already names the trip, so it says less there. */
-  oneTripLabel?: string;
-  children?: ReactNode;
-};
+export function WaitingFileRow({ file, trips, children }: { file: WaitingFile; trips: TripChoice[]; children?: ReactNode }) {
+  const [refusal, setRefusal] = useState<string | null>(null);
+  const place = async (formData: FormData) => {
+    const answer = await placeBooking(file.id, formData);
+    setRefusal(answer?.error ?? null);
+  };
 
-export function WaitingFileRow({ file, trips, oneTripLabel = "Add to trip", children }: Props) {
-  const only = trips.length === 1 ? trips[0] : null;
   return (
     <li className="flex items-start gap-2.5 px-3 py-2.5">
       <span className="flex h-9 items-center">
@@ -34,30 +31,39 @@ export function WaitingFileRow({ file, trips, oneTripLabel = "Add to trip", chil
             {file.booking ? <>{bookingSummary(file.booking)} &middot; </> : null}
             {formatBytes(file.sizeBytes)} &middot; {bookingInboxLeftWords(file.daysLeft)}
           </span>
+          <ErrorText>{refusal}</ErrorText>
         </div>
         {trips.length === 0 ? (
           <span className="text-xs text-ink-soft">No trip to put it in yet</span>
         ) : (
-          <ActionForm action={placeBooking.bind(null, file.id)} className="flex min-w-0 flex-wrap items-center gap-1.5" errorClassName="basis-full">
-            {only ? (
-              <input type="hidden" name="tripId" value={only.id} />
-            ) : (
-              <Select name="tripId" required defaultValue="" aria-label={`Trip for ${file.name}`} className="w-44 max-w-full">
-                <option value="" />
-                {trips.map((trip) => (
-                  <option key={trip.id} value={trip.id}>
-                    {trip.name}
-                  </option>
-                ))}
-              </Select>
-            )}
-            <SubmitButton variant="secondary" className="whitespace-nowrap">
-              {only ? oneTripLabel : "Add"}
-            </SubmitButton>
-          </ActionForm>
+          <TripMenu fileName={file.name} trips={trips} place={place} />
         )}
       </div>
       {children ? <span className="flex h-9 items-center">{children}</span> : null}
     </li>
+  );
+}
+
+/**
+ * Why the trips are listed even when there is only one: pressing "Add to trip" and seeing the file vanish does
+ * not say where it went. The press that moves it is on the trip's own name. The list opens beside the button,
+ * to its left, so it never runs off the bottom of the dialog this row also sits in.
+ */
+function TripMenu({ fileName, trips, place }: { fileName: string; trips: TripChoice[]; place: (formData: FormData) => Promise<void> }) {
+  return (
+    <Menu
+      label={`Add ${fileName} to a trip`}
+      trigger="Add to trip"
+      triggerClassName={cx(buttonClass("secondary"), "whitespace-nowrap")}
+      panelClassName="!right-full !top-0 !mt-0 mr-2 max-h-64 w-max min-w-[10rem] max-w-[16rem] overflow-y-auto rounded-md border border-rule-strong bg-sheet p-1 shadow-raised"
+    >
+      <form action={place}>
+        {trips.map((trip) => (
+          <button key={trip.id} type="submit" role="menuitem" name="tripId" value={trip.id} className={menuItemClass}>
+            {trip.name}
+          </button>
+        ))}
+      </form>
+    </Menu>
   );
 }

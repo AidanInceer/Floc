@@ -106,9 +106,9 @@ export async function saveWaitingBooking(userId: string, input: Incoming, now = 
 export async function placeWaitingBooking(userId: string, id: number, tripId: number, now = new Date()): Promise<string | null> {
   const [row] = await waitingRows(userId, now, id);
   if (!row || !(await hasDocument(row.storageKey))) return GONE;
-  // Why: rule 5. A trip that is not theirs and one that does not exist answer alike.
-  const access = await findTripAccess(tripId, userId);
-  if (!access) return "Choose one of your trips.";
+  // Why: rule 5. A trip that is not theirs, one that does not exist and one that is over or archived answer alike.
+  const [access, open] = await Promise.all([findTripAccess(tripId, userId), tripsToPlaceIn(userId)]);
+  if (!access || !open.some((trip) => trip.id === tripId)) return "Choose one of your trips.";
 
   const [held, space] = await Promise.all([countDocuments(tripId), storageUsage(tripId)]);
   if (held >= LIMITS.documents) return "This trip is holding as many files as it can";

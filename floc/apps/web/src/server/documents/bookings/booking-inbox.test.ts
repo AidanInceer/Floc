@@ -7,7 +7,7 @@ import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db } from "@/db";
-import { bookingInbox, document } from "@/db/schema";
+import { bookingInbox, document, trip, tripMembership } from "@/db/schema";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 
 import {
@@ -126,6 +126,28 @@ describe("choosing its trip", () => {
   it("offers only the member's own live trips", async () => {
     expect((await tripsForPlacing(world.member)).map((t) => t.name)).toEqual(["Ours"]);
     expect((await tripsForPlacing(world.outsider)).map((t) => t.name)).toEqual(["Theirs"]);
+  });
+
+  it("offers no trip that is over, archived or deleted, and refuses a file aimed at one", async () => {
+    const extra = async (name: string, over: Partial<typeof trip.$inferInsert>) => {
+      const row = await db.insert(trip).values({ name, createdBy: world.member, inviteToken: `token-${name}`, ...over }).returning({ id: trip.id }).get();
+      await db.insert(tripMembership).values({ tripId: row.id, userId: world.member, role: "admin" });
+      return row.id;
+    };
+    const past = await extra("Past", { startDate: "2020-05-01", endDate: "2020-05-08" });
+    const archived = await extra("Archived", { archivedAt: new Date() });
+    const deleted = await extra("Deleted", { deletedAt: new Date() });
+    await extra("Next year", { startDate: "2099-05-01", endDate: "2099-05-08" });
+    await extra("Ends today", { startDate: "2020-01-01", endDate: new Date().toISOString().slice(0, 10) });
+
+    expect((await tripsForPlacing(world.member)).map((t) => t.name)).toEqual(["Ours", "Ends today", "Next year"]);
+
+    await upload(world.member);
+    const id = await onlyId(world.member);
+    for (const tripId of [past, archived, deleted]) {
+      expect(await placeWaitingBooking(world.member, id, tripId)).toBe("Choose one of your trips.");
+    }
+    expect(await db.select().from(document).all()).toEqual([]);
   });
 });
 

@@ -47,7 +47,6 @@ export default function Bookings() {
   const { files, trips, usage, address, canUpload } = area.data;
   if (!canUpload) return <Empty>{bookingsNoStorageWords}</Empty>;
 
-  const only = trips.length === 1 ? trips[0] : null;
   const add = async () => {
     try {
       const file = await pickFile();
@@ -96,12 +95,13 @@ export default function Bookings() {
                     <Label>No trip to put it in yet</Label>
                   ) : (
                     <View style={{ alignItems: "flex-start" }}>
+                      {/* Why the sheet opens even for one trip: the press that moves a file is on the trip's own name, as on the web. */}
                       <Button
-                        label={only ? `Add to ${only.name}` : "Choose a trip"}
+                        label="Add to trip"
                         variant="quiet"
                         fit="small"
                         busy={place.isPending && place.variables?.fileId === file.id}
-                        onPress={() => (only ? place.mutate({ fileId: file.id, tripId: only.id }) : setPlacing(file.id))}
+                        onPress={() => setPlacing(file.id)}
                       />
                     </View>
                   )}
