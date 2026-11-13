@@ -4,6 +4,7 @@
  * the reason to make an account is on this page; starting a trip needs one.
  */
 import { EMPTY_FINDER } from "@floc/core/trip/explore/finder/finder";
+import { comingSeason } from "@floc/core/trip/explore/finder/season-picks";
 import { countryName, readCountryCode } from "@floc/core/people/countries";
 import { headers } from "next/headers";
 
@@ -42,7 +43,7 @@ export default async function ExplorePage({ searchParams }: Props) {
     <div className="pb-20">
       <ListingRatesProvider rates={rates}>
         <SavedTripsProvider ids={saved} signedIn={!!userId}>
-          <ExploreFront signedIn={!!userId} initialFinder={initialFinder} blankName={country} />
+          <ExploreFront signedIn={!!userId} initialFinder={initialFinder} season={comingSeason(new Date().getUTCMonth() + 1)} blankName={country} />
         </SavedTripsProvider>
       </ListingRatesProvider>
     </div>

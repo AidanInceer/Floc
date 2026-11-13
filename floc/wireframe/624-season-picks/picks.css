@@ -1,0 +1,5 @@
+/* #624 J3: the top-pick mark on a tile. Everything else is the Explore page in explore.css. */
+.pick-badge {
+  position: absolute; top: 10px; left: 10px; z-index: 3; width: 31px; height: 31px; display: grid; place-items: center;
+  border-radius: var(--radius-sm); background: var(--sheet); box-shadow: var(--shadow-sm); color: var(--highlight-ink);
+}

@@ -63,6 +63,24 @@ describe("rankTrips", () => {
     expect(ids(rankTrips(ALL, EMPTY_FINDER, "match", "walk", new Set(["food"])))).toEqual(["both", "food"]);
   });
 
+  it("puts this season's top picks first, in their own order, in the season order", () => {
+    expect(ids(rankTrips(ALL, EMPTY_FINDER, "season", null, new Set(), ["both", "walk"]))).toEqual(["both", "walk", "food"]);
+  });
+
+  it("leads the best-match order with the first three top picks when nothing is liked", () => {
+    const CAMP = listing("camp", { priceFromMinor: 100000 });
+    const rows = rankTrips([...ALL, CAMP], EMPTY_FINDER, "match", null, new Set(), ["both", "food", "walk", "camp"]);
+    expect(ids(rows)).toEqual(["both", "food", "walk", "camp"]);
+  });
+
+  it("keeps saved listings ahead of the top picks in the best-match order", () => {
+    expect(ids(rankTrips(ALL, EMPTY_FINDER, "match", null, new Set(["food"]), ["both"]))).toEqual(["food", "both", "walk"]);
+  });
+
+  it("lets what you like rank, not the top picks, once you like something", () => {
+    expect(ids(rankTrips(ALL, find({ likes: ["Food"] }), "match", null, new Set(), ["walk"]))[0]).toBe("food");
+  });
+
   it("ignores a likeness to a listing that is gone", () => {
     expect(ids(rankTrips(ALL, EMPTY_FINDER, "cheap", "retired"))).toHaveLength(3);
   });

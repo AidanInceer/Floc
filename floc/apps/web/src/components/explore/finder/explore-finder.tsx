@@ -3,6 +3,7 @@
 import { finderCounts, type Finder } from "@floc/core/trip/explore/finder/finder";
 import { rankTrips, type FinderSort } from "@floc/core/trip/explore/finder/finder-rank";
 import { finderPills } from "@floc/core/trip/explore/finder/finder-words";
+import { seasonPicks, seasonWords } from "@floc/core/trip/explore/finder/season-picks";
 import { EMPTY_FINDER } from "@floc/core/trip/explore/finder/finder";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { useMemo, useRef, useState } from "react";
@@ -24,7 +25,18 @@ const sheetClass =
  * Every trip, with the finder beside it: what must fit filters, what you like ranks and never hides.
  * The finder is remembered for someone signed in; the search box is for this visit only.
  */
-export function ExploreFinder({ signedIn, initialFinder, blankName }: { signedIn: boolean; initialFinder: Finder; blankName: string | null }) {
+export function ExploreFinder({
+  signedIn,
+  initialFinder,
+  blankName,
+  season,
+}: {
+  signedIn: boolean;
+  initialFinder: Finder;
+  blankName: string | null;
+  /** The coming three months, 1–12, read on the server so both renders agree. */
+  season: number[];
+}) {
   const [finder, setFinder] = useState(initialFinder);
   const rates = useListingRates();
   const saved = useSavedTrips().ids;
@@ -34,7 +46,9 @@ export function ExploreFinder({ signedIn, initialFinder, blankName }: { signedIn
   const top = useRef<HTMLDivElement>(null);
   const pendingSave = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const rows = useMemo(() => rankTrips(PRESET_TRIPS, finder, sort, like, saved), [finder, sort, like, saved]);
+  const picks = useMemo(() => seasonPicks(PRESET_TRIPS, season).map((t) => t.id), [season]);
+  const topPicks = useMemo(() => ({ picks: new Set(picks), label: `Top pick for ${seasonWords(season)}` }), [picks, season]);
+  const rows = useMemo(() => rankTrips(PRESET_TRIPS, finder, sort, like, saved, picks), [finder, sort, like, saved, picks]);
   const counts = useMemo(() => finderCounts(PRESET_TRIPS, finder), [finder]);
   const liked = like ? PRESET_TRIPS.find((t) => t.id === like) : undefined;
 
@@ -63,8 +77,8 @@ export function ExploreFinder({ signedIn, initialFinder, blankName }: { signedIn
     <section className="mx-auto mt-14 w-full max-w-[76rem] px-4 sm:px-6">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-[clamp(1.6rem,3vw,2.3rem)] tracking-[-0.03em]">All trips</h2>
-        <div className="flex w-full items-center gap-2 sm:max-w-[34rem]">
-          <label className="flex min-h-11 w-full items-center gap-2.5 rounded-sm border border-rule-strong bg-sheet px-4">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:max-w-[34rem] sm:flex-nowrap">
+          <label className="flex min-h-11 w-full min-w-52 flex-1 items-center gap-2.5 rounded-sm border border-rule-strong bg-sheet px-4">
             <LineIcon className="text-ink-faint">
               <circle cx="6.2" cy="6.2" r="3.8" />
               <path d="m9 9 3 3" />
@@ -86,7 +100,7 @@ export function ExploreFinder({ signedIn, initialFinder, blankName }: { signedIn
         </aside>
         <div ref={top} className="scroll-mt-20">
           <FinderBar shown={rows.length} set={finderPills(finder, rates).length + finder.likes.length} pills={pills} onOpen={() => setSheet(true)} />
-          <FinderResults rows={rows} likes={finder.likes} split={sort === "match" && !like && finder.likes.length > 0} signedIn={signedIn} blankName={blankName} onLike={moreLike} />
+          <FinderResults rows={rows} likes={finder.likes} split={sort === "match" && !like && finder.likes.length > 0} signedIn={signedIn} blankName={blankName} season={topPicks} onLike={moreLike} />
         </div>
       </div>
 

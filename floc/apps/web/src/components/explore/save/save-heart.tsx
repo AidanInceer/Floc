@@ -9,6 +9,9 @@ import { useSavedTrips } from "@/components/explore/save/saved-trips";
 import { ReactionGlyph } from "@/components/system/icons/reaction";
 import { cx } from "@/components/system/ui";
 
+/** The white square a tile's corner holds: the heart, and a top pick's sun opposite it (#624). */
+export const cornerBoxClass = "inline-flex size-10 items-center justify-center rounded-sm bg-sheet sm:size-9";
+
 export const heartClass =
   "inline-flex size-10 items-center justify-center rounded-sm bg-sheet shadow-[var(--shadow-sm)] transition-colors hover:bg-pen-soft sm:size-9";
 

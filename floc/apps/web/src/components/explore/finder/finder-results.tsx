@@ -6,6 +6,7 @@ import { tagsOf } from "@floc/core/trip/explore/finder/trip-tags";
 import { useState } from "react";
 
 import { ExploreTile, tagClass } from "@/components/explore/all/explore-tile";
+import { PickMark } from "@/components/explore/finder/pick-mark";
 import { linkClass } from "@/components/explore/finder/finder-chip";
 import { CheckIcon } from "@/components/system/icons";
 import { ChevronIcon } from "@/components/system/icons";
@@ -73,6 +74,7 @@ export function FinderResults({
   split,
   signedIn,
   blankName,
+  season,
   onLike,
 }: {
   rows: Ranked[];
@@ -80,6 +82,8 @@ export function FinderResults({
   split: boolean;
   signedIn: boolean;
   blankName: string | null;
+  /** This season's top picks and the words their mark carries (#624). */
+  season: { picks: ReadonlySet<string>; label: string };
   onLike: (presetId: string) => void;
 }) {
   const [all, setAll] = useState(false);
@@ -99,6 +103,7 @@ export function FinderResults({
     <li key={r.trip.id} className={dim ? "opacity-75" : undefined}>
       <ExploreTile
         trip={r.trip}
+        mark={season.picks.has(r.trip.id) ? <PickMark label={season.label} /> : undefined}
         footer={
           <button type="button" className={linkClass} onClick={() => onLike(r.trip.id)}>
             More like this

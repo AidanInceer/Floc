@@ -4,9 +4,11 @@ import { FINDER_SORTS, type FinderSort } from "@floc/core/trip/explore/finder/fi
 import type { ReactNode } from "react";
 
 import { CrossIcon, LineIcon } from "@/components/system/icons";
+import { SUN_PATHS } from "@/components/system/icons/weather";
 import { cx } from "@/components/system/ui";
 
 const SORT_ICONS: Record<FinderSort, ReactNode> = {
+  season: SUN_PATHS.map((d) => <path key={d} d={d} />),
   match: <path d="M7 12.1C3.3 9.4 1.5 7.5 1.5 5.4A3.2 3.2 0 0 1 7 3.5a3.2 3.2 0 0 1 5.5 1.9c0 2.1-1.8 4-5.5 6.7Z" />,
   cheap: <path d="M3 10.5v-8M1.2 4.3 3 2.5l1.8 1.8M7 4h2M7 7h3.5M7 10h5" />,
   dear: <path d="M3 3.5v8m-1.8-1.8L3 11.5l1.8-1.8M7 4h5M7 7h3.5M7 10h2" />,
@@ -68,7 +70,7 @@ export function FinderBar({
 
 export function SortPicker({ sort, onSort }: { sort: FinderSort; onSort: (sort: FinderSort) => void }) {
   return (
-    <div role="radiogroup" aria-label="Sort" className="flex shrink-0 items-center gap-0.5 rounded-md border border-rule-strong bg-sheet p-0.5">
+    <div role="radiogroup" aria-label="Sort" className="flex shrink-0 items-center justify-between gap-0.5 rounded-md border border-rule-strong bg-sheet p-0.5 max-sm:w-full">
       {(Object.keys(FINDER_SORTS) as FinderSort[]).map((key) => (
         <button
           key={key}
@@ -79,7 +81,7 @@ export function SortPicker({ sort, onSort }: { sort: FinderSort; onSort: (sort: 
           title={FINDER_SORTS[key]}
           onClick={() => onSort(key)}
           className={cx(
-            "grid size-8 place-items-center rounded-sm transition-colors",
+            "grid size-8 place-items-center rounded-sm transition-colors max-sm:h-10 max-sm:w-auto max-sm:flex-1",
             sort === key ? "bg-pen-soft text-pen-deep" : "text-ink-soft hover:bg-sheet-2 hover:text-ink",
           )}
         >
