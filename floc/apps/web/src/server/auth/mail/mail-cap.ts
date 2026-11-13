@@ -7,7 +7,7 @@ import { createHash } from "node:crypto";
 
 const DAY = 24 * 60 * 60 * 1000;
 
-export type AccountMail = "verify" | "reset";
+export type AccountMail = "verify" | "reset" | "inbound";
 
 export function mailCap({ perDay = 5, maxKeys = 10_000 } = {}) {
   const sent = new Map<string, number[]>();

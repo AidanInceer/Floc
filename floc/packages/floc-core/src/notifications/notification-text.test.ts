@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ACTIVITY_KINDS, REMINDER_KINDS, isReminder } from "./rules";
+import { ACTIVITY_KINDS, REMINDER_KINDS, isReceipt, isReminder } from "./rules";
 import { notificationText, pushText } from "./notification-text";
 
 describe("notificationText", () => {
@@ -15,9 +15,15 @@ describe("notificationText", () => {
   });
 
   it("has a line for every change, each starting with the person", () => {
-    for (const kind of ACTIVITY_KINDS.filter((k) => !isReminder(k))) {
+    for (const kind of ACTIVITY_KINDS.filter((k) => !isReminder(k) && !isReceipt(k))) {
       expect(notificationText(kind, { actor: "Ada", trip: "Lisbon" })).toMatch(/^Ada /);
     }
+  });
+
+  it("words a booking receipt to the person themself, without their name", () => {
+    expect(notificationText("booking_filed", { actor: "Ada", trip: "Lisbon" })).toBe("Your booking was saved to Lisbon");
+    expect(notificationText("booking_waiting", { actor: "Ada", trip: null })).toBe("A booking is waiting for you to choose its trip");
+    expect(pushText("booking_filed", { actor: "Ada" })).toBe("Your booking was saved to your trip");
   });
 
   it("words reminders about the trip, not a person", () => {

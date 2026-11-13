@@ -10,7 +10,7 @@ import {
   renameDocument, saveDocument,
 } from "@/server/documents/document-save";
 import { documentsEnabled } from "@/server/documents/document-store";
-import { tripInboxAddress } from "@/server/documents/inbound/inbound-address";
+import { bookingsInboxAddress } from "@/server/documents/inbound/inbound-address";
 import { mintViewToken } from "@/server/documents/view-link";
 import { storageUsage } from "@/server/documents/storage-quota";
 import { appUrl } from "@/lib/env";
@@ -26,7 +26,7 @@ export const filesPort: FilesPort = {
 
   async fileInboxAddress(viewerId, tripId) {
     await scoped(viewerId, tripId);
-    return tripInboxAddress(tripId);
+    return bookingsInboxAddress();
   },
 
   async uploadFile(viewerId, tripId, input) {

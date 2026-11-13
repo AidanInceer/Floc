@@ -25,6 +25,8 @@ type Upload = {
   shared: boolean;
   dayId?: number | null;
   dayEventId?: number | null;
+  /** What Floc read from a forwarded booking (#559), already stored form. */
+  bookingDetails?: string | null;
 };
 
 const changed = (access: Access) => refresh({ kind: "documents", tripId: access.trip.id });
@@ -55,6 +57,7 @@ export async function saveDocument(access: Access, input: Upload): Promise<strin
       category: input.category,
       dayId,
       dayEventId,
+      bookingDetails: input.bookingDetails ?? null,
     });
   } catch (error) {
     await dropDocument(storageKey);

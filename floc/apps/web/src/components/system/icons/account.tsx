@@ -27,6 +27,25 @@ export function ListIcon() {
   );
 }
 
+/** A ticket with its stub: bookings waiting for a trip (#559). */
+export function TicketIcon() {
+  return (
+    <Line size={15}>
+      <path d="M2 4.4a.9.9 0 0 1 .9-.9h8.2a.9.9 0 0 1 .9.9v1.3a1.3 1.3 0 0 0 0 2.6v1.3a.9.9 0 0 1-.9.9H2.9a.9.9 0 0 1-.9-.9V8.3a1.3 1.3 0 0 0 0-2.6zM8.6 3.5v1.2M8.6 6.4v1.2M8.6 9.3v1.2" />
+    </Line>
+  );
+}
+
+/** Wish lists (#623): a list with the save heart on its first line. */
+export function WishListIcon() {
+  return (
+    <Line size={15}>
+      <path d="M6.6 4.2H12M2.2 7.6H12M2.2 10.8H12" />
+      <path d="M3.6 5.6 2.1 4.1a.95.95 0 0 1 1.5-1.2.95.95 0 0 1 1.5 1.2Z" />
+    </Line>
+  );
+}
+
 export function SignOutIcon() {
   return (
     <Line>

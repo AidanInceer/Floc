@@ -55,12 +55,13 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - No small picture that needs a key to read (dots and hatched squares standing for days): it reads as noise. A glyph and words do the job.
 - Never ask what the data already answers. A question about a trip starts from what the trip holds (dates set, places on the route), and a preview of a page shows that trip's own content, or says what is missing.
 - If the drawing is clear, say nothing. No heading above a heading, no caption that decodes the design, no instruction, no text that repeats a control. Exceptions: what is missing, and status.
-- The account bar is the same four tabs on every account page — Profile, Settings, Saved, Packing — so nothing opens or moves between them; below sm it shows glyphs only (#467).
-- A page its tab bar already names (a trip tab, My trips, Friends, Profile, Settings, Saved, Packing) shows no visible page title; the `h1` stays for screen readers (`sr-only`).
+- The account bar is the same five tabs on every account page — Profile, Settings, Saved, Wish lists, Packing — so nothing opens or moves between them; below sm it shows glyphs only (#467, #623).
+- A page its tab bar already names (a trip tab, My trips, Friends, Profile, Settings, Saved, Wish lists, Packing) shows no visible page title; the `h1` stays for screen readers (`sr-only`).
 - No tiny all-caps kicker above a heading. The mono label names a value; it never introduces a section.
 - Sentence case. British English. Real content, never lorem ipsum.
 - ✓ A field starts empty: no placeholder, no example, nothing pre-filled the person did not choose. A visible label or an `aria-label` names it.
   - One exception: *Plan the next one* on a finished trip's recap starts with the trip's other members ticked; the name field stays empty (#443).
+  - One exception: *Add to Days* on a booking file starts with what Floc read from that booking — the flight, its day and its times — and the member saves it (#559).
 - ✓ Money is exact. No `≈` or `~`. A money figure anywhere matches the Money tab, which is the source of truth.
 
 ## Layout

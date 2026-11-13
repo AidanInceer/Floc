@@ -1,4 +1,5 @@
 /** The files half of the port (#573). The rules it carries are listed in `../port.ts`. */
+import type { BookingDetails } from "@floc/core/documents/booking/booking-details";
 import type { DocCategory } from "@floc/core/documents/documents";
 
 /**
@@ -25,6 +26,8 @@ export type TripFile = {
   /** The day it sits on, directly or through its event — puts it on a stop (rule 3). */
   dayId: number | null;
   eventDayId: number | null;
+  /** What Floc read from the booking (#559), for a Pro viewer. Null when nothing was read, or on Free. */
+  booking: BookingDetails | null;
 };
 
 /** A removed file waiting out its week (ADR-048). Its bytes cannot be opened; it can only be restored. */
@@ -123,6 +126,6 @@ export type FilesPort = {
   /** False when no volume is mounted — the client hides the upload rather than offering one that throws (rule 11). */
   filesWritable(): boolean;
 
-  /** Where a member forwards a booking (#328). Null when inbound mail or file storage is not set up (rule 11). */
+  /** The one address every member forwards a booking to (#559). Null when inbound mail or file storage is not set up (rule 11). */
   fileInboxAddress(viewerId: string, tripId: number): Promise<string | null>;
 };

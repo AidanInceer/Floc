@@ -5,7 +5,8 @@ import { requireUser } from "@/server/access";
 import { listFriendsFor, type Person } from "@/server/social/friends";
 import { listGroupsFor, type Group } from "@/server/social/groups";
 import { listPendingInvitesFor, type PendingInvite } from "@/server/trips/invites";
-import { newTripName } from "@/lib/landing/start-trip";
+import { newTripName, wishListParam } from "@/lib/landing/start-trip";
+import { wishListPeopleToAsk } from "@/server/wish-lists/wish-lists";
 import { loadTripCards } from "./cards";
 import { formatDateRange, hasEnded, splitEnded } from "@floc/core/dates/dates";
 import { Avatar, ButtonLink, Stack, cx, PageTitle } from "@/components/system/ui";
@@ -31,11 +32,14 @@ export default async function TripsPage({
 
   const viewer = await requireUser("/trips");
 
-  const [cardRows, invites, friends, groups] = await Promise.all([
+  const wishId = wishListParam(params.wish);
+
+  const [cardRows, invites, friends, groups, along] = await Promise.all([
     loadTripCards(viewer.id, { archived: false }),
     listPendingInvitesFor(viewer.id),
     listFriendsFor(viewer.id),
     listGroupsFor(viewer.id),
+    wishId ? wishListPeopleToAsk(viewer.id, wishId) : Promise.resolve([]),
   ]);
 
   const cards = cardRows.map((c) => c.card);
@@ -52,7 +56,7 @@ export default async function TripsPage({
       <PageTitle className="sr-only">My trips</PageTitle>
       <header className="grid grid-cols-[minmax(0,1fr)] gap-1.5 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
         <div className="sm:col-start-2">
-          <NewTripField action={createTrip} friends={friends} groups={groups} asked={asked} />
+          <NewTripField action={createTrip} friends={friends} groups={groups} asked={asked} along={along} />
         </div>
         <ButtonLink href="/trips/archived" variant="ghost" className="justify-self-end max-sm:hidden sm:col-start-3">
           Archived

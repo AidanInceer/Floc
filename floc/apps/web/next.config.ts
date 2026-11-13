@@ -24,7 +24,8 @@ const config: NextConfig = {
   transpilePackages: ["@floc/core", "@floc/editor", "@floc/globe"],
   // Better Auth + the libSQL driver both want the Node runtime, not Edge.
   // Why (#613): the custom server loads yjs for live notes; bundling a second copy into Next logs "Yjs was already imported" and breaks constructor checks.
-  serverExternalPackages: ["@libsql/client", "better-auth", "yjs"],
+  // Why (#559): the barcode reader loads its .wasm from the installed package, which bundling would lose.
+  serverExternalPackages: ["@libsql/client", "better-auth", "yjs", "zxing-wasm", "unpdf"],
   experimental: {
     // Why: a trip or tab opened in the last 30 s reopens from the client cache. Own edits still refresh at once
     // (a Server Action's revalidatePath clears it), and another member's edit clears it through the trip signal

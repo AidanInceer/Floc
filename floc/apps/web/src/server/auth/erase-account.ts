@@ -11,6 +11,7 @@ import { and, eq, isNull, or } from "drizzle-orm";
 import { db } from "@/db";
 import {
   account,
+  bookingInbox,
   document,
   exploreSave,
   friendship,
@@ -25,6 +26,7 @@ import {
 } from "@/db/schema";
 import { revokeGoogleGrant } from "@/server/calendar/calendar-import";
 import { archivedKeysOwnedBy } from "@/server/documents/archive/archive-rows";
+import { waitingKeysOwnedBy } from "@/server/documents/bookings/booking-inbox-rows";
 import { dropDocument } from "@/server/documents/document-store";
 import { handOverAndLeaveAllTrips } from "@/server/trips/roster";
 
@@ -36,7 +38,7 @@ export async function eraseAccount(userId: string): Promise<void> {
 
   const now = new Date();
   // Why: an erased person's private files leave the disk now, the ones waiting in the archive too (ADR-048).
-  const archivedKeys = await archivedKeysOwnedBy(userId, now);
+  const archivedKeys = [...(await archivedKeysOwnedBy(userId, now)), ...(await waitingKeysOwnedBy(userId, now))];
   const privateFiles = await db.transaction(async (tx) => {
     await tx
       .update(user)
@@ -103,6 +105,10 @@ export async function eraseAccount(userId: string): Promise<void> {
       .update(packingLine)
       .set(gone)
       .where(and(eq(packingLine.ownerId, userId), isNull(packingLine.deletedAt)));
+    await tx
+      .update(bookingInbox)
+      .set(gone)
+      .where(and(eq(bookingInbox.userId, userId), isNull(bookingInbox.deletedAt)));
 
     return tx
       .update(document)

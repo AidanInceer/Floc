@@ -11,15 +11,16 @@ import type { Group } from "@/server/social/groups";
 
 import { TripPeoplePicker } from "./trips/trip-people-picker";
 
-export function NewTripForm({ action, friends, groups, name = "" }: {
+export function NewTripForm({ action, friends, groups, name = "", along = [] }: {
   action: (formData: FormData) => Promise<void>;
   friends: Person[];
   groups: Group[];
   name?: string;
+  along?: Person[];
 }) {
-  const [selection, setSelection] = useState<TripPeopleSelection>(() => ({ ticked: new Set(), groups: new Set() }));
+  const [selection, setSelection] = useState<TripPeopleSelection>(() => ({ ticked: new Set(along.map((p) => p.id)), groups: new Set() }));
   const { ticked } = selection;
-  const known = new Map([...groups.flatMap(({ members }) => members), ...friends].map((person) => [person.id, person]));
+  const known = new Map([...along, ...groups.flatMap(({ members }) => members), ...friends].map((person) => [person.id, person]));
   const asked = [...ticked].flatMap((id) => known.get(id) ?? []);
   const toggle = (ids: string[], groupId?: number) => setSelection((now) => toggleTripPeople(now, ids, groupId));
   return (

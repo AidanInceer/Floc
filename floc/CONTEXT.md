@@ -98,7 +98,13 @@ the list's owner both hold. Derived on read, never stored.
 on their profile globe: changing one changes the other.
 
 **Lists** — the account tab that holds what a person keeps: *Saved* (saved trips
-and want-to-go countries) and *Packing* (saved packing lists).
+and want-to-go countries), *Wish lists* and *Packing* (saved packing lists).
+
+**Wish list** — a list a few people keep together before any trip exists:
+Explore trips, countries, free-text ideas and links (ADR-049). You join only by
+accepting an invite. All members are equal, and the list goes when the last one
+leaves. Named after its people until someone renames it. Not the same as a
+person's *Shared list*.
 
 **Ideas page** — an optional notes page a copy adds. *At your stops*: other
 things to do at each stop, with pace and cost. *Other stops*: places to swap

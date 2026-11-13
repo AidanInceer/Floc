@@ -13,6 +13,7 @@ import { and, count, desc, eq, isNull, or, sum } from "drizzle-orm";
 
 import { db } from "@/db";
 import { dayEvent, document, user, userProfile } from "@/db/schema";
+import { parseBookingDetails, type BookingDetails } from "@floc/core/documents/booking/booking-details";
 import type { DocCategory } from "@floc/core/documents/documents";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
@@ -47,6 +48,8 @@ export type TripDocument = {
   /** The event's own name, for the row's "on …" tag (ticket 323). */
   eventTitle: string | null;
   eventDayId: number | null;
+  /** What Floc read from the booking (#559), checked field by field. Null when nothing was read. */
+  booking: BookingDetails | null;
 };
 
 /** Newest first — a documents list is a pile you add to, not a checklist. */
@@ -70,6 +73,7 @@ export async function listDocuments(
       dayEventId: dayEvent.id,
       eventTitle: dayEvent.title,
       eventDayId: dayEvent.dayId,
+      bookingDetails: document.bookingDetails,
     })
     .from(document)
     .innerJoin(user, eq(user.id, document.uploadedBy))
@@ -99,6 +103,7 @@ export async function listDocuments(
     dayEventId: r.dayEventId,
     eventTitle: r.eventTitle,
     eventDayId: r.eventDayId,
+    booking: parseBookingDetails(r.bookingDetails),
   }));
 }
 
@@ -119,7 +124,7 @@ export async function placeDocument(
 }
 
 /**
- * How many live files this trip holds, shared and private together. The read
+ * Why: how many live files this trip holds, shared and private together. The read
  * truncates at `LIMITS.documents`, so without a matching check on the write a
  * trip past the ceiling would lose older bookings off the page while the serve
  * route still handed them out — the one place a `LIMITS` ceiling is not
@@ -155,6 +160,7 @@ export async function insertDocument(input: {
   category: DocCategory;
   dayId?: number | null;
   dayEventId?: number | null;
+  bookingDetails?: string | null;
 }): Promise<void> {
   await db.insert(document).values(input).run();
 }

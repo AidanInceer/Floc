@@ -126,19 +126,25 @@ describe("starting a trip from a listing", () => {
   it("reads a bare listing id as the undated copy an older app asks for", async () => {
     const { caller: ana, port } = caller("u1");
     await ana.trips.startFromPreset({ presetId: "japan-golden-route" });
-    expect(port.startTripFromPreset).toHaveBeenCalledWith("u1", { presetId: "japan-golden-route", month: null, startDate: null, ideas: true, events: true });
+    expect(port.startTripFromPreset).toHaveBeenCalledWith("u1", { presetId: "japan-golden-route", month: null, startDate: null, ideas: true, events: true }, []);
   });
 
   it("passes an older app's month and both switches through", async () => {
     const { caller: ana, port } = caller("u1");
     await ana.trips.startFromPreset({ presetId: "japan-golden-route", month: 4, ideas: false, events: true });
-    expect(port.startTripFromPreset).toHaveBeenCalledWith("u1", { presetId: "japan-golden-route", month: 4, startDate: null, ideas: false, events: true });
+    expect(port.startTripFromPreset).toHaveBeenCalledWith("u1", { presetId: "japan-golden-route", month: 4, startDate: null, ideas: false, events: true }, []);
   });
 
   it("passes a start day through", async () => {
     const { caller: ana, port } = caller("u1");
     await ana.trips.startFromPreset({ presetId: "japan-golden-route", startDate: "2027-06-12" });
-    expect(port.startTripFromPreset).toHaveBeenCalledWith("u1", { presetId: "japan-golden-route", month: null, startDate: "2027-06-12", ideas: true, events: true });
+    expect(port.startTripFromPreset).toHaveBeenCalledWith("u1", { presetId: "japan-golden-route", month: null, startDate: "2027-06-12", ideas: true, events: true }, []);
+  });
+
+  it("passes the people a wish list asks along (#623)", async () => {
+    const { caller: ana, port } = caller("u1");
+    await ana.trips.startFromPreset({ presetId: "japan-golden-route", friendIds: ["u2"] });
+    expect(port.startTripFromPreset).toHaveBeenCalledWith("u1", { presetId: "japan-golden-route", month: null, startDate: null, ideas: true, events: true }, ["u2"]);
   });
 
   it("refuses a start day that is not a date", async () => {

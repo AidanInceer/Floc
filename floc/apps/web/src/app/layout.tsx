@@ -7,6 +7,7 @@ import localFont from "next/font/local";
 import { headers } from "next/headers";
 
 import { AppChrome } from "@/components/chrome/app-chrome";
+import { WhichTripPrompt } from "@/components/bookings/which-trip-prompt";
 import { ClientErrorReporter } from "@/components/chrome/client-error-reporter";
 import { SiteFooter } from "@/components/chrome/site-footer";
 import { SessionRenewal } from "@/components/chrome/session-renewal";
@@ -26,6 +27,7 @@ const SIGNED_OUT: Awaited<ReturnType<typeof topBarFor>> = {
   proRow: null,
   notificationCount: 0,
   latest: [],
+  bookings: { files: [], trips: [] },
 };
 
 // The three faces of the white-and-pastel direction (ticket 189): a characterful
@@ -79,7 +81,7 @@ export default async function RootLayout({
   // friend request are the two things that arrive while you're elsewhere in the
   // app, so both have to be visible from anywhere. Counts, not the things
   // themselves — the answering happens on the page behind each link.
-  const { inviteCount, friendRequestCount, profile, proRow, notificationCount, latest } =
+  const { inviteCount, friendRequestCount, profile, proRow, notificationCount, latest, bookings } =
     session?.user ? await topBarFor(session.user.id, ACCOUNT_MENU_PREVIEW) : SIGNED_OUT;
 
   // The header must key the avatar off the same identity a roster does
@@ -114,8 +116,10 @@ export default async function RootLayout({
           notificationCount={notificationCount}
           latest={latest}
           isPro={!allFeaturesFree() && proRow !== null && isLive(proRow)}
+          bookingCount={bookings.files.length}
         />
         <main>{children}</main>
+        {bookings.files.length > 0 ? <WhichTripPrompt files={bookings.files} trips={bookings.trips} /> : null}
         <SiteFooter />
         {modal}
         {session?.user ? <SessionRenewal /> : null}

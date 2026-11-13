@@ -26,7 +26,7 @@ import { useGroupData } from "./group-data";
 import { GroupPeoplePicker, peopleWithTicked } from "./group-people-picker";
 import { PastTripRows, tripsWithPeople } from "./past-trip-rows";
 
-const DIALOG =
+export const DIALOG =
   "m-auto max-h-[calc(100dvh-48px)] w-full max-w-lg overflow-y-auto rounded-md border border-rule bg-sheet p-0 text-ink shadow-lifted backdrop:bg-black/40 max-sm:mb-0 max-sm:max-h-[92dvh] max-sm:max-w-full max-sm:rounded-b-none";
 
 const TAB = "rounded-sm px-2 py-1.5 text-sm font-medium transition-colors sm:px-4";

@@ -24,6 +24,8 @@ export async function migrateTestDb(): Promise<void> {
 // Children before parents, so a delete never trips an FK. Listed by hand so a
 // new table needing clearing is an obvious edit, not a silent gap.
 const TABLES = [
+  schema.bookingInbox,
+  schema.inboundMail,
   schema.reminder,
   schema.pushToken,
   schema.notification,
@@ -44,6 +46,9 @@ const TABLES = [
   schema.nudge,
   schema.userCountryMark,
   schema.exploreSave,
+  schema.wishListItem,
+  schema.wishListMember,
+  schema.wishList,
   schema.friendGroupMember,
   schema.friendGroup,
   schema.friendship,
@@ -82,7 +87,7 @@ async function makeUser(id: string, name: string) {
 export type Scenario = Awaited<ReturnType<typeof seedScenario>>;
 
 /**
- * One trip with an admin and a member, plus a second trip with a disjoint
+ * Why: one trip with an admin and a member, plus a second trip with a disjoint
  * member — the outsider is the point: rule 5 needs an attacker with a valid
  * session of their own, not just a non-member. Two events per day, not one:
  * a single-event day's reorder is a no-op regardless of the access check, so
