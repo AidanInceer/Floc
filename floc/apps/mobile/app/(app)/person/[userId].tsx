@@ -19,6 +19,7 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import { ScrollView, View } from "react-native";
 
 import { FriendSaved } from "@/components/lists/friend-saved";
+import { StartWishWith } from "@/components/lists/start-wish-with";
 import { Face } from "@/components/trip/person-row";
 import { TravelMap } from "@/components/map/travel-map";
 import { Body, Button, Card, Empty, Failed, Figure, Loading, Pill, Row, SectionTitle } from "@/components/system/ui";
@@ -104,6 +105,7 @@ export default function PersonProfile() {
           </View>
         ) : null}
 
+        {p.saved ? <StartWishWith friendId={userId} name={p.name} /> : null}
         <FriendSaved saved={p.saved} map={p.map} />
 
         {p.pastTrips ? (

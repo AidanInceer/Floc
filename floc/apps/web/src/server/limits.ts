@@ -50,6 +50,12 @@ export const LIMITS = {
   friendGroups: 20,
   /** People in one named group (#545). A trip-sized crowd. */
   friendGroupMembers: 20,
+  /** Wish lists one account is on or invited to (#623). */
+  wishLists: 30,
+  /** People on one wish list, invites included (#623). A trip-sized crowd. */
+  wishListMembers: 20,
+  /** Things on one wish list (#623). A shortlist, not an archive. */
+  wishListItems: 200,
 } as const;
 
 export type LimitKey = keyof typeof LIMITS;
@@ -78,6 +84,9 @@ const FULL: Partial<Record<LimitKey, string>> = {
   nudgesPerDay: "That is enough nudges for today. Try again tomorrow.",
   friendGroups: "You can keep 20 groups at most. Delete one first.",
   friendGroupMembers: "A group holds 20 people at most.",
+  wishLists: "You can be on 30 wish lists at most. Leave one first.",
+  wishListMembers: "A wish list holds 20 people at most.",
+  wishListItems: "This wish list holds as many things as it can.",
 };
 
 // Why: the ceilings above bound what a page reads; without the same bound on the write, one script fills a trip

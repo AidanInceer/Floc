@@ -444,6 +444,40 @@
     },
     "trips.update": {
       "mobile": "yes"
+    },
+    "wishes.addItem": {
+      "mobile": "yes"
+    },
+    "wishes.create": {
+      "mobile": "yes"
+    },
+    "wishes.get": {
+      "mobile": "yes"
+    },
+    "wishes.invite": {
+      "mobile": "yes"
+    },
+    "wishes.leave": {
+      "mobile": "yes"
+    },
+    "wishes.list": {
+      "mobile": "yes"
+    },
+    "wishes.peopleToAsk": {
+      "mobile": "yes"
+    },
+    "wishes.removeItem": {
+      "mobile": "yes"
+    },
+    "wishes.rename": {
+      "mobile": "planned",
+      "why": "Wish lists on the phone are named after their people (#623); renaming one stays on the web until the list screen has room for an inline name field."
+    },
+    "wishes.respond": {
+      "mobile": "yes"
+    },
+    "wishes.startWith": {
+      "mobile": "yes"
     }
   },
   "webOnly": [

@@ -16,6 +16,7 @@ import { ideasRouter } from "./routers/itinerary/ideas";
 import { invitesRouter } from "./routers/invites";
 import { itineraryRouter } from "./routers/itinerary/itinerary";
 import { kitsRouter } from "./routers/kits";
+import { wishesRouter } from "./routers/wishes";
 import { meRouter } from "./routers/me";
 import { moneyRouter } from "./routers/money";
 import { notificationsRouter } from "./routers/notifications";
@@ -34,6 +35,7 @@ export const appRouter = router({
   me: meRouter,
   settings: settingsRouter,
   kits: kitsRouter,
+  wishes: wishesRouter,
   trips: tripsRouter,
   explore: exploreRouter,
   ideas: ideasRouter,
