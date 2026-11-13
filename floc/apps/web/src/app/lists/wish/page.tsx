@@ -15,7 +15,7 @@ export default async function WishListsPage() {
   const [{ lists, invites }, sources] = await Promise.all([listWishListsFor(viewer.id), peopleSourcesFor(viewer.id)]);
 
   return (
-    <ListsPage current="wish">
+    <ListsPage current="wish" userId={viewer.id}>
       <PageTitle className="sr-only">Wish lists</PageTitle>
       {invites.length ? <WishInvites invites={invites} /> : null}
       {lists.length ? (

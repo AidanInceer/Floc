@@ -39,7 +39,7 @@ export default async function WishListPage({ params }: { params: Promise<{ id: s
   }
 
   return (
-    <ListsPage current="wish" wide>
+    <ListsPage current="wish" userId={viewer.id} wide>
       <WishListHead list={list} sources={sources} />
       <WishAddBox listId={list.id} listings={LISTING_CHOICES} />
       <ListingRatesProvider rates={rates}>

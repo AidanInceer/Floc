@@ -44,7 +44,7 @@ export default async function ProfilePage() {
 
   return (
     <>
-    <AccountTabs current="profile" />
+    <AccountTabs current="profile" userId={viewer.id} />
     <AccountPage title="Your profile" titleInBar wide>
       {/* The face someone lands on when they click you, shown as they'd see
           it — the page's one moment of the visitor's view. */}

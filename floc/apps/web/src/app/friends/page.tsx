@@ -19,6 +19,7 @@ import { CopyLink, SubmitButton } from "@/components/system/client-ui";
 import { FriendRow } from "@/components/social/friend-row";
 import { FriendsBoard } from "@/components/social/groups/friends-board";
 import { FindFriend } from "@/components/social/find-friend";
+import { AccountTabs } from "@/components/chrome/account-tabs";
 import { friendCodeFor } from "@/server/social/friend-code";
 import { listGroupsFor, listPastTripsFor } from "@/server/social/groups";
 
@@ -75,12 +76,14 @@ export default async function FriendsPage() {
   const requests = incomingPeople.length + outgoingPeople.length;
 
   return (
+    <>
+    <AccountTabs current="friends" userId={viewer.id} />
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
       <PageTitle className="sr-only">Friends</PageTitle>
       <div className="mx-auto max-w-[41.25rem]">
         {/* Requests lead because they are the only thing here waiting on you; none, no strip. */}
         {requests > 0 ? (
-          <section className="mt-6">
+          <section>
             <h2 className="flex items-center gap-2 text-sm font-medium">
               Requests
               <span className="nums inline-grid size-5 place-items-center rounded-full bg-pen-soft font-mono text-xs text-pen-deep">
@@ -118,7 +121,7 @@ export default async function FriendsPage() {
           </section>
         ) : null}
 
-        <div className="my-6 flex flex-col gap-3">
+        <div className={requests > 0 ? "my-6 flex flex-col gap-3" : "mb-6 flex flex-col gap-3"}>
           <FindFriend />
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-ink-soft">Your friend tag</span>
@@ -127,9 +130,10 @@ export default async function FriendsPage() {
           </div>
         </div>
 
-        <FriendsBoard friends={acceptedPeople} groups={groups} pastTrips={pastTrips} />
+        <FriendsBoard show="friends" friends={acceptedPeople} groups={groups} pastTrips={pastTrips} />
       </div>
     </div>
+    </>
   );
 }
 
