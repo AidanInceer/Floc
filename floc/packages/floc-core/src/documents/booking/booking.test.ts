@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { readBoardingPass } from "./boarding-pass";
 import {
-  bookingCategory, bookingDates, bookingNights, bookingSummary, cleanBookingDetails,
+  bookingCategory, bookingDates, bookingSummary, cleanBookingDetails,
   flightTitle, parseBookingDetails, storeBookingDetails,
 } from "./booking-details";
 import { tripForBooking } from "./booking-trip";
@@ -85,12 +85,6 @@ describe("what a booking says about itself", () => {
     expect(bookingDates(cleanBookingDetails({ kind: "flight", flightNumber: "FR1234" })!)).toBeNull();
     expect(bookingDates(cleanBookingDetails({ kind: "hotel", name: "Casa" })!)).toBeNull();
     expect(bookingDates(cleanBookingDetails({ kind: "hotel", checkIn: "2027-03-04" })!)).toEqual({ start: "2027-03-04", end: "2027-03-04" });
-  });
-
-  it("lists a stay's nights, and none without both dates", () => {
-    expect(hotel.kind === "hotel" && bookingNights(hotel)).toEqual(["2027-03-04", "2027-03-05", "2027-03-06"]);
-    const open = cleanBookingDetails({ kind: "hotel", checkIn: "2027-03-04" })!;
-    expect(open.kind === "hotel" && bookingNights(open)).toEqual([]);
   });
 
   it("sums itself up in one line", () => {

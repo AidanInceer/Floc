@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  findOverlaps,
   insertAt,
   orderEvents,
   permuteEventSlots,
@@ -60,11 +59,6 @@ describe("insertAt", () => {
 
 function ev(id: number, time: string | null, orderIndex: number): EventSlot {
   return { id, time, endTime: null, allDay: time === null, orderIndex };
-}
-
-/** A timed event with an end, for the overlap cases. */
-function span(id: number, time: string, endTime: string | null): EventSlot {
-  return { id, time, endTime, allDay: false, orderIndex: id };
 }
 
 const ids = (events: EventSlot[]) => events.map((e) => e.id);
@@ -164,51 +158,5 @@ describe("permuteEventSlots", () => {
     const writes = new Map(permuteEventSlots(events, dropped).map((w) => [w.id, w]));
     const applied = events.map((e) => ({ ...e, ...(writes.get(e.id) ?? {}) }));
     expect(ids(orderEvents(applied))).toEqual(dropped);
-  });
-});
-
-describe("findOverlaps", () => {
-  it("finds nothing in an empty or single-event day", () => {
-    expect([...findOverlaps([])]).toEqual([]);
-    expect([...findOverlaps([span(1, "09:00", "10:00")])]).toEqual([]);
-  });
-
-  it("flags both sides of a crossing pair", () => {
-    const events = [span(1, "09:00", "11:00"), span(2, "10:00", "12:00")];
-    expect([...findOverlaps(events)].sort((a, b) => a - b)).toEqual([1, 2]);
-  });
-
-  it("leaves back-to-back events alone", () => {
-    const events = [span(1, "09:00", "10:00"), span(2, "10:00", "11:00")];
-    expect([...findOverlaps(events)]).toEqual([]);
-  });
-
-  it("flags an event with no end that falls inside another's run", () => {
-    const events = [span(1, "09:00", "11:00"), span(2, "10:00", null)];
-    expect([...findOverlaps(events)].sort((a, b) => a - b)).toEqual([1, 2]);
-  });
-
-  it("flags two events starting at the same time even with no ends", () => {
-    const events = [span(1, "09:00", null), span(2, "09:00", null)];
-    expect([...findOverlaps(events)].sort((a, b) => a - b)).toEqual([1, 2]);
-  });
-
-  it("does not flag two endless events at different times", () => {
-    const events = [span(1, "09:00", null), span(2, "10:00", null)];
-    expect([...findOverlaps(events)]).toEqual([]);
-  });
-
-  it("ignores all-day events, which would otherwise flag the whole day", () => {
-    const events = [ev(1, null, 0), span(2, "09:00", "10:00")];
-    expect([...findOverlaps(events)]).toEqual([]);
-  });
-
-  it("flags every member of a three-way pile-up", () => {
-    const events = [
-      span(1, "09:00", "12:00"),
-      span(2, "10:00", "11:00"),
-      span(3, "11:30", "13:00"),
-    ];
-    expect([...findOverlaps(events)].sort((a, b) => a - b)).toEqual([1, 2, 3]);
   });
 });

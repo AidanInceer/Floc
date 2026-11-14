@@ -10,6 +10,7 @@ import { useTheme } from "../system/theme";
 import { useReducedMotion } from "../system/use-reduced-motion";
 import { paperStyle } from "@/lib/map";
 import { fonts, radius, size } from "@/lib/theme";
+import { countWord } from "@floc/core/text/count-word";
 
 const HEIGHT = 240;
 // Why: the picks span Mexico to New Zealand, wider than a phone can show at zoom 0, so pins at the
@@ -56,7 +57,7 @@ export function ExploreMap({ picked, onPick }: { picked: string; onPick: (preset
               <Pressable
                 testID={`explore-pin-${trip.id}`}
                 accessibilityRole="button"
-                accessibilityLabel={`${i + 1}. ${trip.title}, ${trip.nights} nights`}
+                accessibilityLabel={`${i + 1}. ${trip.title}, ${countWord(trip.nights, "night")}`}
                 accessibilityState={{ selected: on }}
                 onPress={() => onPick(trip.id)}
                 hitSlop={8}

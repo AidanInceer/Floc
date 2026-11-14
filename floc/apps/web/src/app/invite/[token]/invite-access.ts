@@ -16,7 +16,7 @@ import { cache } from "react";
 
 import { getInviteGuest, getSession } from "@/server/access";
 import { findTripByShareLink } from "@/server/trips/invites";
-import { isLiveMember } from "@/server/trips/roster";
+import { isLiveMember } from "@/server/trips/live-member";
 
 export const inviteTrip = cache(async (token: string) => {
   return findTripByShareLink(token);

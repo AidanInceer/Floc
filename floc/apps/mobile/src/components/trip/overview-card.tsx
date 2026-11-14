@@ -18,6 +18,7 @@ import { TagPills } from "./tag-pills";
 import { StampSheet } from "./stamp/stamp-sheet";
 import { TripMarkIcon } from "./trip-mark";
 import { fonts, radius, size, space } from "@/lib/theme";
+import { countWord } from "@floc/core/text/count-word";
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
@@ -127,7 +128,7 @@ export function OverviewCard({
       >
         <Text style={{ color: c["ink-2"], fontFamily: fonts.type, fontSize: size.small }}>
           {trip.startDate
-            ? `${formatDateRange(trip.startDate, trip.endDate)} · ${nights} ${nights === 1 ? "night" : "nights"}`
+            ? `${formatDateRange(trip.startDate, trip.endDate)} · ${countWord(nights, "night")}`
             : "Dates not set"}
         </Text>
         <PenGlyph color={c["ink-3"]} />

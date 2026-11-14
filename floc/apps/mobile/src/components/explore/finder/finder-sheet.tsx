@@ -7,6 +7,7 @@ import { TextLink } from "../../system/text-controls";
 import { useTheme } from "../../system/theme";
 import { Button, Heading, Label } from "../../system/ui";
 import { fonts, size, space } from "@/lib/theme";
+import { countWord } from "@floc/core/text/count-word";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   const { c } = useTheme();
@@ -53,7 +54,7 @@ export function FinderSheet({ open, onClose, onClear, ...facet }: Facet & { open
         <View style={{ paddingVertical: space.md }}>
           <LikeCloud finder={facet.finder} onChange={facet.onChange} />
         </View>
-        <Button label={`Show ${facet.shown} ${facet.shown === 1 ? "trip" : "trips"}`} onPress={onClose} />
+        <Button label={`Show ${countWord(facet.shown, "trip")}`} onPress={onClose} />
       </View>
     </Sheet>
   );

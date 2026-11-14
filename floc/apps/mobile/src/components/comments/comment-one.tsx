@@ -9,7 +9,7 @@ import { whoTone, type WhoTone } from "@floc/core/people/who";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
-import { Face } from "../trip/person-row";
+import { Face } from "../system/face";
 import { MoreGlyph, ReactionGlyph } from "../system/glyphs";
 import { Sheet } from "../system/sheet";
 import { useTheme } from "../system/theme";

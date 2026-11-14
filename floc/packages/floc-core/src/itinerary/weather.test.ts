@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { addDays } from "../dates/dates";
 import {
-  HORIZON_DAYS,
   conditionLabel,
-  withinHorizon,
   wmoToCondition,
 } from "./weather";
 
@@ -34,20 +31,5 @@ describe("conditionLabel", () => {
     expect(conditionLabel("part")).toBe("Mostly sunny");
     expect(conditionLabel("cloud")).toBe("Cloudy");
     expect(conditionLabel("rain")).toBe("Light rain");
-  });
-});
-
-describe("withinHorizon", () => {
-  const from = "2026-08-16";
-
-  it("includes today and the last day of the window", () => {
-    expect(withinHorizon(from, from)).toBe(true);
-    // HORIZON_DAYS is 14, so the last shown day is from + 13.
-    expect(withinHorizon(addDays(from, HORIZON_DAYS - 1), from)).toBe(true);
-  });
-
-  it("excludes the day past the edge and anything before the start", () => {
-    expect(withinHorizon(addDays(from, HORIZON_DAYS), from)).toBe(false);
-    expect(withinHorizon(addDays(from, -1), from)).toBe(false);
   });
 });

@@ -12,10 +12,11 @@ import { cx } from "@/components/system/ui";
 
 import { CountryOutline } from "./country-outline";
 import { StartTripButton } from "./start-trip-button";
+import { countWord } from "@floc/core/text/count-word";
 
 const PLAIN_LAND = "fill-sheet-2 stroke-rule-strong";
 
-const exploreTrips = (n: number) => (n === 0 ? "No Explore trips" : `${n} Explore ${n === 1 ? "trip" : "trips"}`);
+const exploreTrips = (n: number) => (n === 0 ? "No Explore trips" : countWord(n, "Explore trip"));
 
 /**
  * A want-to-go country as a compact tile (#467): its outline in its continent's colour, its name, then how many Explore trips

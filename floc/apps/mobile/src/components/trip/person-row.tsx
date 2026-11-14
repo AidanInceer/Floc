@@ -8,45 +8,12 @@
  * THE FACE IS ALWAYS INITIALS, in a rounded square — the same as the web.
  */
 import type { ReactNode } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { useTheme } from "../system/theme";
 import { Body } from "../system/ui";
-import { fonts, radius, size, space } from "@/lib/theme";
-import { whoTone, type WhoTone } from "@floc/core/people/who";
-import { initials } from "@floc/core/people/initials";
-
-export function Face({ name, tone = whoTone(name), size: box = 36 }: {
-  name: string;
-  tone?: WhoTone;
-  size?: number;
-}) {
-  const { c } = useTheme();
-  return (
-    <View
-      style={{
-        width: box,
-        height: box,
-        borderRadius: radius.sm,
-        backgroundColor: c[tone],
-        borderColor: c[tone],
-        borderWidth: StyleSheet.hairlineWidth,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Text
-        style={{
-          color: c[`${tone}-ink`],
-          fontFamily: fonts.display,
-          fontSize: size.small,
-        }}
-      >
-        {initials(name)}
-      </Text>
-    </View>
-  );
-}
+import { radius, space } from "@/lib/theme";
+import { Face } from "../system/face";
 
 export function PersonRow({
   name,

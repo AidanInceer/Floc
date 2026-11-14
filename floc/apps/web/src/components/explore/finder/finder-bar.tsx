@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { CrossIcon, LineIcon } from "@/components/system/icons";
 import { SUN_PATHS } from "@/components/system/icons/weather";
 import { cx } from "@/components/system/ui";
+import { nounFor } from "@floc/core/text/count-word";
 
 const SORT_ICONS: Record<FinderSort, ReactNode> = {
   season: SUN_PATHS.map((d) => <path key={d} d={d} />),
@@ -50,7 +51,7 @@ export function FinderBar({
     <div className="flex flex-col gap-3 pb-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-h-8 flex-wrap items-center gap-1.5">
         <b className="nums mr-1.5 text-[13px]">
-          {shown} {shown === 1 ? "trip" : "trips"}
+          {shown} {nounFor(shown, "trip")}
         </b>
         <button type="button" onClick={onOpen} className="typed inline-flex min-h-8 items-center gap-1.5 rounded-sm border border-rule-strong bg-sheet px-3 lg:hidden">
           <LineIcon>

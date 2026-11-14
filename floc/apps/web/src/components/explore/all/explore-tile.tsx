@@ -10,6 +10,7 @@ import { OutlineMap } from "@/components/explore/outline/outline-map";
 import { cx } from "@/components/system/ui";
 import { listingPrice } from "@floc/core/trip/explore/listing-price";
 import { useListingRates } from "@/components/explore/listing-rates";
+import { countWord } from "@floc/core/text/count-word";
 
 export const tagClass = "typed w-fit max-w-full truncate rounded-sm px-2 py-1";
 
@@ -20,8 +21,6 @@ export const footLineClass =
 /** A tile's last line when it holds an action (#467): figures on the left, the action on the right, both above the stretched link. */
 export const lastLineClass =
   "pointer-events-none relative z-10 mt-auto flex items-center justify-between gap-2 [&_a]:pointer-events-auto [&_button]:pointer-events-auto";
-
-const nightsOf = (n: number) => `${n} ${n === 1 ? "night" : "nights"}`;
 
 /**
  * One listing as a tile: its outline map, then what it is. The children say how it fits what you asked for.
@@ -48,7 +47,7 @@ export function ExploreTile({
   const rates = useListingRates();
   const figures = (
     <span className="nums text-[11px] text-ink-faint">
-      {nightsOf(trip.nights)} · {listingPrice(trip, rates)}
+      {countWord(trip.nights, "night")} · {listingPrice(trip, rates)}
     </span>
   );
   return (
@@ -70,7 +69,7 @@ export function ExploreTile({
         <div className={cx(lastLineClass, "px-3.5", footer ? "pb-1.5" : "pb-3.5")}>
           {/* Why: beside an action on a phone the figures stack, nights over price, rather than wrap at the dot. */}
           <span className="nums flex flex-col text-[11px] text-ink-faint sm:flex-row sm:gap-1">
-            <span className="whitespace-nowrap">{nightsOf(trip.nights)}<span className="max-sm:hidden"> ·</span></span>
+            <span className="whitespace-nowrap">{countWord(trip.nights, "night")}<span className="max-sm:hidden"> ·</span></span>
             <span className="whitespace-nowrap">{listingPrice(trip, rates)}</span>
           </span>
           {action}

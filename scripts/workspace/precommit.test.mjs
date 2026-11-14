@@ -19,6 +19,13 @@ test("a web change adds dead-code analysis; a phone change does not", () => {
   assert.ok(!labels(["floc/apps/mobile/src/a.ts"]).includes("dead code"));
 });
 
+test("a change to the phone, a package or the web checks for dead exports across all of them", () => {
+  assert.ok(labels(["floc/apps/mobile/src/a.ts"]).includes("dead exports"));
+  assert.ok(labels(["floc/packages/floc-core/src/a.ts"]).includes("dead exports"));
+  assert.ok(labels(["floc/apps/web/src/a.ts"]).includes("dead exports"));
+  assert.ok(!labels(["scripts/a.mjs"]).includes("dead exports"));
+});
+
 test("every check runs through node directly, never a pnpm or cmd.exe shim", () => {
   for (const [, [runner, entry]] of planPreCommit(["floc/apps/web/src/a.ts"])) {
     assert.equal(runner, "node");

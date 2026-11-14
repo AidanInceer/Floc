@@ -54,6 +54,7 @@ import {
   setTripDates,
   applyBestWindow,
 } from "./actions";
+import { nounFor } from "@floc/core/text/count-word";
 
 export const metadata = { title: "Dates" };
 
@@ -198,7 +199,7 @@ export default async function DatesPage({
                 <span className="nums text-ink">
                   {formatDateRange(trip.startDate, trip.endDate)}
                 </span>{" "}
-                · {nightsBetween(trip.startDate!, trip.endDate!)} nights
+                · {nightsBetween(trip.startDate!, trip.endDate!)} {nounFor(nightsBetween(trip.startDate!, trip.endDate!), "night")}
               </>
             ) : (
               "No dates yet"
@@ -268,7 +269,7 @@ function TripBlock({ start, end }: { start: string | null; end: string | null })
         <>
           <p className="nums mt-1 font-mono text-base text-ink">{spanLabel(start, end)}</p>
           <p className="mt-0.5 text-[13px] text-ink-soft">
-            {nightsBetween(start, end)} {nightsBetween(start, end) === 1 ? "night" : "nights"} · {dateRange(start, end).length} days
+            {nightsBetween(start, end)} {nounFor(nightsBetween(start, end), "night")} · {dateRange(start, end).length} {nounFor(dateRange(start, end).length, "day")}
           </p>
         </>
       ) : (

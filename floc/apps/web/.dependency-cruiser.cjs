@@ -65,6 +65,18 @@ module.exports = {
       from: { pathNot: "^src/(server/freshness\.ts|test/)" },
       to: { path: "node_modules/next/cache\.js$" },
     },
+    {
+      name: "custom-server-runs-outside-next",
+      severity: "error",
+      comment:
+        "server.ts loads these modules in plain Node, before Next starts, so " +
+        "`server-only` anywhere behind them throws and production never boots. " +
+        "The build does not run server.ts, so nothing else catches it.",
+      from: {
+        path: "^src/server/(notes/live/(notes-live|live-socket|live-session)|http/(write-gate|request-id)|observability/log)\\.ts$",
+      },
+      to: { path: "node_modules/server-only", reachable: true },
+    },
   ],
   options: {
     // Follow the workspace package's real source rather than stopping at the

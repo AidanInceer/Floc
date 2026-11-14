@@ -48,6 +48,7 @@ import { windowWarning } from "@/lib/trip/window-change";
 import type { TripForecastView } from "@floc/api/port";
 import type { AppRouter } from "@floc/api/router";
 import type { inferRouterOutputs } from "@trpc/server";
+import { countWord } from "@floc/core/text/count-word";
 
 type Outputs = inferRouterOutputs<AppRouter>;
 
@@ -140,7 +141,7 @@ function DatesHead({ start, end, changing, folded, onToggle }: { start: string |
           {start && end ? spanLabel(start, end) : formatDateRange(start, end)}
         </Text>
         {nights !== null ? (
-          <Text style={{ color: c["ink-3"], fontFamily: fonts.type, fontSize: size.small, fontVariant: ["tabular-nums"] }}>{`${nights} ${nights === 1 ? "night" : "nights"}`}</Text>
+          <Text style={{ color: c["ink-3"], fontFamily: fonts.type, fontSize: size.small, fontVariant: ["tabular-nums"] }}>{countWord(nights, "night")}</Text>
         ) : null}
       </View>
       {folded ? <Button label={changing ? "Done" : "Change the dates"} variant="quiet" fit="small" onPress={onToggle} /> : null}

@@ -7,15 +7,14 @@ import type { TripForecastView } from "@floc/api/port";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { Seat } from "../system/glyphs";
 import { useTheme } from "../system/theme";
 import { DatesWeather } from "../days/dates-weather";
 import type { ForecastDay } from "../days/weather-panel";
 import { Button, Label } from "../system/ui";
 import type { DatesView } from "@/lib/dates/day-look";
 import { fonts, size, space } from "@/lib/theme";
-
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+import { countWord } from "@floc/core/text/count-word";
+import { Face } from "../system/face";
 
 export function PanelBand({ children }: { children: ReactNode }) {
   const { c } = useTheme();
@@ -42,7 +41,7 @@ export function Coverage({ isFree, start, end }: { isFree: (d: IsoDate) => boole
   const note = cover.missing.length
     ? `You can't do ${cover.missing.map((d) => formatDate(d, { weekday: false })).join(", ")}`
     : "You can do every day of it";
-  return <Block first name="In the trip" value={`${cover.free} of ${plural(cover.total, "day")}`} note={note} />;
+  return <Block first name="In the trip" value={`${cover.free} of ${countWord(cover.total, "day")}`} note={note} />;
 }
 
 export function BestFit({
@@ -63,7 +62,7 @@ export function BestFit({
       first={first}
       name="Best fit"
       value={spanLabel(best.start, best.end)}
-      note={`${plural(days, "day")} · ${best.free} of ${memberCount} free`}
+      note={`${countWord(days, "day")} · ${best.free} of ${memberCount} free`}
       action={<Button label="Use these" fit="small" variant="quiet" onPress={onUse} />}
     />
   );
@@ -76,7 +75,7 @@ export function TripBlock({ start, end, onClear }: { start: IsoDate | null; end:
       first
       name="The trip"
       value={spanLabel(start, end)}
-      note={plural(nightsBetween(start, end), "night")}
+      note={countWord(nightsBetween(start, end), "night")}
       action={<Button label="Clear" variant="quiet" fit="small" onPress={onClear} />}
     />
   );
@@ -84,7 +83,7 @@ export function TripBlock({ start, end, onClear }: { start: IsoDate | null; end:
 
 function daysWord(days: number | null): string {
   if (days === null) return "Waiting";
-  return days === 0 ? "No days" : plural(days, "day");
+  return days === 0 ? "No days" : countWord(days, "day");
 }
 
 export function WhoAnswered({ people }: { people: Person[] }) {
@@ -100,7 +99,7 @@ export function WhoAnswered({ people }: { people: Person[] }) {
         const tone = whoTone(p.name);
         return (
           <View key={p.id} style={{ flexDirection: "row", alignItems: "center", gap: space.md, minHeight: 32 }}>
-            <Seat name={p.name} ground={c[tone]} ink={c[`${tone}-ink`]} />
+            <Face name={p.name} tone={tone} look="seat" />
             <Text numberOfLines={1} style={{ flex: 1, color: c.ink, fontFamily: fonts.sans, fontSize: size.small }}>
               {p.guest ? `${p.name} · guest` : p.name}
             </Text>
