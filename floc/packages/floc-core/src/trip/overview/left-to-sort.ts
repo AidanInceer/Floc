@@ -8,6 +8,7 @@ import { nightsLabel } from "../../itinerary/stops";
 import type { Currency } from "../../money/currency";
 import { formatMoney } from "../../money/money";
 import { shortPlace } from "../../itinerary/names/place-name";
+import { countWord } from "../../text/count-word";
 
 export type GapTab = "dates" | "money" | "packing" | "overview" | "days";
 
@@ -64,7 +65,7 @@ function dateChecks(input: LeftToSortInput): Check[] {
   ];
   if (input.ideas.length > 0) {
     const n = input.ideas.length;
-    const text = `Vote on where: ${n} ${n === 1 ? "idea" : "ideas"}`;
+    const text = `Vote on where: ${countWord(n, "idea")}`;
     checks.push(check(input.ideas.some((i) => i.mine), { key: "vote", kind: "ideas", text: "You voted on where" }, { key: "vote", kind: "ideas", mine: true, text, tab: "overview", anchor: "ideas", action: "Vote" }));
   }
   return checks;

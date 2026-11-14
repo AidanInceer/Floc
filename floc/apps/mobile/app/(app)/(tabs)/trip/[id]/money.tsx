@@ -42,10 +42,11 @@ import { Body, Button, Empty, Failed, Loading, SectionTitle } from "@/components
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { ledgerCurrency } from "@/lib/balance";
-import { editStart, peopleOnExpense } from "@/lib/money/edit-start";
+import { editStart, peopleOnExpense } from "@floc/core/money/edit-start";
 import { shareLine } from "@/lib/money/share-line";
 import { fonts, size, space } from "@/lib/theme";
 import type { Ledger } from "@floc/api/port";
+import { clearedDebts } from "@floc/core/money/cleared-debts";
 
 /** Nothing open, adding, or editing this expense. One state, so two cannot both be true. */
 type Editing =
@@ -53,11 +54,8 @@ type Editing =
 
 /** What one payment clears, for the confirm before it is recorded. */
 function clearsLine(row: SettleRow, viewerId: string, nameOf: (userId: string) => string): string {
-  return row.parts
-    .map((p) => {
-      const amount = formatMoney(p.clearsAmountMinor ?? p.amountMinor, p.clearsCurrency ?? p.currency);
-      return p.fromUserId === viewerId ? `${amount} you owe ${nameOf(p.toUserId)}` : `${amount} ${nameOf(p.fromUserId)} owes you`;
-    })
+  return clearedDebts(row, viewerId)
+    .map((d) => (d.youOwe ? `${d.cleared} you owe ${nameOf(d.otherId)}` : `${d.cleared} ${nameOf(d.otherId)} owes you`))
     .join("\n");
 }
 

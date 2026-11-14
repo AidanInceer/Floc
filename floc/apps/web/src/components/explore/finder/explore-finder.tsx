@@ -17,6 +17,7 @@ import { LineIcon } from "@/components/system/icons";
 import { Button } from "@/components/system/ui";
 import { useListingRates } from "@/components/explore/listing-rates";
 import { useSavedTrips } from "@/components/explore/save/saved-trips";
+import { nounFor } from "@floc/core/text/count-word";
 
 const sheetClass =
   "m-0 mt-auto max-h-[90dvh] w-full max-w-none overflow-y-auto rounded-t-md bg-sheet p-0 text-ink backdrop:bg-black/40 sm:mx-auto sm:max-w-lg lg:hidden";
@@ -110,7 +111,7 @@ export function ExploreFinder({
         </div>
         <div className="sticky bottom-0 border-t border-rule bg-sheet px-5 py-3">
           <Button type="button" variant="primary" className="w-full" onClick={() => setSheet(false)}>
-            Show {rows.length} {rows.length === 1 ? "trip" : "trips"}
+            Show {rows.length} {nounFor(rows.length, "trip")}
           </Button>
         </div>
       </Dialog>

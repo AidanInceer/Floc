@@ -1,6 +1,7 @@
 import { cx } from "@/components/system/ui";
 import { SparkIcon } from "@/components/system/icons/packing";
 import { cubeCount, thingCount } from "@floc/core/packing/packing-words";
+import { nounFor } from "@floc/core/text/count-word";
 
 export function PackingCube({
   heading,
@@ -29,7 +30,7 @@ export function PackingCube({
         {ideaCount > 0 ? (
           <span className="mr-auto inline-flex items-center gap-1 text-[11px] text-pen">
             <SparkIcon size={10} />
-            {ideaCount} {ideaCount === 1 ? "idea" : "ideas"}
+            {ideaCount} {nounFor(ideaCount, "idea")}
           </span>
         ) : null}
         {total > 0 ? (

@@ -10,12 +10,13 @@ import { Card, Pill } from "../../system/ui";
 import { HotelUpload, useCanUpload } from "../hotel-upload";
 import { StaySheet } from "./stay-sheet";
 import { fonts, size, space } from "@/lib/theme";
+import { countWord } from "@floc/core/text/count-word";
 
 type Stop = Extract<StayRow, { kind: "stop" }>;
 
 function meta(row: StayRow) {
   const n = nightsBetween(row.checkIn, row.checkOut);
-  return `${formatShortRange(row.checkIn, row.checkOut)} · ${n} ${n === 1 ? "night" : "nights"}`;
+  return `${formatShortRange(row.checkIn, row.checkOut)} · ${countWord(n, "night")}`;
 }
 
 function StopRow({ tripId, row, first }: { tripId: number; row: Stop; first: boolean }) {

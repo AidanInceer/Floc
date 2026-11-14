@@ -70,7 +70,6 @@ const config = [
       "src/components/auth/auth-form.tsx",
       "src/components/days/days-calendar.tsx",
       "src/components/money/expense-form.tsx",
-      "src/components/notes/note-thread.tsx",
       "src/components/social/place-picker.tsx",
       "src/server/itinerary/weather.ts",
     ],

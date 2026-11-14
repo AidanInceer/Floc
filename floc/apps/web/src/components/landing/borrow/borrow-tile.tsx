@@ -3,11 +3,12 @@
 import { useState } from "react";
 
 import { cx } from "@/components/system/ui";
-import { nightsWords, placeWords, type BorrowCard as Card } from "@/lib/landing/borrow";
+import { placeWords, type BorrowCard as Card } from "@/lib/landing/borrow";
 
 import { Glyph } from "@/components/system/icons/landing";
 import { toneDot } from "./tones";
 import type { Face } from "./use-borrow-hand";
+import { countWord } from "@floc/core/text/count-word";
 
 type Shown = { card: Card; face: Face };
 type Actions = { pick: () => void; deeper: (opener: HTMLElement) => void; hold: (on: boolean) => void };
@@ -22,7 +23,7 @@ function FaceView({ shown, onGone }: { shown: Shown; onGone?: () => void }) {
       </span>
       <b className="borrow-chip-title">{card.title}</b>
       <span className="borrow-meta nums text-ink-faint">
-        <span>{nightsWords(card.nights)} ·</span> <span>from {card.price}</span>
+        <span>{countWord(card.nights, "night")} ·</span> <span>from {card.price}</span>
       </span>
     </span>
   );

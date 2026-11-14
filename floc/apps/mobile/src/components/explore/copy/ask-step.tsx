@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { CalendarGlyph, ChevronGlyph, ClockGlyph } from "../../system/glyphs";
 import { useTheme } from "../../system/theme";
 import { fonts, radius, size, space } from "@/lib/theme";
+import { countWord } from "@floc/core/text/count-word";
 
 function Choice({ tile, label, hint, onPress }: { tile: ReactNode; label: string; hint: string; onPress: () => void }) {
   const { c } = useTheme();
@@ -41,7 +42,7 @@ export function AskStep({ nights, onAnswer }: { nights: number; onAnswer: (has: 
         <Choice
           tile={tile(c["pastel-yellow"], <CalendarGlyph color={c["pastel-yellow-ink"]} />)}
           label="Yes"
-          hint={`Pick when you go. The ${nights} nights follow.`}
+          hint={`Pick when you go. The ${countWord(nights, "night")} ${nights === 1 ? "follows" : "follow"}.`}
           onPress={() => onAnswer(true)}
         />
         <View style={{ height: StyleSheet.hairlineWidth * 2, backgroundColor: c.rule }} />

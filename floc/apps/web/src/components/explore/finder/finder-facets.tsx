@@ -9,10 +9,9 @@ import { RangeBars } from "@/components/explore/finder/range-bars";
 import { PillToggle } from "@/components/system/client-ui";
 import { cx } from "@/components/system/ui";
 import { useListingRates } from "@/components/explore/listing-rates";
+import { countWord } from "@floc/core/text/count-word";
 
 type Facet = { finder: Finder; counts: FinderCounts; shown: number; onChange: (next: Finder) => void };
-
-const trips = (n: number) => `${n} ${n === 1 ? "trip" : "trips"}`;
 
 export function WhereFacet({ finder, counts, onChange }: Facet) {
   return (
@@ -41,7 +40,7 @@ export function WhenFacet({ finder, counts, onChange }: Facet) {
               key={name}
               type="button"
               aria-pressed={on}
-              aria-label={`${name}, ${trips(counts.months[i])}`}
+              aria-label={`${name}, ${countWord(counts.months[i], "trip")}`}
               onClick={() => onChange({ ...finder, months: toggled(finder.months, i + 1) })}
               className={cx(
                 "grid justify-items-center gap-px rounded-sm border pb-[5px] pt-1.5 transition-colors",
@@ -79,7 +78,7 @@ export function LengthFacet({ finder, counts, shown, onChange }: Facet) {
       onChange={([a, b]) => onChange(withNights(finder, a, b))}
     >
       <span>{nightsWord(finder.nights)}</span>
-      <span>{trips(shown)}</span>
+      <span>{countWord(shown, "trip")}</span>
     </RangeBars>
   );
 }
@@ -109,7 +108,7 @@ export function PriceFacet({ finder, counts, shown, onChange }: Facet) {
         onChange={([a, b]) => onChange(withPrice(finder, a, b))}
       >
         <span>{scaleWord(finder.price, rates)}</span>
-        <span>{trips(shown)}</span>
+        <span>{countWord(shown, "trip")}</span>
       </RangeBars>
     </div>
   );

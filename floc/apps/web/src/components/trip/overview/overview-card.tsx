@@ -14,6 +14,7 @@ import { TripNameInline } from "@/components/trip/trip-name-inline";
 import { TagChips } from "@/components/trip/overview/tag-chips";
 import { renameTrip } from "@/app/trip/[id]/overview/actions";
 import { MoonIcon, PencilIcon } from "@/components/system/icons";
+import { countWord } from "@floc/core/text/count-word";
 
 const BAND: Record<TripColor, string> = {
   peri: "border-t-pastel-blue",
@@ -94,7 +95,7 @@ export function OverviewCard({
               <span className="flex items-center gap-1 whitespace-nowrap">
                 <span aria-hidden>{trip.nights}</span>
                 <MoonIcon size={12} />
-                <span className="sr-only">{trip.nights === 1 ? "1 night" : `${trip.nights} nights`}</span>
+                <span className="sr-only">{countWord(trip.nights, "night")}</span>
               </span>
             </>
           ) : (

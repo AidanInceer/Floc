@@ -4,9 +4,10 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { cx } from "@/components/system/ui";
-import { nightsWords, placeWords, type BorrowCard as Card } from "@/lib/landing/borrow";
+import { placeWords, type BorrowCard as Card } from "@/lib/landing/borrow";
 
 import { StartButton } from "./start-button";
+import { countWord } from "@floc/core/text/count-word";
 
 type Props = { card: Card; tone: string; step: number; onStep: (k: number) => void; signedIn: boolean };
 
@@ -22,7 +23,7 @@ export function BorrowRail({ card, tone, step, onStep, signedIn }: Props) {
         </span>
         <h3 className="bp-title">{card.title}</h3>
         <p className="bp-figs nums">
-          {nightsWords(card.nights)} · from {card.price}
+          {countWord(card.nights, "night")} · from {card.price}
         </p>
       </header>
       <div className="bp-pager">
@@ -55,7 +56,7 @@ export function BorrowRail({ card, tone, step, onStep, signedIn }: Props) {
                   </span>
                 )}
               </span>
-              <span className="bp-n nums">{nightsWords(stop.nights)}</span>
+              <span className="bp-n nums">{countWord(stop.nights, "night")}</span>
             </button>
           </li>
         ))}

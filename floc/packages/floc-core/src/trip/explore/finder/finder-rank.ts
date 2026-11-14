@@ -14,8 +14,6 @@ export const FINDER_SORTS = {
 
 export type FinderSort = keyof typeof FINDER_SORTS;
 
-export const isFinderSort = (value: unknown): value is FinderSort => typeof value === "string" && value in FINDER_SORTS;
-
 export type Ranked = {
   trip: PresetTrip;
   /** The tags you like that this listing has. */

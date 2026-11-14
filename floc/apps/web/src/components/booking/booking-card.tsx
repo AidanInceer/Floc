@@ -9,6 +9,7 @@ import { BookingSitesProvider } from "@/components/booking/booking-sites";
 import { OFFSITE_NOTE } from "@/components/booking/site-links";
 import { SitePicker } from "@/components/booking/site-picker";
 import { BedIcon, EventGlyph } from "@/components/system/icons/days";
+import { countWord } from "@floc/core/text/count-word";
 
 const headClass = "font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint";
 const panelClass = "rounded-sm border border-rule bg-sheet-2 px-3 py-2.5 max-sm:px-2.5";
@@ -16,7 +17,7 @@ const panelHeadClass = "flex items-center gap-2 text-sm font-medium";
 
 function nightsLabel(row: StayRow) {
   const nights = nightsBetween(row.checkIn, row.checkOut);
-  return `${formatDateRange(row.checkIn, row.checkOut)} · ${nights} ${nights === 1 ? "night" : "nights"}`;
+  return `${formatDateRange(row.checkIn, row.checkOut)} · ${countWord(nights, "night")}`;
 }
 
 export function BookingCard({ tripId, plan, files, sites }: { tripId: number; plan: BookingPlan; files: boolean; sites: BookingSites }) {

@@ -3,8 +3,9 @@ import type { ReactNode } from "react";
 import { Avatar, Badge } from "@/components/system/ui";
 import type { TripMember } from "@/server/access";
 import type { Guest } from "@/server/guests/guests";
+import { countWord } from "@floc/core/text/count-word";
 
-const daysLabel = (days: number): string => (days === 0 ? "No days" : `${days} ${days === 1 ? "day" : "days"}`);
+const daysLabel = (days: number): string => (days === 0 ? "No days" : countWord(days, "day"));
 
 export function WhoAnswered({
   members,

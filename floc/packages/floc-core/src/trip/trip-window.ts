@@ -8,6 +8,7 @@
  * and a round trip per pointer move isn't worth paying.
  */
 import { dateRange, fromIsoDate, isIsoDate, type IsoDate } from "../dates/dates";
+import { countWord } from "../text/count-word";
 
 /** One live day and how much is planned on it. */
 export type DayLoad = { date: IsoDate; events: number };
@@ -35,9 +36,9 @@ export function windowCost(
 /** "2 days and 5 events", or "2 days". `null` means nothing to lose. */
 export function windowCostNoun(cost: WindowCost): string | null {
   if (cost.days === 0) return null;
-  const days = `${cost.days} ${cost.days === 1 ? "day" : "days"}`;
+  const days = countWord(cost.days, "day");
   if (cost.events === 0) return days;
-  return `${days} and ${cost.events} ${cost.events === 1 ? "event" : "events"}`;
+  return `${days} and ${countWord(cost.events, "event")}`;
 }
 
 /** As a verb for the control that does it: "Remove 2 days and 5 events" — never "OK". */

@@ -1,3 +1,4 @@
+import { countWord } from "../text/count-word";
 /**
  * Stop derivation (ticket 15 / 04): a "stop" is never stored, only a run of
  * consecutive `day` rows sharing `overnightPlaceId`. Pure, no DB access.
@@ -35,7 +36,7 @@ export function placedStops(stops: Stop[]): Stop[] {
 
 export function nightsLabel(nights: number): string {
   if (nights === 0) return "Day home";
-  return nights === 1 ? "1 night" : `${nights} nights`;
+  return countWord(nights, "night");
 }
 
 /**

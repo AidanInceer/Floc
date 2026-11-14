@@ -7,6 +7,7 @@ import { ledgerBalances, type LedgerRows } from "../money/ledger";
 import type { Currency } from "../money/currency";
 import { countdownLabel, hasEnded } from "../dates/dates";
 import { owingUserIds } from "./group/group-status";
+import { countWord } from "../text/count-word";
 
 /** What a station on the trail is doing. No `locked` — every tab is open (ticket 126). */
 type StationState = "done" | "now" | "snag" | "ahead";
@@ -137,7 +138,7 @@ export function tripStateFor<M extends StateMember>(
       // Absorbed Route's station when it retired as a tab (ticket 142).
       caption: hasDays
         ? placeCount
-          ? `${days.length} sketched · ${placeCount} ${placeCount === 1 ? "place" : "places"}`
+          ? `${days.length} sketched · ${countWord(placeCount, "place")}`
           : `${days.length} sketched`
         : "nothing yet",
       state: hasDays ? "now" : "ahead",
@@ -146,7 +147,7 @@ export function tripStateFor<M extends StateMember>(
       key: "money",
       label: "Money",
       caption: expenses.length
-        ? `${expenses.length} ${expenses.length === 1 ? "expense" : "expenses"}`
+        ? countWord(expenses.length, "expense")
         : "nothing yet",
       state: expenses.length ? (money.length ? "snag" : "done") : "ahead",
     },
