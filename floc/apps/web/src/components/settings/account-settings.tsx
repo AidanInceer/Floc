@@ -28,7 +28,8 @@ import type { SettingsSection } from "@/lib/settings/settings-section";
 const NOTIFICATION_TOGGLES = [
   { name: "notifyPush", label: "Push", hint: "On any phone signed in to Floc." },
   { name: "notifyEmail", label: "Email", hint: "Only when push can't reach you." },
-  { name: "notifyReminders", label: "Reminders", hint: "A week before a trip, on the day, and money still owed after." },
+  { name: "notifyReminders", label: "Reminders", hint: "A week before a trip, on the day, and money still owed a week and a month after." },
+  { name: "notifyNextTrip", label: "Next trip ideas", hint: "Two and six months after your last trip, if nothing's planned." },
 ] as const;
 
 const PROVIDER_LABELS: Record<string, string> = {
@@ -108,7 +109,12 @@ export function AccountSettings({ email, profile, linkedAccounts, calendarGrante
         <SettingsRow
           {...row("notifications")}
           title="Notifications"
-          summary={notificationSummary({ push: profile.notifyPush, email: profile.notifyEmail, reminders: profile.notifyReminders })}
+          summary={notificationSummary({
+            push: profile.notifyPush,
+            email: profile.notifyEmail,
+            reminders: profile.notifyReminders,
+            nextTrip: profile.notifyNextTrip,
+          })}
         >
           <AutoSaveForm action={updateNotifications} className="flex flex-col gap-4">
             {NOTIFICATION_TOGGLES.map((t) => (

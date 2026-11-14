@@ -14,6 +14,11 @@ describe("appLinkPath", () => {
     expect(appLinkPath("/trip/4/overview", host)).toBe("/trip/4");
   });
 
+  it("opens Start a trip from the next trip email, query and all (#626)", () => {
+    expect(appLinkPath("/trips?new=", host)).toBe("/new-trip");
+    expect(appLinkPath(`https://${host}/trips?new=`, host)).toBe("/new-trip");
+  });
+
   it("leaves a link to anywhere else alone", () => {
     expect(appLinkPath("https://example.com/trip/4/money", host)).toBe("https://example.com/trip/4/money");
     expect(appLinkPath("floc://reset-password?token=abc", host)).toBe("floc://reset-password?token=abc");

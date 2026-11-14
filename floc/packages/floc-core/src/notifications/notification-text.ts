@@ -28,11 +28,17 @@ const LINES: Record<Change, { did: string; joins: string | null }> = {
   wish_list_joined: { did: "joined your wish list", joins: null },
 };
 
+const NEXT_TRIP = "Have you thought about your next trip yet?";
+
 const REMINDERS: Record<ReminderKind, { inbox: (trip: string, detail: string) => string; push: (detail: string) => string }> = {
   trip_starts_week: { inbox: (t) => `${t} starts in a week`, push: () => "Starts in a week" },
   trip_starts_today: { inbox: (t) => `${t} starts today`, push: () => "Starts today" },
   still_owe: { inbox: (t, d) => `You still owe ${d} for ${t}`, push: (d) => `You still owe ${d}` },
   year_ago: { inbox: (t) => `One year ago today: ${t}`, push: () => "One year ago today" },
+  still_owe_week: { inbox: (t, d) => `You still owe ${d} for ${t}`, push: (d) => `You still owe ${d}` },
+  still_owe_month: { inbox: (t, d) => `You still owe ${d} for ${t}`, push: (d) => `You still owe ${d}` },
+  next_trip_2m: { inbox: () => NEXT_TRIP, push: () => NEXT_TRIP },
+  next_trip_6m: { inbox: () => NEXT_TRIP, push: () => NEXT_TRIP },
 };
 
 type Parts = { actor: string; trip: string | null; detail?: string | null };
