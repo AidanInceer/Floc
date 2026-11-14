@@ -1,25 +1,5 @@
 import { Badge, cx, type Tone } from "@/components/system/ui";
-import { CategoryIcon } from "@/components/system/icons/category";
 import type { BudgetFit, LineProgress, Range } from "@floc/core/money/estimate/budget";
-import type { SpendLine } from "@floc/core/money/estimate/lines";
-import type { ExpenseCategory } from "@floc/core/money/expense-category";
-
-const ICON: Record<SpendLine, ExpenseCategory> = {
-  flights: "flights",
-  stay: "lodging",
-  food: "food",
-  activities: "activity",
-  transport: "transport",
-  other: "other",
-};
-
-export function LineIcon({ line }: { line: SpendLine }) {
-  return (
-    <span className="grid size-[26px] shrink-0 place-items-center rounded-sm bg-sheet-3 text-ink-soft">
-      <CategoryIcon category={ICON[line]} />
-    </span>
-  );
-}
 
 const FIT_TONE: Record<BudgetFit["kind"], Tone> = { fits: "agreed", tight: "open", over: "action" };
 const PROGRESS_TONE: Partial<Record<LineProgress["kind"], Tone>> = { "in-range": "agreed", over: "action" };

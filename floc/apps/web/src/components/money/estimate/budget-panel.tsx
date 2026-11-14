@@ -1,6 +1,7 @@
 import { Sheet } from "@/components/system/client-ui";
 import { iconButtonClass } from "@/components/system/ui";
-import { LineIcon, FitBadge, ProgressBadge, SpendBar } from "@/components/money/estimate/estimate-marks";
+import { FitBadge, ProgressBadge, SpendBar } from "@/components/money/estimate/estimate-marks";
+import { SpendLineIcon } from "@/components/system/icons/spend-line";
 import { BudgetForm, HomeAirportForm, LineForm, NightsForm } from "@/components/money/estimate/estimate-forms";
 import { StyleForm } from "@/components/money/estimate/style-form";
 import type { EstimateView } from "@/server/money/estimate/estimate-view";
@@ -64,7 +65,7 @@ function LineRow({ tripId, view, line }: { tripId: number; view: EstimateView; l
   const needsHome = line.line === "flights" && line.missing === "home" && !line.plan;
   return (
     <li className={ROW}>
-      <LineIcon line={line.line} />
+      <SpendLineIcon line={line.line} />
       <span className="grid min-w-0 gap-0.5">
         {LINE_LABELS[line.line]}
         <Detail text={lineDetail({ ...line, range: line.plan }, { style: view.style, nights: view.nights.count })} />
@@ -92,7 +93,7 @@ function LineRow({ tripId, view, line }: { tripId: number; view: EstimateView; l
 function OtherRow({ amount, currency }: { amount: number; currency: EstimateView["currency"] }) {
   return (
     <li className={ROW}>
-      <LineIcon line="other" />
+      <SpendLineIcon line="other" />
       <span className="grid min-w-0 gap-0.5">Other<Detail text="Shopping, health, fees and the rest" /></span>
       <span className={BAR_CELL} />
       <span className={FIGURE_CELL}><span className="font-mono text-ink">{wholeMoney(amount, currency)} spent</span></span>
