@@ -25,17 +25,28 @@ export const ACTIVITY_KINDS = [
   "trip_starts_today",
   "still_owe",
   "year_ago",
+  "still_owe_week",
+  "still_owe_month",
+  "next_trip_2m",
+  "next_trip_6m",
   "booking_filed",
   "booking_waiting",
 ] as const;
 export type ActivityKind = (typeof ACTIVITY_KINDS)[number];
 
-/** Dates, not changes (#346): made by the cron, never by a person, and exempt from the send limits. */
+/**
+ * Dates, not changes (#346): made by the cron, never by a person, and exempt from the send limits.
+ * Why: `still_owe` is no longer sent (#626) but stays so its old inbox rows still read.
+ */
 export const REMINDER_KINDS = [
   "trip_starts_week",
   "trip_starts_today",
   "still_owe",
   "year_ago",
+  "still_owe_week",
+  "still_owe_month",
+  "next_trip_2m",
+  "next_trip_6m",
 ] as const satisfies ActivityKind[];
 export type ReminderKind = (typeof REMINDER_KINDS)[number];
 
@@ -88,6 +99,10 @@ const RULES: Record<ActivityKind, Rule> = {
   trip_starts_today: { audience: "affected", loud: "affected" },
   still_owe: { audience: "affected", loud: "affected" },
   year_ago: { audience: "affected", loud: "affected" },
+  still_owe_week: { audience: "affected", loud: "affected" },
+  still_owe_month: { audience: "affected", loud: "affected" },
+  next_trip_2m: { audience: "affected", loud: "affected" },
+  next_trip_6m: { audience: "affected", loud: "affected" },
   booking_filed: { audience: "self", loud: "nobody" },
   booking_waiting: { audience: "self", loud: "nobody" },
 };

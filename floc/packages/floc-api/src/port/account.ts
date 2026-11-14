@@ -50,6 +50,7 @@ export type MySettings = {
   notifyPush: boolean;
   notifyEmail: boolean;
   notifyReminders: boolean;
+  notifyNextTrip: boolean;
   /** `provider` is the raw id (`google`, `credential`); a client names it. */
   signInMethods: { id: string; provider: string }[];
   /** The sites shown as buttons wherever Floc links out to book. */
@@ -204,7 +205,8 @@ export type AccountPort = {
 
   updateNotifications(
     viewerId: string,
-    input: { push: boolean; email: boolean; reminders: boolean },
+    /** `nextTrip` is left out by phones built before #626, and then stays as it was. */
+    input: { push: boolean; email: boolean; reminders: boolean; nextTrip?: boolean | undefined },
   ): Promise<void>;
 
   /**

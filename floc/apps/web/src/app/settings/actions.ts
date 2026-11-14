@@ -66,6 +66,7 @@ export async function updateNotifications(formData: FormData): Promise<void> {
     notifyPush: formData.get("notifyPush") === "on",
     notifyEmail: formData.get("notifyEmail") === "on",
     notifyReminders: formData.get("notifyReminders") === "on",
+    notifyNextTrip: formData.get("notifyNextTrip") === "on",
   });
 }
 
