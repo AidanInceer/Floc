@@ -65,6 +65,7 @@ export async function eraseAccount(userId: string): Promise<void> {
         notifyPush: false,
         notifyEmail: false,
         notifyReminders: false,
+        notifyNextTrip: false,
         lastModifiedAt: now,
       })
       .where(eq(userProfile.userId, userId));

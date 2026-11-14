@@ -33,6 +33,19 @@ describe("notificationText", () => {
     expect(notificationText("still_owe", { actor: "Ada", trip: "Rome", detail: "Sam £40.00" })).toBe(
       "You still owe Sam £40.00 for Rome",
     );
+    expect(notificationText("still_owe_week", { actor: "Ada", trip: "Rome", detail: "Sam £40.00" })).toBe(
+      "You still owe Sam £40.00 for Rome",
+    );
+    expect(notificationText("still_owe_month", { actor: "Ada", trip: "Rome", detail: "Sam £40.00" })).toBe(
+      "You still owe Sam £40.00 for Rome",
+    );
+  });
+
+  it("asks about the next trip without naming one", () => {
+    for (const kind of ["next_trip_2m", "next_trip_6m"] as const) {
+      expect(notificationText(kind, { actor: "Ada", trip: null })).toBe("Have you thought about your next trip yet?");
+      expect(pushText(kind, { actor: "Ada" })).toBe("Have you thought about your next trip yet?");
+    }
   });
 });
 

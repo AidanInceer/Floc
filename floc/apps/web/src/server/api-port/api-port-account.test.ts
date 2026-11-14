@@ -62,6 +62,16 @@ describe("settings", () => {
     expect([after.notifyPush, after.notifyEmail, after.notifyReminders]).toEqual([false, true, false]);
   });
 
+  it("keeps the next trip switch, on until changed, and an older phone that does not send it leaves it alone (#626)", async () => {
+    expect((await webPort.loadMySettings(world.member)).notifyNextTrip).toBe(true);
+
+    await webPort.updateNotifications(world.member, { push: true, email: true, reminders: true, nextTrip: false });
+    expect((await webPort.loadMySettings(world.member)).notifyNextTrip).toBe(false);
+
+    await webPort.updateNotifications(world.member, { push: true, email: true, reminders: true });
+    expect((await webPort.loadMySettings(world.member)).notifyNextTrip).toBe(false);
+  });
+
   it("refuses to unlink the last sign-in method", async () => {
     await db.insert(schema.account).values({
       id: "acc-only",

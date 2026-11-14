@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { phoneRoute, threadTab, tripHref } from "./notification-href";
+import { START_TRIP_HREF, phoneRoute, threadTab, tripHref } from "./notification-href";
 
 describe("notification links", () => {
   it("opens the tab a comment is drawn on", () => {
@@ -15,5 +15,10 @@ describe("notification links", () => {
     expect(phoneRoute("/trip/4/overview")).toBe("/trip/4");
     expect(phoneRoute("/trip/4/money")).toBe("/trip/4/money");
     expect(phoneRoute("/friends")).toBe("/friends");
+  });
+
+  it("opens Start a trip, empty, on web and phone", () => {
+    expect(START_TRIP_HREF).toBe("/trips?new=");
+    expect(phoneRoute(START_TRIP_HREF)).toBe("/new-trip");
   });
 });
