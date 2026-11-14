@@ -23,7 +23,7 @@ export function tripsSummary(packingStyle: string, currency: string): string {
   return `${packingStyle} packing, ${currency}`;
 }
 
-const NOTIFY_WORDS = { push: "Push", email: "Email", reminders: "Reminders" } as const;
+const NOTIFY_WORDS = { push: "Push", email: "Email", reminders: "Reminders", nextTrip: "Next trip ideas" } as const;
 
 export function notificationSummary(notify: Record<keyof typeof NOTIFY_WORDS, boolean>): string {
   const on = (Object.keys(NOTIFY_WORDS) as (keyof typeof NOTIFY_WORDS)[]).filter((k) => notify[k]);

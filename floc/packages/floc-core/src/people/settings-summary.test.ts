@@ -52,10 +52,11 @@ describe("trips summary", () => {
 
 describe("notification summary", () => {
   it("names the ones that are on", () => {
-    expect(notificationSummary({ push: true, email: false, reminders: true })).toBe("Push, Reminders");
+    expect(notificationSummary({ push: true, email: false, reminders: true, nextTrip: false })).toBe("Push, Reminders");
+    expect(notificationSummary({ push: false, email: false, reminders: false, nextTrip: true })).toBe("Next trip ideas");
   });
 
   it("says when all are off", () => {
-    expect(notificationSummary({ push: false, email: false, reminders: false })).toBe("All off");
+    expect(notificationSummary({ push: false, email: false, reminders: false, nextTrip: false })).toBe("All off");
   });
 });

@@ -1,0 +1,1 @@
+ALTER TABLE `user_profile` ADD `notify_next_trip` integer DEFAULT true NOT NULL;

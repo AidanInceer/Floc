@@ -117,6 +117,7 @@ function SettingsPanels({
     push: settings.notifyPush,
     email: settings.notifyEmail,
     reminders: settings.notifyReminders,
+    nextTrip: settings.notifyNextTrip,
   });
   const [failed, setFailed] = useState(false);
 
@@ -269,6 +270,15 @@ function SettingsPanels({
             onChange={(reminders) => {
               setNotify({ ...notify, reminders });
               saveNotify.mutate({ ...notify, reminders });
+            }}
+          />
+          <Toggle
+            label="Next trip ideas"
+            hint="Two and six months after your last trip, if nothing's planned."
+            value={notify.nextTrip}
+            onChange={(nextTrip) => {
+              setNotify({ ...notify, nextTrip });
+              saveNotify.mutate({ ...notify, nextTrip });
             }}
           />
         </Drawer>

@@ -1,7 +1,8 @@
 /**
- * Date reminders (#346): a week before, on the day, money still owed 3 days
- * after, and a year on. Written straight into the inbox as loud notifications,
- * so push and email carry them — past the limits, obeying mute.
+ * Date reminders (#346, #626): a week before, on the day, money still owed a
+ * week and a month after, a year on, and the "next trip?" prompt. Written
+ * straight into the inbox as loud notifications, so push and email carry
+ * them — past the limits, obeying mute.
  */
 import "server-only";
 
@@ -11,14 +12,14 @@ import { addDays } from "@floc/core/dates/dates";
 import { paidIn } from "@floc/core/money/group-settle";
 import { formatMoney } from "@floc/core/money/money";
 import { tripHref } from "@floc/core/notifications/notification-href";
-import { reminderDay, remindersDue } from "@floc/core/notifications/reminders";
+import { STILL_OWE_AFTER_DAYS, isStillOwe, reminderDay, remindersDue } from "@floc/core/notifications/reminders";
 import type { ReminderKind } from "@floc/core/notifications/rules";
 import { db } from "@/db";
-import { activity, notification, reminder, trip, tripMembership, userProfile } from "@/db/schema";
+import { trip, tripMembership, userProfile } from "@/db/schema";
 import { listExpenses, listSettlements, listSplits, namesForUsers } from "@/server/money/money";
 import { settleUpFrom } from "@/server/money/settle-up";
-
-type Target = { userId: string; detail: string | null };
+import { sendNextTripPrompts } from "@/server/notifications/next-trip";
+import { remind, type Reminder, type Target } from "@/server/notifications/remind";
 
 async function datedTrips(day: string) {
   const lastYear = `${Number(day.slice(0, 4)) - 1}${day.slice(4)}`;
@@ -31,7 +32,10 @@ async function datedTrips(day: string) {
         isNull(trip.archivedAt),
         or(
           inArray(trip.startDate, [addDays(day, 7), day, lastYear]),
-          eq(trip.endDate, addDays(day, -3)),
+          inArray(
+            trip.endDate,
+            Object.values(STILL_OWE_AFTER_DAYS).map((days) => addDays(day, -days)),
+          ),
         ),
       ),
     )
@@ -67,32 +71,13 @@ async function debtors(tripId: number): Promise<Target[]> {
   return [...owed].map(([userId, parts]) => ({ userId, detail: parts.join(", ") }));
 }
 
-/** Why: the reminder row's unique key is claimed first, so an overlapping run inserts nothing twice. The actor is the recipient because a date has no author. */
-async function remind(kind: ReminderKind, tripId: number, target: Target): Promise<boolean> {
-  return db.transaction(async (tx) => {
-    const won = await tx
-      .insert(reminder)
-      .values({ kind, tripId, userId: target.userId })
-      .onConflictDoNothing()
-      .returning({ id: reminder.id })
-      .all();
-    if (won.length === 0) return false;
-    const row = await tx
-      .insert(activity)
-      .values({
-        kind,
-        tripId,
-        actorId: target.userId,
-        subjectId: tripId,
-        href: tripHref(tripId, kind === "still_owe" ? "money" : "overview"),
-        detail: target.detail,
-      })
-      .returning({ id: activity.id })
-      .get();
-    await tx.insert(notification).values({ activityId: row.id, userId: target.userId, loud: true });
-    return true;
-  });
-}
+const tripReminder = (kind: ReminderKind, tripId: number, target: Target): Reminder => ({
+  kind,
+  keyTripId: tripId,
+  tripId,
+  href: tripHref(tripId, isStillOwe(kind) ? "money" : "overview"),
+  target,
+});
 
 export async function sendDueReminders(now = new Date()): Promise<number> {
   const day = reminderDay(now);
@@ -104,11 +89,11 @@ export async function sendDueReminders(now = new Date()): Promise<number> {
     if (kinds.length === 0) continue;
     const listening = new Set(await listeners(t.id));
     for (const kind of kinds) {
-      const targets = kind === "still_owe" ? await debtors(t.id) : [...listening].map((userId) => ({ userId, detail: null }));
+      const targets = isStillOwe(kind) ? await debtors(t.id) : [...listening].map((userId) => ({ userId, detail: null }));
       for (const target of targets.filter((x) => listening.has(x.userId))) {
-        if (await remind(kind, t.id, target)) sent += 1;
+        if (await remind(tripReminder(kind, t.id, target))) sent += 1;
       }
     }
   }
-  return sent;
+  return sent + (await sendNextTripPrompts(day));
 }

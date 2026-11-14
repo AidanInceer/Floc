@@ -68,6 +68,7 @@ export const settingsPort: SettingsPort = {
       notifyPush: profile.notifyPush,
       notifyEmail: profile.notifyEmail,
       notifyReminders: profile.notifyReminders,
+      notifyNextTrip: profile.notifyNextTrip,
       signInMethods: linked.map((a) => ({ id: a.id, provider: a.providerId })),
       bookingSites: readBookingSites(profile.bookingSites),
     };
@@ -128,6 +129,7 @@ export const settingsPort: SettingsPort = {
       notifyPush: input.push,
       notifyEmail: input.email,
       notifyReminders: input.reminders,
+      ...(input.nextTrip === undefined ? {} : { notifyNextTrip: input.nextTrip }),
     });
   },
 
