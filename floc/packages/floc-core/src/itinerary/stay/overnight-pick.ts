@@ -6,6 +6,7 @@
 import { addDays, formatDate, type IsoDate } from "../../dates/dates";
 import { spanLabel } from "../../dates/dates-tabs";
 import { shortPlace } from "../names/place-name";
+import { countWord } from "../../text/count-word";
 
 export type Night = { date: IsoDate; placeId: number | null; placeName: string | null };
 
@@ -18,7 +19,7 @@ export function stayNights(
 ): { count: number; label: string; taken: string[] } {
   const inside = nights.filter((n) => n.date >= stay.start && n.date <= end);
   const count = inside.length;
-  const label = `${count} night${count === 1 ? "" : "s"}, ${spanLabel(stay.start, addDays(end, 1))}`;
+  const label = `${countWord(count, "night")}, ${spanLabel(stay.start, addDays(end, 1))}`;
 
   const runs: Taken[] = [];
   for (const n of inside) {

@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   MAX_TAGS,
-  formatTags,
   parseTagNames,
   parseTags,
   readTags,
@@ -29,8 +28,8 @@ describe("parseTags", () => {
     expect(parseTags("a".repeat(40))[0]).toHaveLength(24);
   });
 
-  it("round-trips through the field", () => {
-    expect(parseTags(formatTags(["beach", "stag"]))).toEqual(["beach", "stag"]);
+  it("reads tags as the field shows them", () => {
+    expect(parseTags("beach, stag")).toEqual(["beach", "stag"]);
   });
 
   it("treats nothing as no tags", () => {
@@ -59,12 +58,5 @@ describe("parseTagNames (ticket 213: names only, one colour per trip)", () => {
   it("caps the count", () => {
     const many = Array.from({ length: MAX_TAGS + 3 }, (_, i) => `t${i}`);
     expect(parseTagNames(many)).toHaveLength(MAX_TAGS);
-  });
-});
-
-describe("formatTags", () => {
-  it("reads an absent tag list as no tags at all", () => {
-    expect(formatTags(null)).toBe("");
-    expect(formatTags(undefined)).toBe("");
   });
 });

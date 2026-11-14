@@ -1,49 +1,14 @@
 /**
- * Roster seats, drawn (tickets 291, 299).
+ * The phone's line-art glyphs (tickets 291, 299). A seat, a person's face, is `face.tsx`.
  *
  * NO EMOJI (#148). The web app draws line-art in a 14×14 `viewBox` at ~13px,
- * `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"`. React Native
- * has no SVG without another dependency, so this is the same drawing built
- * from views, at the same weight.
+ * `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"`.
  *
  * The tab glyphs that lived here went with the tab bar (#299) — the section
  * sheet is a list of words, and a word needs no icon beside it.
 */
 import type { WeatherCondition } from "@floc/core/itinerary/weather";
-import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, G, Path } from "react-native-svg";
-
-import { initials } from "@floc/core/people/initials";
-
-import { fonts, radius } from "@/lib/theme";
-
-/** A member's seat colour as a rounded square with their initials — the roster's `whoTone` made visible. */
-export function Seat({
-  name,
-  ground,
-  ink,
-}: {
-  name: string;
-  ground: string;
-  ink: string;
-}) {
-  return (
-    <View
-      style={{
-        width: 28,
-        height: 28,
-        borderRadius: radius.sm,
-        backgroundColor: ground,
-        alignItems: "center",
-        justifyContent: "center",
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: ink,
-      }}
-    >
-      <Text style={{ color: ink, fontFamily: fonts.sansBold, fontSize: 11 }}>{initials(name)}</Text>
-    </View>
-  );
-}
 
 /* Real SVG now that `react-native-svg` is here (#302) — same weights as the web. */
 
@@ -79,16 +44,6 @@ export function SearchGlyph({ color }: { color: string }) {
     <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
       <Circle cx={6.2} cy={6.2} r={3.8} stroke={color} strokeWidth={STROKE} />
       <Path d="M9 9 11.6 11.6" stroke={color} strokeWidth={STROKE} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-/** A hand raised: I'll bring it. A circle with a line up out of it. */
-export function ClaimGlyph({ color }: { color: string }) {
-  return (
-    <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
-      <Path d="M7 10.6V3.4" stroke={color} strokeWidth={STROKE} strokeLinecap="round" />
-      <Path d="M4.2 6.2 7 3.4 9.8 6.2" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -146,24 +101,6 @@ export function PenGlyph({ color, size = 16 }: { color: string; size?: number })
   return (
     <Svg width={size} height={size} viewBox="0 0 14 14" fill="none">
       <Path d="M9.3 2.6l2.1 2.1-6 6-2.6.5.5-2.6 6-6z" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-/**
- * Want-to-go: a pin planted, not a star. A star would read as a rating, and
- * nobody rates a country they have never been to.
- */
-export function FlagGlyph({ color }: { color: string }) {
-  return (
-    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
-      <Path
-        d="M3.5 12.5V2.2c2-1 4 1 6 0v5c-2 1-4-1-6 0"
-        stroke={color}
-        strokeWidth={1.2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
     </Svg>
   );
 }
@@ -254,21 +191,6 @@ export function ClockGlyph({ color }: { color: string }) {
   );
 }
 
-/** Flights — the web's Overview booking tile. */
-export function PlaneGlyph({ color }: { color: string }) {
-  return (
-    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
-      <Path
-        d="M11.03 2.97C11.42 3.36 11.35 3.99 10.85 4.49L8.66 6.68L9.93 11.49L9.09 12.34L6.96 8.38L5.27 10.08L5.48 11.7L4.84 12.34L3.68 10.32L1.66 9.16L2.3 8.52L3.92 8.73L5.62 7.04L1.66 4.91L2.51 4.07L7.32 5.34L9.51 3.15C10.01 2.65 10.64 2.58 11.03 2.97Z"
-        stroke={color}
-        strokeWidth={STROKE}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
 /** The bookmark that hangs from a stop with a hotel booking: 16 wide, 30 tall, notched at the foot. */
 export function RibbonGlyph({ color }: { color: string }) {
   return (
@@ -321,21 +243,6 @@ export function ClipGlyph({ color }: { color: string }) {
         d="M10.5 6.5 6 11a2.6 2.6 0 0 1-3.7-3.7l5.2-5.2a1.7 1.7 0 0 1 2.4 2.4L4.7 9.7a.8.8 0 0 1-1.2-1.2l4.6-4.6"
         stroke={color}
         strokeWidth={1.25}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-/** Pro's mark, the web's `pro-star.tsx` path. Decorative: the words "Floc Pro" always travel with it. */
-export function ProStarGlyph({ color }: { color: string }) {
-  return (
-    <Svg width={13} height={13} viewBox="0 0 14 14" fill="none">
-      <Path
-        d="M7 1.9 8.6 5.2 12.2 5.7 9.6 8.2 10.2 11.8 7 10.1 3.8 11.8 4.4 8.2 1.8 5.7 5.4 5.2Z"
-        stroke={color}
-        strokeWidth={STROKE}
         strokeLinecap="round"
         strokeLinejoin="round"
       />

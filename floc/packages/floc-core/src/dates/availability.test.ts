@@ -7,7 +7,6 @@ import {
   freeDaysByUser,
   markedUserIds,
   monthGrid,
-  monthsFrom,
   tally,
   tripCoverage,
   type AvailabilityRow,
@@ -23,10 +22,6 @@ describe("month arithmetic", () => {
     expect(addMonths("2026-12", 1)).toBe("2027-01");
     expect(addMonths("2026-01", -1)).toBe("2025-12");
     expect(addMonths("2026-07", 12)).toBe("2027-07");
-  });
-
-  it("pages forward from a month", () => {
-    expect(monthsFrom("2026-11", 3)).toEqual(["2026-11", "2026-12", "2027-01"]);
   });
 
   it("knows month lengths, including a leap February", () => {

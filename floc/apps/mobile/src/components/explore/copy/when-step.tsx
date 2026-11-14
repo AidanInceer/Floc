@@ -9,6 +9,7 @@ import { MonthNav } from "../../days/month-nav";
 import { useTheme } from "../../system/theme";
 import { Label } from "../../system/ui";
 import { fonts, radius, size, space } from "@/lib/theme";
+import { countWord } from "@floc/core/text/count-word";
 
 function MonthChip({ month, on, onPress }: { month: StartMonth; on: boolean; onPress: () => void }) {
   const { c } = useTheme();
@@ -73,7 +74,7 @@ export function WhenStep({ months, nights, start, month, onStart, onMonth }: {
       <MonthNav month={month} onChange={onMonth} min={monthOf(now)} />
       <MonthGrid month={month} look={look} onPaint={(_, target) => pick(target)} onRelease={() => {}} />
       <Text style={{ minHeight: 20, textAlign: "center", color: c["ink-2"], fontFamily: fonts.type, fontSize: size.small }}>
-        {start && end ? `${formatDateRange(start, end)} · ${nights} nights` : ""}
+        {start && end ? `${formatDateRange(start, end)} · ${countWord(nights, "night")}` : ""}
       </Text>
     </View>
   );

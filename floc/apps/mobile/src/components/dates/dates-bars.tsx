@@ -9,8 +9,7 @@ import { Button } from "../system/ui";
 import type { DatesView } from "@/lib/dates/day-look";
 import type { DateRange } from "@/lib/dates/range";
 import { fonts, size, space } from "@/lib/theme";
-
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+import { countWord } from "@floc/core/text/count-word";
 
 function Bar({ words, children }: { words: string; children: ReactNode }) {
   const { c } = useTheme();
@@ -26,8 +25,8 @@ function Bar({ words, children }: { words: string; children: ReactNode }) {
 
 export function SaveBar({ changed, busy, onSave }: { changed: number; busy: boolean; onSave: () => void }) {
   return (
-    <Bar words={`${plural(changed, "change")} not saved`}>
-      <Button label={`Save ${plural(changed, "day")}`} fit="small" busy={busy} onPress={onSave} />
+    <Bar words={`${countWord(changed, "change")} not saved`}>
+      <Button label={`Save ${countWord(changed, "day")}`} fit="small" busy={busy} onPress={onSave} />
     </Bar>
   );
 }

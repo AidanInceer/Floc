@@ -13,7 +13,8 @@ import { parsePageBody, serialisePage } from "@floc/core/notes/pages/page-blocks
 import { readPageYjs, seedPageYjs } from "@floc/core/notes/pages/page-yjs";
 import { log } from "../../observability/log";
 
-import { isLiveMember, isOpenPage } from "./live-access";
+import { isOpenPage } from "./live-access";
+import { isLiveMember } from "@/server/trips/live-member";
 import { onNotesKick } from "./live-kick";
 import { onPagesChanged } from "./live-ping";
 import { onTripChanged } from "./live-trip";

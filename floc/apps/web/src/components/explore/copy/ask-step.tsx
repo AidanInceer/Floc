@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { ChevronIcon, ClockIcon } from "@/components/system/icons";
 import { NavGlyph } from "@/components/system/icons/nav";
 import { cx, panelTitleClass } from "@/components/system/ui";
+import { countWord } from "@floc/core/text/count-word";
 
 function Choice({ tile, label, hint, onPick }: { tile: ReactNode; label: string; hint: string; onPick: () => void }) {
   return (
@@ -30,7 +31,7 @@ export function AskStep({ nights, onAnswer }: { nights: number; onAnswer: (has: 
         <Choice
           tile={<span className={cx(tile, "bg-pastel-yellow text-pastel-yellow-ink")}><NavGlyph name="dates" /></span>}
           label="Yes"
-          hint={`Pick when you go. The ${nights} nights follow.`}
+          hint={`Pick when you go. The ${countWord(nights, "night")} ${nights === 1 ? "follows" : "follow"}.`}
           onPick={() => onAnswer(true)}
         />
         <Choice

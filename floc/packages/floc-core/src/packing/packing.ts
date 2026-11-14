@@ -152,7 +152,6 @@ export function parseCategoryFilter(value: unknown): PackCategory | "all" {
     : "all";
 }
 
-
 /**
  * How a packing list is ordered (ticket 229). `category` is the default and is
  * the only one that groups — the other two are flat, because a heading over a
@@ -163,18 +162,6 @@ export function parseCategoryFilter(value: unknown): PackCategory | "all" {
  */
 export const PACK_SORTS = ["category", "name", "quantity"] as const;
 export type PackSort = (typeof PACK_SORTS)[number];
-
-export const PACK_SORT_LABELS: Record<PackSort, string> = {
-  category: "Category",
-  name: "Name",
-  quantity: "Most",
-};
-
-/** Falls back to `category` rather than failing — a bad sort in a URL is a shrug, not an error (rule 11). */
-export function parsePackSort(value: unknown, allowed: readonly PackSort[]): PackSort {
-  const s = asText(value);
-  return (allowed as readonly string[]).includes(s) ? (s as PackSort) : "category";
-}
 
 /**
  * The list in the chosen order. Name is a locale compare so "Trousers" files

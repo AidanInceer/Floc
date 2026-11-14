@@ -1,0 +1,29 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "includeEntryExports": true,
+  "ignoreExportsUsedInFile": true,
+  "ignoreWorkspaces": [
+    "floc/marketing"
+  ],
+  "workspaces": {
+    ".": {
+      "entry": [],
+      "project": []
+    },
+    "floc/apps/web": {
+      "entry": [
+        "scripts/*.mjs",
+        "e2e/serve.mjs",
+        "e2e/auth.setup.ts"
+      ]
+    },
+    "floc/apps/mobile": {
+      "ignore": [
+        "babel.config.js",
+        "scripts/*.mjs",
+        "shims/*.js"
+      ]
+    },
+    "floc/packages/*": {}
+  }
+}

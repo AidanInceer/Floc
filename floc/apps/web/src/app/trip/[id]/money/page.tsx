@@ -35,6 +35,7 @@ import { EstimateLock } from "@/components/money/estimate/estimate-lock";
 import type { TripAccess } from "@/server/access";
 import { canUseFeature } from "@/server/billing/entitlements";
 import { readEstimate } from "@/server/money/estimate/estimate-view";
+import { clearedDebts } from "@floc/core/money/cleared-debts";
 
 export const metadata = { title: "Money" };
 
@@ -333,12 +334,10 @@ function PairSummary({ row, viewerId, rateDate, label }: { row: SettleRow; viewe
   const youPay = row.payer === viewerId;
   const other = label(youPay ? row.payee : row.payer);
   const paid = paidIn(row);
-  const lines = row.parts.map((p) => {
-    const owedBy = p.fromUserId === viewerId ? `You owe ${other}` : `${other} owes you`;
-    const sign = p.fromUserId === row.payer ? "" : "−";
-    const cleared = formatMoney(p.clearsAmountMinor ?? p.amountMinor, p.clearsCurrency ?? p.currency);
-    const inPay = p.clearsCurrency ? formatMoney(p.amountMinor, p.currency) : null;
-    return { key: `${p.fromUserId}-${p.clearsCurrency ?? p.currency}`, owedBy, figure: `${sign}${cleared}`, inPay: inPay && `${sign}${inPay}` };
+  const lines = clearedDebts(row, viewerId).map((d) => {
+    const sign = d.against ? "−" : "";
+    const owedBy = d.youOwe ? `You owe ${other}` : `${other} owes you`;
+    return { key: d.key, owedBy, figure: `${sign}${d.cleared}`, inPay: d.inPay && `${sign}${d.inPay}` };
   });
   const rated = row.parts.find((p) => p.fxRate && p.clearsCurrency);
   return (

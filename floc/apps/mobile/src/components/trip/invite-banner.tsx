@@ -13,7 +13,7 @@
 import { formatDateRange } from "@floc/core/dates/dates";
 import { View } from "react-native";
 
-import { Face } from "./person-row";
+import { Face } from "../system/face";
 import { useTheme } from "../system/theme";
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 

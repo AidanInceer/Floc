@@ -15,13 +15,13 @@ import { trpc } from "@/lib/api";
 import { linkSocial } from "@/lib/auth";
 import { space } from "@/lib/theme";
 import { GOOGLE_CALENDAR_CONSENT } from "@floc/core/dates/calendar-import";
+import { countWord } from "@floc/core/text/count-word";
 
 export type CalendarNote = { kind: "done"; free: number; busy: number } | { kind: "error"; message: string } | null;
 
 const CALENDAR_REFUSED = "Google didn't give access. Nothing changed.";
 const CALENDAR_FAILED = "Couldn't reach Google Calendar. Nothing changed.";
 const LABEL = "Fill from Google Calendar";
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 /** What happened, in words: filled N, or why nothing was. */
 export function CalendarResult({ note }: { note: CalendarNote }) {
@@ -34,7 +34,7 @@ export function CalendarResult({ note }: { note: CalendarNote }) {
     <View style={{ flexDirection: "row", alignItems: "center", gap: space.xs }}>
       <TickGlyph color={c.green} />
       <Body tone="ink-2">
-        {`Filled ${plural(total, "day")} from Google Calendar${note.busy ? ` · ${note.busy} busy` : ""}`}
+        {`Filled ${countWord(total, "day")} from Google Calendar${note.busy ? ` · ${note.busy} busy` : ""}`}
       </Body>
     </View>
   );

@@ -62,8 +62,6 @@ export function placeWords(place: string) {
   return rest.length ? `${first} +${rest.length}` : first;
 }
 
-export const nightsWords = (n: number) => `${n} ${n === 1 ? "night" : "nights"}`;
-
 function stopsFor(trip: PresetTrip): BorrowStop[] {
   return stopsOf(trip).map(({ place, nights, lat, lng, arrive, dayOuts }) => ({
     name: place,

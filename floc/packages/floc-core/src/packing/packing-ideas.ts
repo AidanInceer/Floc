@@ -11,6 +11,7 @@ import {
   type PackContext,
   type PackSuggestion,
 } from "./packing-catalogue";
+import { countWord } from "../text/count-word";
 
 export function packingIdeas(ctx: PackContext, bagLabels: string[]): PackSuggestion[] {
   return newSuggestionsOnly(generatePackingList(ctx), bagLabels);
@@ -37,8 +38,6 @@ export type IdeasPlan = {
 
 export type IdeasWhy = { text: string; link: { label: string; to: "dates" | "days"; after: string } | null };
 
-const nightsWord = (n: number) => `${n} night${n === 1 ? "" : "s"}`;
-
 function weatherWords(plan: IdeasPlan): string {
   const parts = [
     plan.hottest !== null ? `up to ${plan.hottest}°` : null,
@@ -53,8 +52,8 @@ export function ideasWhy(plan: IdeasPlan): IdeasWhy {
     return { text: "A one-night starter.", link: { label: "Set your dates", to: "dates", after: "and the counts fit the trip." } };
   }
   if (plan.gap === "no-place") {
-    return { text: `${nightsWord(plan.nights)}.`, link: { label: "Add where you’re staying", to: "days", after: "and they pack for the weather too." } };
+    return { text: `${countWord(plan.nights, "night")}.`, link: { label: "Add where you’re staying", to: "days", after: "and they pack for the weather too." } };
   }
   const where = plan.places.length > 0 ? plan.places.join(", ") : null;
-  return { text: [nightsWord(plan.nights), where, weatherWords(plan)].filter(Boolean).join(" · "), link: null };
+  return { text: [countWord(plan.nights, "night"), where, weatherWords(plan)].filter(Boolean).join(" · "), link: null };
 }

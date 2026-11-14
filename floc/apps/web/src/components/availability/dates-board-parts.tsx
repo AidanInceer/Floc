@@ -12,9 +12,9 @@ import { formatMonth, tripCoverage, type IsoMonth } from "@floc/core/dates/avail
 import { formatDate, type IsoDate } from "@floc/core/dates/dates";
 import { forecastTab, groupTab, tripTab, yourDaysTab, type GroupAnswer } from "@floc/core/dates/dates-tabs";
 import type { TripForecast } from "@/server/itinerary/weather";
+import { countWord } from "@floc/core/text/count-word";
 
 const typed = "font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint";
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 export function MonthPager({ month, page, hint, menu }: { month: IsoMonth; page: (delta: number) => void; hint: string; menu?: ReactNode }) {
   const round = "!size-8 !p-0";
@@ -42,9 +42,9 @@ function Bar({ children }: { children: ReactNode }) {
 export function SaveBar({ changed, pending, onSave }: { changed: number; pending: boolean; onSave: () => void }) {
   return (
     <Bar>
-      <span className="text-[13px] text-ink-soft">{plural(changed, "change")} not saved</span>
+      <span className="text-[13px] text-ink-soft">{countWord(changed, "change")} not saved</span>
       <Button variant="primary" className="ml-auto" disabled={pending} aria-busy={pending || undefined} onClick={onSave}>
-        {`Save ${plural(changed, "day")}`}
+        {`Save ${countWord(changed, "day")}`}
         {busyMark(pending)}
       </Button>
     </Bar>
@@ -122,7 +122,7 @@ export function Coverage({ isFree, start, end }: { isFree: (d: string) => boolea
     <div className="p-4">
       <p className={typed}>In the trip</p>
       <p className="nums mt-1 font-mono text-base text-ink">
-        {c.free} of {plural(c.total, "day")}
+        {c.free} of {countWord(c.total, "day")}
       </p>
       <p className="mt-0.5 text-[13px] text-ink-soft">
         {c.missing.length ? `You can't do ${c.missing.map((d) => formatDate(d, { weekday: false })).join(", ")}` : "You can do every day of it"}

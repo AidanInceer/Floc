@@ -9,6 +9,7 @@ import { RegionTags } from "./region-tag";
 import { SaveHeart } from "./save-heart";
 import { useListingRates } from "./use-listing-rates";
 import { fonts, radius, size, space } from "@/lib/theme";
+import { countWord } from "@floc/core/text/count-word";
 
 /** One listing on the map's deck: its pin number and length, where, the route, then the price beside the one action. Tap anywhere else to read it. */
 export function ExploreCard({
@@ -34,7 +35,7 @@ export function ExploreCard({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${pin}. ${trip.title}, ${trip.nights} nights. Open`}
+      accessibilityLabel={`${pin}. ${trip.title}, ${countWord(trip.nights, "night")}. Open`}
       onPress={onOpen}
       style={({ pressed }) => ({
         width,
@@ -52,7 +53,7 @@ export function ExploreCard({
           <RegionTags region={trip.region} countries={trip.country} />
         </View>
         <Text style={{ ...mono, color: c["ink-3"], lineHeight: 22 }}>
-          {pin} · {trip.nights} nights
+          {pin} · {countWord(trip.nights, "night")}
         </Text>
         <SaveHeart presetId={trip.id} title={trip.title} />
       </View>

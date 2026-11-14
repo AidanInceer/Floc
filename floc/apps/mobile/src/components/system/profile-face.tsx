@@ -11,45 +11,10 @@
  */
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { whoTone } from "@floc/core/people/who";
-
 import { PenGlyph } from "./glyphs";
 import { useTheme } from "./theme";
 import { fonts, radius, size, space } from "@/lib/theme";
-import { initials } from "@floc/core/people/initials";
-
-const AVATAR = 60;
-
-function Face({ name }: { name: string }) {
-  const { c } = useTheme();
-  // Hardcoded blue until #157: the card was the one place a person was not
-  // their own colour, so you were a different person here than on the roster.
-  const tone = whoTone(name);
-  return (
-    <View
-      style={{
-        width: AVATAR,
-        height: AVATAR,
-        borderRadius: radius.sm,
-        backgroundColor: c[tone],
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: c[`${tone}-ink`],
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Text
-        style={{
-          color: c[`${tone}-ink`],
-          fontFamily: fonts.display,
-          fontSize: size.heading,
-        }}
-      >
-        {initials(name)}
-      </Text>
-    </View>
-  );
-}
+import { Face } from "./face";
 
 export function ProfileFace({
   name,
@@ -85,7 +50,7 @@ export function ProfileFace({
         style={{ flexDirection: "row", alignItems: "center", gap: space.md }}
       >
         <View>
-          <Face name={name} />
+          <Face name={name} look="profile" />
           <View
             style={{
               position: "absolute",

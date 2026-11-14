@@ -19,6 +19,7 @@ import { Sheet } from "@/components/system/sheet";
 import { useTheme } from "@/components/system/theme";
 import { Body, Button, IconButton, SectionTitle } from "@/components/system/ui";
 import { fonts, radius, size, space } from "@/lib/theme";
+import { countWord } from "@floc/core/text/count-word";
 
 export type SheetActions = {
   open: (id: number) => void;
@@ -154,7 +155,7 @@ function Archived({ pages, onRestore }: { pages: ArchivedNotesPage[]; onRestore:
           <View key={page.id} style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
             <View style={{ flex: 1 }}>
               <Body tone="ink-2">{nameOf(page)}</Body>
-              <Body tone="ink-3">{`${left} day${left === 1 ? "" : "s"} left`}</Body>
+              <Body tone="ink-3">{`${countWord(left, "day")} left`}</Body>
             </View>
             <Button label="Restore" variant="quiet" fit="small" onPress={() => onRestore(page.id)} />
           </View>

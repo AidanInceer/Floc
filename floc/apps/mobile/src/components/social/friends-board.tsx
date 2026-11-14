@@ -8,7 +8,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { MoreGlyph } from "@/components/system/glyphs";
 import { useTheme } from "@/components/system/theme";
 import { Body, Button, Empty, Failed, Figure, IconButton, Loading } from "@/components/system/ui";
-import { Face } from "@/components/trip/person-row";
+import { Face } from "@/components/system/face";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 

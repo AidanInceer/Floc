@@ -6,7 +6,7 @@ import type { FriendPerson } from "@floc/api/port";
 import { MinusGlyph, TickGlyph } from "@/components/system/glyphs";
 import { useTheme } from "@/components/system/theme";
 import { Body, Empty, Figure } from "@/components/system/ui";
-import { Face } from "@/components/trip/person-row";
+import { Face } from "@/components/system/face";
 import { radius, space } from "@/lib/theme";
 
 export function GroupChoice({ name, note, checked, onPress, disabled, face }: {

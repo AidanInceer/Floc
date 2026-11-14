@@ -5,8 +5,8 @@ import { CheckIcon, PencilIcon } from "@/components/system/icons";
 import { GoogleCalendarIcon } from "@/components/system/icons/google-calendar";
 import { Menu } from "@/components/system/client-ui";
 import { menuItemClass } from "@/components/system/ui";
+import { countWord } from "@floc/core/text/count-word";
 
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const LABEL = "Fill from Google Calendar";
 
 /**
@@ -36,7 +36,7 @@ function CalendarNote({ state }: { state: CalendarFillState }) {
   return (
     <p className="flex items-center gap-1.5 text-[13px] text-ink-soft">
       <CheckIcon className="size-[13px] text-green" />
-      Filled {plural(total, "day")} from Google Calendar{state.busy ? ` · ${state.busy} busy` : ""}
+      Filled {countWord(total, "day")} from Google Calendar{state.busy ? ` · ${state.busy} busy` : ""}
     </p>
   );
 }

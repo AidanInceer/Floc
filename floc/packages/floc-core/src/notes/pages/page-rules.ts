@@ -45,10 +45,6 @@ export function archiveDaysLeft(archivedAt: Date, now: Date): number {
   return Math.max(0, Math.ceil(left / DAY_MS));
 }
 
-export function isPurgeDue(archivedAt: Date | null, now: Date): boolean {
-  return archivedAt !== null && now.getTime() - archivedAt.getTime() >= ARCHIVE_DAYS * DAY_MS;
-}
-
 export const canHoldSubPages = (page: Pick<PageSummary, "parentId">): boolean => page.parentId === null;
 
 /** The page list's order: top-level pages by position, each followed by its sub-pages. */

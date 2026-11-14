@@ -7,8 +7,6 @@ import { describe, expect, it } from "vitest";
 import {
   parseCategoryFilter,
   parsePackCategory,
-  parsePackSort,
-  PACK_SORTS,
   sortPackingLines,
   viewPackingLines,
 } from "./packing";
@@ -41,13 +39,6 @@ describe("parsing what came off a URL or a form", () => {
     expect(parseCategoryFilter("toiletries")).toBe("toiletries");
     expect(parseCategoryFilter("nonsense")).toBe("all");
     expect(parseCategoryFilter(undefined)).toBe("all");
-  });
-
-  it("falls back to category order, and refuses a sort the list doesn't offer", () => {
-    expect(parsePackSort("name", PACK_SORTS)).toBe("name");
-    expect(parsePackSort("junk", PACK_SORTS)).toBe("category");
-    // The shared list shows no count, so it never offers to sort by one.
-    expect(parsePackSort("quantity", ["category", "name"])).toBe("category");
   });
 });
 

@@ -4,8 +4,7 @@ import type { RegionTone } from "@/components/explore/trip/region-tone";
 import { DayRow } from "@/components/explore/trip/trip-day";
 import { TravelModeIcon } from "@/components/system/icons/travel-mode";
 import { cx } from "@/components/system/ui";
-
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+import { countWord } from "@floc/core/text/count-word";
 
 function arrivalLine(a: PlanArrival): string {
   const how = a.mode === "other" ? a.detail : `${a.mode[0].toUpperCase()}${a.mode.slice(1)}, ${a.detail}`;
@@ -45,7 +44,7 @@ export function StopPanel({
         <span className={cx("nums grid size-[26px] place-items-center rounded-full border text-xs", tone.mark)}>{stop.no}</span>
         <h3 className="text-xl tracking-[-0.02em] sm:text-[length:var(--text-2xl)]">{stop.place}</h3>
         <span className="typed col-start-2 sm:col-start-3">
-          {plural(stop.nights, "night")}
+          {countWord(stop.nights, "night")}
           {dayRange(stop.days)}
         </span>
       </header>

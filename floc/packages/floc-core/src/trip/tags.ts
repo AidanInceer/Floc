@@ -3,8 +3,6 @@
  * /trips filter. Every writer runs its input through `parseTags`, so nothing unnormalised is stored.
  */
 
-const TAG_SEPARATOR = ", ";
-
 // Why: beyond this a trip card is a wall of pills, not a label.
 export const MAX_TAGS = 5;
 export const MAX_TAG_LENGTH = 24;
@@ -24,10 +22,6 @@ export function parseTags(input: string | null | undefined): string[] {
 
 export function normaliseTag(raw: string): string {
   return raw.trim().toLowerCase().replace(/\s+/g, " ").slice(0, MAX_TAG_LENGTH);
-}
-
-export function formatTags(tags: string[] | null | undefined): string {
-  return (tags ?? []).join(TAG_SEPARATOR);
 }
 
 // Why: `tags` is JSON, so a hand-edited row — or one written before the column existed — can hold

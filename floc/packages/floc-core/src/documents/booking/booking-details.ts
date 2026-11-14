@@ -5,7 +5,7 @@
  * anyone can craft. Nothing reaches the database or a screen that is not a real date, a clock
  * time, an airport code, a flight number, or short plain text.
  */
-import { addDays, isIsoDate, type IsoDate } from "../../dates/dates";
+import { isIsoDate, type IsoDate } from "../../dates/dates";
 import type { DocCategory } from "../documents";
 
 export type FlightDetails = {
@@ -132,16 +132,6 @@ export function bookingDates(details: BookingDetails): { start: IsoDate; end: Is
   if (details.kind === "flight") return details.date ? { start: details.date, end: details.date } : null;
   if (!details.checkIn) return null;
   return { start: details.checkIn, end: details.checkOut ?? details.checkIn };
-}
-
-/** The nights of a stay, first night first. Empty without both dates. */
-export function bookingNights(details: HotelDetails): IsoDate[] {
-  if (!details.checkIn || !details.checkOut) return [];
-  const nights: IsoDate[] = [];
-  for (let night = details.checkIn; night < details.checkOut && nights.length < 60; night = addDays(night, 1)) {
-    nights.push(night);
-  }
-  return nights;
 }
 
 /** One line for a file row: "FR 1234 · STN → OPO", or the hotel's name. */

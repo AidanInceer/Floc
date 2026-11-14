@@ -25,6 +25,7 @@ import { useTheme } from "@/components/system/theme";
 import { Body, Button, Card, Failed, Loading, SearchField } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { fonts, size, space } from "@/lib/theme";
+import { countWord } from "@floc/core/text/count-word";
 
 type Country = { code: string; name: string };
 
@@ -102,7 +103,7 @@ export function SavedPane() {
                   first={i === 0}
                   tags={<RegionTags region={trip.region} countries={trip.country} />}
                   title={trip.title}
-                  figures={`${trip.nights} ${trip.nights === 1 ? "night" : "nights"} · ${listingPrice(trip, rates)}`}
+                  figures={`${countWord(trip.nights, "night")} · ${listingPrice(trip, rates)}`}
                   mark={<FriendFaces faces={friends.trips[trip.id]} />}
                   heart={<HeartButton saved label={trip.title} onPress={() => toggle(trip.id, false)} />}
                   onOpen={() => router.push({ pathname: "/explore/[preset]", params: { preset: trip.id } })}
@@ -138,7 +139,7 @@ export function CountryRow({ country, first, mark, heart }: { country: Country; 
     <SavedRow
       first={first}
       title={country.name}
-      figures={count === 0 ? "No Explore trips" : `${count} Explore ${count === 1 ? "trip" : "trips"}`}
+      figures={count === 0 ? "No Explore trips" : countWord(count, "Explore trip")}
       mark={mark}
       heart={heart}
       onOpen={() => router.push({ pathname: "/explore", params: { country: country.code } })}

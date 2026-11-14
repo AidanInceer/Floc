@@ -15,6 +15,7 @@ import { archiveDaysLeft, pagesRefusal } from "@floc/core/notes/pages/page-rules
 import type { PageIcon } from "@floc/core/notes/pages/page-icons";
 
 import { AvatarRow, cx } from "@/components/system/ui";
+import { countWord } from "@floc/core/text/count-word";
 
 export type RailPage = { id: number; parentId: number | null; title: string; icon: PageIcon | null; depth: 0 | 1 };
 export type RailArchived = { id: number; title: string; icon: PageIcon | null; archivedAt: string };
@@ -181,7 +182,7 @@ function Archived({ pages, actions, now }: { pages: RailArchived[]; actions: Rai
               <li key={page.id} className="notes-row is-archived">
                 {page.icon ? <span className="notes-glyph"><Glyph name={page.icon} /></span> : null}
                 <span className="notes-name-static">{nameOf(page)}</span>
-                <span className="typed text-ink-faint">{`${left} day${left === 1 ? "" : "s"} left`}</span>
+                <span className="typed text-ink-faint">{`${countWord(left, "day")} left`}</span>
                 <button type="button" className="notes-restore" onClick={() => actions.restore(page.id)}>Restore</button>
               </li>
             );

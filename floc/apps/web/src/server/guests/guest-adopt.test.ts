@@ -10,7 +10,7 @@ import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { setAvailability } from "@/server/itinerary/availability";
 import { insertIdea, toggleIdeaVote } from "@/server/ideas/ideas";
-import { isLiveMember } from "@/server/trips/roster";
+import { isLiveMember } from "@/server/trips/live-member";
 import { adoptGuest } from "@/server/guests/guest-adopt";
 import { LIMITS } from "@/server/limits";
 

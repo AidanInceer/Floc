@@ -16,6 +16,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { useTheme } from "../system/theme";
 import { TravelModeGlyph } from "../system/travel-mode-glyph";
 import { fonts, radius, size, space } from "@/lib/theme";
+import { countWord } from "@floc/core/text/count-word";
 
 const DOT = 10;
 
@@ -51,7 +52,7 @@ export function PresetRoute({ trip }: { trip: PresetTrip }) {
                 fontVariant: ["tabular-nums"],
               }}
             >
-              {leg.nights === 1 ? "1 night" : `${leg.nights} nights`}
+              {countWord(leg.nights, "night")}
             </Text>
           </View>
         ) : (

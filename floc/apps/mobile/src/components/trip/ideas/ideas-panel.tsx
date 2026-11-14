@@ -3,17 +3,17 @@
  * stays either way, so a decided trip keeps its ideas without spending a
  * screen on them.
  */
-import { whoTone } from "@floc/core/people/who";
 import { sortIdeas, voteLabel, type IdeaRow, type IdeaSort } from "@floc/core/trip/ideas";
 import { commentTime } from "@floc/core/notes/notes";
 import { Pressable, StyleSheet, View } from "react-native";
 
-import { ChevronGlyph, CrossGlyph, Seat } from "../../system/glyphs";
+import { ChevronGlyph, CrossGlyph } from "../../system/glyphs";
 import { useTheme } from "../../system/theme";
 import { Body, Card, IconButton, Label, Segmented, SectionTitle } from "../../system/ui";
 import { IdeasClosedRow } from "./ideas-row";
 import { VotePill } from "./vote-pill";
 import { radius, space } from "@/lib/theme";
+import { Face } from "../../system/face";
 
 export type IdeaCard = IdeaRow & { createdAt: Date };
 
@@ -85,11 +85,7 @@ export function IdeasPanel({
               >
                 <Body>{idea.title}</Body>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-                  <Seat
-                    name={idea.authorName}
-                    ground={c[whoTone(idea.authorName)]}
-                    ink={c[`${whoTone(idea.authorName)}-ink`]}
-                  />
+                  <Face name={idea.authorName} look="seat" />
                   <View style={{ flex: 1 }}>
                     <Label>{`${idea.authorName} · ${commentTime(idea.createdAt)}`}</Label>
                   </View>

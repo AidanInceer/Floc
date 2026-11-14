@@ -7,6 +7,7 @@
 import "server-only";
 
 import { appUrl } from "@/lib/env";
+import { countWord } from "@floc/core/text/count-word";
 
 export type OutboundEmail = {
   to: string;
@@ -208,7 +209,7 @@ export const emails = {
     lines: [
       args.refused.length === 0
         ? "That email had no PDF or image attached. Floc keeps the attached files, not the email itself."
-        : `Saved ${args.savedCount} file${args.savedCount === 1 ? "" : "s"} to Floc. These were left out:`,
+        : `Saved ${countWord(args.savedCount, "file")} to Floc. These were left out:`,
       ...args.refused,
     ],
   }),

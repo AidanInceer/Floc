@@ -4,6 +4,7 @@
  */
 import { formatMonth } from "../../dates/availability";
 import { nightsBetween, type IsoDate } from "../../dates/dates";
+import { countWord } from "../../text/count-word";
 
 /** From the day after the end date; never for an undated trip (rule 9). */
 export function recapShows(endDate: IsoDate | null, today: IsoDate): boolean {
@@ -28,6 +29,6 @@ export function recapCard(input: { name: string; startDate: IsoDate; endDate: Is
     name: input.name,
     month: monthsOf(input.startDate, input.endDate),
     stops: input.stops.map((s, i) => ({ no: i + 1, place: s.place, nights: s.nights })),
-    foot: `${nights} ${nights === 1 ? "night" : "nights"} · ${places} ${places === 1 ? "place" : "places"}`,
+    foot: `${countWord(nights, "night")} · ${countWord(places, "place")}`,
   };
 }

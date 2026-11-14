@@ -8,10 +8,10 @@ import type { SettleRow } from "@floc/core/money/group-settle";
 import { whoTone } from "@floc/core/people/who";
 import { StyleSheet, Text, View } from "react-native";
 
-import { Seat } from "../system/glyphs";
 import { useTheme } from "../system/theme";
 import { Button, Card, SectionTitle } from "../system/ui";
 import { fonts, size, space } from "@/lib/theme";
+import { Face } from "../system/face";
 
 type Props = {
   rows: SettleRow[];
@@ -27,7 +27,7 @@ function PayRow({ row, paying, nameOf, busy, onSettle }: { row: SettleRow; payin
   const tone = whoTone(who);
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: space.md, paddingVertical: space.sm }}>
-      <Seat name={who} ground={c[tone]} ink={c[`${tone}-ink`]} />
+      <Face name={who} tone={tone} look="seat" />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text numberOfLines={1} style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.small }}>{who}</Text>
         <Text style={{ color: paying ? c.red : c["pastel-green-ink"], fontFamily: fonts.type, fontSize: size.body + 2, fontVariant: ["tabular-nums"] }}>

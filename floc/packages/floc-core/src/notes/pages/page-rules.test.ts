@@ -4,7 +4,6 @@ import {
   ARCHIVE_DAYS,
   PAGE_LIMITS,
   archiveDaysLeft,
-  isPurgeDue,
   orderPages,
   pageNameRefusal,
   pagesRefusal,
@@ -50,12 +49,6 @@ describe("archive", () => {
     expect(archiveDaysLeft(archived, new Date(archived.getTime() + 1.5 * day))).toBe(6);
     expect(archiveDaysLeft(archived, new Date(archived.getTime() + 6.9 * day))).toBe(1);
     expect(archiveDaysLeft(archived, new Date(archived.getTime() + 9 * day))).toBe(0);
-  });
-
-  it("is due for deletion after seven days, and never before", () => {
-    expect(isPurgeDue(archived, new Date(archived.getTime() + 7 * day - 1))).toBe(false);
-    expect(isPurgeDue(archived, new Date(archived.getTime() + 7 * day))).toBe(true);
-    expect(isPurgeDue(null, new Date())).toBe(false);
   });
 });
 

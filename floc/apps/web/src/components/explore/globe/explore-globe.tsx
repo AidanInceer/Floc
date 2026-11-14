@@ -9,6 +9,7 @@ import { NavGlyph } from "@/components/system/icons/nav";
 
 import { useAtlasGlobe } from "./use-atlas-globe";
 import "./explore-globe.css";
+import { countWord } from "@floc/core/text/count-word";
 
 /** The trip whose route the globe draws; `n` goes up on each pick, so picking it again draws it again. */
 export type AtlasRoute = { id: string; n: number };
@@ -56,7 +57,7 @@ export function ExploreGlobe({
       <canvas ref={canvas} className="explore-globe" role="img" aria-label={routed ? `A map of ${routed.title}` : "A globe with a pin on every trip. Drag to turn it."} />
       <div ref={flags} className="explore-flags" inert={route !== null}>
         {PRESET_TRIPS.map((trip) => (
-          <button key={trip.id} type="button" className="explore-pin" aria-pressed={trip.id === picked} aria-label={`${trip.title}, ${trip.nights} nights`} onClick={() => onPick(trip.id)}>
+          <button key={trip.id} type="button" className="explore-pin" aria-pressed={trip.id === picked} aria-label={`${trip.title}, ${countWord(trip.nights, "night")}`} onClick={() => onPick(trip.id)}>
             <i />
             <span>{trip.country}</span>
           </button>

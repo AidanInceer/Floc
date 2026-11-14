@@ -13,10 +13,10 @@ import { useTheme } from "@/components/system/theme";
 import { Body, Button, Card, Failed, Loading } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { fonts, radius, size, space } from "@/lib/theme";
+import { countWord } from "@floc/core/text/count-word";
 
 type Person = { id: string; name: string };
 const faces = (people: Person[]) => people.map((p) => ({ userId: p.id, name: p.name, tone: whoTone(p.name) }));
-const things = (n: number) => `${n} ${n === 1 ? "thing" : "things"}`;
 
 export function WishListsPane() {
   const router = useRouter();
@@ -84,7 +84,7 @@ function ListRow({ first, title, count, people, onPress }: { first: boolean; tit
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${title}, ${things(count)}`}
+      accessibilityLabel={`${title}, ${countWord(count, "thing")}`}
       onPress={onPress}
       style={({ pressed }) => ({
         flexDirection: "row",
@@ -100,7 +100,7 @@ function ListRow({ first, title, count, people, onPress }: { first: boolean; tit
     >
       <View style={{ flex: 1, gap: 2 }}>
         <Text numberOfLines={1} style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>{title}</Text>
-        <Text style={{ color: c["ink-2"], fontFamily: fonts.type, fontSize: size.small }}>{things(count)}</Text>
+        <Text style={{ color: c["ink-2"], fontFamily: fonts.type, fontSize: size.small }}>{countWord(count, "thing")}</Text>
       </View>
       <FaceStack faces={faces(people)} diameter={24} />
     </Pressable>

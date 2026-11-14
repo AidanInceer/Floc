@@ -7,6 +7,7 @@ import { MONTH_SHORT } from "@floc/core/trip/explore/finder/finder-words";
 
 import { StartCalendar } from "@/components/explore/copy/start-calendar";
 import { cx, panelTitleClass } from "@/components/system/ui";
+import { countWord } from "@floc/core/text/count-word";
 
 const chip = cx(
   "grid min-w-[3.25rem] place-items-center rounded-sm border px-2 py-1.5 transition-colors sm:min-w-[4.25rem] sm:px-2.5",
@@ -44,7 +45,7 @@ export function WhenStep({ months, nights, start, month, onStart, onMonth }: {
         </div>
       ) : null}
       <StartCalendar month={month} onMonth={onMonth} start={start} nights={nights} onPick={onStart} />
-      <p className="nums min-h-5 text-sm text-ink-soft">{start ? `${formatDateRange(start, addDays(start, nights))} · ${nights} nights` : ""}</p>
+      <p className="nums min-h-5 text-sm text-ink-soft">{start ? `${formatDateRange(start, addDays(start, nights))} · ${countWord(nights, "night")}` : ""}</p>
     </div>
   );
 }

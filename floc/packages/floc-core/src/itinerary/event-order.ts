@@ -78,31 +78,6 @@ export function orderEvents<T extends EventSlot>(events: T[]): T[] {
 }
 
 /**
- * The ids of every event that clashes with another — same start time, or
- * running hours that cross. A fact to show, never a rule to enforce (two
- * people can be doing different things at 3pm). All-day events are excluded
- * — flagging them against everything timed would mark the whole day. An
- * event with no end time clashes only with something running through it.
- */
-export function findOverlaps(events: EventSlot[]): Set<number> {
-  const timed = events.filter(isTimed);
-  const clashing = new Set<number>();
-
-  for (let i = 0; i < timed.length; i++) {
-    for (let j = i + 1; j < timed.length; j++) {
-      const [a, b] = [timed[i], timed[j]];
-      const aEnd = a.endTime ?? a.time;
-      const bEnd = b.endTime ?? b.time;
-      if (a.time === b.time || (aEnd > b.time && bEnd > a.time)) {
-        clashing.add(a.id);
-        clashing.add(b.id);
-      }
-    }
-  }
-  return clashing;
-}
-
-/**
  * Works out the writes behind a drag: `newOrder` is the dropped-into event id
  * order; slots stay put while events move between them. `events` must already
  * be in display order (`orderEvents`). Returns only rows whose slot changed.

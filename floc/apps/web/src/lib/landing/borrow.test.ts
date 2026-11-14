@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { tripRoute } from "@/lib/explore/route/trip-route";
 import { ONE_STOP, OUT_FIRST, RAIL, UNSAID } from "@/test/route-listings";
 
-import { borrowCards, hopWords, leadFirst, nightsWords, placeWords } from "./borrow";
+import { borrowCards, hopWords, leadFirst, placeWords } from "./borrow";
 
 // Listings made for the test, so the cards do not move when the real listings change.
 const PRESET_TRIPS = [
@@ -101,12 +101,6 @@ describe("hopWords", () => {
 
   it("says only the detail when the way in has no name", () => {
     expect(hopWords({ mode: "other", detail: "cable car, 20 min" })).toBe("cable car, 20 min");
-  });
-});
-
-describe("nightsWords", () => {
-  it("counts one night and many", () => {
-    expect([nightsWords(1), nightsWords(4)]).toEqual(["1 night", "4 nights"]);
   });
 });
 

@@ -17,6 +17,7 @@ import { CountryRow } from "@/components/lists/saved-pane";
 import { SavedRow, SavedSection, YouBoth } from "@/components/lists/saved-row";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
+import { countWord } from "@floc/core/text/count-word";
 
 type Mark = { code: string; state: MapState };
 
@@ -45,7 +46,7 @@ export function FriendSaved({ saved, map }: { saved: string[] | null; map: Mark[
                 first={i === 0}
                 tags={<RegionTags region={trip.region} countries={trip.country} />}
                 title={trip.title}
-                figures={`${trip.nights} ${trip.nights === 1 ? "night" : "nights"} · ${listingPrice(trip, rates)}`}
+                figures={`${countWord(trip.nights, "night")} · ${listingPrice(trip, rates)}`}
                 mark={both ? <YouBoth /> : null}
                 heart={<HeartButton saved={both} label={trip.title} onPress={() => toggle(trip.id, !both)} />}
                 onOpen={() => router.push({ pathname: "/explore/[preset]", params: { preset: trip.id } })}

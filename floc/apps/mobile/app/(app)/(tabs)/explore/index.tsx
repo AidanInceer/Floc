@@ -26,6 +26,7 @@ import { Body, Empty, Heading, SearchField } from "@/components/system/ui";
 import { TextLink } from "@/components/system/text-controls";
 import { trpc } from "@/lib/api";
 import { fonts, radius, size, space } from "@/lib/theme";
+import { countWord } from "@floc/core/text/count-word";
 
 const ROW_LIMIT = 10;
 // Why: the UTC month, as the web reads it on the server, so one person sees the same picks on both (#624).
@@ -129,7 +130,7 @@ export default function Explore() {
               <ListingRow
                 key={row.trip.id}
                 trip={row.trip}
-                figures={`${row.trip.nights} nights · from ${listingPrice(row.trip, state.data?.rates ?? null)}`}
+                figures={`${countWord(row.trip.nights, "night")} · from ${listingPrice(row.trip, state.data?.rates ?? null)}`}
                 pick={top.ids.includes(row.trip.id) ? top.words : undefined}
                 last={i === shown.length - 1}
                 onOpen={() => open(row.trip.id)}

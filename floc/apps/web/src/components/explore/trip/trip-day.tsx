@@ -6,6 +6,7 @@ import { ActivityGlyph } from "@/components/system/icons/activity";
 import { StarIcon } from "@/components/system/icons/explore-trip";
 import { ChevronIcon } from "@/components/system/icons";
 import { cx } from "@/components/system/ui";
+import { nounFor } from "@floc/core/text/count-word";
 
 function Summary({ day }: { day: PlanDay }) {
   if (day.highlight) {
@@ -22,7 +23,7 @@ function Summary({ day }: { day: PlanDay }) {
         <ActivityGlyph key={`${item.time}-${item.text}`} kind={activityKind(item)} />
       ))}
       <span className="ml-1">
-        {day.items.length} {day.items.length === 1 ? "plan" : "plans"}
+        {day.items.length} {nounFor(day.items.length, "plan")}
       </span>
     </span>
   );

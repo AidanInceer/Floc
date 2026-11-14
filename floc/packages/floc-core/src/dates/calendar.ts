@@ -18,10 +18,6 @@ const MIN_EVENT_MINUTES = 15;
 /** Reading size for an open-ended event; never a stored end. */
 const OPEN_ENDED_MINUTES = 30;
 
-/** Fixed midnight-to-midnight grid — a widening window re-laid every day's geometry. */
-const DEFAULT_START_HOUR = 0;
-const DEFAULT_END_HOUR = 24;
-
 /** `HH:MM` → minutes since midnight. Null for anything that isn't a time. */
 export function toMinutes(time: string | null | undefined): number | null {
   if (!time) return null;
@@ -68,19 +64,6 @@ export function spanOf(
     return { start, end: Math.min(start + OPEN_ENDED_MINUTES, 24 * 60), open: true };
   }
   return { start, end, open: false };
-}
-
-/** Hours the grid draws: default window only ever widens, never omits an event. */
-export function gridWindow(events: TimedLike[]): { startHour: number; endHour: number } {
-  let startHour = DEFAULT_START_HOUR;
-  let endHour = DEFAULT_END_HOUR;
-  for (const e of events) {
-    const span = spanOf(e);
-    if (!span) continue;
-    startHour = Math.min(startHour, Math.floor(span.start / 60));
-    endHour = Math.max(endHour, Math.ceil(span.end / 60));
-  }
-  return { startHour: clamp(startHour, 0, 23), endHour: clamp(endHour, startHour + 1, 24) };
 }
 
 export type Block = { id: number; start: number; end: number };
@@ -155,13 +138,4 @@ export function formatSpan(event: {
 }): string {
   if (event.allDay || !event.time) return "All day";
   return event.endTime ? `${event.time}–${event.endTime}` : event.time;
-}
-
-/** `2h 30m` — how long a block is, for the detail panel. */
-export function formatLength(minutes: number): string {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  if (h && m) return `${h}h ${m}m`;
-  if (h) return `${h}h`;
-  return `${m}m`;
 }

@@ -3,10 +3,10 @@
  * phone's one row, and a note. `open` marks something still to do.
  */
 import { dayParts, formatDate, nightsBetween, type IsoDate } from "./dates";
+import { countWord } from "../text/count-word";
 
 export type TabSummary = { value: string; short: string; note: string; open: boolean };
 
-const count = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const dayMonth = (d: IsoDate) => formatDate(d, { weekday: false });
 
 export function compactRange(start: IsoDate, end: IsoDate): string {
@@ -28,9 +28,9 @@ export function yourDaysTab(saved: IsoDate[], unsaved: number, answered = false)
       ? { value: "No days", short: "No days", note: "You said you can do none", open: false }
       : { value: "Not yet", short: "Not yet", note: "Mark the days you can do", open: true };
   const sorted = [...saved].sort((a, b) => a.localeCompare(b));
-  const value = saved.length ? count(saved.length, "day") : "Not yet";
+  const value = saved.length ? countWord(saved.length, "day") : "Not yet";
   const note = unsaved
-    ? `${count(unsaved, "change")} not saved`
+    ? `${countWord(unsaved, "change")} not saved`
     : spanLabel(sorted[0], sorted[sorted.length - 1]);
   return { value, short: value, note, open: unsaved > 0 };
 }
@@ -56,7 +56,7 @@ export function tripTab(
   best: { start: IsoDate; end: IsoDate } | null,
 ): TabSummary {
   if (start && end)
-    return { value: spanLabel(start, end), short: compactRange(start, end), note: count(nightsBetween(start, end), "night"), open: false };
+    return { value: spanLabel(start, end), short: compactRange(start, end), note: countWord(nightsBetween(start, end), "night"), open: false };
   return {
     value: "No dates yet",
     short: "No dates",
@@ -68,7 +68,7 @@ export function tripTab(
 export function forecastTab(tripDays: number, forecastDays: number, horizonEnd: IsoDate | null): TabSummary {
   if (tripDays === 0) return { value: "No dates yet", short: "None", note: "Follows the trip's dates", open: false };
   return {
-    value: `${forecastDays} of ${count(tripDays, "day")}`,
+    value: `${forecastDays} of ${countWord(tripDays, "day")}`,
     short: `${forecastDays} of ${tripDays}`,
     note: horizonEnd ? `To ${formatDate(horizonEnd)}` : "Beyond the forecast",
     open: false,

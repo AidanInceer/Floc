@@ -15,6 +15,7 @@ import { PackingCard } from "./packing-card";
 import { Swap } from "./swap";
 import { VotesCard } from "./votes-card";
 import "./hero.css";
+import { nounFor } from "@floc/core/text/count-word";
 
 // How busy each September day was before the group settled — shading only.
 const HEAT = [2, 3, 1, 2, 4, 3, 2, 3, 4, 5, 4, 5, 5, 5, 5, 5, 5, 5, 5, 3, 2, 4, 3, 1, 2, 3, 2, 1, 2, 3];
@@ -75,7 +76,7 @@ function TicketCard({ step }: { step: number }) {
               <i className="mx-auto mb-1.5 block size-[13px] rounded-full border-2 border-sheet bg-pen shadow-[0_0_0_1.5px_var(--pen)]" />
               {s.name}
               <span className="block font-mono text-[10px] text-ink-faint">
-                {s.days} {s.days === 1 ? "night" : "nights"}
+                {s.days} {nounFor(s.days, "night")}
               </span>
             </li>
           ))}
