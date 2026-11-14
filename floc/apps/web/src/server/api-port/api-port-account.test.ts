@@ -117,12 +117,6 @@ describe("the travel map", () => {
     await webPort.setCountryMark(world.member, "ZZ", "green");
     expect((await webPort.loadMyProfile(world.member)).map).toEqual([]);
   });
-
-  it("will not answer a question nobody parked", async () => {
-    // No `map_prompt_at` on this membership, so keeping must write nothing.
-    await webPort.answerMapPrompt(world.member, world.ours.id, true);
-    expect((await webPort.loadMyProfile(world.member)).map).toEqual([]);
-  });
 });
 
 describe("saved packing lists", () => {

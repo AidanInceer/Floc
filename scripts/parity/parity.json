@@ -225,13 +225,7 @@
     "kits.stepItem": {
       "mobile": "yes"
     },
-    "me.answerMapPrompt": {
-      "mobile": "yes"
-    },
     "me.get": {
-      "mobile": "yes"
-    },
-    "me.mapPrompts": {
       "mobile": "yes"
     },
     "me.markTourSeen": {

@@ -21,7 +21,6 @@ import { ScrollView, View } from "react-native";
 import { FriendSaved } from "@/components/lists/friend-saved";
 import { StartWishWith } from "@/components/lists/start-wish-with";
 import { Face } from "@/components/trip/person-row";
-import { TravelMap } from "@/components/map/travel-map";
 import { Body, Button, Card, Empty, Failed, Figure, Loading, Pill, Row, SectionTitle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
@@ -91,18 +90,6 @@ export default function PersonProfile() {
           <Body tone="ink-3">You have asked. Waiting on them.</Body>
         ) : p.friendState === "incoming" ? (
           <Body tone="ink-3">They have asked you — answer it on your Friends screen.</Body>
-        ) : null}
-
-        {p.map ? (
-          <View style={{ gap: space.sm }}>
-            <SectionTitle>Where they have been</SectionTitle>
-            <Card style={{ padding: 0, paddingBottom: space.lg, overflow: "hidden" }}>
-              <TravelMap marks={p.map} />
-            </Card>
-            <Figure tone="ink-3">
-              {p.been} been · {p.wantToGo} to go
-            </Figure>
-          </View>
         ) : null}
 
         {p.saved ? <StartWishWith friendId={userId} name={p.name} /> : null}

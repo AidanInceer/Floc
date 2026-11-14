@@ -6,7 +6,6 @@ import { migrateTestDb, resetDb } from "@/test/db";
 import { devAccountEmail } from "@/server/auth/dev-accounts";
 import { walkthroughDue } from "@/server/auth/tour";
 import { findGuest, listGuests } from "@/server/guests/guests";
-import { pendingMapPrompts } from "@/server/itinerary/travel-map";
 import { findTripByShareLink } from "@/server/trips/invites";
 import { isLiveMember } from "@/server/trips/roster";
 
@@ -34,7 +33,7 @@ beforeEach(async () => {
 
 describe("dev starts", () => {
   it("names the six starts", () => {
-    expect(STARTS).toEqual(["new-user", "walkthrough", "join-link", "guest-account", "dead-link", "map-question"]);
+    expect(STARTS).toEqual(["new-user", "walkthrough", "join-link", "guest-account", "dead-link"]);
   });
 
   it("builds the dev link for a start", () => {
@@ -80,13 +79,5 @@ describe("dev starts", () => {
     expect(start.as).toBeNull();
     expect(start.to.startsWith("/invite/")).toBe(true);
     expect(await findTripByShareLink(tokenIn(start.to))).toBeFalsy();
-  });
-
-  it("map-question: you, removed from Krakow by Mei, on your profile with the question", async () => {
-    const start = await buildStart("map-question");
-    const krakow = await tripNamed("Krakow, last winter");
-    expect(start).toEqual({ as: "dev-user", to: "/profile" });
-    expect(await isLiveMember(krakow.id, "dev-user")).toBe(false);
-    expect((await pendingMapPrompts("dev-user")).map((p) => p.tripName)).toEqual(["Krakow, last winter"]);
   });
 });

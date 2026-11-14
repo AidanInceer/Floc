@@ -12,47 +12,19 @@
  */
 import "server-only";
 
-import type { FlocPort, MapPrompt } from "@floc/api/port";
+import type { FlocPort } from "@floc/api/port";
 
 import { readCountryCode } from "@floc/core/people/countries";
 import { refresh } from "@/server/freshness";
-import { clearMapPrompt, hasPendingMapPrompt } from "@/server/trips/roster";
 import {
   clearManualMark,
   derivedStateFor,
-  keepMarksFromTrip,
-  pendingMapPrompts,
   setManualMark,
 } from "@/server/itinerary/travel-map";
 
-type MapPort = Pick<FlocPort, "listMapPrompts" | "answerMapPrompt" | "setCountryMark">;
+type MapPort = Pick<FlocPort, "setCountryMark">;
 
 export const mapPort: MapPort = {
-  async listMapPrompts(viewerId): Promise<MapPrompt[]> {
-    const prompts = await pendingMapPrompts(viewerId);
-    // `MapState` on the host is the same two words the wire uses; the cast is
-    // the seam admitting that rather than re-deriving the union.
-    return prompts.map((prompt) => ({
-      tripId: prompt.tripId,
-      tripName: prompt.tripName,
-      countries: prompt.countries.map((c) => ({
-        code: c.code,
-        state: c.state as "green" | "yellow",
-      })),
-    }));
-  },
-
-  async answerMapPrompt(viewerId, tripId, keep) {
-    // A question nobody parked is not answerable — and this is the guard that
-    // stops one person answering for somebody else.
-    if (!(await hasPendingMapPrompt(tripId, viewerId))) return;
-
-    if (keep) await keepMarksFromTrip(viewerId, tripId);
-    await clearMapPrompt(tripId, viewerId);
-
-    refresh({ kind: "profile" });
-  },
-
   async setCountryMark(viewerId, code, next) {
     const countryCode = readCountryCode(code);
     if (!countryCode) return;

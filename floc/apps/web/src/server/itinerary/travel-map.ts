@@ -6,7 +6,7 @@
  */
 import "server-only";
 
-import { and, eq, inArray, isNotNull, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { day, dayEvent, place, trip, tripMembership, userCountryMark } from "@/db/schema";
@@ -33,11 +33,7 @@ async function countriesForTrips(
   return out;
 }
 
-/**
- * The same read, kept split by trip (ticket 114) — `pendingMapPrompts` used to
- * call `countriesForTrips([id])` once per row in a loop (N+1); merging across
- * trips is cheap and belongs to the caller that wants it merged.
- */
+/** The same read, kept split by trip (ticket 114), so several people's maps merge without one read each. */
 async function countriesByTrip(
   trips: TripEnd[],
 ): Promise<Map<number, Record<string, MapState>>> {
@@ -114,48 +110,6 @@ async function manualMarksFor(
   for (const row of rows) {
     const code = readCountryCode(row.countryCode);
     if (code) out[code] = row.state;
-  }
-  return out;
-}
-
-export type MapPrompt = {
-  tripId: number;
-  tripName: string;
-  /** Named, not counted — "3 countries" isn't an answerable question. */
-  countries: { code: string; state: MapState }[];
-};
-
-/**
- * Questions left parked by trips this person is no longer on (ticket 95). A
- * trip with no known countries asks nothing — its flag stays set and
- * invisible rather than being cleared behind the member's back.
- */
-export async function pendingMapPrompts(userId: string): Promise<MapPrompt[]> {
-  const rows = await db
-    .select({ tripId: trip.id, name: trip.name, endDate: trip.endDate, promptAt: tripMembership.mapPromptAt })
-    .from(tripMembership)
-    .innerJoin(trip, eq(trip.id, tripMembership.tripId))
-    .where(
-      and(
-        eq(tripMembership.userId, userId),
-        isNotNull(tripMembership.mapPromptAt),
-        isNull(trip.deletedAt),
-      ),
-    )
-    .limit(LIMITS.tripsPerUser)
-    .all();
-  if (rows.length === 0) return [];
-
-  // One read, not one per trip (ticket 114).
-  const byTrip = await countriesByTrip(bounded(rows, "tripsPerUser", "travel map").map((r) => ({ id: r.tripId, endDate: r.endDate })));
-
-  const out: MapPrompt[] = [];
-  for (const row of rows) {
-    const entries = Object.entries(byTrip.get(row.tripId) ?? {}).map(
-      ([code, state]) => ({ code, state }),
-    );
-    if (entries.length === 0) continue;
-    out.push({ tripId: row.tripId, tripName: row.name, countries: entries });
   }
   return out;
 }
@@ -257,20 +211,3 @@ export async function derivedStateFor(
 }
 
 /** Converts a leaving trip's countries into hand marks (ticket 95). Never overwrites an existing hand mark, including a `none` — that's a decision, not a gap. */
-export async function keepMarksFromTrip(
-  userId: string,
-  tripId: number,
-): Promise<void> {
-  const live = await db
-    .select({ id: trip.id, endDate: trip.endDate })
-    .from(trip)
-    .where(and(eq(trip.id, tripId), isNull(trip.deletedAt)))
-    .all();
-  const countries = await countriesForTrips(live);
-  for (const [countryCode, state] of Object.entries(countries)) {
-    await db
-      .insert(userCountryMark)
-      .values({ userId, countryCode, state })
-      .onConflictDoNothing();
-  }
-}

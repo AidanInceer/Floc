@@ -17,7 +17,7 @@ export type FriendSavedPart = { trips: PresetTrip[]; countries: { code: string; 
 
 /**
  * What the Saved part of a friend's profile shows (#544, ADR-045). `saved` is `null` while their Saved ring shuts you out,
- * `map` while their Travel map ring does; their countries are the globe's yellow, so they follow the globe. `null`: no part.
+ * `map` while their Travel map ring does; their countries are want-to-go marks, so they follow that ring. `null`: no part.
  */
 export function friendSavedPart(saved: string[] | null, map: Pick<TravelMap, "states"> | null): FriendSavedPart | null {
   if (!saved) return null;

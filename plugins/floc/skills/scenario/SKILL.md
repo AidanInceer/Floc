@@ -21,7 +21,6 @@ Always show this list, then wait for a number:
 | 3 | `join-link` | Signed out on Portugal's invite link, three ideas to vote on. Join as a guest or with an account. |
 | 4 | `guest-account` | As guest Sam on Portugal's invite page, with votes and three free days. Sign up: the answers move to the new account and you join the trip. |
 | 5 | `dead-link` | Signed out on Portugal's old invite link, after the admin reset it: "This link no longer works". |
-| 6 | `map-question` | As you (the dev account), removed from Krakow by Mei, on `/profile` with "Keep the countries from Krakow?". |
 
 A number or name already given after `/floc:scenario` still gets the list shown
 once, with that row picked.

@@ -3,11 +3,12 @@ import { describe, expect, it } from "vitest";
 import { ACCOUNT_CLUSTERS, accountTabCounts } from "./account-tabs";
 
 describe("ACCOUNT_CLUSTERS", () => {
-  it("holds every account page on one level, in three clusters (#637)", () => {
+  it("holds every account page on one level: you, your people, what you keep, your bookings", () => {
     expect(ACCOUNT_CLUSTERS.map((cluster) => cluster.map((tab) => tab.key))).toEqual([
-      ["profile", "settings"],
-      ["friends", "groups", "wish"],
-      ["saved", "packing", "bookings"],
+      ["profile"],
+      ["friends", "groups"],
+      ["saved", "wish", "packing"],
+      ["bookings"],
     ]);
   });
 

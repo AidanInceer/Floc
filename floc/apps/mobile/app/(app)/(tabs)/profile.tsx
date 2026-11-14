@@ -15,34 +15,25 @@
  * THE COUNTS ARE DERIVED (#95). Been and want-to-go come off the trips you are
  * on, read fresh, never stored — so this can never disagree with the web.
  *
- * THE MAP IS EDITABLE HERE NOW. It used to say "change them on the website",
- * which is a section explaining why it is not one. Trip marks are still
- * derived and nobody's to edit; the hand-painted ones are painted from the
- * sheet behind "Paint the map".
- *
  * THE WAY OUT IS AT THE FOOT OF THIS SCREEN, not inside Settings. Signing out
  * is not a setting — it is the last thing you do to yourself, and it was two
  * taps and a scroll down a screen of switches away from anywhere you would
  * look for it.
  *
  * TWO READS, NOT ONE. `me` is the identity every screen wants; `me.profile` is
- * the heavier face. Packing reads the first and has no use for a travel map.
+ * the heavier face. Packing reads the first and has no use for vibe tags.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, type Href } from "expo-router";
 import { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
-import { MapPromptCard } from "@/components/map/map-prompt";
-import { MarkEditor } from "@/components/notes/mark-editor";
 import { FaceSheet } from "@/components/auth/face-sheet";
 import { ProfileFace } from "@/components/system/profile-face";
-import { Sheet } from "@/components/system/sheet";
-import { TravelMap } from "@/components/map/travel-map";
 import { VerifyEmailCard } from "@/components/auth/verify-email";
 import { ProRow } from "@/components/billing/pro-row";
 import { DrawerGroup, DrawerLink } from "@/components/system/drawer";
-import { Body, Button, Card, Failed, Loading, Row, SectionTitle } from "@/components/system/ui";
+import { Body, Failed, Loading, Row, SectionTitle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { signOutHere } from "@/lib/sign-out";
 import { forgetThisPhone } from "@/lib/push/push";
@@ -55,16 +46,12 @@ export default function Profile() {
   const billing = useQuery(trpc.billing.status.queryOptions());
   const waitingBookings = useQuery(trpc.bookings.waitingCount.queryOptions()).data ?? 0;
   const face = useQuery(trpc.me.profile.queryOptions());
-  const prompts = useQuery(trpc.me.mapPrompts.queryOptions());
 
   const [editing, setEditing] = useState(false);
-  const [painting, setPainting] = useState(false);
 
-  /** Both reads move together: a mark changes the map and the two counts on the card. */
   const refetchFace = () => {
     queryClient.invalidateQueries({ queryKey: trpc.me.get.queryKey() });
     queryClient.invalidateQueries({ queryKey: trpc.me.profile.queryKey() });
-    queryClient.invalidateQueries({ queryKey: trpc.me.mapPrompts.queryKey() });
   };
 
   const saveIdentity = useMutation(trpc.settings.identity.mutationOptions());
@@ -74,16 +61,6 @@ export default function Profile() {
       setEditing(false);
       refetchFace();
     },
-  });
-
-  const setMark = useMutation({
-    ...trpc.me.setMark.mutationOptions(),
-    onSuccess: refetchFace,
-  });
-
-  const answerPrompt = useMutation({
-    ...trpc.me.answerMapPrompt.mutationOptions(),
-    onSuccess: refetchFace,
   });
 
   if (me.isPending) return <Loading />;
@@ -100,7 +77,7 @@ export default function Profile() {
           onEdit={() => setEditing(true)}
         />
 
-        {/* Above the prompts and the map: it is the one thing on this screen
+        {/* Under the face: it is the one thing on this screen
             that stops something else from working. It draws nothing at all
             once the address is confirmed. */}
         <VerifyEmailCard
@@ -109,19 +86,7 @@ export default function Profile() {
           canConfirm={me.data.canConfirmEmail}
         />
 
-        {/* One card per trip you have left, above the rest: it is the
-            only moment its countries can be kept. */}
-        {prompts.data?.map((prompt) => (
-          <MapPromptCard
-            key={prompt.tripId}
-            prompt={prompt}
-            busy={answerPrompt.isPending}
-            onAnswer={(keep) => answerPrompt.mutate({ tripId: prompt.tripId, keep })}
-          />
-        ))}
-
-        {/* Up with the face, not at the foot: people are what you come to
-            this screen for most, and a scroll past the map hid them. */}
+        {/* Up with the face, not at the foot: people are what you come to this screen for most. */}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Friends"
@@ -131,23 +96,6 @@ export default function Profile() {
             <Body bold>Friends</Body>
           </Row>
         </Pressable>
-
-        <View style={{ gap: space.sm }}>
-          <SectionTitle>Travel map</SectionTitle>
-          <Card style={{ padding: 0, paddingBottom: space.lg, overflow: "hidden" }}>
-            {face.isPending ? (
-              <Loading />
-            ) : face.isError ? (
-              <Failed onRetry={() => face.refetch()} />
-            ) : (
-              <TravelMap
-                marks={face.data.map}
-                onSet={(code, state) => setMark.mutate({ code, state })}
-              />
-            )}
-          </Card>
-          <Button label="Paint the map" variant="quiet" onPress={() => setPainting(true)} />
-        </View>
 
         <YourTravel onLists={() => router.push("/lists")} />
 
@@ -187,14 +135,6 @@ export default function Profile() {
           onSave={(input) => saveAll.mutate(input)}
         />
       ) : null}
-
-      <Sheet open={painting} onClose={() => setPainting(false)}>
-        <MarkEditor
-          marks={face.data?.map ?? []}
-          busy={setMark.isPending}
-          onSet={(code, state) => setMark.mutate({ code, state })}
-        />
-      </Sheet>
     </>
   );
 }

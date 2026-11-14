@@ -1,0 +1,83 @@
+/* Theme switch. House tokens only. */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.g { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.rel { position: relative; display: inline-flex; }
+body { background: var(--paper); }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+
+.face { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: var(--radius-sm); font-family: var(--type); font-weight: 600; box-shadow: inset 0 0 0 1px var(--rule-2); }
+
+/* ——— Top bar: three beads, every glyph in a 26px tile 8px from the next ——— */
+.top { position: sticky; top: 0; z-index: 20; }
+.top-in { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 16px 4px; }
+.bead { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 4px; border-radius: var(--radius-md); background: var(--sheet); box-shadow: inset 0 0 0 1px var(--rule), var(--shadow-sm); position: relative; }
+.logo { padding: 0 12px; }
+.wordmark { font-family: var(--display); font-weight: 600; font-size: 20px; letter-spacing: -0.03em; color: var(--ink); }
+.wordmark i { color: var(--pen); font-style: normal; }
+.it { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 8px 0 6px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; color: var(--ink-2); }
+.it:last-child { padding-right: 12px; }
+.it.only { padding: 0 6px; }
+.tile { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: var(--radius-sm); color: var(--ink-3); transition: background 0.22s var(--ease), color 0.22s var(--ease); position: relative; }
+.it:hover { color: var(--ink); }
+.it:hover .tile { background: var(--sheet-3); color: var(--ink); }
+.it[aria-current] .tile, .it[data-open] .tile { background: var(--pen-2); color: var(--pen-deep); }
+.it .face { transition: box-shadow 0.22s var(--ease); }
+.it:hover .face { box-shadow: inset 0 0 0 1px var(--rule-2), 0 0 0 2px var(--sheet-3); }
+.it[data-open] .face { box-shadow: inset 0 0 0 1px var(--rule-2), 0 0 0 2px var(--pen-2); }
+.count { position: absolute; right: -8px; top: -6px; min-width: 16px; padding: 0 4px; border-radius: var(--radius-pill); border: 2px solid var(--sheet); background: var(--pen); color: var(--sheet); font-family: var(--type); font-size: 11px; font-weight: 600; line-height: 13px; text-align: center; }
+
+/* ——— Account bar ——— */
+.abar { display: flex; flex-direction: column; align-items: center; padding: 6px 12px 10px; }
+.abar-in { display: flex; align-items: center; gap: 20px; }
+.atab { display: inline-flex; align-items: center; gap: 6px; padding: 6px 0; font-size: 13px; font-weight: 500; color: var(--ink-3); }
+.atab .tile { width: 24px; height: 24px; }
+.atab[aria-current] { color: var(--ink); }
+.atab[aria-current] .tile { background: var(--pen-2); color: var(--pen-deep); }
+.sep { width: 1px; height: 20px; background: var(--rule-2); }
+.now { display: none; font-size: 13px; font-weight: 500; padding-top: 4px; }
+
+/* ——— Popover (B) ——— */
+.scrim { position: fixed; inset: 0; z-index: 30; }
+.pop { position: absolute; right: 0; top: 52px; z-index: 31; width: 17rem; background: var(--sheet); border-radius: var(--radius-md); box-shadow: inset 0 0 0 1px var(--rule), var(--shadow-lift); overflow: hidden; text-align: left; }
+.pop-who { display: flex; align-items: center; gap: 10px; padding: 12px 14px; width: 100%; }
+.pop-who:hover { background: var(--pen-2); color: var(--pen-deep); }
+.pop-who .m { display: flex; flex-direction: column; align-items: flex-start; flex: 1; min-width: 0; text-align: left; }
+.pop-who .t { font-size: 15px; font-weight: 500; }
+.pop-who .s { font-size: 11px; color: var(--ink-3); }
+.pop-sec { border-top: 1px solid var(--rule); padding: 10px 14px; }
+.pop-out { display: flex; align-items: center; gap: 8px; width: 100%; height: 38px; padding: 0 14px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--ink-2); }
+.pop-out:hover { background: var(--pen-2); color: var(--pen-deep); }
+
+/* ——— Theme segments ——— */
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 3px; border-radius: var(--radius-sm); background: var(--sheet-3); }
+.seg button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 6px; color: var(--ink-2); font-size: 13px; transition: background 0.22s var(--ease), color 0.22s var(--ease); }
+.seg button:hover { color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--sheet); color: var(--ink); box-shadow: var(--shadow-sm); }
+
+/* ——— Profile page, as now: face card, then the settings rows ——— */
+.wrap { max-width: 40rem; margin: 0 auto; padding: 16px 16px 96px; display: flex; flex-direction: column; gap: 12px; }
+.card { background: var(--sheet); border-radius: var(--radius-md); overflow: hidden; }
+.me { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 18px; }
+.me-name { font-family: var(--display); font-size: 31px; font-weight: 600; letter-spacing: -0.02em; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; min-width: 0; }
+.chip { padding: 2px 8px; border-radius: var(--radius-pill); background: var(--pen-2); color: var(--pen-deep); font-family: var(--type); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+.me .seg { margin-left: auto; }
+.row { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-top: 1px solid var(--rule); }
+.row:first-child { border-top: 0; }
+.row .m { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.row .t { font-size: 15px; font-weight: 500; }
+.row .s { font-size: 13px; color: var(--ink-3); }
+.row .g { color: var(--ink-3); }
+.ghost { opacity: 0.45; pointer-events: none; }
+.foot { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; }
+.note { font-size: 11px; color: var(--ink-3); text-align: center; padding: 4px 0; font-family: var(--type); letter-spacing: 0.04em; }
+
+@media (max-width: 640px) {
+  .it .label, .atab .l { display: none; }
+  .it, .it:last-child { padding: 0 6px; }
+  .abar-in { gap: 12px; }
+  .now { display: block; }
+  .me .seg { margin-left: 0; width: 100%; }
+  .me-name { font-size: 25px; }
+  .pop { position: fixed; left: 8px; right: 8px; top: 64px; width: auto; }
+}

@@ -291,6 +291,13 @@
   --slab-ink: var(--ink);
 }
 
+/* Why: a theme change swaps colours at once; a tile that eases its colour would fade between themes. The switch's own slide stays (lib/theme.ts). */
+:root[data-theme-swap] *:not(.theme-indicator),
+:root[data-theme-swap] *::before,
+:root[data-theme-swap] *::after {
+  transition: none !important;
+}
+
 /* Expose the tokens to Tailwind: bg-sheet, text-ink-soft, text-pen, … */
 @theme inline {
   --color-paper: var(--paper);

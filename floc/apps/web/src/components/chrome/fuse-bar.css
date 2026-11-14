@@ -1,5 +1,5 @@
 /* The skin the beads fuse on, drawn behind them. While it is in play the beads
-   give up their own surface and ring; a hovered or open one keeps its fill. */
+   give up their own surface and ring; only the glyph tiles inside show hover. */
 .fuse-skin {
   filter: drop-shadow(var(--shadow-sm));
 }
@@ -10,14 +10,8 @@
   paint-order: stroke fill;
 }
 .fuse-row[data-fuse="on"] .fuse-bead {
+  background-color: transparent;
   box-shadow: none;
-}
-.fuse-row[data-fuse="on"] .fuse-bead:not(:hover, [data-open="true"]) {
-  background-color: transparent;
-}
-.fuse-row[data-fuse="on"] button.fuse-bead:is(:hover, [data-open="true"]) {
-  background-color: transparent;
-  box-shadow: inset 0 0 0 1px var(--rule-2);
 }
 
 /* The one pop when the beads become a bar, and the small give when they part. */

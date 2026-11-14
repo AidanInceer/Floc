@@ -55,7 +55,7 @@ export function ProBand({ prices, signedIn }: { prices: PlanPrice[]; signedIn: b
               {NOW.map((item) => <Row key={item.name} item={item} tile={`pro-tone-${item.tone}`} />)}
             </ul>
           </div>
-          <ProPriceCard plans={plans} initial={initial} href={signedIn ? "/settings?section=billing" : "/signup"} />
+          <ProPriceCard plans={plans} initial={initial} href={signedIn ? "/profile?section=billing#settings-billing" : "/signup"} />
         </div>
         <section className="mt-10" aria-labelledby="pro-soon-h">
           <h3 id="pro-soon-h" className="mb-4 font-display text-[22px] font-semibold tracking-[-0.01em]">

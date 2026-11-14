@@ -33,7 +33,6 @@ import { AccountPage, Panel, PersonRow } from "@/components/auth/account-ui";
 import { Avatar, Badge } from "@/components/system/ui";
 import { FriendButton } from "@/components/social/friend-button";
 import { PersonLink } from "@/components/social/person-link";
-import { TravelMap } from "@/components/map/travel-map";
 
 export const metadata = { title: "Profile" };
 
@@ -96,10 +95,6 @@ export default async function PublicProfilePage({
           </div>
         </div>
       </Panel>
-
-      {profile.travelMap ? (
-        <TravelMap title="Where they've been" states={profile.travelMap.states} />
-      ) : null}
 
       {saved ? (
         <ListingRatesProvider rates={rates}>

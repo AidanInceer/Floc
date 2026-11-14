@@ -28,17 +28,6 @@ export type Visibility = "private" | "friends" | "trip_members";
 export type PastTripsShow = "all" | "latest";
 
 /**
- * One country a trip you have left was claiming (#95). Why: asked on the way out, because the
- * countries stop being derived the moment the membership ends. Named, not counted — "3 countries"
- * is not an answerable question.
- */
-export type MapPrompt = {
-  tripId: number;
-  tripName: string;
-  countries: { code: string; state: "green" | "yellow" }[];
-};
-
-/**
  * What you configure, in one read (#07, #46, #236). Why: the web draws eight panels that each save
  * on their own, but the shape is one row — asking eight times is eight round trips for one record.
  * `signInMethods` is Better Auth's and rides along because the Account panel draws both.
@@ -230,12 +219,6 @@ export type AccountPort = {
    * admin-less; trip content stays, attributed to a deleted user.
    */
   deleteMyAccount(viewerId: string): Promise<void>;
-
-  /** Questions parked by trips the viewer has left (ticket 95). Empty is the ordinary case. */
-  listMapPrompts(viewerId: string): Promise<MapPrompt[]>;
-
-  /** Keeping converts a left trip's countries to hand marks; declining just clears the question. */
-  answerMapPrompt(viewerId: string, tripId: number, keep: boolean): Promise<void>;
 
   /**
    * Paints one country by hand, or takes the paint off (ticket 108).

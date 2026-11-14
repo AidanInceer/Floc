@@ -32,14 +32,14 @@ describe("travel style summary", () => {
     expect(travelStyleSummary([])).toBe("None picked");
   });
 
-  it("names one or two tags in full", () => {
-    expect(travelStyleSummary(["hiking"])).toBe("hiking");
-    expect(travelStyleSummary(["hiking", "beaches"])).toBe("hiking and beaches");
+  it("names one or two tags in full, in sentence case", () => {
+    expect(travelStyleSummary(["hiking"])).toBe("Hiking");
+    expect(travelStyleSummary(["hiking", "beaches"])).toBe("Hiking and beaches");
   });
 
   it("names two and counts the rest", () => {
     expect(travelStyleSummary(["city breaks", "hiking", "food first", "slow mornings"])).toBe(
-      "city breaks, hiking and 2 more",
+      "City breaks, hiking and 2 more",
     );
   });
 });

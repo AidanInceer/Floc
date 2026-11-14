@@ -9,7 +9,7 @@
  */
 import "server-only";
 
-import { and, count, eq, gt, inArray, isNotNull, isNull, ne, sql } from "drizzle-orm";
+import { and, count, eq, gt, inArray, isNull, ne, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { nudge, trip, tripMembership } from "@/db/schema";
@@ -226,40 +226,6 @@ export async function handOverAndLeaveAllTrips(userId: string): Promise<void> {
     .set({ deletedAt: new Date(), lastModifiedAt: new Date() })
     .where(eq(tripMembership.userId, userId));
   kickFromTripNotes(null, userId);
-}
-
-/* --------------------------------------------------------- the map prompt */
-
-/** Whether this trip has left its "keep these countries?" question unanswered. */
-export async function hasPendingMapPrompt(
-  tripId: number,
-  userId: string,
-): Promise<boolean> {
-  const row = await db
-    .select({ tripId: tripMembership.tripId })
-    .from(tripMembership)
-    .where(
-      and(
-        eq(tripMembership.tripId, tripId),
-        eq(tripMembership.userId, userId),
-        isNotNull(tripMembership.mapPromptAt),
-      ),
-    )
-    .get();
-  return row !== undefined;
-}
-
-/** Deliberately not filtered on `deletedAt` — the target row belongs to someone who's already left. */
-export async function clearMapPrompt(
-  tripId: number,
-  userId: string,
-): Promise<void> {
-  await db
-    .update(tripMembership)
-    .set({ mapPromptAt: null, lastModifiedAt: new Date() })
-    .where(
-      and(eq(tripMembership.tripId, tripId), eq(tripMembership.userId, userId)),
-    );
 }
 
 /* -------------------------------------------------------------- the nudge */

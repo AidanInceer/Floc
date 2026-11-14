@@ -3,8 +3,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
-import { removeMembership } from "@/server/trips/roster";
-import { pendingMapPrompts, setManualMark, travelMapFor, travelMapsFor } from "@/server/itinerary/travel-map";
+import { setManualMark, travelMapFor, travelMapsFor } from "@/server/itinerary/travel-map";
 
 let world: Scenario;
 
@@ -40,17 +39,6 @@ describe("the travel map", () => {
     await setManualMark(world.member, "PT", "green");
 
     expect((await travelMapFor(world.member)).states).toEqual({ PT: "green" });
-  });
-
-  it("parks a left trip's countries as a question", async () => {
-    await sleepIn(world.ours.id, world.ours.dayId, "PT");
-    await endOn(world.ours.id, "2020-01-02");
-    await removeMembership(world.ours.id, world.member, world.member);
-
-    expect((await travelMapFor(world.member)).states).toEqual({});
-    expect(await pendingMapPrompts(world.member)).toEqual([
-      { tripId: world.ours.id, tripName: "Ours", countries: [{ code: "PT", state: "green" }] },
-    ]);
   });
 
   it("reads several people's maps at once, the same as one by one", async () => {
