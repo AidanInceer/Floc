@@ -12,7 +12,7 @@ import { PickChip, pickLineClass } from "./pick-chip";
 
 const PARTS = [
   { name: "visibilityVibeTags", label: "Vibe tags" },
-  { name: "visibilityTravelMap", label: "Travel map" },
+  { name: "visibilityTravelMap", label: "Countries" },
   { name: "visibilityFriends", label: "Friends list" },
   { name: "visibilitySaved", label: "Saved" },
 ] as const;

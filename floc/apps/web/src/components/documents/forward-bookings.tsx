@@ -15,7 +15,7 @@ export function ForwardBookings({ address }: { address: string }) {
       trigger="Forward bookings"
       panelClassName="w-[19rem] max-w-[calc(100vw-2rem)] rounded-md border border-rule-strong bg-sheet p-3 shadow-raised"
     >
-      <p className="text-sm text-ink">Forward a booking email to</p>
+      <p className="text-sm text-ink">Forward booking emails to</p>
       <p className="mt-0.5 break-all font-mono text-[13px] text-ink">{address}</p>
       <p className="mt-1 text-xs text-ink-soft">{bookingForwardWords}</p>
       <div className="mt-3 flex flex-wrap items-center gap-2">

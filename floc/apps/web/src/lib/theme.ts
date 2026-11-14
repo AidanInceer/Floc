@@ -33,6 +33,22 @@ export function storeChoice(choice: ThemeChoice) {
 }
 
 /**
+ * Why: a tile or wash that eases its colour would fade from one theme to the other; `data-theme-swap` holds
+ * every transition off (globals.css) until two frames have painted the new theme.
+ */
+export function applyTheme(
+  root: { dataset: DOMStringMap },
+  choice: ThemeChoice,
+  prefersDark: boolean,
+  nextFrame: (run: () => void) => void = requestAnimationFrame,
+) {
+  root.dataset.themeSwap = "";
+  root.dataset.themeChoice = choice;
+  root.dataset.theme = resolveTheme(choice, prefersDark);
+  nextFrame(() => nextFrame(() => delete root.dataset.themeSwap));
+}
+
+/**
  * Why: runs before any bundle so a dark reload never flashes light, and lights
  * the switch before hydration. Signed out there is no switch, so the front door is
  * always light, whatever is stored or the device prefers.

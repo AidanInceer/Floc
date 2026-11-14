@@ -403,6 +403,7 @@ export function Menu({
   trigger,
   triggerClassName,
   panelClassName,
+  anchor = "trigger",
 }: {
   /** Accessible name — say whose or what's menu this is. */
   label: string;
@@ -417,6 +418,8 @@ export function Menu({
   triggerClassName?: string;
   /** Replaces the default panel look; position stays the menu's. */
   panelClassName?: string;
+  /** `parent`: the panel hangs from the nearest positioned ancestor, so two menus in one bar share an edge. */
+  anchor?: "trigger" | "parent";
 }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -475,7 +478,7 @@ export function Menu({
   }, [open]);
 
   return (
-    <div ref={wrapRef} className={cx("relative", open && "z-[1200]")}>
+    <div ref={wrapRef} className={cx(anchor === "trigger" && "relative", open && "z-[1200]")}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

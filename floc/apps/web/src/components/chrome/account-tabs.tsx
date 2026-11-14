@@ -3,7 +3,7 @@ import { Fragment, type CSSProperties, type ReactNode } from "react";
 
 import { ACCOUNT_CLUSTERS, accountTabCounts, type AccountTabKey } from "@/lib/chrome/account-tabs";
 import { topBarFor, TOP_BAR_PREVIEW } from "@/server/chrome/top-bar";
-import { BookmarkIcon, EnvelopeIcon, GroupIcon, PersonIcon, SlidersIcon } from "@/components/system/icons/account";
+import { BookmarkIcon, EnvelopeIcon, GroupIcon, PersonIcon } from "@/components/system/icons/account";
 import { NavGlyph } from "@/components/system/icons/nav";
 import { ReactionGlyph } from "@/components/system/icons/reaction";
 import "./trip-tabs.css";
@@ -13,7 +13,6 @@ export type { AccountTabKey };
 function iconFor(key: AccountTabKey, open: boolean): ReactNode {
   switch (key) {
     case "profile": return <PersonIcon />;
-    case "settings": return <SlidersIcon />;
     case "friends": return <NavGlyph name="friends" />;
     case "groups": return <GroupIcon />;
     case "wish": return <BookmarkIcon filled={open} />;
@@ -33,7 +32,7 @@ const WASH: Partial<Record<AccountTabKey, CSSProperties>> = {
 const pipClass =
   "absolute -right-1.5 -top-1.5 min-w-4 rounded-full border-2 border-paper bg-pen px-1 text-center font-mono text-[11px] font-semibold leading-[13px] text-sheet";
 
-/** The bar under the header on every account page: one level, three clusters, the same on each (#467, #623, #637). */
+/** The bar under the header on every account page: one level, four clusters, the same on each (#467, #623, #637). */
 export async function AccountTabs({ current, userId }: { current: AccountTabKey; userId: string }) {
   const { friendRequestCount, bookings } = await topBarFor(userId, TOP_BAR_PREVIEW);
   const counts = accountTabCounts({ friendRequestCount, bookingCount: bookings.files.length });
@@ -62,7 +61,7 @@ export async function AccountTabs({ current, userId }: { current: AccountTabKey;
                       {iconFor(tab.key, isOpen)}
                       {count ? <span aria-hidden className={pipClass}>{count > 99 ? "99+" : count}</span> : null}
                     </span>
-                    {/* Why: eight names do not fit a phone's width; the glyphs stay, and the open page is named below. */}
+                    {/* Why: seven names do not fit a phone's width; the glyphs stay, and the open page is named below. */}
                     <span aria-hidden className="max-sm:hidden">{tab.label}</span>
                   </Link>
                 );

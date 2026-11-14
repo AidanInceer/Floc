@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
 import { cx } from "@/components/system/ui";
 import { NavGlyph, type NavGlyphName } from "@/components/system/icons/nav";
 import { useEdgeFade } from "@/components/chrome/use-edge-fade";
-import { BEAD } from "@/components/chrome/bead";
+import { BEAD, BEAD_ITEM, BEAD_ITEMS, BEAD_TILE } from "@/components/chrome/bead";
 import { activeHref } from "@/lib/active-href";
 
 export type PlaceItem = {
@@ -31,22 +31,22 @@ export function PlacesNav({ label, items }: { label: string; items: PlaceItem[] 
       onScroll={fade.onScroll}
       style={fade.style}
       aria-label={label}
-      className={cx(BEAD, "scroll-x-bare min-w-0 gap-0.5")}
+      className={cx(BEAD, BEAD_ITEMS, "scroll-x-bare min-w-0")}
     >
       {items.map((item) => (
         <Link
           key={item.href}
           href={item.href}
           aria-current={item.href === current ? "page" : undefined}
-          className="group flex h-full shrink-0 items-center rounded-sm px-1.5 text-sm font-medium text-ink-soft transition-colors hover:text-ink aria-[current=page]:text-ink sm:gap-1.5 sm:pr-3.5"
+          className={cx(BEAD_ITEM, "sm:pr-2 sm:last:pr-3.5")}
         >
-          <span className="inline-flex size-[26px] items-center justify-center rounded-sm text-ink-faint transition-colors group-hover:bg-sheet-3 group-hover:text-ink group-aria-[current=page]:bg-pen-soft group-aria-[current=page]:text-pen-deep">
+          <span className={cx(BEAD_TILE, "relative")}>
             <NavGlyph name={item.glyph} />
+            {item.badge}
           </span>
           <span data-fuse="label" className="sr-only sm:not-sr-only">
             {item.label}
           </span>
-          {item.badge}
         </Link>
       ))}
     </nav>

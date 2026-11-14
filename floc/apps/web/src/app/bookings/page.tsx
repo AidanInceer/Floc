@@ -16,7 +16,7 @@ import { StorageMeter } from "@/components/documents/storage-meter";
 import { CopyLink, Menu } from "@/components/system/client-ui";
 import { EmptyState, menuItemClass } from "@/components/system/ui";
 import {
-  bookingForwardWords, bookingInboxNote, bookingsEmptyWords, bookingsNoStorageWords,
+  bookingForwardWords, bookingInboxNote, bookingPlacingWords, bookingsEmptyWords, bookingsNoStorageWords,
 } from "@floc/core/documents/booking/booking-inbox";
 
 export const metadata = { title: "Bookings" };
@@ -46,10 +46,10 @@ export default async function BookingsPage() {
             <Panel>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                 <div className="min-w-0 flex-1 basis-56">
-                  <p className="text-sm text-ink">Forward a booking email to</p>
+                  <p className="text-sm text-ink">Forward booking emails to</p>
                   <p className="mt-0.5 break-all font-mono text-[13px] text-ink">{address}</p>
                   <p className="mt-1 text-xs text-ink-soft">
-                    {bookingForwardWords} {reads ? "Floc puts it on the trip its dates match." : "With Pro, Floc puts it on the trip its dates match."}
+                    {bookingForwardWords} {bookingPlacingWords(reads)}
                   </p>
                 </div>
                 <CopyLink value={address} label="Copy address" item="Address" variant="secondary" />

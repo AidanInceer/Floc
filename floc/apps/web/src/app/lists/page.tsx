@@ -41,7 +41,7 @@ export default async function SavedPage() {
       <PageTitle className="sr-only">Saved</PageTitle>
       {seenBy ? (
         <p className="mb-4">
-          <Link href="/settings?section=privacy" className="text-sm text-ink-soft transition-colors hover:text-pen">
+          <Link href="/profile?section=privacy#settings-privacy" className="text-sm text-ink-soft transition-colors hover:text-pen">
             {seenBy}
           </Link>
         </p>

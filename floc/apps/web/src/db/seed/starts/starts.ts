@@ -5,17 +5,17 @@
  */
 import { randomUUID } from "node:crypto";
 
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 import { db } from "../../index.ts";
-import { availability, idea, ideaVote, trip, tripMembership } from "../../schema.ts";
+import { availability, idea, ideaVote, trip } from "../../schema.ts";
 import { SEED_DOMAIN } from "../identity.ts";
 import { seedGuest, upsertAccount } from "../people.ts";
 import { OPEN } from "../profiles.ts";
 import { isoIn, makeTrip } from "../world.ts";
 import { mintShareToken } from "@/server/trips/invite-link";
 
-export const STARTS = ["new-user", "walkthrough", "join-link", "guest-account", "dead-link", "map-question"] as const;
+export const STARTS = ["new-user", "walkthrough", "join-link", "guest-account", "dead-link"] as const;
 export type StartName = (typeof STARTS)[number];
 
 /** `as` is a user id, or null to land signed out. */
@@ -83,24 +83,12 @@ async function deadLink(): Promise<Start> {
   return { as: null, to: `/invite/${mintShareToken(portugal.inviteToken)}` };
 }
 
-async function mapQuestion(): Promise<Start> {
-  const krakow = await tripNamed("Krakow, last winter");
-  const on = (userId: string) => and(eq(tripMembership.tripId, krakow.id), eq(tripMembership.userId, userId));
-  await db.update(tripMembership).set({ role: "admin" }).where(on("seed-b-mei"));
-  await db
-    .update(tripMembership)
-    .set({ deletedAt: new Date(), mapPromptAt: new Date() })
-    .where(on("dev-user"));
-  return { as: "dev-user", to: "/profile" };
-}
-
 const BUILDERS: Record<StartName, () => Promise<Start>> = {
   "new-user": async () => ({ as: null, to: "/signup" }),
   walkthrough,
   "join-link": joinLink,
   "guest-account": guestAccount,
   "dead-link": deadLink,
-  "map-question": mapQuestion,
 };
 
 /** Assumes seeds A and B are in; `index.ts` wipes and seeds first. */

@@ -11,10 +11,12 @@ export function privacySummary({ isPrivate, rings }: { isPrivate: boolean; rings
   return `Friends see ${friends} of ${rings.length}, travelled with ${travelled} of ${rings.length}`;
 }
 
+const sentence = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
 export function travelStyleSummary(tags: string[]): string {
   if (tags.length === 0) return "None picked";
-  if (tags.length <= 2) return tags.join(" and ");
-  return `${tags[0]}, ${tags[1]} and ${tags.length - 2} more`;
+  if (tags.length <= 2) return sentence(tags.join(" and "));
+  return sentence(`${tags[0]}, ${tags[1]} and ${tags.length - 2} more`);
 }
 
 export function tripsSummary(packingStyle: string, currency: string): string {

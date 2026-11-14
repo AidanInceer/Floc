@@ -54,7 +54,11 @@ export type WaitingFile = {
 export type TripChoice = { id: number; name: string };
 
 /** The words the web and the phone share, so the three places that give the address say one thing. */
-export const bookingForwardWords = "Send it from the address you sign in with. Its files stay private to you.";
+export const bookingForwardWords = "Send from your sign-in email. Only you see the files.";
+
+export function bookingPlacingWords(reads: boolean): string {
+  return reads ? "Floc adds each one to the trip with matching dates." : "With Pro, Floc adds each one to the trip with matching dates.";
+}
 export const bookingsEmptyWords = "Nothing waiting";
 export const bookingsNoStorageWords = "File storage isn't set up yet, so there is nowhere to keep a booking.";
 

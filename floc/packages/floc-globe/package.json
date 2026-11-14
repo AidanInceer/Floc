@@ -2,11 +2,9 @@
   "name": "@floc/globe",
   "version": "0.1.0",
   "private": true,
-  "description": "The paper globe (#468): sphere maths, the country outlines, and the travel globe on a profile. The web app renders it; the phone runs it as an Expo DOM component.",
+  "description": "The paper globe (#468): the sphere maths and land tracing that Explore, the Overview and the landing tour share.",
   "type": "module",
   "exports": {
-    "./travel-globe.css": "./src/view/travel-globe.css",
-    "./view/*": "./src/view/*.tsx",
     "./canvas/*": "./src/canvas/*.ts",
     "./*": "./src/*.ts"
   },
