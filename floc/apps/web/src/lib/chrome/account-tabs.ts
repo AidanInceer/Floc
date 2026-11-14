@@ -17,6 +17,11 @@ export const ACCOUNT_CLUSTERS: readonly (readonly AccountTab[])[] = [
   [{ key: "bookings", href: "/bookings", label: "Bookings" }],
 ];
 
+/** The card behind your face opens the first page of each cluster after Profile; the lists cluster goes by its name, Lists. */
+export const CARD_SHORTCUTS: readonly AccountTab[] = ACCOUNT_CLUSTERS.slice(1).map(([first]) =>
+  first.key === "saved" ? { ...first, label: "Lists" } : first,
+);
+
 export function accountTabCounts({ friendRequestCount, bookingCount }: { friendRequestCount: number; bookingCount: number }) {
   const counts: Partial<Record<AccountTabKey, number>> = {};
   if (friendRequestCount > 0) counts.friends = friendRequestCount;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ACCOUNT_CLUSTERS, accountTabCounts } from "./account-tabs";
+import { ACCOUNT_CLUSTERS, CARD_SHORTCUTS, accountTabCounts } from "./account-tabs";
 
 describe("ACCOUNT_CLUSTERS", () => {
   it("holds every account page on one level: you, your people, what you keep, your bookings", () => {
@@ -20,6 +20,16 @@ describe("ACCOUNT_CLUSTERS", () => {
   it("links each tab to one page", () => {
     const hrefs = ACCOUNT_CLUSTERS.flat().map((tab) => tab.href);
     expect(new Set(hrefs).size).toBe(hrefs.length);
+  });
+});
+
+describe("CARD_SHORTCUTS", () => {
+  it("opens Friends, Lists and Bookings from the card behind your face", () => {
+    expect(CARD_SHORTCUTS.map(({ label, href }) => [label, href])).toEqual([
+      ["Friends", "/friends"],
+      ["Lists", "/lists"],
+      ["Bookings", "/bookings"],
+    ]);
   });
 });
 
