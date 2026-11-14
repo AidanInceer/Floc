@@ -34,7 +34,7 @@ export function SettingsRow({
     <details
       id={id}
       open={open}
-      className={cx("group/row relative border-t border-rule first:border-t-0", danger && "open:bg-red-soft")}
+      className={cx("group/row relative scroll-mt-20 border-t border-rule first:border-t-0", danger && "open:bg-red-soft")}
     >
       <summary
         className={cx(

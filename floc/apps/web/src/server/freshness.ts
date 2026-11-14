@@ -88,10 +88,10 @@ const PAGES: Pages = {
   tripList: () => [{ path: "/trips" }, { path: "/trips/archived" }],
   invites: () => [{ path: "/trips" }],
   invitePage: ({ token }) => [{ path: `/invite/${token}` }],
-  // Why: want-to-go countries on Lists are the globe's yellow (ADR-042).
-  profile: () => [{ path: "/profile" }, { path: "/settings" }, { path: "/lists" }],
-  // Sign-in methods and notification prefs live only on Settings.
-  accountSettings: () => [{ path: "/settings" }],
+  // Why: want-to-go countries show on Lists (ADR-042).
+  profile: () => [{ path: "/profile" }, { path: "/lists" }],
+  // Sign-in methods and notification prefs sit with your settings on Profile.
+  accountSettings: () => [{ path: "/profile" }],
   profileTrips: () => [{ path: "/profile" }],
   packingKits: () => [{ path: "/lists/packing" }],
   friendship: ({ otherId }) => [{ path: "/friends" }, { path: "/friends/groups" }, { path: `/profile/${otherId}` }],

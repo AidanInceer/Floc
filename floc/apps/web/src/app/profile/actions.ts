@@ -1,7 +1,7 @@
 "use server";
 
-// Profile edits — who you are. Privacy flags for who sees them live on
-// /settings instead. Email isn't here: it's Better Auth's and can't change
+// Profile edits — who you are. Privacy flags for who sees them sit in the
+// settings rows under your face. Email isn't here: it's Better Auth's and can't change
 // from this page.
 import { CURRENCIES } from "@/db/schema";
 import type { Currency } from "@/db/schema";
@@ -10,7 +10,6 @@ import { parseAvatarIcon } from "@floc/core/people/avatar-icon";
 import { readCountryCode } from "@floc/core/people/countries";
 import { capText } from "@floc/core/text/text";
 import { parsePackTier } from "@floc/core/packing/packing";
-import { clearMapPrompt, hasPendingMapPrompt } from "@/server/trips/roster";
 import {
   ensureProfile,
   updateProfileFields,
@@ -18,7 +17,6 @@ import {
 import {
   clearManualMark,
   derivedStateFor,
-  keepMarksFromTrip,
   setManualMark,
 } from "@/server/itinerary/travel-map";
 import { parseVibeTags } from "@floc/core/trip/vibe-tags";
@@ -115,31 +113,4 @@ export async function setCountryMark(
   }
 
   refresh({ kind: "profile" });
-}
-
-// Answers the question a trip leaves behind when you're no longer on it.
-// Keeping converts its countries to hand marks (the only place that
-// conversion happens); declining just clears the question, no `none` row.
-async function answerMapPrompt(
-  tripId: number,
-  keep: boolean,
-): Promise<void> {
-  const viewer = await requireUser();
-
-  if (!(await hasPendingMapPrompt(tripId, viewer.id))) return;
-
-  if (keep) await keepMarksFromTrip(viewer.id, tripId);
-  await clearMapPrompt(tripId, viewer.id);
-
-  refresh({ kind: "profile" });
-}
-
-// FormData-shaped wrappers for the two map-prompt buttons — `answerMapPrompt`
-// takes plain arguments, not a FormData.
-export async function keepPromptCountries(formData: FormData): Promise<void> {
-  await answerMapPrompt(Number(formData.get("tripId")), true);
-}
-
-export async function dropPromptCountries(formData: FormData): Promise<void> {
-  await answerMapPrompt(Number(formData.get("tripId")), false);
 }

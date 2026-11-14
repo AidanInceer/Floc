@@ -67,7 +67,7 @@ function AutoPart({ auto }: { auto: FillAuto | null }) {
   if (!auto) {
     return (
       <div className="p-1.5">
-        <Link href="/settings?section=billing" className={cx(buttonClass("pro"), "w-full !py-2")}>
+        <Link href="/profile?section=billing#settings-billing" className={cx(buttonClass("pro"), "w-full !py-2")}>
           <SparkIcon />
           Auto pack
           <span className="font-semibold">Pro</span>

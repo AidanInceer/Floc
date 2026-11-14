@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { readStoredChoice, resolveTheme, themeBootstrap, THEME_STORAGE_KEY } from "./theme";
+import { applyTheme, readStoredChoice, resolveTheme, themeBootstrap, THEME_STORAGE_KEY } from "./theme";
 
 describe("readStoredChoice", () => {
   it("keeps a real choice", () => {
@@ -60,5 +60,27 @@ describe("themeBootstrap", () => {
 
   it("reads the key storeTheme writes", () => {
     expect(themeBootstrap(true)).toContain(JSON.stringify(THEME_STORAGE_KEY));
+  });
+});
+
+describe("applyTheme", () => {
+  const setup = () => {
+    const root = { dataset: {} as DOMStringMap };
+    const frames: (() => void)[] = [];
+    return { root, frames, nextFrame: (run: () => void) => void frames.push(run) };
+  };
+
+  it("sets the choice and the theme it resolves to", () => {
+    const { root, nextFrame } = setup();
+    applyTheme(root, "system", true, nextFrame);
+    expect(root.dataset).toMatchObject({ themeChoice: "system", theme: "dark" });
+  });
+
+  it("holds colour transitions off until the new theme has painted, so nothing fades between themes", () => {
+    const { root, frames, nextFrame } = setup();
+    applyTheme(root, "dark", false, nextFrame);
+    expect(root.dataset.themeSwap).toBe("");
+    while (frames.length) frames.shift()!();
+    expect(root.dataset.themeSwap).toBeUndefined();
   });
 });

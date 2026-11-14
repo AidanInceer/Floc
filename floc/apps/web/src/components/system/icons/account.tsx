@@ -9,16 +9,6 @@ export function PersonIcon() {
   );
 }
 
-export function SlidersIcon() {
-  return (
-    <Line size={15}>
-      <path d="M2 4.2h5.9M10.5 4.2H12M2 9.8h1.5M6 9.8h6" />
-      <circle cx="9.2" cy="4.2" r="1.3" />
-      <circle cx="4.8" cy="9.8" r="1.3" />
-    </Line>
-  );
-}
-
 /** Groups: three people, so it reads apart from Friends' two at glyph size (#637). */
 export function GroupIcon() {
   return (

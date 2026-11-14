@@ -5,39 +5,30 @@ import { peopleCount } from "@floc/core/people/group-ticks";
 
 import { deleteGroupAction } from "@/app/friends/actions";
 import { ConfirmSubmit, Menu } from "@/components/system/client-ui";
-import { AvatarRow, EmptyState, ErrorText, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
+import { AvatarRow, ErrorText, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
 import type { Group } from "@/server/social/groups";
 
 import { useGroupData } from "./group-data";
 import type { GroupSheetMode } from "./group-sheet";
 
+/** The group rows; the list around them, and the empty card, are the board's. */
 export function GroupList({ onOpen }: { onOpen: (mode: GroupSheetMode) => void }) {
   const { groups } = useGroupData();
-  return (
-    <div className="mt-3">
-      {groups.length === 0 ? <EmptyState title="No groups yet" /> : (
-        <ul className="border-t border-rule">
-          {groups.map((group) => (
-            <GroupRow key={group.id} group={group} onEdit={() => onOpen({ kind: "edit", group })} />
-          ))}
-        </ul>
-      )}
-    </div>
-  );
+  return groups.map((group) => <GroupRow key={group.id} group={group} onEdit={() => onOpen({ kind: "edit", group })} />);
 }
 
 function GroupRow({ group, onEdit }: { group: Group; onEdit: () => void }) {
   const [error, setError] = useState<string>();
   return (
     <li className="border-b border-rule">
-      <div className="flex items-center gap-1.5 py-1">
+      <div className="flex min-h-15 items-center gap-1.5 py-1">
         <button
           type="button"
           onClick={onEdit}
-          className="flex min-h-13 min-w-0 flex-1 items-center gap-3 rounded-sm px-2 py-1.5 text-left hover:bg-pen-soft hover:text-pen-deep"
+          className="flex min-w-0 flex-1 items-center gap-3 self-stretch rounded-sm px-1 text-left leading-snug hover:bg-pen-soft hover:text-pen-deep"
         >
-          <span className="min-w-0 flex-1">
-            <span className="block text-sm font-semibold [overflow-wrap:anywhere]">{group.name}</span>
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="text-sm font-medium [overflow-wrap:anywhere]">{group.name}</span>
             <span className="nums font-mono text-xs text-ink-soft">{peopleCount(group.members.length)}</span>
           </span>
           <AvatarRow people={group.members} size={24} max={5} />

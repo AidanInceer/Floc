@@ -17,8 +17,8 @@ import { DeviceIcon, SunIcon } from "@/components/system/icons/account";
 import { MoonIcon } from "@/components/system/icons";
 import {
   THEME_CHOICES,
+  applyTheme,
   readStoredChoice,
-  resolveTheme,
   storeChoice,
   type ThemeChoice,
 } from "@/lib/theme";
@@ -38,7 +38,8 @@ const ICONS: Record<ThemeChoice, (props: { size?: number }) => ReactElement> = {
 
 const DARK_QUERY = "(prefers-color-scheme: dark)";
 
-export function ThemeSwitch({ className }: { className?: string }) {
+/** `words` names each segment beside its icon, for a roomy spot such as the account card. */
+export function ThemeSwitch({ className, words }: { className?: string; words?: boolean }) {
   const [choice, setChoice] = useState<ThemeChoice | null>(null);
 
   useEffect(() => {
@@ -50,19 +51,14 @@ export function ThemeSwitch({ className }: { className?: string }) {
     if (choice !== "system") return;
     const query = matchMedia(DARK_QUERY);
     const follow = () => {
-      document.documentElement.dataset.theme = resolveTheme(
-        "system",
-        query.matches,
-      );
+      applyTheme(document.documentElement, "system", query.matches);
     };
     query.addEventListener("change", follow);
     return () => query.removeEventListener("change", follow);
   }, [choice]);
 
   const choose = (next: ThemeChoice) => {
-    const root = document.documentElement;
-    root.dataset.themeChoice = next;
-    root.dataset.theme = resolveTheme(next, matchMedia(DARK_QUERY).matches);
+    applyTheme(document.documentElement, next, matchMedia(DARK_QUERY).matches);
     storeChoice(next);
     setChoice(next);
   };
@@ -93,11 +89,12 @@ export function ThemeSwitch({ className }: { className?: string }) {
             onClick={() => choose(option)}
             // Colour is left to `.theme-choice` in globals.css — a Tailwind text
             // utility here sits in a later layer and wins over the lit state.
-            aria-label={LABELS[option]}
-            title={LABELS[option]}
-            className="theme-choice relative z-10 flex h-7 w-8 items-center justify-center rounded-sm"
+            aria-label={words ? undefined : LABELS[option]}
+            title={words ? undefined : LABELS[option]}
+            className={cx("theme-choice relative z-10 flex h-7 items-center justify-center rounded-sm", words ? "gap-1.5 px-2.5 text-[13px]" : "w-8")}
           >
             <Icon />
+            {words ? LABELS[option] : null}
           </button>
         );
       })}

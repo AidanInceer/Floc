@@ -1,5 +1,5 @@
 /**
- * The top bar: four beads, centred — the wordmark, your places, the inbox, you. The same
+ * The top bar: three beads, centred — the wordmark, your places, and you with your inbox. The same
  * shape on every screen and at every size. The current place's glyph takes the
  * blue tile the trip tabs use below it, so the two bars say "here" one way.
  */
@@ -7,25 +7,22 @@
 import Link from "next/link";
 
 import { ButtonLink, cx } from "@/components/system/ui";
-import { BEAD } from "@/components/chrome/bead";
+import { BEAD, BEAD_COUNT, BEAD_ITEMS } from "@/components/chrome/bead";
 import { PlacesNav, type PlaceItem } from "@/components/chrome/places-nav";
 import { AccountBell } from "@/components/chrome/account/account-bell";
-import { ProfileLink } from "@/components/chrome/account/profile-link";
+import { AccountCard } from "@/components/chrome/account/account-card";
 import type { InboxPreviewItem } from "@/components/chrome/account/account-inbox";
 import { FuseBar } from "@/components/chrome/fuse-bar";
 import { FlocWordmark } from "@/components/system/wordmark";
 
 /**
  * How much is waiting behind a link — trip invites (ticket 146). A count and not a dot: "2" says how much is behind the
- * link, which a dot never does, and the number is what the screen reader reads.
+ * link, which a dot never does, and the number is what the screen reader reads. It sits on the glyph, as the inbox's does.
  */
 function WaitingCount({ count, label }: { count: number; label: string }) {
   return (
-    <span
-      className="ml-1.5 inline-flex min-w-[17px] items-center justify-center rounded-full bg-pen px-1 text-[11px] font-semibold leading-[17px] text-sheet"
-      aria-label={`${count} ${label} waiting`}
-    >
-      {count}
+    <span className={BEAD_COUNT} aria-label={`${count} ${label} waiting`}>
+      {count > 99 ? "99+" : count}
     </span>
   );
 }
@@ -78,11 +75,10 @@ export function AppChrome({
         />
 
         {user ? (
-          <>
+          <div className={cx(BEAD, BEAD_ITEMS, "relative shrink-0")}>
             <AccountBell unread={notificationCount} latest={latest} />
-            {/* Why: your name opens your profile; every other account page is one tab away on its bar (#637). */}
-            <ProfileLink name={user.name} />
-          </>
+            <AccountCard name={user.name} email={user.email} />
+          </div>
         ) : (
           <div className={cx(BEAD, "shrink-0 gap-1")}>
             <ButtonLink href="/login" variant="ghost">

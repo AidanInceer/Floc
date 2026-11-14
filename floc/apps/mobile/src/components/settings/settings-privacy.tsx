@@ -39,7 +39,7 @@ const COLUMNS: { ring: RingColumn; label: string }[] = [
 
 const PARTS = [
   { key: "visibilityVibeTags", label: "Vibe tags" },
-  { key: "visibilityTravelMap", label: "Travel map" },
+  { key: "visibilityTravelMap", label: "Countries" },
   { key: "visibilityFriends", label: "Friends list" },
   { key: "visibilitySaved", label: "Saved" },
 ] as const;

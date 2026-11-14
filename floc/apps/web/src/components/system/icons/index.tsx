@@ -103,6 +103,15 @@ export function ArrowUpIcon(props: IconProps) {
   );
 }
 
+/** Goes somewhere: a row that opens another page, as against a chevron that opens or closes in place. */
+export function ArrowRightIcon(props: IconProps) {
+  return (
+    <LineIcon {...props}>
+      <path d="M2.4 7h9.2M8 3.4 11.6 7 8 10.6" />
+    </LineIcon>
+  );
+}
+
 export function MoonIcon(props: IconProps) {
   return (
     <LineIcon {...props}>

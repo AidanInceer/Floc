@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   BOOKING_INBOX_BYTES, bookingInboxCutoff, bookingInboxDaysLeft, bookingInboxDeleteCutoff,
-  bookingInboxLeftWords, bookingInboxNote, bookingsAddress,
+  bookingInboxLeftWords, bookingInboxNote, bookingPlacingWords, bookingsAddress,
 } from "./booking-inbox";
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -22,6 +22,11 @@ describe("a file's time in Bookings", () => {
     expect(bookingInboxCutoff(NOW)).toEqual(ago(7));
     expect(bookingInboxDeleteCutoff(NOW)).toEqual(ago(30));
     expect(bookingInboxNote).toBe("A file leaves this list after 7 days and is deleted after 30");
+  });
+
+  it("says a forward finds its trip only with Pro (ADR-050)", () => {
+    expect(bookingPlacingWords(true)).toBe("Floc adds each one to the trip with matching dates.");
+    expect(bookingPlacingWords(false)).toBe("With Pro, Floc adds each one to the trip with matching dates.");
   });
 
   it("holds as much as a free trip", () => {

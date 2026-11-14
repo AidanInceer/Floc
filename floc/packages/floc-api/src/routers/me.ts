@@ -49,14 +49,4 @@ export const meRouter = router({
     .mutation(async ({ ctx, input }) => {
       await ctx.port.setCountryMark(ctx.viewer.id, input.code, input.state);
     }),
-
-  // Why: a trip's countries stop being derived the moment the membership ends, so this is the
-  // only moment they can be kept (#95).
-  mapPrompts: protectedProcedure.query(({ ctx }) => ctx.port.listMapPrompts(ctx.viewer.id)),
-
-  answerMapPrompt: protectedProcedure
-    .input(z.object({ tripId: z.number().int().positive(), keep: z.boolean() }))
-    .mutation(async ({ ctx, input }) => {
-      await ctx.port.answerMapPrompt(ctx.viewer.id, input.tripId, input.keep);
-    }),
 });

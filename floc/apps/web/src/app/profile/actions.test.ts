@@ -2,13 +2,10 @@ import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
-import { hasPendingMapPrompt, removeMembership } from "@/server/trips/roster";
 import { REDIRECT } from "@/test/setup";
 import { migrateTestDb, resetDb, seedScenario, signIn, type Scenario } from "@/test/db";
 
 import {
-  dropPromptCountries,
-  keepPromptCountries,
   setCountryMark,
   updateCurrency,
   updateFace,
@@ -103,25 +100,6 @@ describe("the travel map", () => {
 
   it("ignores a code that is not a country", async () => {
     await setCountryMark("ZZ", "green");
-    expect(await marks()).toEqual([]);
-  });
-
-  it("answers the question a left trip leaves behind, either way", async () => {
-    await removeMembership(world.ours.id, world.member, world.member);
-    expect(await hasPendingMapPrompt(world.ours.id, world.member)).toBe(true);
-    await dropPromptCountries(form({ tripId: String(world.ours.id) }));
-    expect(await hasPendingMapPrompt(world.ours.id, world.member)).toBe(false);
-
-    await db
-      .update(schema.tripMembership)
-      .set({ mapPromptAt: new Date() })
-      .where(eq(schema.tripMembership.userId, world.member));
-    await keepPromptCountries(form({ tripId: String(world.ours.id) }));
-    expect(await hasPendingMapPrompt(world.ours.id, world.member)).toBe(false);
-  });
-
-  it("does nothing when there is no question to answer", async () => {
-    await keepPromptCountries(form({ tripId: String(world.ours.id) }));
     expect(await marks()).toEqual([]);
   });
 });

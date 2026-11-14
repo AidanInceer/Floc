@@ -10,10 +10,8 @@ import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import {
   addMember,
-  clearMapPrompt,
   countMembers,
   handOverAndLeaveAllTrips,
-  hasPendingMapPrompt,
   isLiveMember,
   leaveTripAs,
   removeMembership,
@@ -77,16 +75,6 @@ describe("the roster", () => {
     await addMember(world.ours.id, world.admin);
 
     expect((await membership(world.ours.id, world.admin))?.role).toBe("admin");
-  });
-
-  it("leaves a kicked member's map prompt for them to answer", async () => {
-    await removeMembership(world.ours.id, world.member, world.member);
-    const row = await membership(world.ours.id, world.member);
-    expect(row?.mapPromptAt).not.toBeNull();
-    expect(await hasPendingMapPrompt(world.ours.id, world.member)).toBe(true);
-
-    await clearMapPrompt(world.ours.id, world.member);
-    expect(await hasPendingMapPrompt(world.ours.id, world.member)).toBe(false);
   });
 
   it("will not promote a departed member's dead row", async () => {
