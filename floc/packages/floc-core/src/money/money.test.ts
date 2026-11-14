@@ -4,8 +4,6 @@ import {
   computeBalances,
   computeSplits,
   convertMinor,
-  convertTotal,
-  crossRate,
   formatMoney,
   isAllSettled,
   maxExpenseMinor,
@@ -13,7 +11,7 @@ import {
   resolveWeightedSplit,
   suggestSettlements,
 } from "./money";
-import { CURRENCIES, currencySymbol, type Currency } from "./currency";
+import { CURRENCIES, currencySymbol } from "./currency";
 
 /** An even split is one share each since ticket 85 — see `WritableSplitType`. */
 const people = (...ids: string[]) => ids.map((userId) => ({ userId, value: 1 }));
@@ -426,48 +424,10 @@ describe("cross-currency settlement (ticket 253)", () => {
 });
 
 describe("display conversion (ticket 253)", () => {
-  // 1 EUR = 0.86 GBP, and JPY is zero-decimal, so the exponents must not cancel.
-  const quotes: Partial<Record<Currency, number>> = {
-    GBP: 1,
-    EUR: 0.86,
-    JPY: 0.0052,
-  };
-  const rateFor = (c: Currency) => quotes[c] ?? null;
-
-  it("rounds each row, then sums the rounded rows", () => {
-    // €31.20 → £26.83 (26.832), €10.05 → £8.64 (8.643). Rounded first: 3547.
-    const total = convertTotal(
-      [
-        { currency: "EUR", amountMinor: 3120 },
-        { currency: "EUR", amountMinor: 1005 },
-      ],
-      "GBP",
-      rateFor,
-    );
-    expect(total).toBe(2683 + 864);
-  });
-
   it("crosses the exponent gap between a 0- and 2-decimal currency", () => {
     // ¥5,600 at 0.0052 GBP per yen is £29.12 — 2912 pence, not 29 or 291,200.
     expect(convertMinor(5600, "JPY", "GBP", 0.0052)).toBe(2912);
     // And back: £29.12 → ¥5,600.
     expect(convertMinor(2912, "GBP", "JPY", 1 / 0.0052)).toBe(5600);
-  });
-
-  it("refuses a total when one currency has no rate", () => {
-    expect(
-      convertTotal(
-        [{ currency: "USD", amountMinor: 1000 }],
-        "GBP",
-        () => null,
-      ),
-    ).toBeNull();
-  });
-
-  it("derives a cross rate from two quotes against the same base", () => {
-    // Both quoted in GBP: 1 EUR = 0.86 GBP, 1 JPY = 0.0052 GBP.
-    const rate = crossRate("EUR", "JPY", rateFor);
-    expect(rate).toBeCloseTo(0.86 / 0.0052, 6);
-    expect(crossRate("EUR", "EUR", () => null)).toBe(1);
   });
 });

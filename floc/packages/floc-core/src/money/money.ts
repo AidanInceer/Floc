@@ -353,44 +353,6 @@ export function suggestSettlements(
   return settlements;
 }
 
-/**
- * Display-only sum of one member's books in a single currency (ticket 253).
- * Each row is converted and rounded on its own, then the rounded rows are
- * added — so the figure always matches the rows printed beside it, at the cost
- * of a possible minor unit of drift from a directly-converted total. Nothing
- * here is ever stored.
- */
-export function convertTotal(
-  perCurrency: { currency: Currency; amountMinor: number }[],
-  home: Currency,
-  rateFor: (currency: Currency) => number | null,
-): number | null {
-  let total = 0;
-  for (const row of perCurrency) {
-    if (row.currency === home) {
-      total += row.amountMinor;
-      continue;
-    }
-    const rate = rateFor(row.currency);
-    if (rate === null) return null; // one missing rate makes the whole total a lie
-    total += convertMinor(row.amountMinor, row.currency, home, rate);
-  }
-  return total;
-}
-
-/** Cross rate between two currencies quoted against the same base — `to` per 1 `from`. */
-export function crossRate(
-  from: Currency,
-  to: Currency,
-  rateFor: (currency: Currency) => number | null,
-): number | null {
-  if (from === to) return 1;
-  const fromRate = rateFor(from);
-  const toRate = rateFor(to);
-  if (!fromRate || !toRate) return null;
-  return fromRate / toRate;
-}
-
 /** Applies a `to`-per-`from` rate to a minor amount, honouring both exponents. */
 export function convertMinor(
   amountMinor: number,

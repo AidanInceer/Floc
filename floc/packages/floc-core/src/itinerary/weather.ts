@@ -3,8 +3,6 @@
  * and its tests share it. Open-Meteo's dozens of WMO codes collapse to four
  * buckets because the app draws four glyphs.
  */
-import { addDays, type IsoDate } from "../dates/dates";
-
 // Open-Meteo serves up to 16 days but the far end is noise; a fortnight is as
 // far as we draw (ticket 148).
 export const HORIZON_DAYS = 14;
@@ -33,10 +31,4 @@ export function conditionLabel(condition: WeatherCondition): string {
     case "rain":
       return "Light rain";
   }
-}
-
-// Half-open `[from, from + HORIZON_DAYS)`, so the last shown day is `from + 13`.
-// String compare, no `Date`, no timezone (rule 10).
-export function withinHorizon(date: IsoDate, from: IsoDate): boolean {
-  return date >= from && date < addDays(from, HORIZON_DAYS);
 }

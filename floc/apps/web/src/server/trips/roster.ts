@@ -20,6 +20,7 @@ import { touch } from "@/server/audit";
 import { kickFromTripNotes } from "@/server/notes/live/live-kick";
 import { recordActivity, type Tx } from "@/server/notifications/activity";
 import { countMembershipsOf } from "@/server/trips/trips";
+import { isLiveMember } from "@/server/trips/live-member";
 
 /** Matches one live membership row. Every roster read and write goes through this. */
 export function liveMembership(tripId: number, userId: string) {
@@ -39,16 +40,6 @@ export async function countMembers(tripId: number): Promise<number> {
       and(eq(tripMembership.tripId, tripId), isNull(tripMembership.deletedAt)),
     );
   return row?.value ?? 0;
-}
-
-/** The teaser's "already in" check. */
-export async function isLiveMember(tripId: number, userId: string): Promise<boolean> {
-  const row = await db
-    .select({ userId: tripMembership.userId })
-    .from(tripMembership)
-    .where(liveMembership(tripId, userId))
-    .get();
-  return !!row;
 }
 
 /**

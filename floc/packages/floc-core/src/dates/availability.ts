@@ -34,10 +34,6 @@ export function addMonths(month: IsoMonth, delta: number): IsoMonth {
   return `${String(Math.floor(zero / 12)).padStart(4, "0")}-${String((zero % 12) + 1).padStart(2, "0")}`;
 }
 
-export function monthsFrom(month: IsoMonth, count: number): IsoMonth[] {
-  return Array.from({ length: count }, (_, i) => addMonths(month, i));
-}
-
 export function formatMonth(month: IsoMonth): string {
   return fromIsoDate(`${month}-01`).toLocaleDateString("en-GB", {
     month: "long",

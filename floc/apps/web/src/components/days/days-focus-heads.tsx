@@ -12,6 +12,7 @@ import { Button, cx } from "@/components/system/ui";
 import { ChevronIcon, PlusIcon } from "@/components/system/icons";
 import { OUTSIDE_DAY_CLASS, type CalendarDay } from "@/components/days/days-calendar-shared";
 import { shortPlace } from "@floc/core/itinerary/names/place-name";
+import { countWord } from "@floc/core/text/count-word";
 
 export type FocusFacts = {
   day: CalendarDay;
@@ -101,7 +102,7 @@ function FocusHead({
           </span>
           {" · "}
           {focus.eventCount
-            ? `${focus.eventCount} ${focus.eventCount === 1 ? "event" : "events"}`
+            ? countWord(focus.eventCount, "event")
             : "Nothing planned"}
         </p>
       </div>

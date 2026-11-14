@@ -12,10 +12,10 @@ import { TextLink } from "../../system/text-controls";
 import { useTheme } from "../../system/theme";
 import { fonts, radius, size, space } from "@/lib/theme";
 import { useListingRates } from "../use-listing-rates";
+import { countWord } from "@floc/core/text/count-word";
 
 export type Facet = { finder: Finder; counts: FinderCounts; shown: number; onChange: (next: Finder) => void };
 
-const trips = (n: number) => `${n} ${n === 1 ? "trip" : "trips"}`;
 const wrap = { flexDirection: "row", flexWrap: "wrap", gap: space.sm } as const;
 
 export function WhereFacet({ finder, counts, onChange }: Facet) {
@@ -42,7 +42,7 @@ export function WhenFacet({ finder, counts, onChange }: Facet) {
               key={name}
               accessibilityRole="button"
               accessibilityState={{ selected: on }}
-              accessibilityLabel={`${name}, ${trips(counts.months[i])}`}
+              accessibilityLabel={`${name}, ${countWord(counts.months[i], "trip")}`}
               onPress={() => onChange({ ...finder, months: toggled(finder.months, i + 1) })}
               style={{
                 width: "14.6%",
@@ -86,7 +86,7 @@ export function LengthFacet({ finder, counts, shown, onChange }: Facet) {
       value={[min, max]}
       onChange={([a, b]) => onChange(withNights(finder, a, b))}
     >
-      <Read left={nightsWord(finder.nights)} right={trips(shown)} />
+      <Read left={nightsWord(finder.nights)} right={countWord(shown, "trip")} />
     </RangeBars>
   );
 }
@@ -113,7 +113,7 @@ export function PriceFacet({ finder, counts, shown, onChange }: Facet) {
         value={[min ?? 0, max ?? scale.max]}
         onChange={([a, b]) => onChange(withPrice(finder, a, b))}
       >
-        <Read left={scaleWord(finder.price, rates)} right={trips(shown)} />
+        <Read left={scaleWord(finder.price, rates)} right={countWord(shown, "trip")} />
       </RangeBars>
     </View>
   );

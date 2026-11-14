@@ -7,7 +7,7 @@ import { devAccountEmail } from "@/server/auth/dev-accounts";
 import { walkthroughDue } from "@/server/auth/tour";
 import { findGuest, listGuests } from "@/server/guests/guests";
 import { findTripByShareLink } from "@/server/trips/invites";
-import { isLiveMember } from "@/server/trips/roster";
+import { isLiveMember } from "@/server/trips/live-member";
 
 import { isSeedEmail } from "../identity.ts";
 import { buildScenarioA } from "../scenario-a.ts";

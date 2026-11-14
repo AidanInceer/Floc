@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { MoreGlyph } from "@/components/system/glyphs";
 import { useTheme } from "@/components/system/theme";
-import { Face } from "@/components/trip/person-row";
+import { Face } from "@/components/system/face";
 import { fonts, size, space } from "@/lib/theme";
 
 export function MemberRow({ name, you, admin, word, first, onMore }: {

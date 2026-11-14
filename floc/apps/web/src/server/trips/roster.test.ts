@@ -12,11 +12,11 @@ import {
   addMember,
   countMembers,
   handOverAndLeaveAllTrips,
-  isLiveMember,
   leaveTripAs,
   removeMembership,
   setMemberRoleAdmin,
 } from "@/server/trips/roster";
+import { isLiveMember } from "@/server/trips/live-member";
 
 let world: Scenario;
 
@@ -49,6 +49,12 @@ describe("the roster", () => {
     await removeMembership(world.ours.id, world.member, world.member);
 
     expect(await countMembers(world.ours.id)).toBe(1);
+    expect(await isLiveMember(world.ours.id, world.member)).toBe(false);
+  });
+
+  it("counts nobody as a live member of a deleted trip (rule 5, rule 8)", async () => {
+    await db.update(schema.trip).set({ deletedAt: new Date() }).where(eq(schema.trip.id, world.ours.id));
+
     expect(await isLiveMember(world.ours.id, world.member)).toBe(false);
   });
 

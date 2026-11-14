@@ -2,9 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   clamp,
-  formatLength,
   formatSpan,
-  gridWindow,
   moveSpan,
   packLanes,
   resizeSpan,
@@ -102,28 +100,6 @@ describe("spanOf", () => {
 
   it("never draws past midnight", () => {
     expect(spanOf(timed(1, "23:50"))).toEqual({ start: 1430, end: 1440, open: true });
-  });
-});
-
-describe("gridWindow", () => {
-  it("is the whole day, whatever is on it", () => {
-    // Midnight to midnight for every day of every trip: the same hour has to
-    // sit at the same height on Monday as on Tuesday.
-    expect(gridWindow([timed(1, "09:00", "10:00")])).toEqual({
-      startHour: 0,
-      endHour: 24,
-    });
-  });
-
-  it("keeps an early event on the grid", () => {
-    // A 04:40 airport run must never be a row the calendar can't show.
-    expect(gridWindow([timed(1, "04:40", "06:00")]).startHour).toBe(0);
-  });
-
-  it("ignores all-day events, which have no place on the clock", () => {
-    expect(
-      gridWindow([{ id: 1, time: null, endTime: null, allDay: true }]),
-    ).toEqual({ startHour: 0, endHour: 24 });
   });
 });
 
@@ -225,14 +201,6 @@ describe("formatSpan", () => {
     expect(formatSpan({ time: "09:00", endTime: "11:30", allDay: false })).toBe(
       "09:00–11:30",
     );
-  });
-});
-
-describe("formatLength", () => {
-  it("drops the part that is zero", () => {
-    expect(formatLength(150)).toBe("2h 30m");
-    expect(formatLength(120)).toBe("2h");
-    expect(formatLength(45)).toBe("45m");
   });
 });
 

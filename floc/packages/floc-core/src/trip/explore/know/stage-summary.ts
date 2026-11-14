@@ -1,4 +1,5 @@
 import type { KnowStage } from "./know-types";
+import { countWord } from "../../../text/count-word";
 
 export type StageSummary = { tips: number; temporary: number; peek: string };
 
@@ -14,5 +15,5 @@ export function stageSummary(stage: KnowStage): StageSummary {
 }
 
 export function stageMeta({ tips, temporary }: StageSummary): string {
-  return `${tips} ${tips === 1 ? "tip" : "tips"}${temporary ? ` · ${temporary} temporary` : ""}`;
+  return `${countWord(tips, "tip")}${temporary ? ` · ${temporary} temporary` : ""}`;
 }

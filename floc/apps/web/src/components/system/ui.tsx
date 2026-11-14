@@ -15,6 +15,7 @@ import { whoTone } from "@floc/core/people/who";
 
 import type { TripColor } from "@floc/core/trip/trip-color";
 import { initials } from "@floc/core/people/initials";
+import { faceOverlap } from "@floc/core/people/faces/face-overlap";
 
 /**
  * The four domain pastels as a rotation, for the places where a pastel is
@@ -317,8 +318,7 @@ export function AvatarRow({
 }) {
   const shown = people.slice(0, max);
   const extra = people.length - shown.length;
-  // Why: a fixed 8px overlap covered the second initial on a small face; a seventh of the face never reaches the letters.
-  const overlap = -Math.round(size / 7);
+  const overlap = faceOverlap(size);
   return (
     <span className={cx("flex items-center", spaced && "gap-1")}>
       {/* inline-flex, not default inline — avoids a 1px leading offset (ticket 133). */}

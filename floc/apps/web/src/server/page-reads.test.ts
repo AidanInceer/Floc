@@ -17,7 +17,8 @@ import {
 } from "@/server/itinerary/itinerary";
 import { listAvailability } from "@/server/itinerary/availability";
 import { findTripByInviteToken } from "@/server/trips/invites";
-import { countMembers, isLiveMember } from "@/server/trips/roster";
+import { countMembers } from "@/server/trips/roster";
+import { isLiveMember } from "@/server/trips/live-member";
 import { listTripsFor } from "@/server/trips/trips";
 import { listExpenses, listSplits, namesForUsers } from "@/server/money/money";
 import { listFriendshipsFor, peopleByIds } from "@/server/social/friends";
