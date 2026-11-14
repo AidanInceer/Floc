@@ -17,6 +17,7 @@ import { Badge } from "@/components/system/ui";
 import { FaceEditor } from "@/components/profile/face-editor";
 import { AccountTabs } from "@/components/chrome/account-tabs";
 import { AccountSettings } from "@/components/settings/account-settings";
+import { readEstimateSettings } from "@/server/money/estimate/estimate-settings";
 
 export const metadata = { title: "Your profile" };
 
@@ -30,13 +31,14 @@ export default async function ProfilePage({
   const viewer = await requireUser(asked.section ? `/profile?section=${asked.section}` : "/profile");
   const proOff = allFeaturesFree();
 
-  const [profile, linkedAccounts, calendarGranted, pro] = await Promise.all([
+  const [profile, linkedAccounts, calendarGranted, pro, estimate] = await Promise.all([
     ensureProfile(viewer.id),
     listSignInMethods(viewer.id),
     hasCalendarAccess(viewer.id),
     proOff
       ? Promise.resolve(null)
       : Promise.all([subscriptionOf(viewer.id), proPrices()]).then(([subscription, prices]) => ({ subscription, prices })),
+    readEstimateSettings(viewer.id),
   ]);
 
   const name = profile.displayName ?? viewer.name;
@@ -71,6 +73,7 @@ export default async function ProfilePage({
             pro={pro}
             opened={settingsSectionFor(asked, proOff)}
             billing={asked.billing}
+            estimate={estimate}
           />
         </div>
       </AccountPage>

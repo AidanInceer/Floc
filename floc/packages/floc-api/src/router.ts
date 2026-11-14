@@ -20,6 +20,7 @@ import { kitsRouter } from "./routers/kits";
 import { wishesRouter } from "./routers/wishes";
 import { meRouter } from "./routers/me";
 import { moneyRouter } from "./routers/money";
+import { estimateRouter } from "./routers/estimate";
 import { notificationsRouter } from "./routers/notifications";
 import { packingRouter } from "./routers/packing";
 import { pagesRouter } from "./routers/notes/pages";
@@ -43,6 +44,7 @@ export const appRouter = router({
   ideas: ideasRouter,
   itinerary: itineraryRouter,
   money: moneyRouter,
+  estimate: estimateRouter,
   roster: rosterRouter,
   friends: friendsRouter,
   groups: groupsRouter,

@@ -19,6 +19,7 @@
     display: grid; place-items: center; flex: none; width: 30px; height: 30px;
     border-radius: var(--radius-sm); background: var(--t); color: var(--t-ink);
   }
+  .pro-tone-red { --t: var(--pastel-red); --t-ink: var(--pastel-red-ink); }
   .pro-tone-yellow { --t: var(--pastel-yellow); --t-ink: var(--pastel-yellow-ink); }
   .pro-tone-green { --t: var(--pastel-green); --t-ink: var(--pastel-green-ink); }
   .pro-tone-blue { --t: var(--pastel-blue); --t-ink: var(--pastel-blue-ink); }

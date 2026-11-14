@@ -9,6 +9,11 @@ describe("landingFaq", () => {
     expect(pro?.answer).toMatch(/there’s plenty more to come/i);
   });
 
+  it("names your own cost estimate and budget among what Pro adds (#574)", () => {
+    const pro = landingFaq({ sellingPro: true, monthly: "£3.99" }).find((q) => q.key === "pro");
+    expect(pro?.answer).toMatch(/your own cost estimate and budget for each trip/);
+  });
+
   it("quotes the Pro price when Stripe has one", () => {
     const pro = landingFaq({ sellingPro: true, monthly: "£3.99" }).find((q) => q.key === "pro");
     expect(pro?.answer).toContain("£3.99 a month");

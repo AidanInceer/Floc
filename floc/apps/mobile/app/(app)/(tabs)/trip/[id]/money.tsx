@@ -34,11 +34,12 @@ import { Alert, ScrollView, Text, View } from "react-native";
 
 import { EventSheet } from "@/components/days/event-sheet";
 import { BalanceCard } from "@/components/money/balance-card";
+import { BudgetTab } from "@/components/money/estimate/budget-tab";
 import { ExpenseForm, type DayOption, type ExpenseDraft } from "@/components/money/expense-form";
 import { ExpenseRows } from "@/components/money/expense-rows";
 import { PlusGlyph } from "@/components/system/glyphs";
 import { useTheme } from "@/components/system/theme";
-import { Body, Button, Empty, Failed, Loading, SectionTitle } from "@/components/system/ui";
+import { Body, Button, Empty, Failed, Loading, SectionTitle, Segmented } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { ledgerCurrency } from "@/lib/balance";
@@ -110,7 +111,7 @@ function sharesOf(ledger: Ledger, viewerId: string | undefined): Map<number, num
   );
 }
 
-export default function Money() {
+function ExpensesView({ switcher }: { switcher: React.ReactNode }) {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
   // A screen keeps rendering for a frame while it leaves, and `id` is gone by
@@ -236,6 +237,7 @@ export default function Money() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
+      {switcher}
       {snapshot.expenses.length > 0 ? (
         <BalanceCard rows={pairs.data?.rows ?? []} viewerId={me} nameOf={nameOf} busy={settle.isPending} onSettle={settleRow} />
       ) : null}
@@ -290,6 +292,23 @@ export default function Money() {
           />
         ) : null}
       </EventSheet>
+    </ScrollView>
+  );
+}
+
+/** Expenses, or your own Budget (#574): one switch, so Money stays one tab, as on the web. */
+export default function Money() {
+  const { id, view: asked } = useLocalSearchParams<{ id: string; view?: string }>();
+  const tripId = Number(id);
+  const [view, setView] = useState<"expenses" | "budget">(asked === "budget" ? "budget" : "expenses");
+  const switcher = (
+    <Segmented soft options={[{ value: "expenses", label: "Expenses" }, { value: "budget", label: "Budget" }] as const} value={view} onChange={setView} />
+  );
+  if (view === "expenses" || !Number.isFinite(tripId)) return <ExpensesView switcher={switcher} />;
+  return (
+    <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
+      {switcher}
+      <BudgetTab tripId={tripId} />
     </ScrollView>
   );
 }

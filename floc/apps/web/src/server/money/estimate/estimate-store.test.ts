@@ -1,0 +1,85 @@
+import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+
+import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { ensureProfile, getProfile } from "@/server/auth/profile";
+import {
+  readEstimateChoices,
+  readTravelProfile,
+  setBudget,
+  setOwnLine,
+  setTravelProfile,
+  setTripNights,
+  setTripStyle,
+} from "@/server/money/estimate/estimate-store";
+
+let world: Scenario;
+
+beforeAll(migrateTestDb);
+beforeEach(async () => {
+  await resetDb();
+  world = await seedScenario();
+});
+
+describe("a member's own estimate choices", () => {
+  it("start empty", async () => {
+    expect(await readEstimateChoices(world.ours.id, world.admin)).toEqual({
+      style: { cabin: null, stay: null, pace: null },
+      nights: null,
+      budget: null,
+      own: {},
+    });
+  });
+
+  it("keep a budget, figures and line budgets for that member only", async () => {
+    await setBudget(world.ours.id, world.admin, { amountMinor: 110000, currency: "GBP" });
+    await setOwnLine(world.ours.id, world.admin, "stay", { figure: 40000 }, "GBP");
+    await setOwnLine(world.ours.id, world.admin, "stay", { budget: 45000 }, "GBP");
+
+    const mine = await readEstimateChoices(world.ours.id, world.admin);
+    expect(mine.budget).toEqual({ amountMinor: 110000, currency: "GBP" });
+    expect(mine.own.stay).toEqual({ figure: 40000, budget: 45000, currency: "GBP" });
+
+    const theirs = await readEstimateChoices(world.ours.id, world.member);
+    expect(theirs.budget).toBeNull();
+    expect(theirs.own).toEqual({});
+  });
+
+  it("forget a line once its figure and budget are both cleared", async () => {
+    await setOwnLine(world.ours.id, world.admin, "food", { figure: 30000 }, "GBP");
+    await setOwnLine(world.ours.id, world.admin, "food", { figure: null }, "GBP");
+    expect((await readEstimateChoices(world.ours.id, world.admin)).own).toEqual({});
+
+    await setOwnLine(world.ours.id, world.admin, "food", { figure: 25000 }, "GBP");
+    expect((await readEstimateChoices(world.ours.id, world.admin)).own.food?.figure).toBe(25000);
+  });
+
+  it("clear the budget", async () => {
+    await setBudget(world.ours.id, world.admin, { amountMinor: 50000, currency: "EUR" });
+    await setBudget(world.ours.id, world.admin, null);
+    expect((await readEstimateChoices(world.ours.id, world.admin)).budget).toBeNull();
+  });
+
+  it("keep a style and nights for this trip without touching the profile", async () => {
+    await ensureProfile(world.admin);
+    await setTravelProfile(world.admin, { cabin: "business" });
+    await setTripStyle(world.ours.id, world.admin, { cabin: "economy", pace: "active" });
+    await setTripNights(world.ours.id, world.admin, 5);
+
+    const mine = await readEstimateChoices(world.ours.id, world.admin);
+    expect(mine.style).toEqual({ cabin: "economy", stay: null, pace: "active" });
+    expect(mine.nights).toBe(5);
+    expect((await readTravelProfile(world.admin)).cabin).toBe("business");
+
+    await setTripStyle(world.ours.id, world.admin, null);
+    expect((await readEstimateChoices(world.ours.id, world.admin)).style).toEqual({ cabin: null, stay: null, pace: null });
+  });
+});
+
+describe("travel profile", () => {
+  it("keeps a home airport in capitals and a travel style", async () => {
+    await ensureProfile(world.admin);
+    await setTravelProfile(world.admin, { homeAirport: "lhr", stay: "high" });
+    expect(await readTravelProfile(world.admin)).toEqual({ homeAirport: "LHR", cabin: null, stay: "high", pace: null });
+    expect((await getProfile(world.admin))?.homeAirport).toBe("LHR");
+  });
+});

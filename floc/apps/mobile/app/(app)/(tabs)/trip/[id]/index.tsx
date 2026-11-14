@@ -20,6 +20,7 @@ import { Alert, ScrollView, View } from "react-native";
 
 import { GoingLine } from "@/components/trip/going-section";
 import { IdeasSection } from "@/components/trip/ideas/ideas-section";
+import { EstimateLine } from "@/components/trip/overview/estimate-line";
 import { LeftToSort } from "@/components/trip/left-to-sort";
 import { BookingsCard } from "@/components/trip/overview/bookings-card";
 import { FilesLine } from "@/components/trip/overview/files-line";
@@ -94,6 +95,7 @@ export default function Overview() {
       <TripMapSection route={route} tone={pastelOf(tripPastel(readTripColor(trip.data.colorKey), tripId))} />
 
       {/* Ideas first while undated: before the dates exist it is the only live question here. */}
+      <EstimateLine tripId={tripId} onOpen={() => router.push({ pathname: "/trip/[id]/money", params: { id: tripId, view: "budget" } })} />
       <IdeasSection tripId={tripId} datesUnset={!trip.data.startDate && !trip.data.endDate} />
 
       {legs.length > 0 ? <BookingsCard tripId={tripId} legs={legs} wholeTrip={wholeTrip} onOpenFiles={() => go("files")} /> : null}

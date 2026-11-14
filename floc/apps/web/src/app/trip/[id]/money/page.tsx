@@ -29,16 +29,25 @@ import { ActivityFeed } from "@/components/money/money-activity";
 import { ExpenseForm } from "@/components/money/expense-form";
 import type { FormDay, FormMember } from "@/components/money/expense-form";
 import { addExpense, recordSettlement, settlePair } from "./actions";
+import { MoneyViewSwitch } from "@/components/money/money-view-switch";
+import { BudgetPanel } from "@/components/money/estimate/budget-panel";
+import { EstimateLock } from "@/components/money/estimate/estimate-lock";
+import type { TripAccess } from "@/server/access";
+import { canUseFeature } from "@/server/billing/entitlements";
+import { readEstimate } from "@/server/money/estimate/estimate-view";
 
 export const metadata = { title: "Money" };
 
 export default async function MoneyPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ view?: string }>;
 }) {
-  const { id } = await params;
+  const [{ id }, { view }] = await Promise.all([params, searchParams]);
   const access = await requireTripAccess(id, `/trip/${id}/money`);
+  if (view === "budget") return <BudgetPage access={access} />;
   const tripId = access.trip.id;
   const viewerId = access.viewer.id;
 
@@ -122,8 +131,9 @@ export default async function MoneyPage({
 
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
-      <header className="flex flex-wrap items-end justify-end gap-6">
+      <header className="flex flex-wrap items-center justify-between gap-6">
         <PageTitle className="sr-only">Money</PageTitle>
+        <MoneyViewSwitch tripId={tripId} view="expenses" />
         {hasActivity ? (
           <Sheet trigger="Add expense" title="Expense" keepOpenOnSubmit>
             {addForm}
@@ -160,6 +170,21 @@ export default async function MoneyPage({
           />
         </div>
       )}
+    </div>
+  );
+}
+
+/** Your own estimate and budget (#574, ADR-057): read only for you, and only once Pro is yours. */
+async function BudgetPage({ access }: { access: TripAccess }) {
+  const pro = await canUseFeature("money.estimate", access.viewer.id);
+  const view = pro ? await readEstimate(access.trip, access.viewer.id) : null;
+  return (
+    <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
+      <header className="flex flex-wrap items-center gap-6">
+        <PageTitle className="sr-only">Money</PageTitle>
+        <MoneyViewSwitch tripId={access.trip.id} view="budget" />
+      </header>
+      <div className="mt-6">{view ? <BudgetPanel tripId={access.trip.id} view={view} /> : <EstimateLock />}</div>
     </div>
   );
 }

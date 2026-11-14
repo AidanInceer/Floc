@@ -40,6 +40,7 @@ import { scoped } from "@/server/api-port/api-port-scope";
 // The account, map and saved-list halves live in their own files — this one is
 // the trip half, and a file whose name needs "and" is two files.
 import { billingPort } from "@/server/api-port/api-port-billing";
+import { estimatePort } from "@/server/api-port/estimate/api-port-estimate";
 import { commentsPort } from "@/server/api-port/api-port-comments";
 import { pagesPort } from "@/server/api-port/pages/api-port-pages";
 import { ideasPort } from "@/server/api-port/ideas/ideas";
@@ -142,6 +143,7 @@ export const webPort: FlocPort = {
   ...ideasPort,
   ...socialPort,
   ...billingPort,
+  ...estimatePort,
   ...weatherPort,
   ...calendarPort,
   ...notificationsPort,
