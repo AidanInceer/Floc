@@ -20,6 +20,7 @@ export function ConsentBanner({ fromServer }: { fromServer: ConsentChoice | null
   // Why: the Cookies page holds the same choice as switches, and the banner would sit on top of them.
   const onChoicesPage = usePathname() === "/cookies";
   if (consent || onChoicesPage) return null;
+  // Why z-30: under every sheet that asks for input (the invite gate, the name sheet, a dialog), never over one.
   return (
     <section aria-label="Cookie choices" className="consent-banner pointer-events-none fixed inset-x-0 bottom-0 z-30 p-3 sm:p-4">
       <div className="pointer-events-auto mx-auto flex max-w-[46rem] flex-wrap items-center justify-end gap-x-5 gap-y-3 rounded-md border border-rule bg-sheet p-4 shadow-lifted">
