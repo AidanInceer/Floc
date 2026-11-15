@@ -5,6 +5,8 @@ import { nadia, priya, signIn } from "./people";
 async function signedIn(page: Page, email: string) {
   await signIn(page, email);
   await expect(page).toHaveURL(/\/trips$/);
+  // Why: a returning member has answered the cookie banner once; legal.spec.ts tests the banner itself.
+  await page.getByRole("region", { name: "Cookie preferences" }).getByRole("button", { name: "Reject all" }).click();
 }
 
 setup("the right password lands on your trips", async ({ page }) => {

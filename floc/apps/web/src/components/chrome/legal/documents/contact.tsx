@@ -9,9 +9,10 @@ export async function ContactDocument() {
   const session = await getSession();
   return (
     <>
-      <LegalSection title="Write to us">
+      <LegalSection title="Contact us">
         <p>
-          For a question, a problem or a complaint, write to <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+          Enquiries, reports of a problem and complaints may be sent to{" "}
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. We aim to respond within 10 working days.
         </p>
       </LegalSection>
       {session?.user && feedbackOpen() ? (
