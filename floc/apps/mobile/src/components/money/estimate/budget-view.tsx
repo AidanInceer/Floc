@@ -43,13 +43,14 @@ function Small({ tone, children }: { tone: "ink-2" | "pen"; children: React.Reac
 }
 
 function Status({ progress, words }: { progress: LineProgress; words: string }) {
-  if (progress.kind === "in-range") return <Pill word={words} tone="pastel-green" />;
-  if (progress.kind === "over") return <Pill word={words} tone="pastel-red" />;
+  if (progress.kind === "in-range") return <Pill sentence word={words} tone="pastel-green" />;
+  if (progress.kind === "over") return <Pill sentence word={words} tone="pastel-red" />;
+  return <Pill sentence word={words} tone="neutral" />;
   return <Small tone="ink-2">{words}</Small>;
 }
 
 function FitPill({ fit, currency }: { fit: BudgetFit; currency: EstimateView["currency"] }) {
-  return <Pill word={fitWords(fit, currency)} tone={FIT_TONE[fit.kind]} />;
+  return <Pill sentence word={fitWords(fit, currency)} tone={FIT_TONE[fit.kind]} />;
 }
 
 function Figure({ label, value, onEdit }: { label: string; value: string; onEdit?: () => void }) {
@@ -90,7 +91,8 @@ function LineRow({ view, line, onEdit }: { view: EstimateView; line: PlanLine; o
         <Bar spent={line.spent} plan={line.plan} />
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.sm }}>
           <Text style={{ color: c.ink, fontFamily: fonts.type, fontSize: size.small, fontVariant: ["tabular-nums"] }}>
-            {line.plan ? `${wholeMoney(line.spent, view.currency)} of ${wholeRange(line.plan, view.currency)}${line.own != null ? " · yours" : ""}` : ""}
+            {line.plan ? `${wholeMoney(line.spent, view.currency)} of ${wholeRange(line.plan, view.currency)}` : ""}
+            {line.plan && line.own != null ? <Text style={{ color: c["ink-2"], fontFamily: fonts.sans }}> · yours</Text> : null}
           </Text>
           {needsHome ? <Small tone="pen">Add home airport</Small> : <Status progress={line.progress} words={words} />}
         </View>

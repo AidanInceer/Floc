@@ -12,7 +12,7 @@ const glyph = (name: GlyphName) => <Glyph name={name} className="size-[14px]" />
 const n = (s: string) => <span className="nums">{s}</span>;
 
 const NOW: (Item & { tone: "red" | "yellow" | "green" | "blue" | "grey" })[] = [
-  { icon: glyph("money"), tone: "red", name: "Your cost and budget", eg: <>Sicily for you: {n("£710–£1,340")}, your budget fits</> },
+  { icon: glyph("receipt"), tone: "red", name: "Your cost and budget", eg: <>Sicily for you: {n("£710–£1,340")}, your budget fits</> },
   { icon: glyph("weather"), tone: "yellow", name: "Weather on your dates", eg: <>Etna on Monday: {n("14°")}</> },
   { icon: glyph("flight"), tone: "green", name: "Searches filled in", eg: <>Skyscanner opens on {n("LGW to PMO, 12 Sep, 6 adults")}</> },
   { icon: glyph("packing"), tone: "blue", name: "Packing from the forecast", eg: "A jumper goes on your list for Etna" },
