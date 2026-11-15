@@ -14,9 +14,9 @@ export const NO_CONSENT: ConsentChoice = { functional: false, analytics: false }
 export const FULL_CONSENT: ConsentChoice = { functional: true, analytics: true };
 
 export const CONSENT_CATEGORIES = [
-  { key: "necessary", label: "Needed", detail: "Keeps you signed in, keeps the theme you picked, and remembers this choice. Always on." },
-  { key: "functional", label: "Remember my choices", detail: "Remembers small choices on this device, such as how you sort Ideas and which headings you fold in Notes." },
-  { key: "analytics", label: "Count page views", detail: "Counts which pages are opened, so we can see what is used. No cookie, and nothing that names you." },
+  { key: "necessary", label: "Strictly necessary", detail: "Required for the service to operate, including sign-in, account security and the record of your cookie preferences. These cannot be switched off." },
+  { key: "functional", label: "Preferences", detail: "Store display settings you select on this device, such as the sort order of Ideas and the sections you collapse in Notes." },
+  { key: "analytics", label: "Analytics", detail: "Allow us to count which pages are visited, so that we can improve the service. No cookie is set and no information that identifies you is recorded." },
 ] as const;
 
 const FORMAT = /^1\.f([01])\.a([01])\.(\d{4}-\d{2}-\d{2})$/;

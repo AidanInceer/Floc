@@ -147,6 +147,11 @@ for (const size of WIDTHS) {
 
     test.describe("signed in", () => {
       test.use({ storageState: priya.state });
+      // Why: a returning member has answered the cookie banner, which would otherwise cover the foot of a 375 screen.
+      test.beforeEach(async ({ context, baseURL }) => {
+        const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+        await context.addCookies([{ name: "floc_consent", value: `1.f0.a0.${yesterday}`, url: baseURL! }]);
+      });
 
       test("the New group button sits beside the Groups heading and opens the group dialog", async ({ page }) => {
         await page.goto("/friends/groups");

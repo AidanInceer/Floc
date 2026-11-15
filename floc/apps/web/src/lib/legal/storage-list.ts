@@ -1,8 +1,9 @@
 /**
- * Everything Floc puts on a device, for the Cookies page (#368). The page draws this list, and a test holds it
- * to what the code sets, so the page cannot say less than the app does.
+ * Everything Floc puts on a device (#368). The Cookie policy shows it by category, and a test holds this list
+ * to what the code sets, so the policy cannot say less than the app does.
  */
-import { CONSENT_COOKIE, CONSENT_DAYS } from "@floc/core/consent/consent";
+import { ANALYTICS_KEEP_DAYS } from "@floc/core/analytics/events";
+import { CONSENT_CATEGORIES, CONSENT_COOKIE, CONSENT_DAYS } from "@floc/core/consent/consent";
 import { LIVE_CACHE_PREFIX } from "@floc/core/notes/live/live-epoch";
 
 import { THEME_STORAGE_KEY } from "@/lib/theme";
@@ -30,3 +31,27 @@ export const STORAGE_LIST: StoredThing[] = [
   { name: FUNCTIONAL_KEYS[0], kind: "Local storage", category: "functional", purpose: "How you last sorted Ideas.", lasts: "Until you turn this off", days: null },
   { name: `${FUNCTIONAL_PREFIXES[0]}…`, kind: "Local storage", category: "functional", purpose: "Which headings you folded on a notes page.", lasts: "Until you turn this off", days: null },
 ];
+
+const months = (days: number) => Math.round(days / 30.4);
+const longestNecessaryCookie = Math.max(...STORAGE_LIST.filter((s) => s.category === "necessary" && s.kind === "Cookie").map((s) => s.days ?? 0));
+
+const CATEGORY_TERMS: Record<(typeof CONSENT_CATEGORIES)[number]["key"], { examples: string; duration: string; consent: string }> = {
+  necessary: {
+    examples: "Sign-in session cookies, the record of your cookie preferences, your chosen theme, and a temporary copy of an open notes page.",
+    duration: `From the end of your visit up to ${months(longestNecessaryCookie)} months`,
+    consent: "Not required",
+  },
+  functional: {
+    examples: "Local storage that remembers how you sort Ideas and which sections you collapse in Notes.",
+    duration: "Until you withdraw consent",
+    consent: "Required",
+  },
+  analytics: {
+    examples: "No cookie and no storage on your device. Each count is recorded on our server only.",
+    duration: `Counts are deleted after ${months(ANALYTICS_KEEP_DAYS)} months`,
+    consent: "Required",
+  },
+};
+
+/** Why: the Cookie policy shows one row per category, not one per key; the list above stays what the tests hold to the code. */
+export const STORAGE_CATEGORIES = CONSENT_CATEGORIES.map((category) => ({ ...category, ...CATEGORY_TERMS[category.key] }));

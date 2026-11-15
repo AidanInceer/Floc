@@ -3,8 +3,8 @@ import { publicMetadata } from "@/lib/seo/public-pages";
 
 export const metadata = publicMetadata({
   path: "/cookies",
-  title: "Cookies",
-  description: "The cookies and storage Floc uses, and what each one is for.",
+  title: "Cookie policy",
+  description: "How Floc uses cookies and similar technologies, and how to manage your preferences.",
 });
 
 export default function CookiesPage() {
