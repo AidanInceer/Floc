@@ -39,6 +39,7 @@ import { calendarEnabled } from "@/server/calendar/calendar-import";
 import { calendarAllDayOnly } from "@/server/calendar/calendar-options";
 import { DatesBoard } from "@/components/availability/dates-board";
 import { DatesFold } from "@/components/availability/dates-fold";
+import { DatesActions } from "@/components/availability/dates-actions";
 import { BestWindowCard } from "@/components/availability/best-window-card";
 import { WhoAnswered } from "@/components/availability/who-answered";
 import type { GroupAnswer } from "@floc/core/dates/dates-tabs";
@@ -196,6 +197,20 @@ export default async function DatesPage({
     />
   );
 
+  const actions = (
+    <DatesActions
+      reset={clearTripDates.bind(null, tripId)}
+      clear={clearMyAvailability.bind(null, tripId)}
+      resetCost={
+        resetNoun
+          ? { message: `Resetting the dates removes the whole itinerary — ${resetNoun}. Notes, costs and people stay.`, label: resetLabel! }
+          : null
+      }
+      hasDates={hasDates}
+      hasMarks={mine.length > 0}
+    />
+  );
+
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
       <header className="flex items-end justify-between gap-4">
@@ -214,50 +229,16 @@ export default async function DatesPage({
             )}
           </p>
         </div>
-        {/*
-         * Both verbs always listed, disabled rather than absent, so they're
-         * where you look (ticket 133). "Reset dates" confirms because the
-         * window is the itinerary's extent (ticket 140); "Clear availability"
-         * doesn't — marks paint straight back.
-         */}
-        <Menu label="Dates actions">
-          <form action={clearTripDates.bind(null, tripId)}>
-            {resetNoun ? (
-              <ConfirmSubmit
-                variant="ghost"
-                className={menuDangerItemClass}
-                message={`Resetting the dates removes the whole itinerary — ${resetNoun}. Notes, costs and people stay.`}
-                confirmLabel={resetLabel!}
-              >
-                Reset dates
-              </ConfirmSubmit>
-            ) : (
-              <SubmitButton
-                variant="ghost"
-                disabled={!hasDates}
-                className={menuDangerItemClass}
-              >
-                Reset dates
-              </SubmitButton>
-            )}
-          </form>
-          <form action={clearMyAvailability.bind(null, tripId)}>
-            <SubmitButton
-              variant="ghost"
-              disabled={mine.length === 0}
-              className={menuDangerItemClass}
-            >
-              Clear availability
-            </SubmitButton>
-          </form>
-        </Menu>
       </header>
 
       {moment === "finding" ? (
-        <div className="mt-6">{board}</div>
+        <>
+          <div className="mt-6">{board}</div>
+          <div className="mt-3">{actions}</div>
+        </>
       ) : (
         <div className="mt-4">
-          <DatesFold>{board}</DatesFold>
+          <DatesFold aside={actions}>{board}</DatesFold>
         </div>
       )}
       {booking ? (
