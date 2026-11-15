@@ -117,9 +117,9 @@ export const lightTokens = {
   /* The three faces. `--font-*-face` is next/font's doing and web-only; the
      phone apps read `fontStacks` below instead. */
   display:
-    'var(--font-display-face), "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif',
-  sans: 'var(--font-body-face), "Instrument Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
-  type: 'var(--font-data-face), "DM Mono", "Cascadia Mono", Consolas, "Courier New", monospace',
+    'var(--font-display-face), "Red Hat Display", "Trebuchet MS", system-ui, sans-serif',
+  sans: 'var(--font-body-face), "Red Hat Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+  type: 'var(--font-data-face), "Red Hat Mono", "Cascadia Mono", Consolas, "Courier New", monospace',
 
   /* Eight seats, assigned from the display name (`whoTone`), never a column. */
   "who-1": "var(--pastel-blue)",
@@ -224,9 +224,9 @@ export const radii = { sm: 8, md: 12, pill: 999 } as const;
  * next/font's generated family has to come first there.
  */
 export const fontStacks = {
-  display: ["Bricolage Grotesque", "Trebuchet MS", "System"],
-  sans: ["Instrument Sans", "System"],
-  type: ["DM Mono", "Courier New", "System"],
+  display: ["Red Hat Display", "Trebuchet MS", "System"],
+  sans: ["Red Hat Text", "System"],
+  type: ["Red Hat Mono", "Courier New", "System"],
 } as const;
 
 const ALIAS = /^var\(--([\w-]+)\)$/;

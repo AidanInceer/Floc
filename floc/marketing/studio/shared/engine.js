@@ -51,10 +51,10 @@ function run(duration, frame) {
   window.seek = frame;
   window.PROMO = { FPS, DURATION: duration };
   window.promoReady = document.fonts.ready.then(() => Promise.all([
-    document.fonts.load('600 40px "Bricolage Grotesque"'),
-    document.fonts.load('400 40px "Instrument Sans"'),
-    document.fonts.load('400 40px "DM Mono"'),
-    document.fonts.load('500 40px "DM Mono"'),
+    document.fonts.load('800 40px "Red Hat Display"'),
+    document.fonts.load('400 40px "Red Hat Text"'),
+    document.fonts.load('400 40px "Red Hat Mono"'),
+    document.fonts.load('500 40px "Red Hat Mono"'),
   ]));
   const q = new URLSearchParams(location.search);
   if (q.has("t")) frame(Number.parseFloat(q.get("t")));

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { darkTokens, lightTokens, resolveColours, resolveTokens } from "./tokens";
+import { darkTokens, fontStacks, lightTokens, resolveColours, resolveTokens } from "./tokens";
 
 describe("resolveTokens", () => {
   it("follows an alias to the value it points at", () => {
@@ -41,5 +41,16 @@ describe("resolveColours", () => {
         expect(colours[`who-${seat}-ink`]).toMatch(/^#[0-9a-f]{6}$/);
       }
     }
+  });
+});
+
+describe("the three faces", () => {
+  it("are one family, Red Hat, on web and phone alike", () => {
+    expect(fontStacks.display[0]).toBe("Red Hat Display");
+    expect(fontStacks.sans[0]).toBe("Red Hat Text");
+    expect(fontStacks.type[0]).toBe("Red Hat Mono");
+    expect(lightTokens.display).toContain('"Red Hat Display"');
+    expect(lightTokens.sans).toContain('"Red Hat Text"');
+    expect(lightTokens.type).toContain('"Red Hat Mono"');
   });
 });

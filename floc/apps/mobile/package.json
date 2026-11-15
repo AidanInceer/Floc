@@ -15,9 +15,9 @@
   },
   "dependencies": {
     "@better-auth/expo": "~1.7.14",
-    "@expo-google-fonts/bricolage-grotesque": "^0.4.1",
-    "@expo-google-fonts/dm-mono": "^0.4.2",
-    "@expo-google-fonts/instrument-sans": "^0.4.2",
+    "@expo-google-fonts/red-hat-display": "^0.4.1",
+    "@expo-google-fonts/red-hat-mono": "^0.4.1",
+    "@expo-google-fonts/red-hat-text": "^0.4.1",
     "@floc/api": "workspace:*",
     "@floc/core": "workspace:*",
     "@floc/editor": "workspace:*",
