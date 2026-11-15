@@ -41,6 +41,19 @@ describe("busyDays", () => {
     expect(busyDays([declined, cancelled], range)).toEqual([]);
   });
 
+  it("ignores contacts' birthdays and working-location events", () => {
+    const birthday: CalendarEvent = { eventType: "birthday", start: { date: "2027-09-05" }, end: { date: "2027-09-06" } };
+    const office: CalendarEvent = { eventType: "workingLocation", start: { date: "2027-09-06" }, end: { date: "2027-09-07" } };
+    const away: CalendarEvent = { eventType: "outOfOffice", start: { date: "2027-09-07" }, end: { date: "2027-09-08" } };
+    expect(busyDays([birthday, office, away], range)).toEqual(["2027-09-07"]);
+  });
+
+  it("with all-day only, counts all-day events and leaves timed ones free", () => {
+    const allDay: CalendarEvent = { start: { date: "2027-09-05" }, end: { date: "2027-09-06" } };
+    const longTimed = timed("2027-09-07T18:00:00+01:00", "2027-09-09T08:00:00+01:00");
+    expect(busyDays([allDay, hour("2027-09-06"), longTimed], range, { allDayOnly: true })).toEqual(["2027-09-05"]);
+  });
+
   it("counts an event somebody else declined", () => {
     const e = hour("2027-09-05", { attendees: [{ self: false, responseStatus: "declined" }] });
     expect(busyDays([e], range)).toEqual(["2027-09-05"]);

@@ -217,6 +217,8 @@ export const userProfile = sqliteTable("user_profile", {
   travelCabin: text("travel_cabin", { enum: CABINS }),
   travelStay: text("travel_stay", { enum: STAY_STYLES }),
   travelPace: text("travel_pace", { enum: PACES }),
+  /** Your Google Calendar import counts only all-day events as busy (ADR-031); off counts every event. */
+  calendarAllDayOnly: integer("calendar_all_day_only", { mode: "boolean" }).notNull().default(false),
   ...audit,
 });
 

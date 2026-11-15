@@ -12,6 +12,7 @@ import { addDays, dateRange, isIsoDate, type IsoDate } from "./dates";
 /** The only fields the read ever asks for. Titles, places, notes and guests are never requested. */
 export type CalendarEvent = {
   status?: string;
+  eventType?: string;
   start?: { date?: string; dateTime?: string };
   end?: { date?: string; dateTime?: string };
   attendees?: { self?: boolean; responseStatus?: string }[];
@@ -47,11 +48,26 @@ function span(event: CalendarEvent): ImportRange | null {
   return { start: start.day, end: exclusive ? addDays(end.day, -1) : end.day };
 }
 
-/** Days in `range` with an event the person has not declined and that is not cancelled. Sorted, once each. */
-export function busyDays(events: CalendarEvent[], range: ImportRange): IsoDate[] {
+/**
+ * Why: Google files contacts' birthdays and Home/Office markers in the primary calendar as all-day
+ * events. Neither says the person is away, so neither may close a day.
+ */
+const NOT_PLANS = new Set(["birthday", "workingLocation"]);
+
+/** The person's own choice (`user_profile.calendar_all_day_only`): only all-day events close a day. */
+export type BusyOptions = { allDayOnly?: boolean };
+
+function counts(event: CalendarEvent, opts: BusyOptions): boolean {
+  if (event.status === "cancelled" || declinedBySelf(event)) return false;
+  if (event.eventType && NOT_PLANS.has(event.eventType)) return false;
+  return !opts.allDayOnly || event.start?.date !== undefined;
+}
+
+/** Days in `range` with an event that counts (see `counts`). Sorted, once each. */
+export function busyDays(events: CalendarEvent[], range: ImportRange, opts: BusyOptions = {}): IsoDate[] {
   const busy = new Set<IsoDate>();
   for (const event of events) {
-    if (event.status === "cancelled" || declinedBySelf(event)) continue;
+    if (!counts(event, opts)) continue;
     const s = span(event);
     if (!s) continue;
     const from = s.start < range.start ? range.start : s.start;

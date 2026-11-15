@@ -32,9 +32,15 @@ beforeEach(async () => {
 
 describe("calendar import on the port", () => {
   it("says whether it is offered and whether it was granted", async () => {
-    expect(await webPort.calendarAccess(world.member)).toEqual({ enabled: true, granted: false });
+    expect(await webPort.calendarAccess(world.member)).toEqual({ enabled: true, granted: false, allDayOnly: false });
     cal.enabled.mockReturnValue(false);
     expect((await webPort.calendarAccess(world.member)).enabled).toBe(false);
+  });
+
+  it("remembers the viewer's all-day-only choice", async () => {
+    await webPort.setCalendarAllDayOnly(world.member, true);
+    expect((await webPort.calendarAccess(world.member)).allDayOnly).toBe(true);
+    expect((await webPort.calendarAccess(world.admin)).allDayOnly).toBe(false);
   });
 
   it("fills the viewer's own days on their trip", async () => {

@@ -10,7 +10,7 @@ import { View } from "react-native";
 import { GoogleCalendarButton } from "@/components/auth/google-button";
 import { PenGlyph, TickGlyph } from "@/components/system/glyphs";
 import { useTheme } from "@/components/system/theme";
-import { Body, Button } from "@/components/system/ui";
+import { Body, Button, Toggle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { linkSocial } from "@/lib/auth";
 import { space } from "@/lib/theme";
@@ -22,6 +22,18 @@ export type CalendarNote = { kind: "done"; free: number; busy: number } | { kind
 const CALENDAR_REFUSED = "Google didn't give access. Nothing changed.";
 const CALENDAR_FAILED = "Couldn't reach Google Calendar. Nothing changed.";
 const LABEL = "Fill from Google Calendar";
+
+type AllDay = { on: boolean; failed: boolean; set: (on: boolean) => void };
+
+/** The remembered choice (ADR-031): only all-day events close a day. The switch is the write. */
+function AllDayToggle({ allDay }: { allDay: AllDay }) {
+  return (
+    <View>
+      <Toggle label="All-day events only" hint="Timed events leave the day free" value={allDay.on} onChange={allDay.set} />
+      {allDay.failed ? <Body tone="red">Couldn't save that. Nothing changed.</Body> : null}
+    </View>
+  );
+}
 
 /** What happened, in words: filled N, or why nothing was. */
 export function CalendarResult({ note }: { note: CalendarNote }) {
@@ -41,11 +53,12 @@ export function CalendarResult({ note }: { note: CalendarNote }) {
 }
 
 /** With no days marked: Google's button, then by hand as plain words. */
-export function CalendarChoice({ busy, note, onFill }: { busy: boolean; note: CalendarNote; onFill: () => void }) {
+export function CalendarChoice({ busy, note, onFill, allDay }: { busy: boolean; note: CalendarNote; onFill: () => void; allDay: AllDay }) {
   const { c } = useTheme();
   return (
     <View style={{ gap: space.sm }}>
       <GoogleCalendarButton label={busy ? "Reading your calendar…" : LABEL} busy={busy} onPress={onFill} />
+      <AllDayToggle allDay={allDay} />
       {note?.kind === "error" ? <CalendarResult note={note} /> : null}
       <View style={{ flexDirection: "row", alignItems: "flex-start", gap: space.sm }}>
         <View style={{ paddingTop: 2 }}>
@@ -74,6 +87,16 @@ export function useCalendarFill(tripId: number) {
   const access = useQuery(trpc.availability.calendar.queryOptions());
   const mutation = useMutation(trpc.availability.fillFromCalendar.mutationOptions());
   const [note, setNote] = useState<CalendarNote>(null);
+  const keep = useMutation(trpc.availability.setCalendarAllDayOnly.mutationOptions());
+  const [picked, setPicked] = useState<boolean | null>(null);
+  const allDay: AllDay = {
+    on: picked ?? access.data?.allDayOnly ?? false,
+    failed: keep.isError,
+    set(on) {
+      setPicked(on);
+      keep.mutate({ on }, { onError: () => setPicked(!on) });
+    },
+  };
 
   async function fill(month: string) {
     setNote(null);
@@ -92,7 +115,7 @@ export function useCalendarFill(tripId: number) {
     }
   }
 
-  return { enabled: access.data?.enabled === true, busy: mutation.isPending, note, fill };
+  return { enabled: access.data?.enabled === true, busy: mutation.isPending, note, fill, allDay };
 }
 
 type Calendar = ReturnType<typeof useCalendarFill>;
@@ -100,7 +123,7 @@ type Calendar = ReturnType<typeof useCalendarFill>;
 /** Above the grid while you have no days: Google's button, and by hand as words. Rule 11: nothing with no Google key. */
 export function CalendarTop({ cal, show, month }: { cal: Calendar; show: boolean; month: string }) {
   if (!show || !cal.enabled) return null;
-  return <CalendarChoice busy={cal.busy} note={cal.note} onFill={() => cal.fill(month)} />;
+  return <CalendarChoice busy={cal.busy} note={cal.note} onFill={() => cal.fill(month)} allDay={cal.allDay} />;
 }
 
 /** Once there are days: a quiet button under the grid, and the line saying what happened. */
@@ -110,6 +133,7 @@ export function CalendarBelow({ cal, show, empty, month }: { cal: Calendar; show
   return (
     <View style={{ gap: space.sm }}>
       <CalendarAgain busy={cal.busy} onFill={() => cal.fill(month)} />
+      <AllDayToggle allDay={cal.allDay} />
       <CalendarResult note={cal.note} />
     </View>
   );

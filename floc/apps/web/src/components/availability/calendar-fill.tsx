@@ -1,13 +1,20 @@
 "use client";
 
-import { useCalendarFill, type CalendarFillResult, type CalendarFillState, type CalendarReturn } from "@/components/availability/use-calendar-fill";
+import { useState, type ReactNode } from "react";
+
+import { useCalendarFill, type CalendarFillResult, type CalendarFillState, type CalendarSource } from "@/components/availability/use-calendar-fill";
 import { CheckIcon, PencilIcon } from "@/components/system/icons";
 import { GoogleCalendarIcon } from "@/components/system/icons/google-calendar";
 import { Menu } from "@/components/system/client-ui";
 import { menuItemClass } from "@/components/system/ui";
 import { countWord } from "@floc/core/text/count-word";
 
+import "@/components/auth/account-ui.css";
+
 const LABEL = "Fill from Google Calendar";
+const ALL_DAY = "All-day events only";
+const ALL_DAY_HINT = "Timed events leave the day free";
+const NOT_SAVED = "Couldn't save that. Nothing changed.";
 
 /**
  * Google's own white button, as on sign-in, with Google's Calendar mark on the left. Brand
@@ -45,10 +52,11 @@ function CalendarNote({ state }: { state: CalendarFillState }) {
  * With no days marked: Google's button, and by hand as words. The grid is already the control for
  * by hand, so only the button acts (#444).
  */
-function CalendarChoice({ state, onFill }: { state: CalendarFillState; onFill: () => void }) {
+function CalendarChoice({ state, onFill, allDay }: { state: CalendarFillState; onFill: () => void; allDay: ReactNode }) {
   return (
     <div className="grid gap-2.5 p-4">
       <GoogleCalendarButton reading={state.kind === "reading"} onClick={onFill} />
+      {allDay}
       {state.kind === "error" ? <CalendarNote state={state} /> : null}
       <div className="flex items-center gap-2.5 border-t border-rule pt-2.5 text-ink">
         <PencilIcon className="size-[14px] shrink-0 text-ink-soft" />
@@ -75,6 +83,71 @@ function CalendarMenuItem({ reading, onFill }: { reading: boolean; onFill: () =>
   );
 }
 
+type AllDay = { on: boolean; failed: boolean; set: (on: boolean) => void };
+
+function NotSaved({ allDay, className = "" }: { allDay: AllDay; className?: string }) {
+  return allDay.failed ? <p className={`text-[13px] text-red ${className}`}>{NOT_SAVED}</p> : null;
+}
+
+/** The remembered choice (ADR-031): only all-day events close a day. The switch is the write. */
+function AllDaySwitch({ allDay }: { allDay: AllDay }) {
+  return (
+    <>
+      <label className="flex cursor-pointer items-start gap-3">
+        <input type="checkbox" checked={allDay.on} onChange={(e) => allDay.set(e.target.checked)} className="peer sr-only" />
+        <span className="switch-track" aria-hidden />
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm">{ALL_DAY}</span>
+          <span className="mt-0.5 block text-xs text-ink-faint">{ALL_DAY_HINT}</span>
+        </span>
+      </label>
+      <NotSaved allDay={allDay} />
+    </>
+  );
+}
+
+/** The same choice in the … menu, beside the import it changes. */
+function AllDayMenuItem({ allDay }: { allDay: AllDay }) {
+  return (
+    <>
+      <button
+        type="button"
+        role="menuitemcheckbox"
+        aria-checked={allDay.on}
+        onClick={() => allDay.set(!allDay.on)}
+        className={`${menuItemClass} !flex items-start gap-2 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-pen`}
+      >
+        <span aria-hidden="true" className="mt-0.5 grid size-4 shrink-0 place-items-center rounded-sm border border-rule-strong text-pen-deep">
+          {allDay.on ? <CheckIcon size={12} /> : null}
+        </span>
+        <span className="min-w-0">
+          <span className="block">{ALL_DAY}</span>
+          <span className="block text-xs text-ink-faint">{ALL_DAY_HINT}</span>
+        </span>
+      </button>
+      <NotSaved allDay={allDay} className="px-2.5 py-1" />
+    </>
+  );
+}
+
+/** Shown at once, saved behind; a failed save puts the switch back. */
+function useAllDay(source: CalendarSource | null): AllDay {
+  const [on, setOn] = useState(source?.allDayOnly ?? false);
+  const [failed, setFailed] = useState(false);
+  return {
+    on,
+    failed,
+    set(next) {
+      setOn(next);
+      setFailed(false);
+      source?.keepAllDayOnly(next).catch(() => {
+        setOn(!next);
+        setFailed(true);
+      });
+    },
+  };
+}
+
 const NO_FILL = async (): Promise<CalendarFillResult> => ({ status: "error", message: "" });
 
 /**
@@ -84,19 +157,26 @@ const NO_FILL = async (): Promise<CalendarFillResult> => ({ status: "error", mes
 export function useCalendarSlots(opts: {
   tripId: number;
   month: string;
-  calendar: { fill: (month: string) => Promise<CalendarFillResult>; returned: CalendarReturn } | null;
+  calendar: CalendarSource | null;
   show: boolean;
   empty: boolean;
 }) {
   const { calendar, show, empty } = opts;
+  const allDay = useAllDay(calendar);
   const cal = useCalendarFill({ tripId: opts.tripId, month: opts.month, returned: calendar?.returned ?? null, fill: calendar?.fill ?? NO_FILL });
   const choose = calendar !== null && show && empty;
   const reading = cal.state.kind === "reading";
   const settled = cal.state.kind === "done" || cal.state.kind === "error";
   return {
     choose,
-    choice: choose ? <CalendarChoice state={cal.state} onFill={cal.run} /> : null,
-    menu: calendar && show && !choose ? <Menu label="More for your days"><CalendarMenuItem reading={reading} onFill={cal.run} /></Menu> : null,
+    choice: choose ? <CalendarChoice state={cal.state} onFill={cal.run} allDay={<AllDaySwitch allDay={allDay} />} /> : null,
+    menu:
+      calendar && show && !choose ? (
+        <Menu label="More for your days">
+          <CalendarMenuItem reading={reading} onFill={cal.run} />
+          <AllDayMenuItem allDay={allDay} />
+        </Menu>
+      ) : null,
     note: settled ? <div className="border-t border-rule py-3"><CalendarNote state={cal.state} /></div> : null,
   };
 }

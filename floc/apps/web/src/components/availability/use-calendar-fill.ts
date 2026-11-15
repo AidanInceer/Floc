@@ -21,6 +21,14 @@ const CALENDAR_FAILED = "Couldn't reach Google Calendar. Nothing changed.";
 /** What the page was sent back with after Google's consent screen: it filled, or the person said no. */
 export type CalendarReturn = "fill" | "refused" | null;
 
+/** What the Dates page hands the import: the read, how Google sent the person back, and their all-day choice. */
+export type CalendarSource = {
+  fill: (month: string) => Promise<CalendarFillResult>;
+  returned: CalendarReturn;
+  allDayOnly: boolean;
+  keepAllDayOnly: (on: boolean) => Promise<void>;
+};
+
 /**
  * The one read of the person's calendar, on their tap (ADR-031). First time, the server says it
  * has no access; the browser then goes to Google's consent and comes back to this page with
