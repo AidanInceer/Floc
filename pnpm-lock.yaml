@@ -59,15 +59,15 @@ importers:
       '@better-auth/expo':
         specifier: ~1.7.14
         version: 1.7.14(646c8f822ebf2751344fcd15faca3433)
-      '@expo-google-fonts/bricolage-grotesque':
+      '@expo-google-fonts/red-hat-display':
         specifier: ^0.4.1
         version: 0.4.1
-      '@expo-google-fonts/dm-mono':
-        specifier: ^0.4.2
-        version: 0.4.2
-      '@expo-google-fonts/instrument-sans':
-        specifier: ^0.4.2
-        version: 0.4.2
+      '@expo-google-fonts/red-hat-mono':
+        specifier: ^0.4.1
+        version: 0.4.1
+      '@expo-google-fonts/red-hat-text':
+        specifier: ^0.4.1
+        version: 0.4.1
       '@floc/api':
         specifier: workspace:*
         version: link:../../packages/floc-api
@@ -1340,17 +1340,17 @@ packages:
       '@noble/hashes':
         optional: true
 
-  '@expo-google-fonts/bricolage-grotesque@0.4.1':
-    resolution: {integrity: sha512-uijLLg+thOrFgw+gXtYA3dQJTBqqqleabcNFpamaYXqUUcbFe0J18C+4nfL0CyGzSJUicxUBLY4Zv7jdHmTGMA==}
-
-  '@expo-google-fonts/dm-mono@0.4.2':
-    resolution: {integrity: sha512-loMaZOkQRs1r7yt4rN39zcr9e0J+smwnSx929yuODkuiPfsY4PaW18C9SEZ0BvXfcBKoRhatGoIBl8V2MOYVPQ==}
-
-  '@expo-google-fonts/instrument-sans@0.4.2':
-    resolution: {integrity: sha512-YR0jemCJ/eUlknOfxxxiLnJWpFDaT0KgLiB1q333jIDPlRAERfuMpOislkWA1A7HGX85N9LCsjWLlB3QOZo1wg==}
-
   '@expo-google-fonts/material-symbols@0.4.45':
     resolution: {integrity: sha512-D5gd/uFa7KfMJX9S11hvej4GpQnBl27oKiUgyIq3cLTPtyDOWBwRgmeePIdV6+PGcedlDkaCND2BnRgAkxzNaA==}
+
+  '@expo-google-fonts/red-hat-display@0.4.1':
+    resolution: {integrity: sha512-sfJgaWo+DVLR9Xgq2Q0dEJlOwoXVscUzmuLJg4vL56sPg7MtfOUG34B3ezouwn4Ww1vc4C3A1xCKhTOf9167jQ==}
+
+  '@expo-google-fonts/red-hat-mono@0.4.1':
+    resolution: {integrity: sha512-Av/DwaoLWmlNi3t+BMKEA+fp3qneIxOu2m/+HxhztPyth0WwBd7vsbvA0gKRIBtq9BXDnBkkV7mCUKfEZ6AnAw==}
+
+  '@expo-google-fonts/red-hat-text@0.4.1':
+    resolution: {integrity: sha512-PELzskSfcsA/u8T+IeC3cC32mcGJs6dQRl59YqkNRkmzObILVk6uMoZ3Lvj9//q3XhLhZs8ikjUbzBfjO7bmcQ==}
 
   '@expo/cli@57.0.22':
     resolution: {integrity: sha512-MdToR0ZZ1yjfkqbP1jcA7viS9duMPGq/C+qQ/21dtq+en583Ghp+O11BP/wujHa9ZGRtXimzuKPZDpPresVE0g==}
@@ -8058,13 +8058,13 @@ snapshots:
       '@noble/hashes': 2.2.0
     optional: true
 
-  '@expo-google-fonts/bricolage-grotesque@0.4.1': {}
-
-  '@expo-google-fonts/dm-mono@0.4.2': {}
-
-  '@expo-google-fonts/instrument-sans@0.4.2': {}
-
   '@expo-google-fonts/material-symbols@0.4.45': {}
+
+  '@expo-google-fonts/red-hat-display@0.4.1': {}
+
+  '@expo-google-fonts/red-hat-mono@0.4.1': {}
+
+  '@expo-google-fonts/red-hat-text@0.4.1': {}
 
   '@expo/cli@57.0.22(@expo/dom-webview@57.0.1)(@expo/metro-runtime@57.0.15)(expo-constants@57.0.17(expo@57.0.20)(react-native@0.87.1(@babel/core@7.29.7)(@react-native/metro-config@0.87.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3)))(expo-font@57.0.3)(expo-router@57.0.19)(expo@57.0.20)(react-dom@19.2.3(react@19.2.3))(react-native@0.87.1(@babel/core@7.29.7)(@react-native/metro-config@0.87.1(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)(typescript@5.9.3)':
     dependencies:

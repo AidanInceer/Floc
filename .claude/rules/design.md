@@ -24,7 +24,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - Four pastels mark feature areas: blue Where and Packing, yellow When and Notes, green Days and Tickets, red Money. A pastel is a wash, never a stripe down a card's edge.
 - Colour follows meaning and stays the same everywhere: an event's colour is its type (food, activity, transport, and grey for other); an Explore listing's colour is its region; a trip keeps one colour.
 - Pro is ink — weight, not a hue. No gold, no Pro star on items or on the account pill.
-- Three faces: display (Bricolage Grotesque) for headings, sans (Instrument Sans) for prose and controls, mono (DM Mono) for every figure, date and label. Never money or dates in the display face.
+- Three faces, one family: display (Red Hat Display, at 800 only) for headings, sans (Red Hat Text) for prose and controls, mono (Red Hat Mono) for every figure, date and label. The web declares the display face at 800 alone, so a heading never needs a weight class. Mock-ups try other type in the `type-fonts` playground, kept open (pick W4). Never money or dates in the display face.
 - A file's colour is its category — travel blue, hotel green, tickets yellow, admin red, other grey — the same on Files, the Overview and Dates. `DOC_CATEGORY_SKINS` and `DOC_CATEGORY_CHIPS` in `@floc/core` are the only source.
 - A person's face is their initials in their seat colour, in a rounded square — never a picture or icon. Two or more names give the first letter of the first two (AI); one name gives its first two letters (Ai).
 - A busy button keeps its own words and adds an ellipsis (`busyMark` in `ui.tsx`), the one status mark that is not a word. It does not swap to "Saving…": the action must stay named, and a disabled button shows no cursor (#632 converts the rest).
@@ -68,6 +68,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - A page its tab bar already names (a trip tab, My trips, Friends, Groups, Profile, Saved, Wish lists, Packing, Bookings) shows no visible page title; the `h1` stays for screen readers (`sr-only`).
 - No tiny all-caps kicker above a heading. The mono label names a value; it never introduces a section.
 - Sentence case. British English. Real content, never lorem ipsum.
+  - The cost estimate's status marks (Fits, Tight, In range, Not started) are sentence case: `Badge sentence` on the web, `Pill sentence` on the phone. Other badges keep the house capitals for now (Aidan, #574).
 - ✓ A field starts empty: no placeholder, no example, nothing pre-filled the person did not choose. A visible label or an `aria-label` names it.
   - One exception: *Plan the next one* on a finished trip's recap starts with the trip's other members ticked; the name field stays empty (#443).
   - One exception: *Add to Days* on a booking file starts with what Floc read from that booking — the flight, its day and its times — and the member saves it (#559).

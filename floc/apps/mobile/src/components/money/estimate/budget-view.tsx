@@ -29,7 +29,7 @@ function Bar({ spent, plan, budget, thin }: { spent: number; plan: Range | null;
   return (
     <View accessible={false} style={{ height: thin ? 6 : 8, borderRadius: radius.pill, backgroundColor: c["sheet-3"] }}>
       {plan ? (
-        <View style={{ position: "absolute", top: 0, bottom: 0, left: pct(plan[0]), width: pct(plan[1] - plan[0]), minWidth: 4, borderRadius: radius.pill, backgroundColor: c["pastel-red-edge"] }} />
+        <View style={{ position: "absolute", top: 0, bottom: 0, left: pct(plan[0]), width: pct(plan[1] - plan[0]), minWidth: 4, borderRadius: radius.pill, backgroundColor: c["pastel-red-edge"], borderWidth: StyleSheet.hairlineWidth, borderColor: c["pastel-red-ink"] }} />
       ) : null}
       <View style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: pct(spent), borderRadius: radius.pill, backgroundColor: c.ink }} />
       {budget != null ? <View style={{ position: "absolute", top: -4, bottom: -4, left: pct(budget), width: 2, marginLeft: -1, backgroundColor: c.ink }} /> : null}
@@ -42,14 +42,26 @@ function Small({ tone, children }: { tone: "ink-2" | "pen"; children: React.Reac
   return <Text style={{ color: c[tone], fontFamily: fonts.sans, fontSize: size.small }}>{children}</Text>;
 }
 
+function Detail({ text }: { text: string }) {
+  const { c } = useTheme();
+  const parts = text.split(" · ");
+  return (
+    <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 4 }}>
+      {parts.map((part, i) => (
+        <Text key={i} style={{ color: c["ink-3"], fontFamily: fonts.sans, fontSize: size.small }}>{i < parts.length - 1 ? `${part} ·` : part}</Text>
+      ))}
+    </View>
+  );
+}
+
 function Status({ progress, words }: { progress: LineProgress; words: string }) {
-  if (progress.kind === "in-range") return <Pill word={words} tone="pastel-green" />;
-  if (progress.kind === "over") return <Pill word={words} tone="pastel-red" />;
-  return <Small tone="ink-2">{words}</Small>;
+  if (progress.kind === "in-range") return <Pill sentence word={words} tone="pastel-green" />;
+  if (progress.kind === "over") return <Pill sentence word={words} tone="pastel-red" />;
+  return <Pill sentence word={words} tone="neutral" />;
 }
 
 function FitPill({ fit, currency }: { fit: BudgetFit; currency: EstimateView["currency"] }) {
-  return <Pill word={fitWords(fit, currency)} tone={FIT_TONE[fit.kind]} />;
+  return <Pill sentence word={fitWords(fit, currency)} tone={FIT_TONE[fit.kind]} />;
 }
 
 function Figure({ label, value, onEdit }: { label: string; value: string; onEdit?: () => void }) {
@@ -83,14 +95,15 @@ function LineRow({ view, line, onEdit }: { view: EstimateView; line: PlanLine; o
         <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
           <View style={{ flex: 1 }}>
             <Text style={{ color: c.ink, fontFamily: fonts.sans, fontSize: size.body }}>{LINE_LABELS[line.line]}</Text>
-            <Text style={{ color: c["ink-3"], fontFamily: fonts.sans, fontSize: size.small }}>{lineDetail({ ...line, range: line.plan }, { style: view.style, nights: view.nights.count })}</Text>
+            <Detail text={lineDetail({ ...line, range: line.plan }, { style: view.style, nights: view.nights.count })} />
           </View>
           <PenGlyph color={c["ink-3"]} />
         </View>
         <Bar spent={line.spent} plan={line.plan} />
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.sm }}>
           <Text style={{ color: c.ink, fontFamily: fonts.type, fontSize: size.small, fontVariant: ["tabular-nums"] }}>
-            {line.plan ? `${wholeMoney(line.spent, view.currency)} of ${wholeRange(line.plan, view.currency)}${line.own != null ? " · yours" : ""}` : ""}
+            {line.plan ? `${wholeMoney(line.spent, view.currency)} of ${wholeRange(line.plan, view.currency)}` : ""}
+            {line.plan && line.own != null ? <Text style={{ color: c["ink-3"], fontFamily: fonts.sans }}> · yours</Text> : null}
           </Text>
           {needsHome ? <Small tone="pen">Add home airport</Small> : <Status progress={line.progress} words={words} />}
         </View>

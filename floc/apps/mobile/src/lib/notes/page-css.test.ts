@@ -7,7 +7,7 @@ describe("pageCss", () => {
     const light = pageCss("light");
     expect(light).toContain("--sheet: #ffffff;");
     expect(light).toContain("--tone-yellow: #fbeac8;");
-    expect(light).toContain('--sans: "Instrument Sans", system-ui;');
+    expect(light).toContain('--sans: "Red Hat Text", system-ui;');
     expect(light).toContain("--text-base: 15px;");
     expect(light).not.toContain("--font-body-face");
     expect(pageCss("dark")).toContain("--tone-yellow: #4a4230;");
@@ -21,7 +21,7 @@ describe("pageCss", () => {
   });
 
   it("names the font files it is given, and none it is not", () => {
-    expect(pageCss("light", { sans: "file:///s.ttf" })).toContain('@font-face { font-family: "Instrument Sans"; font-weight: 400; src: url("file:///s.ttf"); }');
+    expect(pageCss("light", { sans: "file:///s.ttf" })).toContain('@font-face { font-family: "Red Hat Text"; font-weight: 400; src: url("file:///s.ttf"); }');
     expect(pageCss("light")).not.toContain("@font-face");
   });
 });

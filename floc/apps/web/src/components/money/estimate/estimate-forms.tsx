@@ -3,7 +3,6 @@ import { Field, Input } from "@/components/system/ui";
 import { toMajorInput } from "@floc/core/money/money";
 import type { Currency } from "@floc/core/money/currency";
 import { airportName } from "@floc/core/money/estimate/guide/home-airport";
-import { LINE_LABELS } from "@floc/core/money/estimate/lines";
 import type { PlanLine } from "@floc/core/money/estimate/plan";
 import { wholeRange } from "@floc/core/money/estimate/words";
 import {
@@ -38,7 +37,7 @@ export function LineForm({ tripId, line, currency }: { tripId: number; line: Pla
       </p>
       <ActionForm action={saveLineForm.bind(null, tripId)} className="grid gap-4" keepAnswers>
         <input type="hidden" name="line" value={line.line} />
-        <Field label={`Your figure for ${LINE_LABELS[line.line].toLowerCase()}, ${currency}`}>
+        <Field label={`Your figure, ${currency}`}>
           <Input name="figure" inputMode="decimal" autoComplete="off" defaultValue={shown(line.own, currency)} className={moneyField} />
         </Field>
         <Field label={`Budget for this line, ${currency}`}>

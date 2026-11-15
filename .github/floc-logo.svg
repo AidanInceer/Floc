@@ -5,5 +5,5 @@
     <path d="M10.4 10 14 6.4 17.6 10" />
     <path d="M17.4 16.5 21 12.9 24.6 16.5" />
   </g>
-  <text x="30" y="21" font-family="Bricolage Grotesque, Trebuchet MS, system-ui, sans-serif" font-size="22" font-weight="700" letter-spacing="-0.5" fill="#14141a">floc<tspan fill="#4e68d8">.</tspan></text>
+  <text x="30" y="21" font-family="Red Hat Display, Trebuchet MS, system-ui, sans-serif" font-size="22" font-weight="800" letter-spacing="-0.5" fill="#14141a">floc<tspan fill="#4e68d8">.</tspan></text>
 </svg>

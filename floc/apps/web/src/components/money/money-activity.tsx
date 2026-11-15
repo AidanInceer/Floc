@@ -67,7 +67,7 @@ export function ActivityFeed(props: {
 
   if (props.collapsed) {
     return (
-      <details className="rounded-md bg-sheet p-6">
+      <details className="rounded-md border border-rule bg-sheet p-6">
         <summary className="flex cursor-pointer list-none items-center justify-center gap-2 text-sm font-semibold text-ink-soft [&::-webkit-details-marker]:hidden">
           Past activity
           <svg
@@ -90,7 +90,7 @@ export function ActivityFeed(props: {
   }
 
   return (
-    <section className="rounded-md bg-sheet p-6">
+    <section className="rounded-md border border-rule bg-sheet p-6">
       <h2 className="border-b border-rule pb-3 text-xl">Activity</h2>
       {rows}
     </section>

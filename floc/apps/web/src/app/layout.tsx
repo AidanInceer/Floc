@@ -30,32 +30,30 @@ const SIGNED_OUT: Awaited<ReturnType<typeof topBarFor>> = {
   bookings: { files: [], trips: [] },
 };
 
-// The three faces of the white-and-pastel direction (ticket 189): a characterful
-// display face for headings and figures, a plain body face for running text and
-// controls, and a mono for dates, times, amounts and small uppercase labels.
 // Why: bundled WOFF2 files keep dev and builds independent of Google Fonts downloads.
+// Why: the display file is variable, and a face declared at 800 alone clamps every heading
+// to 800 whatever its weight class, so the heading weight lives here (type-fonts pick W4).
 const display = localFont({
-  src: "./fonts/bricolage-grotesque-latin.woff2",
+  src: "./fonts/red-hat-display-latin.woff2",
   variable: "--font-display-face",
-  weight: "500 700",
+  weight: "800",
   style: "normal",
   adjustFontFallback: false,
 });
 
 const body = localFont({
-  src: "./fonts/instrument-sans-latin.woff2",
+  src: "./fonts/red-hat-text-latin.woff2",
   variable: "--font-body-face",
-  weight: "400 700",
+  weight: "300 700",
   style: "normal",
   adjustFontFallback: false,
 });
 
 const mono = localFont({
-  src: [
-    { path: "./fonts/dm-mono-regular-latin.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/dm-mono-medium-latin.woff2", weight: "500", style: "normal" },
-  ],
+  src: "./fonts/red-hat-mono-latin.woff2",
   variable: "--font-data-face",
+  weight: "300 700",
+  style: "normal",
   adjustFontFallback: false,
 });
 

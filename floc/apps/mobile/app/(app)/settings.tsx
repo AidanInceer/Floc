@@ -19,7 +19,7 @@ import type { BillingStatus, MySettings } from "@floc/api/port";
 import { CURRENCIES } from "@floc/core/money/currency";
 import { PACK_TIERS, PACK_TIER_LABELS, type PackTier } from "@floc/core/packing/packing";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState, type ReactNode } from "react";
 import { ScrollView, View } from "react-native";
 
@@ -106,6 +106,8 @@ function SettingsPanels({
 }) {
   const { choice, setChoice } = useTheme();
   const choices = useConsentChoice();
+  // Why: "See Floc Pro" on a locked estimate lands here with ?pro=1, so the Pro drawer opens itself (#574).
+  const { pro: openPro } = useLocalSearchParams<{ pro?: string }>();
   const [privacy, setPrivacy] = useState<Privacy>({
     isPrivate: settings.isPrivate,
     visibilityVibeTags: settings.visibilityVibeTags,
@@ -248,7 +250,7 @@ function SettingsPanels({
         <SettingsEstimate />
 
         {plan && plan.kind !== "hidden" ? (
-          <Drawer title="Floc Pro" summary={plan.kind === "pro" ? "Pro" : "Free plan"}>
+          <Drawer key={openPro ?? "shut"} defaultOpen={Boolean(openPro)} title="Floc Pro" summary={plan.kind === "pro" ? "Pro" : "Free plan"}>
             {pro}
           </Drawer>
         ) : null}
