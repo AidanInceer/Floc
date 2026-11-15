@@ -3,8 +3,8 @@ import { publicMetadata } from "@/lib/seo/public-pages";
 
 export const metadata = publicMetadata({
   path: "/legal",
-  title: "Legal",
-  description: "Who runs Floc, and the legal notices for the site.",
+  title: "Legal notice",
+  description: "The provider of Floc, complaints, and third-party attributions.",
 });
 
 export default function LegalPage() {

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { ANALYTICS_KEEP_DAYS } from "@floc/core/analytics/events";
 
-import { CONTACT_EMAIL, CONTRACTING_PARTY, DATA_LOCATION } from "@/lib/legal/facts";
+import { CONTACT_EMAIL, CONTRACTING_PARTY, DATA_LOCATION, PLACE_OF_BUSINESS } from "@/lib/legal/facts";
 import { DATA_HELD, DATA_KEPT, DATA_RECEIVERS } from "@/lib/legal/privacy-facts";
 
 import { LegalSection, LegalTable } from "../legal-prose";
@@ -12,71 +12,100 @@ const mail = <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>;
 export function PrivacyDocument() {
   return (
     <>
-      <LegalSection title="The short version">
+      <LegalSection title="1. Introduction">
         <p>
-          Floc holds what you and your group put into it, so it can show your trip to the people on it. We sell no
-          data and show no ads. The only tracking is our own count of page views, and only if you say yes.
+          This Privacy policy explains how Floc (&ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;) collects, uses
+          and protects personal data when you use floc.live and the Floc app. We process the information that you and
+          the members of your group provide, in order to plan trips with the people on them. We do not sell personal
+          data and we do not display advertising. Analytics are limited to an anonymous count of page views, recorded
+          only with your consent.
         </p>
       </LegalSection>
 
-      <LegalSection title="Who is responsible">
+      <LegalSection title="2. Data controller">
         <p>
-          {CONTRACTING_PARTY}, in the United Kingdom, decides how your data is used (the &ldquo;controller&rdquo;).
-          Write to {mail} about anything on this page.
+          The controller of your personal data is {CONTRACTING_PARTY}, {PLACE_OF_BUSINESS}. Questions about this
+          policy or about your personal data may be sent to {mail}.
         </p>
       </LegalSection>
 
-      <LegalSection title="What we hold, and why">
-        <LegalTable head={["What", "Why", "Legal ground"]} rows={DATA_HELD.map((row) => [row.what, row.why, row.ground])} />
-        <p>We never see or hold your card number. Our logs hold no names, emails or trip content.</p>
+      <LegalSection title="3. Personal data we process">
+        <LegalTable head={["Data", "Purpose", "Lawful basis"]} rows={DATA_HELD.map((row) => [row.what, row.why, row.ground])} />
+        <p>
+          We do not receive or store your payment card number. Our system logs do not contain names, email addresses
+          or trip content.
+        </p>
       </LegalSection>
 
-      <LegalSection title="Who else receives it">
-        <p>These companies handle data for us, only to run Floc. None of them may use it for their own purposes.</p>
-        <LegalTable head={["Company", "What for", "What it receives"]} rows={DATA_RECEIVERS.map((row) => [row.who, row.job, row.receives])} />
-        <p>The people on a trip see what is added to that trip. Your profile shows other people only what your privacy settings allow.</p>
+      <LegalSection title="4. Recipients of personal data">
+        <p>
+          The following service providers process personal data on our behalf, solely to operate Floc. They are not
+          permitted to use it for their own purposes.
+        </p>
+        <LegalTable head={["Provider", "Service", "Data received"]} rows={DATA_RECEIVERS.map((row) => [row.who, row.job, row.receives])} />
+        <p>
+          The members of a trip can see the content added to that trip. Other users can see your profile only to the
+          extent permitted by your privacy settings.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="5. International transfers">
         <p>{DATA_LOCATION}</p>
       </LegalSection>
 
-      <LegalSection title="How long we keep it">
+      <LegalSection title="6. Retention">
         <LegalTable
-          head={["What", "How long"]}
+          head={["Data", "Retention period"]}
           rows={[
             ...DATA_KEPT.map((row) => [row.what, row.kept]),
-            ["Page-view counts", `${Math.round(ANALYTICS_KEEP_DAYS / 30.4)} months. They hold nothing that names you.`],
+            ["Page-view statistics", `${Math.round(ANALYTICS_KEEP_DAYS / 30.4)} months. These contain no information that identifies you`],
           ]}
         />
       </LegalSection>
 
-      <LegalSection title="Deleting your account">
+      <LegalSection title="7. Deleting your account">
         <p>
-          Settings, then Delete account, on the website or in the app. It happens at once and cannot be undone.
+          You may delete your account at any time from Settings, on the website or in the app. Deletion takes effect
+          immediately and cannot be reversed. On deletion:
         </p>
         <ul>
-          <li>Your name and email are removed from the account, and you are signed out everywhere.</li>
-          <li>Your private files, your travel map, your Google Calendar access and your phone&rsquo;s push address are deleted.</li>
-          <li>Your friends, saved trips and packing kits are marked as deleted and are no longer shown to anyone.</li>
-          <li>You leave every trip. A trip you were the only admin of passes to another member.</li>
-          <li>What you added to a shared trip, such as an expense or a note, stays for the group and shows as &ldquo;Deleted user&rdquo;. A group&rsquo;s record of who paid would break without it.</li>
+          <li>your name and email address are removed from the account, and all of your sessions are ended;</li>
+          <li>your private files, travel map, Google Calendar access and device push address are deleted;</li>
+          <li>your friends, saved trips and packing kits are marked as deleted and are no longer shown to anyone;</li>
+          <li>you are removed from every trip, and a trip of which you were the only administrator passes to another member;</li>
+          <li>content you contributed to a shared trip, such as an expense or a note, is retained for the group and attributed to &ldquo;Deleted user&rdquo;, as the group&rsquo;s financial record depends on it.</li>
         </ul>
-        <p>To have that shared content removed, or anything marked as deleted erased for good, email {mail}.</p>
+        <p>To request the removal of that shared content, or the permanent erasure of data marked as deleted, contact {mail}.</p>
       </LegalSection>
 
-      <LegalSection title="Your rights">
+      <LegalSection title="8. Your rights">
         <p>
-          You can ask for a copy of your data, ask us to correct or delete it, ask us to stop or limit a use of it,
-          and take back a consent you gave. Email {mail}. We answer within one month. It costs nothing.
+          Under UK data protection law, you have the right to access your personal data, to have it corrected or
+          erased, to restrict or object to its processing, to receive it in a portable format, and to withdraw any
+          consent you have given. To exercise these rights, contact {mail}. We will respond within one month, free of
+          charge.
         </p>
         <p>
-          If you are not happy with our answer, you can complain to the Information Commissioner&rsquo;s Office
-          at <a href="https://ico.org.uk/make-a-complaint/">ico.org.uk</a>.
+          If you are not satisfied with our response, you have the right to lodge a complaint with the Information
+          Commissioner&rsquo;s Office at <a href="https://ico.org.uk/make-a-complaint/">ico.org.uk</a>.
         </p>
       </LegalSection>
 
-      <LegalSection title="Cookies, and children">
+      <LegalSection title="9. Cookies">
         <p>
-          What Floc stores on your device, and your choices, are on the <Link href="/cookies">Cookies</Link> page.
-          Floc is for adults. We do not knowingly hold data about anyone under 18.
+          Our use of cookies and similar technologies, and how to manage your preferences, are described in
+          our <Link href="/cookies">Cookie policy</Link>.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="10. Children">
+        <p>Floc is intended for adults. We do not knowingly process personal data relating to anyone under the age of 18.</p>
+      </LegalSection>
+
+      <LegalSection title="11. Changes to this policy">
+        <p>
+          We may update this policy from time to time. Where a change materially affects how we use your personal
+          data, we will notify you by email before it takes effect.
         </p>
       </LegalSection>
     </>
