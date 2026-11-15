@@ -36,7 +36,9 @@ import { TripArrival } from "@/components/trip/overview/trip-arrival";
 import { LeftToSort } from "@/components/trip/overview/left-to-sort";
 import { RecapFoot } from "@/components/trip/overview/recap/recap-foot";
 import { leftToSortFor, readSharedPacking } from "./left-to-sort-for";
-import { PanelPlaceholder, StreamedGroup } from "./streamed";
+import { PanelPlaceholder, StreamedEstimate, StreamedGroup } from "./streamed";
+import { canUseFeature } from "@/server/billing/entitlements";
+import { readEstimate } from "@/server/money/estimate/estimate-view";
 import { WalkthroughDialog } from "@/components/walkthrough/walkthrough-dialog";
 import { walkthroughFor } from "./walkthrough-for";
 import { mintShareToken } from "@/server/trips/invite-link";
@@ -96,6 +98,10 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
   const modes = new Map([...transport].map(([dayId, t]) => [dayId, t.mode]));
   const { legs, wholeTrip } = tripLegs({ days: routeDays, modes, files: docs, tripEnd: trip.endDate });
   const route = overviewRoute({ legs, days: routeDays, hops: transport });
+  // Why: streamed, so the banner's reads never hold the page; it reuses the ledger and days read above (#574).
+  const estimate = canUseFeature("money.estimate", viewer.id).then((pro) =>
+    pro ? readEstimate(trip, viewer.id, { expenses: expenseRows, splits: splitRows, days: routeDays }) : null,
+  );
   const settle = await settleUpFrom({ ledger: { expenses: expenseRows, splits: splitRows, settlements: settlementRows }, viewerId: viewer.id, homes });
   const position = expenseRows.length === 0 ? null : yourPosition(settle.rows, viewer.id);
   const color = readTripColor(trip.colorKey);
@@ -166,6 +172,10 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
           {files ? <OverviewFiles tripId={tripId} files={docs} /> : null}
         </div>
       </section>
+
+      <Suspense fallback={null}>
+        <StreamedEstimate tripId={tripId} estimate={estimate} />
+      </Suspense>
 
       {tucked ? null : <IdeasPanel tripId={tripId} ideas={ideas} datesUnset={datesUnset} />}
 

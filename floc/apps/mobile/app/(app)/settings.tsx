@@ -26,6 +26,7 @@ import { ScrollView, View } from "react-native";
 import { ProSection } from "@/components/billing/pro-section";
 import { SettingsAccount, SettingsDelete } from "@/components/settings/settings-account";
 import { SettingsVibeTags } from "@/components/settings/settings-about";
+import { SettingsEstimate } from "@/components/settings/settings-estimate";
 import { Drawer, DrawerGroup } from "@/components/system/drawer";
 import { SettingsPrivacy, type Privacy } from "@/components/settings/settings-privacy";
 import { useTheme, type ThemeChoice } from "@/components/system/theme";
@@ -239,6 +240,8 @@ function SettingsPanels({
             }}
           />
         </Drawer>
+
+        <SettingsEstimate />
 
         {plan && plan.kind !== "hidden" ? (
           <Drawer title="Floc Pro" summary={plan.kind === "pro" ? "Pro" : "Free plan"}>

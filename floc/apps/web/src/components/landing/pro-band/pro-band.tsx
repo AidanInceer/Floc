@@ -11,7 +11,8 @@ type Item = { icon: ReactNode; name: string; eg: ReactNode };
 const glyph = (name: GlyphName) => <Glyph name={name} className="size-[14px]" />;
 const n = (s: string) => <span className="nums">{s}</span>;
 
-const NOW: (Item & { tone: "yellow" | "green" | "blue" | "grey" })[] = [
+const NOW: (Item & { tone: "red" | "yellow" | "green" | "blue" | "grey" })[] = [
+  { icon: glyph("money"), tone: "red", name: "Your cost and budget", eg: <>Sicily for you: {n("£710–£1,340")}, your budget fits</> },
   { icon: glyph("weather"), tone: "yellow", name: "Weather on your dates", eg: <>Etna on Monday: {n("14°")}</> },
   { icon: glyph("flight"), tone: "green", name: "Searches filled in", eg: <>Skyscanner opens on {n("LGW to PMO, 12 Sep, 6 adults")}</> },
   { icon: glyph("packing"), tone: "blue", name: "Packing from the forecast", eg: "A jumper goes on your list for Etna" },
@@ -47,7 +48,7 @@ export function ProBand({ prices, signedIn }: { prices: PlanPrice[]; signedIn: b
             <div className="mb-8 max-w-[36rem]">
               <h2 id="pro-band-h" className="band-title text-balance">Pro, for anyone who wants it.</h2>
               <p className="mt-3.5 max-w-[30rem] text-[17px] leading-normal opacity-75">
-                The trip stays free for the whole group. Pro adds four things to your own screen.
+                The trip stays free for the whole group. Pro adds five things to your own screen.
               </p>
             </div>
             <h3 className="mb-3.5 text-[16px] font-semibold">In Pro now</h3>
