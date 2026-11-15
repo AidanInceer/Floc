@@ -29,6 +29,11 @@ export const availabilityRouter = router({
     .input(z.object({ month: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Use a month like 2027-09.") }))
     .mutation(({ ctx, input }) => ctx.port.fillFromCalendar(ctx.viewer.id, input.tripId, input.month)),
 
+  /** The viewer's own choice: only all-day events mark a day busy. Remembered, not per trip. */
+  setCalendarAllDayOnly: protectedProcedure
+    .input(z.object({ on: z.boolean() }))
+    .mutation(({ ctx, input }) => ctx.port.setCalendarAllDayOnly(ctx.viewer.id, input.on)),
+
   list: tripProcedure.query(({ ctx, input }) =>
     ctx.port.listAvailability(ctx.viewer.id, input.tripId),
   ),

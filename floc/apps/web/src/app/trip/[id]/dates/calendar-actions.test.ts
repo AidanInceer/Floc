@@ -9,7 +9,8 @@ import { expectNotFound, migrateTestDb, resetDb, seedScenario, signIn, type Scen
 const fill = vi.hoisted(() => vi.fn());
 vi.mock("@/server/calendar/calendar-import", () => ({ fillFromCalendar: fill }));
 
-import { fillFromGoogleCalendar } from "./actions";
+import { calendarAllDayOnly } from "@/server/calendar/calendar-options";
+import { fillFromGoogleCalendar, keepCalendarAllDayOnly } from "./actions";
 
 let world: Scenario;
 
@@ -42,5 +43,18 @@ describe("fillFromGoogleCalendar", () => {
   it("hands a refusal back as a result", async () => {
     fill.mockResolvedValue({ status: "error", message: "Nope." });
     expect(await fillFromGoogleCalendar(world.ours.id, "2027-09")).toEqual({ status: "error", message: "Nope." });
+  });
+});
+
+describe("keepCalendarAllDayOnly", () => {
+  it("remembers the choice for the signed-in person only", async () => {
+    await keepCalendarAllDayOnly(true);
+    expect(await calendarAllDayOnly(world.member)).toBe(true);
+    expect(await calendarAllDayOnly(world.admin)).toBe(false);
+  });
+
+  it("refuses anything but true or false", async () => {
+    await expect(keepCalendarAllDayOnly("yes" as never)).rejects.toThrow();
+    expect(await calendarAllDayOnly(world.member)).toBe(false);
   });
 });

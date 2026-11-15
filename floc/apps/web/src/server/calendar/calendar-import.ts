@@ -9,6 +9,7 @@ import "server-only";
 
 import { auth, enabledProviders } from "@/server/auth/auth";
 import { calendarAccountOf, forgetCalendarScope } from "@/server/calendar/calendar-access";
+import { calendarAllDayOnly } from "@/server/calendar/calendar-options";
 import { listPrimaryEvents, revokeGoogleToken } from "@/server/calendar/google-calendar";
 import { listMarkedDates, setAvailability } from "@/server/itinerary/availability";
 import { busyDays, importRange, planFill } from "@floc/core/dates/calendar-import";
@@ -60,7 +61,7 @@ export async function fillFromCalendar(input: {
   const read = await listPrimaryEvents(token, range);
   if (!read.ok) return read.reason === "denied" ? { status: "needs-access" } : { status: "error", message: UNREACHABLE };
 
-  const plan = planFill(range, await listMarkedDates(tripId, userId), new Set(busyDays(read.events, range)));
+  const plan = planFill(range, await listMarkedDates(tripId, userId), new Set(busyDays(read.events, range, { allDayOnly: await calendarAllDayOnly(userId) })));
   await setAvailability(tripId, userId, plan.free, true);
   await setAvailability(tripId, userId, plan.busy, false);
   return { status: "filled", free: plan.free.length, busy: plan.busy.length };

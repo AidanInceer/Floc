@@ -36,8 +36,10 @@ import {
   SubmitButton,
 } from "@/components/system/client-ui";
 import { calendarEnabled } from "@/server/calendar/calendar-import";
+import { calendarAllDayOnly } from "@/server/calendar/calendar-options";
 import { DatesBoard } from "@/components/availability/dates-board";
 import { DatesFold } from "@/components/availability/dates-fold";
+import { DatesActions } from "@/components/availability/dates-actions";
 import { BestWindowCard } from "@/components/availability/best-window-card";
 import { WhoAnswered } from "@/components/availability/who-answered";
 import type { GroupAnswer } from "@floc/core/dates/dates-tabs";
@@ -49,6 +51,7 @@ import {
   clearMyAvailability,
   clearTripDates,
   fillFromGoogleCalendar,
+  keepCalendarAllDayOnly,
   removeTripGuest,
   saveAvailability,
   setTripDates,
@@ -72,7 +75,7 @@ export default async function DatesPage({
   const tripId = trip.id;
 
   const files = documentsEnabled();
-  const [rows, dayLoads, routeDays, forecast, weatherPro, bookingPrefill, guests, docs, sites] = await Promise.all([
+  const [rows, dayLoads, routeDays, forecast, weatherPro, bookingPrefill, guests, docs, sites, allDayOnly] = await Promise.all([
     listAvailability(tripId),
     listDayLoads(tripId),
     listRouteDays(tripId),
@@ -85,6 +88,7 @@ export default async function DatesPage({
     // Rule 11: no storage volume, no files — and no query for them.
     files ? listDocuments(tripId, viewer.id) : Promise.resolve([]),
     bookingSitesOf(viewer.id),
+    calendarEnabled() ? calendarAllDayOnly(viewer.id) : Promise.resolve(false),
   ]);
 
   const free = rows.filter((r) => r.available);
@@ -148,7 +152,12 @@ export default async function DatesPage({
       tripId={tripId}
       calendar={
         calendarEnabled()
-          ? { fill: fillFromGoogleCalendar.bind(null, tripId), returned: calendar === "fill" || calendar === "refused" ? calendar : null }
+          ? {
+              fill: fillFromGoogleCalendar.bind(null, tripId),
+              returned: calendar === "fill" || calendar === "refused" ? calendar : null,
+              allDayOnly,
+              keepAllDayOnly: keepCalendarAllDayOnly,
+            }
           : null
       }
       firstMonth={firstMonth}
@@ -188,6 +197,20 @@ export default async function DatesPage({
     />
   );
 
+  const actions = (
+    <DatesActions
+      reset={clearTripDates.bind(null, tripId)}
+      clear={clearMyAvailability.bind(null, tripId)}
+      resetCost={
+        resetNoun
+          ? { message: `Resetting the dates removes the whole itinerary — ${resetNoun}. Notes, costs and people stay.`, label: resetLabel! }
+          : null
+      }
+      hasDates={hasDates}
+      hasMarks={mine.length > 0}
+    />
+  );
+
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
       <header className="flex items-end justify-between gap-4">
@@ -206,50 +229,16 @@ export default async function DatesPage({
             )}
           </p>
         </div>
-        {/*
-         * Both verbs always listed, disabled rather than absent, so they're
-         * where you look (ticket 133). "Reset dates" confirms because the
-         * window is the itinerary's extent (ticket 140); "Clear availability"
-         * doesn't — marks paint straight back.
-         */}
-        <Menu label="Dates actions">
-          <form action={clearTripDates.bind(null, tripId)}>
-            {resetNoun ? (
-              <ConfirmSubmit
-                variant="ghost"
-                className={menuDangerItemClass}
-                message={`Resetting the dates removes the whole itinerary — ${resetNoun}. Notes, costs and people stay.`}
-                confirmLabel={resetLabel!}
-              >
-                Reset dates
-              </ConfirmSubmit>
-            ) : (
-              <SubmitButton
-                variant="ghost"
-                disabled={!hasDates}
-                className={menuDangerItemClass}
-              >
-                Reset dates
-              </SubmitButton>
-            )}
-          </form>
-          <form action={clearMyAvailability.bind(null, tripId)}>
-            <SubmitButton
-              variant="ghost"
-              disabled={mine.length === 0}
-              className={menuDangerItemClass}
-            >
-              Clear availability
-            </SubmitButton>
-          </form>
-        </Menu>
       </header>
 
       {moment === "finding" ? (
-        <div className="mt-6">{board}</div>
+        <>
+          <div className="mt-6">{board}</div>
+          <div className="mt-3">{actions}</div>
+        </>
       ) : (
         <div className="mt-4">
-          <DatesFold>{board}</DatesFold>
+          <DatesFold aside={actions}>{board}</DatesFold>
         </div>
       )}
       {booking ? (

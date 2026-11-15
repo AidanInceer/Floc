@@ -15,6 +15,9 @@
     "availability.list": {
       "mobile": "yes"
     },
+    "availability.setCalendarAllDayOnly": {
+      "mobile": "yes"
+    },
     "availability.set": {
       "mobile": "yes"
     },
