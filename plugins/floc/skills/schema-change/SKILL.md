@@ -14,7 +14,8 @@ docs lie.
 
 ## 1. Check it against the invariants
 
-Ask Aidan first, every time: say what changes in the data model and why, and
+Ask Aidan first, every time: say what changes in the data model and why, and what changes on the
+[system map](docs/engineering/index.html#system-map) (a new data store, module or line; often nothing), and
 wait for a yes before you touch `schema.ts`. Name the change again in the push
 and release reports.
 
