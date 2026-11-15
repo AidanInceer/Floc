@@ -27,7 +27,6 @@
   .pro-tile-soon { --t: transparent; --t-ink: var(--slab-ink); border: 1px dashed color-mix(in srgb, var(--slab-ink) 40%, transparent); }
   .pro-soon > li { padding: 16px; border-radius: var(--radius-md); border: 1px dashed color-mix(in srgb, var(--slab-ink) 45%, transparent); }
 
-  .pro-seg { transition: background-color 0.22s var(--ease), color 0.22s var(--ease); }
   .pro-best {
     position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
     display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: var(--radius-pill);
@@ -35,5 +34,5 @@
   }
   .pro-price { grid-area: 1 / 1; opacity: 0; transition: opacity 0.22s var(--ease); }
   .pro-price.is-on { opacity: 1; }
-  @media (prefers-reduced-motion: reduce) { .pro-seg, .pro-price { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .pro-price { transition: none; } }
 }

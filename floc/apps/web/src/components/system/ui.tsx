@@ -132,6 +132,21 @@ export const iconFrameClass = (fit: "button" | "row" = "button"): string =>
 /** The grey groove a row of segments sits in: 12px out from their 8px, 4px apart, so the corners stay concentric. */
 export const segmentTrack = "rounded-md bg-sheet-3 p-1";
 
+const TRACK_SEGMENT = "relative rounded-sm font-medium transition-colors duration-220 ease-(--ease)";
+
+/** One segment in a `SegmentTrack`: ink when chosen, with no blue (Aidan). The white tile is the track's once it has measured. */
+export const trackSegmentClass = (on: boolean): string =>
+  cx(
+    TRACK_SEGMENT,
+    on ? "bg-sheet text-ink shadow-card group-data-[thumb]/track:bg-transparent group-data-[thumb]/track:shadow-none" : "text-ink-soft hover:text-ink",
+  );
+
+/** The same segment as the words beside an `sr-only` radio (`peer`). */
+export const trackRadioClass = cx(
+  TRACK_SEGMENT,
+  "block cursor-pointer select-none text-center text-ink-soft hover:text-ink peer-checked:bg-sheet peer-checked:text-ink peer-checked:shadow-card group-data-[thumb]/track:peer-checked:bg-transparent group-data-[thumb]/track:peer-checked:shadow-none peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-pen",
+);
+
 export function Button({
   variant = "secondary",
   className,
@@ -239,7 +254,7 @@ export const segmentClass = (on: boolean): string =>
     on ? "bg-pen text-sheet" : "text-ink-soft hover:bg-sheet-2 hover:text-ink",
   );
 
-/** One choice in a grid of them — a colour, a mark, a face, a category. The picked one wears the pen ring, so every picker says "this one" the same way. */
+/** One choice in a grid of them — a colour, a mark, a face, a category. The picked one wears a thin, soft pen ring (Aidan), so every picker says "this one" the same way. */
 export function PickOption({
   picked,
   label,
@@ -254,7 +269,7 @@ export function PickOption({
       aria-pressed={picked}
       aria-label={label}
       title={label}
-      className={cx("lift", picked && "outline outline-2 outline-offset-2 outline-pen", className)}
+      className={cx("lift", picked && "outline outline-[1.5px] outline-offset-2 outline-pen/60", className)}
     />
   );
 }

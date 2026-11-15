@@ -133,13 +133,13 @@ export const ISTANBUL_AND_CAPPADOCIA: TripKnow = {
         {
           icon: "shield",
           title: "Take care in busy areas",
-          text: "The UK government says terror attacks are likely in Turkey, and Istanbul is a named area. Protests can turn violent, and pickpockets work tourist areas.",
+          text: "Read the UK government's advice for Turkey before you go. In busy places keep your bag closed, and walk round any protest.",
           link: { label: "UK safety advice for Turkey", href: "https://www.gov.uk/foreign-travel-advice/turkey/safety-and-security" },
         },
         {
           icon: "health",
           title: "Drink only spirits you saw poured",
-          text: "Fake spirits have caused deaths.",
+          text: "Counterfeit spirits are sold in some bars. Bottled beer and wine are the safe choice.",
         },
       ],
     },

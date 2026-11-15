@@ -113,7 +113,7 @@ export const MENDOZA_WINE_AND_ANDES: TripKnow = {
         {
           icon: "lock",
           title: "Keep your phone hidden in downtown Mendoza",
-          text: "The UK government warns of thieves on motorbikes who snatch bags and phones.",
+          text: "Phones are sometimes snatched in the street. Step into a shop to check your map.",
         },
         {
           icon: "health",

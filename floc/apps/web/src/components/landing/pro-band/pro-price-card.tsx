@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { cx, segmentTrack } from "@/components/system/ui";
+import { SegmentTrack } from "@/components/system/segment-track";
+import { cx, trackSegmentClass } from "@/components/system/ui";
 import type { BillingInterval } from "@floc/core/billing/plans";
 import type { ProPlan } from "@/lib/landing/pro-plans";
 
@@ -14,20 +15,20 @@ export function ProPriceCard({ plans, initial, href }: { plans: ProPlan[]; initi
     <div className="grid gap-4 rounded-md bg-sheet p-[22px] text-ink shadow-raised">
       <p className="text-[16px] font-bold">Floc Pro</p>
       {plans.length > 1 && (
-        <div role="group" aria-label="Billing period" className={cx(segmentTrack, "mt-2.5 flex gap-0.5")}>
+        <SegmentTrack role="group" aria-label="Billing period" className="mt-2.5 flex gap-0.5">
           {plans.map((p) => (
             <button
               key={p.interval}
               type="button"
               aria-pressed={p.interval === picked}
               onClick={() => setPicked(p.interval)}
-              className="pro-seg relative h-[34px] flex-1 rounded-sm text-[14px] font-medium text-ink-2 hover:text-pen-deep aria-pressed:bg-pen-soft aria-pressed:text-pen-deep"
+              className={cx(trackSegmentClass(p.interval === picked), "h-[34px] flex-1 text-[14px]")}
             >
               {p.label}
               {p.best && <span className="pro-best">Best value</span>}
             </button>
           ))}
-        </div>
+        </SegmentTrack>
       )}
       {plans.length > 0 && (
         <div className="grid">

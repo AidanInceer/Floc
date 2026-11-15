@@ -22,6 +22,12 @@ export function domeFit(width: number, clear: Box): Fit {
   return { R, cx: (clear.left + clear.right) / 2, cy: clear.top + SKY + R };
 }
 
+/** The dome `zoom` times as big, its top where it was: the map comes closer and the band keeps its sky (Aidan). */
+export const zoomed = (fit: Fit, zoom: number): Fit => ({ R: fit.R * zoom, cx: fit.cx, cy: fit.cy - fit.R + fit.R * zoom });
+
+/** How far in the zoom buttons go, a step at a time. */
+export const ZOOMS = [1, 1.5, 2.25] as const;
+
 // Why: on the dome the 1:110m outline is finer than a pixel can show, and the whole face is in view, so 1:50m would cost each frame for nothing.
 const FINE_FROM = 1.8;
 

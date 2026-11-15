@@ -127,18 +127,18 @@ export const LUANG_PRABANG_SLOW: TripKnow = {
       tips: [
         {
           icon: "shield",
-          title: "Drink sealed Beerlao only",
-          text: "Methanol in spirits has killed tourists, including six in Vang Vieng in November 2024. Stick to sealed bottles and cans.",
+          title: "Choose sealed bottles and cans",
+          text: "Some free or very cheap spirits contain methanol, which is poisonous. Sealed beer and soft drinks are the safe choice.",
         },
         {
           icon: "shield",
           title: "Stay on main routes in rural areas",
-          text: "Unexploded bombs remain. Do not pick up metal objects.",
+          text: "Old wartime ordnance remains off the paths in the countryside. Keep to used tracks and leave metal objects alone.",
         },
         {
           icon: "health",
           title: "Carry insurance for treatment and evacuation",
-          text: "Outside the capital there are no reliable emergency facilities. Dengue and malaria both occur.",
+          text: "Hospitals outside the capital are basic. Use repellent, and ask a travel clinic about malaria.",
         },
       ],
     },

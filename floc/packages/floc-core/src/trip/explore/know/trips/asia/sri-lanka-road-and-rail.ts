@@ -170,7 +170,7 @@ export const SRI_LANKA_ROAD_AND_RAIL: TripKnow = {
         {
           icon: "shield",
           title: "Stay back from wild animals",
-          text: "Elephants and crocodiles do attack people. Follow your guide.",
+          text: "Elephants and crocodiles can be dangerous up close. Keep your distance and follow your guide.",
         },
       ],
     },

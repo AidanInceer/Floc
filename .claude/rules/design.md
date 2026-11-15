@@ -31,7 +31,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - Status always has a word. Never colour or an icon alone. The word may live only in the label (title, `aria-label`, `aria-pressed`) when the mark sits where its meaning is plain:
   - A stop's hotel ribbon on the Overview: the file chip beside it names the booking, and its title and label say Booked.
   - The save heart on Explore fills red when saved; its label says Save or Saved with `aria-pressed` (ADR-042).
-  - A top pick's sun on Explore: on a web tile opposite the heart, on a phone row beside the chevron. Its title and label say "Top pick for December to February", and the sort that brings the picks first is the same sun (#624, Aidan's pick of J3).
+  - A top pick's sun on Explore: on a web tile small and bare in the bottom right corner, quieter than the heart (Aidan); on a phone row beside the chevron. Its title and label say "Top pick for December to February", and the sort that brings the picks first is the same sun (#624, Aidan's pick of J3).
 - Light and dark use the same token names. No `dark:` variant, no hex literal ✓. Values live in `@floc/core/design/tokens`. The theme choice lives in `localStorage`, never in a column.
 - The wordmark is **floc.** with a pen-blue dot, drawn only by `components/system/wordmark.tsx` and, for share cards, `components/system/og-card.tsx`. Share cards use the image renderer's default face: it cannot read our `.woff2` files, and a card must always render (rule 11).
 - An outside UI library only where building it would take months, and only if it takes our tokens, type and no-emoji rules.
@@ -45,6 +45,8 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - One add field per kind of list: both packing lists use `PackingAddField`. A field's visible label is the mono `typed` label.
 - Buttons, switches, segments and vote controls are rounded squares (`rounded-sm`), never circles. A chip you press to pick or tick, such as a vibe tag or a part of your profile, is a button too: `rounded-sm`, never a pill.
 - A selected thing is never a solid block. The phone's bottom tab bar says the open tab in colour and weight only, with no tile behind it; a selected day or stub is a `pen-2` wash with `pen-deep` ink. ✓ On the web that is `bg-pen-soft text-pen-deep`: `--pen-2` is the variable, and a `bg-pen-2` class draws nothing. Inactive marks stay `ink-2`, not dimmed further, or they read as disabled.
+  - One exception: a row of segments in a grey track (`SegmentTrack`, `PillToggle`, `ChoiceSegments`) marks the chosen one with a white tile and ink words, never a blue wash (Aidan, ADR-061). The theme switch draws the same tile with its own CSS, so it is right before the page hydrates.
+  - A picked colour, mark or face in a grid wears a thin, soft pen ring (`PickOption`): 1.5px at 60%, not a solid 2px (Aidan).
 - ✓ Depth comes only from `--shadow-sm`, `--shadow`, `--shadow-lift`. An inset or unblurred shadow may draw a line. If you notice the shadow first, it is wrong.
 - Every interactive surface shows a hover: a card lifts 1.5px (never more than 2px), a chip takes a border, a link turns blue. ✓ Never a grey fill; a button hovers to a pen wash, a destructive secondary one to a red wash.
 - Motion: 0.22s on `--ease`, colour and lift only in the workspace. Nothing under reduced motion. Never hijack the scroll. In the homepage feature tour, the feature icon takes the new slide's ink as its copy appears; the trip tab's icon and tile change colour together.
@@ -54,6 +56,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
   - On Days, the day before or after: the columns trade places, the new day widening into the middle, 0.45s on an even ease (`--ease-even`); the hours stay still. A jump of more than one day changes plainly ([ADR-051](../../docs/foundation/decisions.html#adr-051)).
   - The trip tab bar: one tile slides from the open tab to the one you press and takes its colour, 0.26s; the page changes at once ([ADR-052](../../docs/foundation/decisions.html#adr-052)).
   - A stop on the Overview grows to its height as it opens and its chevron turns, 0.22s. A packed thing’s tick draws as its box turns green; a copy button keeps its words, holds a pen wash for about a second and shows a tick, the mark hover never shows; a primary keeps its fill and shows the tick alone, and a button with no icon holds the tick in its left padding so its width stays ([ADR-053](../../docs/foundation/decisions.html#adr-053)).
+  - A toggle's white tile slides to the new choice, 0.22s; a day on an Explore trip grows to its height as it opens, as a stop does ([ADR-061](../../docs/foundation/decisions.html#adr-061)).
   - The top bar’s beads fuse as the page scrolls ([visual language](../../docs/design/visual-language.html#navigation-and-chrome)). Scroll sets how far the words have folded; the join plays once. No other workspace surface moves on scroll.
 
 ## Words
@@ -91,8 +94,10 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - Text never overlaps or clips. Test long names (South Africa, Bosnia and Herzegovina), many items and empty states. A chip fits its slot unless the name is long, then it wraps cleanly.
 - The page holds still. Switching a tab, day or filter never jumps the scroll or shifts the content above.
 - A card that opens something opens from anywhere on it, not only its title.
+- An Explore trip's page has a quiet way back to every trip above its card, top left (Aidan).
+- An Explore tile frames enough land to tell the country by: a short trip zooms in no further than four tenths of the land's frame, even where its stops then touch (Aidan).
 - Alignment is exact: rows, counts and controls in a group share edges and heights.
-- Pictures: one consistent treatment. Image controls sit in one bar under the image, never arrows on top. Map pins stay plain numbers. Your own trip shows no stock photos — photos there are the person's choice.
+- Pictures: one consistent treatment. Image controls sit in one bar under the image, never arrows on top. Map pins stay plain numbers. Explore's globe marks each trip with a pin shape, not a dot; trips that start in one town sit side by side. It zooms by its two buttons, never by the scroll wheel (Aidan). Your own trip shows no stock photos — photos there are the person's choice.
 - Explore filters sit in a left rail, never along the top.
 - Say a thing once. On Days, web and phone, stops sit on the day strip and pressing one edits where you sleep — no separate overnight band, and the top of a screen stacks no bands.
 

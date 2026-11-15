@@ -171,7 +171,7 @@ export const THAILAND_ANDAMAN_ISLANDS: TripKnow = {
         {
           icon: "health",
           title: "Keep away from monkeys at Railay and Phi Phi",
-          text: "They bite and rabies is possible. Seek care for any bite.",
+          text: "They grab food and can bite. See a doctor for any bite.",
         },
         {
           icon: "sun",

@@ -15,7 +15,7 @@ import type { ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { usePathname, useSearchParams } from "next/navigation";
 
-import { Button, Card, ErrorText, busyMark, cx, iconButtonClass, segmentTrack } from "./ui";
+import { Button, Card, ErrorText, busyMark, cx, iconButtonClass } from "./ui";
 import { CheckIcon } from "./icons";
 
 // Server-rendered children can't take a close callback as a prop — a form
@@ -540,88 +540,3 @@ function MoreIcon() {
 
 const useIsoLayoutEffect =
   typeof window === "undefined" ? useEffect : useLayoutEffect;
-
-/**
- * A segmented control for a form choice (money overhaul): a recessed
- * `--sheet-3` track and one sliding ink indicator, toggling a value.
- */
-export function PillToggle<T extends string>({
-  label,
-  value,
-  options,
-  onChange,
-  className,
-}: {
-  label: string;
-  value: T;
-  options: { value: T; label: ReactNode }[];
-  onChange: (value: T) => void;
-  className?: string;
-}) {
-  const navRef = useRef<HTMLDivElement>(null);
-  const pillRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const [indicator, setIndicator] = useState<{ left: number; width: number } | null>(
-    null,
-  );
-
-  useIsoLayoutEffect(() => {
-    const nav = navRef.current;
-    if (!nav) return;
-    const measure = () => {
-      const pill = pillRefs.current[value];
-      if (!pill) return;
-      const navRect = nav.getBoundingClientRect();
-      const pillRect = pill.getBoundingClientRect();
-      setIndicator({
-        left: pillRect.left - navRect.left + nav.scrollLeft,
-        width: pillRect.width,
-      });
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(nav);
-    return () => observer.disconnect();
-  }, [value, options]);
-
-  return (
-    <div
-      ref={navRef}
-      role="tablist"
-      aria-label={label}
-      className={cx(
-        "relative flex w-full items-center gap-1",
-        segmentTrack,
-        className,
-      )}
-    >
-      {indicator ? (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute left-0 top-1 bottom-1 rounded-sm bg-pen-soft transition-[transform,width] duration-200 ease-[cubic-bezier(0.2,0.85,0.3,1)] motion-reduce:transition-none"
-          style={{ width: indicator.width, transform: `translateX(${indicator.left}px)` }}
-        />
-      ) : null}
-      {options.map((opt) => {
-        const active = opt.value === value;
-        return (
-          <button
-            key={opt.value}
-            type="button"
-            role="tab"
-            aria-selected={active}
-            ref={(el) => {
-              pillRefs.current[opt.value] = el;
-            }}
-            onClick={() => onChange(opt.value)}
-            className={cx(
-              "relative z-10 flex-1 whitespace-nowrap rounded-sm px-4 py-1.5 text-sm font-medium transition-colors",
-              active ? "text-pen-deep" : "text-ink-soft hover:text-ink",
-            )}
-          >
-            {opt.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}

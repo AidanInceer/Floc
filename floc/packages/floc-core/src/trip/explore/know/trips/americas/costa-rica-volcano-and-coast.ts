@@ -173,7 +173,7 @@ export const COSTA_RICA_VOLCANO_AND_COAST: TripKnow = {
         {
           icon: "health",
           title: "Use repellent all day",
-          text: "The UK government lists dengue, Zika and malaria. Mosquitoes that carry dengue bite by day.",
+          text: "Mosquitoes here bite by day as well as at dusk.",
         },
         {
           icon: "sun",
@@ -187,8 +187,8 @@ export const COSTA_RICA_VOLCANO_AND_COAST: TripKnow = {
         },
         {
           icon: "shield",
-          title: "Keep driving past strangers who flag you down",
-          text: "Do not stop for strangers who signal for help.",
+          title: "Stop at petrol stations and in towns",
+          text: "If someone waves you down on an empty road, drive on to the next town and tell the police there.",
         },
         {
           icon: "weather",

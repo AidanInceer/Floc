@@ -8,7 +8,8 @@ import { GroupPeoplePicker } from "@/components/social/groups/group-people-picke
 import { DIALOG } from "@/components/social/groups/group-sheet";
 import { PastTripRows, tripsWithPeople } from "@/components/social/groups/past-trip-rows";
 import { Dialog, DialogClose } from "@/components/system/dialog";
-import { AvatarRow, Button, ErrorText, SheetFooter, busyMark, cx, panelBandClass, segmentTrack } from "@/components/system/ui";
+import { SegmentTrack } from "@/components/system/segment-track";
+import { AvatarRow, Button, ErrorText, SheetFooter, busyMark, cx, panelBandClass, trackSegmentClass } from "@/components/system/ui";
 import type { Person } from "@/server/social/friends";
 import type { Group, PastTrip } from "@/server/social/groups";
 
@@ -60,11 +61,11 @@ export function PeopleChooser({ title, verb, sources, exclude, onPick, onClose }
         <DialogClose />
       </header>
       <div className={cx(panelBandClass, "flex h-[min(22rem,56dvh)] flex-col border-t-0")}>
-        <div role="group" aria-label="People" className={cx(segmentTrack, "mb-3 flex shrink-0 gap-1")}>
+        <SegmentTrack role="group" aria-label="People" className="mb-3 flex shrink-0 gap-1">
           {SOURCES.map(([id, label]) => (
             <SourceTab key={id} on={source === id} onClick={() => setSource(id)}>{label}</SourceTab>
           ))}
-        </div>
+        </SegmentTrack>
         <div className="scroll-thin min-h-0 overflow-y-auto">
           {source === "friends" ? (
             open(sources.friends).length ? (
@@ -117,7 +118,7 @@ function SourceTab({ on, onClick, children }: { on: boolean; onClick: () => void
       type="button"
       aria-pressed={on}
       onClick={onClick}
-      className={cx("flex min-h-9 flex-1 items-center justify-center rounded-sm px-3 text-sm font-medium", on ? "bg-pen-soft text-pen-deep" : "text-ink-soft hover:bg-pen-soft hover:text-pen-deep")}
+      className={cx(trackSegmentClass(on), "flex min-h-9 flex-1 items-center justify-center px-3 text-sm")}
     >
       {children}
     </button>

@@ -54,7 +54,6 @@ function OwnTile({ signedIn, name }: { signedIn: boolean; name: string | null })
     <li className="flex min-h-56 flex-col items-center justify-center text-center gap-1.5 rounded-md border-[1.5px] border-dashed border-rule-strong p-4">
       <span className={cx(tagClass, "border border-dashed border-rule-strong text-ink-soft")}>{name ?? "Anywhere"}</span>
       <strong className="font-display text-base font-semibold tracking-[-0.02em]">Your own</strong>
-      <p className="text-[13px] text-ink-soft">{name ? "No dates yet. See who agrees." : "No dates, no destination. See who agrees."}</p>
       <ButtonLink href={name ? startTripHref(signedIn, name) : signedIn ? "/trips" : "/signup"} className="mt-2">
         Start blank
       </ButtonLink>

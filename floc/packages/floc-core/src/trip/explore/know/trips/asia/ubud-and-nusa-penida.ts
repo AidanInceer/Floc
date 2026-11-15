@@ -139,7 +139,7 @@ export const UBUD_AND_NUSA_PENIDA: TripKnow = {
         {
           icon: "health",
           title: "Keep food away from monkeys",
-          text: "Monkeys at Ubud bite, and rabies is a risk from monkeys and dogs. Seek care for any bite.",
+          text: "The monkeys at Ubud grab food and can bite. See a doctor for any bite, from a monkey or a dog.",
         },
         {
           icon: "sun",

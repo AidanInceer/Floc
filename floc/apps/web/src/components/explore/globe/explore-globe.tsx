@@ -1,12 +1,16 @@
 "use client";
 
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
-import { useCallback, useEffect, useRef, type RefObject } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 
 import { openArea } from "@/components/explore/atlas/atlas-frame";
 import { firstBase, routeParts } from "@/components/explore/listing";
+import { MinusIcon, PlusIcon } from "@/components/system/icons";
 import { NavGlyph } from "@/components/system/icons/nav";
+import { iconFrameClass } from "@/components/system/ui";
 
+import { ZOOMS } from "./dome";
+import { pinSteps } from "./pin-steps";
 import { useAtlasGlobe } from "./use-atlas-globe";
 import "./explore-globe.css";
 import { countWord } from "@floc/core/text/count-word";
@@ -17,6 +21,7 @@ export type AtlasRoute = { id: string; n: number };
 // Every plane on the globe leaves from here, as on the landing page's globe.
 const LONDON = { lat: 51.507, lng: -0.128 };
 const PLACES = PRESET_TRIPS.map(firstBase);
+const STEPS = pinSteps(PLACES);
 
 /** Why: no tile layer and no map provider. The land is the outline file in `public/`, so the map costs nothing to serve. */
 export function ExploreGlobe({
@@ -41,6 +46,11 @@ export function ExploreGlobe({
   const { canvas, flags, globe, openTrip } = useAtlasGlobe(LONDON, PLACES, clear);
   const at = PRESET_TRIPS.findIndex((t) => t.id === picked);
   const routed = route ? PRESET_TRIPS.find((t) => t.id === route.id) : undefined;
+  const [zoom, setZoom] = useState(0);
+
+  useEffect(() => {
+    globe.current?.zoom(ZOOMS[zoom]!);
+  }, [zoom, globe]);
 
   useEffect(() => {
     if (at >= 0) globe.current?.show(at);
@@ -56,8 +66,8 @@ export function ExploreGlobe({
     <div ref={host} className="explore-atlas relative h-full overflow-hidden">
       <canvas ref={canvas} className="explore-globe" role="img" aria-label={routed ? `A map of ${routed.title}` : "A globe with a pin on every trip. Drag to turn it."} />
       <div ref={flags} className="explore-flags" inert={route !== null}>
-        {PRESET_TRIPS.map((trip) => (
-          <button key={trip.id} type="button" className="explore-pin" aria-pressed={trip.id === picked} aria-label={`${trip.title}, ${countWord(trip.nights, "night")}`} onClick={() => onPick(trip.id)}>
+        {PRESET_TRIPS.map((trip, i) => (
+          <button key={trip.id} type="button" className="explore-pin" style={STEPS[i] ? ({ "--step": STEPS[i] } as CSSProperties) : undefined} aria-pressed={trip.id === picked} aria-label={`${trip.title}, ${countWord(trip.nights, "night")}`} onClick={() => onPick(trip.id)}>
             <i />
             <span>{trip.country}</span>
           </button>
@@ -75,7 +85,16 @@ export function ExploreGlobe({
           <NavGlyph name="explore" />
           Every trip
         </button>
-      ) : null}
+      ) : (
+        <div role="group" aria-label="Zoom the map" className="atlas-zoom">
+          <button type="button" aria-label="Zoom out" title="Zoom out" disabled={zoom === 0} onClick={() => setZoom(zoom - 1)} className={iconFrameClass()}>
+            <MinusIcon />
+          </button>
+          <button type="button" aria-label="Zoom in" title="Zoom in" disabled={zoom === ZOOMS.length - 1} onClick={() => setZoom(zoom + 1)} className={iconFrameClass()}>
+            <PlusIcon />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -132,7 +132,7 @@ export const SALAR_DE_UYUNI: TripKnow = {
         {
           icon: "health",
           title: "Take it slowly above 4,000 m",
-          text: "Most of the tour is above **4,000 m**, up to nearly **5,000 m**. The UK government names the Salar for altitude sickness.",
+          text: "Most of the tour is above **4,000 m**, up to nearly **5,000 m**. Drink water, and tell your guide about any headache.",
         },
         {
           icon: "sun",

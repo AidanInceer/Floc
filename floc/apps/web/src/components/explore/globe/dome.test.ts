@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { project } from "@floc/globe/sphere";
 
-import { domeFit, fineAt, over } from "./dome";
+import { domeFit, fineAt, over, zoomed } from "./dome";
 
 const clear = { left: 52, top: 68, right: 800, bottom: 676 };
 
@@ -42,5 +42,20 @@ describe("fineAt", () => {
 
   it("takes the fine outline once the zoom has gone well in", () => {
     expect(fineAt({ R: 1200, cx: 600, cy: 300 }, dome)).toBe(true);
+  });
+});
+
+describe("zoomed", () => {
+  it("makes the dome bigger and leaves its top where it was", () => {
+    const fit = { R: 500, cx: 640, cy: 516 };
+    const near = zoomed(fit, 2);
+    expect(near.R).toBe(1000);
+    expect(near.cx).toBe(640);
+    expect(near.cy - near.R).toBe(fit.cy - fit.R);
+  });
+
+  it("is the dome itself at a zoom of 1", () => {
+    const fit = { R: 500, cx: 640, cy: 516 };
+    expect(zoomed(fit, 1)).toEqual(fit);
   });
 });

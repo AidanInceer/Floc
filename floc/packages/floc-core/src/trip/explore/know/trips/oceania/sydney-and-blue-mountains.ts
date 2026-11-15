@@ -127,12 +127,12 @@ export const SYDNEY_AND_BLUE_MOUNTAINS: TripKnow = {
         {
           icon: "drop",
           title: "Stay out of canyons in rain",
-          text: "Never walk a canyon before, during or after heavy rain. The Grand Canyon track can flood.",
+          text: "Do not walk a canyon in or after heavy rain. The Grand Canyon track can flood.",
         },
         {
           icon: "drop",
           title: "Swim between the flags",
-          text: "Rip currents can form on any beach. Never dive into shallow water.",
+          text: "Rip currents can form on any beach. Check the depth before you dive.",
         },
         {
           icon: "sun",

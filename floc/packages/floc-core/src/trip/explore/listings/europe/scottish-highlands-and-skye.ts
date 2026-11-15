@@ -20,7 +20,7 @@ export const scottishHighlandsAndSkye = defineTrip({
     { kind: "base", place: "Isle of Skye", nights: 3, lat: 57.413, lng: -6.196 },
     { kind: "hop", place: "Torridon", mode: "car", detail: "2h 30" },
     { kind: "base", place: "Torridon", nights: 2, lat: 57.546, lng: -5.512 },
-    { kind: "hop", place: "Applecross", mode: "car", detail: "day drive" },
+    { kind: "hop", place: "Applecross", mode: "car", detail: "day drive", lat: 57.433, lng: -5.812 },
     { kind: "hop", place: "Inverness", mode: "car", detail: "2h" },
     { kind: "base", place: "Inverness", nights: 1, lat: 57.478, lng: -4.224 },
   ],
