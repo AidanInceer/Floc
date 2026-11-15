@@ -8,7 +8,7 @@ import { flightAt, flightMs } from "@/lib/landing/globe/flight";
 import { greatCircle, type LatLng } from "@floc/globe/sphere";
 
 import { drawFlight, moveFlags } from "./atlas-paint";
-import { domeFit, fineAt, over, type Fit } from "./dome";
+import { domeFit, fineAt, over, zoomed, type Fit } from "./dome";
 import { fitOf, poseOf, tripLayer, type TripTint } from "./trip-layer";
 
 type Scene = { home: LatLng; places: LatLng[]; flags: HTMLElement; clear: () => Box };
@@ -28,10 +28,12 @@ export function atlasGlobe(canvas: HTMLCanvasElement, { home, places, flags, cle
   let land = { world: [] as number[][][], fine: [] as number[][][] };
   let [at, takeoff, world] = [0, 0, 1];
   let still = false;
+  let [zoom, zoomTo] = [1, 1];
   let moving: Fit | null = null;
   let path = greatCircle(home, places[0]!);
   const width = () => clear().right - clear().left;
-  const dome = () => domeFit(paint.box().w, clear());
+  const whole = () => domeFit(paint.box().w, clear());
+  const dome = () => zoomed(whole(), zoom);
   const fitNow = () => moving ?? trips.rest(width()) ?? dome();
   face.turnTo(over(places[0]!));
 
@@ -60,19 +62,20 @@ export function atlasGlobe(canvas: HTMLCanvasElement, { home, places, flags, cle
   }
 
   function step(now: number, dt: number) {
+    if (zoom !== zoomTo) zoom = still || Math.abs(zoomTo - zoom) < 0.002 ? zoomTo : zoom + (zoomTo - zoom) * (1 - Math.exp(-dt / 140));
     const move = trips.advance(now, still);
     world = move.world;
     moving = move.pose ? fitOf(move.pose, width()) : null;
     if (move.pose) face.turnTo(move.pose.centre);
     else if (!drag.held()) face.advance(now, dt);
     const view = face.view();
-    const near = land.fine.length > 0 && fineAt(fitNow(), dome());
+    const near = land.fine.length > 0 && fineAt(fitNow(), whole());
     paint!.base(view, near ? land.fine : land.world, fitNow, trips.tint());
     const f = flight(now);
     drawFlight(paint!, view, home, path, f, world);
     trips.draw(view);
     moveFlags(paint!, flags, places, view, world);
-    const busy = [drag.held(), face.moving(), trips.running(), !f.done];
+    const busy = [drag.held(), face.moving(), trips.running(), !f.done, zoom !== zoomTo];
     return busy.some(Boolean);
   }
 
@@ -94,6 +97,11 @@ export function atlasGlobe(canvas: HTMLCanvasElement, { home, places, flags, cle
     close() {
       if (!trips.isOpen()) return;
       trips.close(poseOf(fitNow(), face.view(), width()), poseOf(dome(), over(places[at]!), width()));
+      wake();
+    },
+    /** Brings the dome nearer or further: 1 is every trip, as it opens. */
+    zoom(level: number) {
+      zoomTo = level;
       wake();
     },
     start(reduced: boolean) {

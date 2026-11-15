@@ -17,8 +17,9 @@ import {
   panelBandClass,
   panelFieldClass,
   panelTitleClass,
-  segmentTrack,
+  trackSegmentClass,
 } from "@/components/system/ui";
+import { SegmentTrack } from "@/components/system/segment-track";
 import type { Person } from "@/server/social/friends";
 import type { Group, PastTrip } from "@/server/social/groups";
 
@@ -29,9 +30,7 @@ import { PastTripRows, tripsWithPeople } from "./past-trip-rows";
 export const DIALOG =
   "m-auto max-h-[calc(100dvh-48px)] w-full max-w-lg overflow-y-auto rounded-md border border-rule bg-sheet p-0 text-ink shadow-lifted backdrop:bg-black/40 max-sm:mb-0 max-sm:max-h-[92dvh] max-sm:max-w-full max-sm:rounded-b-none";
 
-const TAB = "rounded-sm px-2 py-1.5 text-sm font-medium transition-colors sm:px-4";
-const TAB_ON = "bg-pen-soft text-pen-deep";
-const TAB_OFF = "text-ink-soft hover:bg-pen-soft hover:text-pen-deep";
+const TAB = "px-2 py-1.5 text-sm sm:px-4";
 
 export type GroupSheetMode = { kind: "new"; ticked: string[] } | { kind: "edit"; group: Group };
 
@@ -157,14 +156,14 @@ function NewGroupSteps({ sheet, step, setStep }: { sheet: Sheet; step: 1 | 2; se
   return (
     <>
       <div className={cx(panelBandClass, "flex h-[min(20rem,52dvh)] flex-col border-t-0")}>
-        <div className={cx(segmentTrack, "mb-3 flex w-fit shrink-0 items-center gap-1")}>
+        <SegmentTrack className="mb-3 flex w-fit shrink-0 items-center gap-1">
           <SourceTab on={source === "friends"} onClick={() => setSource("friends")}>
             Pick friends
           </SourceTab>
           <SourceTab on={source === "trips"} onClick={() => setSource("trips")}>
             From a past trip
           </SourceTab>
-        </div>
+        </SegmentTrack>
         {sheet.ticked.size >= GROUP_CAP ? (
           <p className="mb-2 text-xs text-ink-soft">A group holds {GROUP_CAP} people at most.</p>
         ) : null}
@@ -264,7 +263,7 @@ function NameField({ sheet }: { sheet: Sheet }) {
 
 function SourceTab({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
   return (
-    <button type="button" aria-current={on || undefined} onClick={onClick} className={cx(TAB, on ? TAB_ON : TAB_OFF)}>
+    <button type="button" aria-current={on || undefined} onClick={onClick} className={cx(trackSegmentClass(on), TAB)}>
       {children}
     </button>
   );

@@ -38,6 +38,8 @@ const unit = (a: Point): Point => {
   return { x: a.x / l, y: a.y / l };
 };
 const key = (s: RouteStop) => `${s.lat},${s.lng}`;
+/** A day out's mark needs this many px clear of every other stop's mark. */
+const MARK_ROOM = 16;
 
 /** The first stop starts and the last ends; a route back to where it began does both at the start. A place seen before is not named again. */
 function rolesOf(stops: readonly RouteStop[]) {
@@ -87,9 +89,15 @@ export function routeShape(route: TripRoute, at: (spot: { lat: number; lng: numb
   const raw: Omit<Piece, "cum" | "len" | "a" | "b" | "mid" | "bulge" | "mark">[] = [];
   P.forEach((p, i) => {
     for (const out of (route.outs ?? []).filter((o) => o.at === i)) {
-      let away = sub(p, centre);
+      // Why: a day out points at its real place (Nara is south of Kyoto). With none given, or where its mark would sit on
+      // another stop's, it points away from the trip's middle.
+      const spot = out.lat !== undefined && out.lng !== undefined ? at({ lat: out.lat, lng: out.lng }) : null;
+      let away = spot ? sub(spot, p) : sub(p, centre);
+      let size = Math.max(spot ? Math.hypot(away.x, away.y) : 0, options.out);
+      const tip = { x: p.x + unit(away).x * size, y: p.y + unit(away).y * size };
+      if (spot && P.some((q, k) => k !== i && Math.hypot(tip.x - q.x, tip.y - q.y) < MARK_ROOM)) [away, size] = [sub(p, centre), options.out];
       if (Math.hypot(away.x, away.y) < 1) away = { x: 0, y: -1 };
-      raw.push({ kind: "out", mode: out.mode, time: "", name: out.place, to: i, px: spurCurve(p, away, options.out, options.samples) });
+      raw.push({ kind: "out", mode: out.mode, time: "", name: out.place, to: i, px: spurCurve(p, away, size, options.samples) });
     }
     const move = route.moves[i];
     if (i < legs.length) raw.push({ kind: "leg", mode: move?.mode ?? null, time: move?.time ?? "", name: "", to: i + 1, px: legs[i]! });

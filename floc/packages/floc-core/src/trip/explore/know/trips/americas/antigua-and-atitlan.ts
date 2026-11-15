@@ -145,8 +145,8 @@ export const ANTIGUA_AND_ATITLAN: TripKnow = {
       tips: [
         {
           icon: "shield",
-          title: "Do not hike alone near San Marcos",
-          text: "Armed robbery has happened on trails and remote roads. There is no mountain rescue.",
+          title: "Hike with a guide near San Marcos",
+          text: "The trails and back roads are quiet, and there is no mountain rescue. A local guide knows the good routes.",
         },
         {
           icon: "health",

@@ -15,7 +15,7 @@ export const sriLankaRoadAndRail = defineTrip({
     { kind: "base", place: "Colombo", nights: 1, lat: 6.927, lng: 79.861 },
     { kind: "hop", place: "Sigiriya", mode: "car", detail: "4h" },
     { kind: "base", place: "Sigiriya", nights: 2, lat: 7.957, lng: 80.76 },
-    { kind: "hop", place: "Polonnaruwa", mode: "car", detail: "day trip" },
+    { kind: "hop", place: "Polonnaruwa", mode: "car", detail: "day trip", lat: 7.94, lng: 81 },
     { kind: "hop", place: "Kandy", mode: "car", detail: "2h 30" },
     { kind: "base", place: "Kandy", nights: 2, lat: 7.291, lng: 80.636 },
     { kind: "hop", place: "Ella", mode: "train", detail: "7h, the hill line" },

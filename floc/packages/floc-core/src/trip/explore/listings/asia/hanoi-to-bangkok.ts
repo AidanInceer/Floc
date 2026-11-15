@@ -13,7 +13,7 @@ export const hanoiToBangkok = defineTrip({
     "Halong Bay by boat, the night train to Hue, lanterns in Hoi An, then over the border to Phnom Penh and Angkor, and out through Bangkok.",
   legs: [
     { kind: "base", place: "Hanoi", nights: 2, lat: 21.028, lng: 105.854, country: "VN" },
-    { kind: "hop", place: "Halong Bay", mode: "ferry", detail: "day cruise" },
+    { kind: "hop", place: "Halong Bay", mode: "ferry", detail: "day cruise", lat: 20.91, lng: 107.184 },
     { kind: "hop", place: "Hue", mode: "train", detail: "13h, overnight" },
     { kind: "base", place: "Hue", nights: 2, lat: 16.463, lng: 107.59, country: "VN" },
     { kind: "hop", place: "Hoi An", mode: "car", detail: "3h" },
@@ -24,7 +24,7 @@ export const hanoiToBangkok = defineTrip({
     { kind: "base", place: "Phnom Penh", nights: 2, lat: 11.556, lng: 104.928, country: "KH" },
     { kind: "hop", place: "Siem Reap", mode: "car", detail: "6h by bus" },
     { kind: "base", place: "Siem Reap", nights: 3, lat: 13.367, lng: 103.844, country: "KH" },
-    { kind: "hop", place: "Angkor Wat", mode: "car", detail: "day trip" },
+    { kind: "hop", place: "Angkor Wat", mode: "car", detail: "day trip", lat: 13.412, lng: 103.867 },
     { kind: "hop", place: "Bangkok", mode: "flight", detail: "1h 10" },
     { kind: "base", place: "Bangkok", nights: 2, lat: 13.756, lng: 100.502, country: "TH" },
   ],

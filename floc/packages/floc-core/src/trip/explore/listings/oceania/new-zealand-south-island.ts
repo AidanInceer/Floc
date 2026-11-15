@@ -21,7 +21,7 @@ export const newZealandSouthIsland = defineTrip({
     { kind: "base", place: "Wanaka", nights: 2, lat: -44.703, lng: 169.132 },
     { kind: "hop", place: "Queenstown", mode: "car", detail: "1h" },
     { kind: "base", place: "Queenstown", nights: 3, lat: -45.031, lng: 168.663 },
-    { kind: "hop", place: "Milford Sound", mode: "car", detail: "day trip" },
+    { kind: "hop", place: "Milford Sound", mode: "car", detail: "day trip", lat: -44.671, lng: 167.926 },
     { kind: "hop", place: "Franz Josef", mode: "car", detail: "5h 30" },
     { kind: "base", place: "Franz Josef", nights: 2, lat: -43.389, lng: 170.183 },
     { kind: "hop", place: "Christchurch", mode: "train", detail: "5h, the TranzAlpine" },

@@ -19,9 +19,11 @@ const ROUTE_MARGIN = 1.5;
 /** A stop stays inside the middle 68% of the drawing. */
 const REACH = 0.34;
 /** The two closest stops sit at least this share of the drawing's height apart, so each mark and the line between them can be seen. */
-const APART = 0.2;
+const APART = 0.15;
 /** The most a route is zoomed in on to hold its closest stops apart: a town and its neighbour. */
 const TIGHTEST = 0.3;
+/** The least of the land's frame a zoomed-in route still shows; nearer stops may then touch (Aidan: the country must stay easy to tell). */
+const KEEP = 0.4;
 /** The least a lone country is framed at, so Aruba shows as an island and not a speck. */
 const ISLAND = 1.2;
 /** A piece this share of a country's largest is one of its big landmasses, framed with it. */
@@ -56,9 +58,12 @@ function closest(stops: readonly Spot[], squeeze: number): number {
   return least === Infinity ? 0 : least;
 }
 
-/** Why: a reader knows a country by its whole shape, so the frame is the landmass when it fits and the route only when it does not. */
-export function frameFor(stops: readonly Spot[], home: Piece | undefined, size: Size): Frame {
-  const route = routeBox(stops);
+/**
+ * Why: a reader knows a country by its whole shape, so the frame is the landmass when it fits and the route only when it does not.
+ * `also` are places the drawing must hold but that are not stops: a day out, which never makes the frame zoom in.
+ */
+export function frameFor(stops: readonly Spot[], home: Piece | undefined, size: Size, also: readonly Spot[] = []): Frame {
+  const route = routeBox([...stops, ...also]);
   const middle = { lng: (route.west + route.east) / 2, lat: (route.south + route.north) / 2 };
   // Why: a degree of longitude is narrower away from the equator; one factor for the whole small drawing is close enough.
   const squeeze = Math.cos((middle.lat * Math.PI) / 180);
@@ -71,13 +76,12 @@ export function frameFor(stops: readonly Spot[], home: Piece | undefined, size: 
     high = needs(home.box) * LAND_MARGIN;
     centre = { lng: (home.box.west + home.box.east) / 2, lat: (home.box.south + home.box.north) / 2 };
   }
+  const whole = high;
   high = Math.max(high, needs(route) * ROUTE_MARGIN, SMALLEST);
   const gap = closest(stops, squeeze);
-  // Why: a country-sized frame puts stops a few miles apart on top of each other; zoom in until they part, but never past the whole route.
-  if (gap > 0 && gap / high < APART) {
-    high = Math.min(high, Math.max(gap / APART, needs(route) * ROUTE_MARGIN, TIGHTEST));
-    centre = middle;
-  }
+  // Why: a country-sized frame puts stops a few miles apart on top of each other; zoom in until they part, but never past the
+  // whole route or the share of the land that says which country it is. The land stays in the middle as far as the stops allow.
+  if (gap > 0 && gap / high < APART) high = Math.min(high, Math.max(gap / APART, needs(route) * ROUTE_MARGIN, TIGHTEST, whole * KEEP));
 
   const wide = (high * across) / squeeze;
   centre = {

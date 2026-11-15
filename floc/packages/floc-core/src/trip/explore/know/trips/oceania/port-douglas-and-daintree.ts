@@ -127,7 +127,7 @@ export const PORT_DOUGLAS_AND_DAINTREE: TripKnow = {
       tips: [
         {
           icon: "shield",
-          title: "Never swim in Daintree creeks or beaches",
+          title: "Stay out of Daintree creeks and beaches",
           text: "Crocodiles live there. Obey the signs and do not wade.",
         },
         {

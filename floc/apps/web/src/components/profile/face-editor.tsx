@@ -62,7 +62,7 @@ export function FaceEditor({ name }: { name: string }) {
       >
         <span className="relative shrink-0">
           <Avatar name={shownName} size={64} />
-          <span className="absolute -bottom-0.5 -right-0.5 inline-flex size-[22px] items-center justify-center rounded-sm border border-rule-strong bg-sheet text-ink-soft">
+          <span className="absolute -bottom-1.5 -right-1.5 inline-flex size-[22px] items-center justify-center rounded-sm border border-rule-strong bg-sheet text-ink-soft">
             <PencilIcon size={11} />
           </span>
         </span>

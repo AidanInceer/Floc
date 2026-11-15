@@ -21,7 +21,7 @@ export const greatOceanRoadAndUluru = defineTrip({
     { kind: "base", place: "Grampians", nights: 2, lat: -37.14, lng: 142.52 },
     { kind: "hop", place: "Adelaide", mode: "car", detail: "5h" },
     { kind: "base", place: "Adelaide", nights: 2, lat: -34.929, lng: 138.601 },
-    { kind: "hop", place: "Barossa", mode: "car", detail: "day trip" },
+    { kind: "hop", place: "Barossa", mode: "car", detail: "day trip", lat: -34.523, lng: 138.96 },
     { kind: "hop", place: "Uluru", mode: "flight", detail: "2h" },
     { kind: "base", place: "Uluru", nights: 3, lat: -25.344, lng: 131.036 },
   ],

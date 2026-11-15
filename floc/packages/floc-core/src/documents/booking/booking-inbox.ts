@@ -55,6 +55,9 @@ export type TripChoice = { id: number; name: string };
 
 /** The words the web and the phone share, so the three places that give the address say one thing. */
 export const bookingForwardWords = "Send from your sign-in email. Only you see the files.";
+/** The web's shorter panel (Aidan): one friendly line, then where to send it. The rest moves to the page's foot. */
+export const bookingForwardTitle = "Forward your booking emails";
+export const bookingPrivateWords = "Only you see these files.";
 
 export function bookingPlacingWords(reads: boolean): string {
   return reads ? "Floc adds each one to the trip with matching dates." : "With Pro, Floc adds each one to the trip with matching dates.";

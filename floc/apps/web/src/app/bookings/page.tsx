@@ -14,9 +14,10 @@ import { BookingUpload } from "@/components/bookings/booking-upload";
 import { WaitingFileRow } from "@/components/bookings/waiting-file-row";
 import { StorageMeter } from "@/components/documents/storage-meter";
 import { CopyLink, Menu } from "@/components/system/client-ui";
+import { EnvelopeIcon } from "@/components/system/icons/account";
 import { EmptyState, menuItemClass } from "@/components/system/ui";
 import {
-  bookingForwardWords, bookingInboxNote, bookingPlacingWords, bookingsEmptyWords, bookingsNoStorageWords,
+  bookingForwardTitle, bookingInboxNote, bookingPlacingWords, bookingPrivateWords, bookingsEmptyWords, bookingsNoStorageWords,
 } from "@floc/core/documents/booking/booking-inbox";
 
 export const metadata = { title: "Bookings" };
@@ -45,11 +46,13 @@ export default async function BookingsPage() {
           {address ? (
             <Panel>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <span aria-hidden className="grid size-9 shrink-0 place-items-center rounded-sm bg-sheet-2 text-ink-2">
+                  <EnvelopeIcon />
+                </span>
                 <div className="min-w-0 flex-1 basis-56">
-                  <p className="text-sm text-ink">Forward booking emails to</p>
-                  <p className="mt-0.5 break-all font-mono text-[13px] text-ink">{address}</p>
-                  <p className="mt-1 text-xs text-ink-soft">
-                    {bookingForwardWords} {bookingPlacingWords(reads)}
+                  <p className="text-[15px] font-medium text-ink">{bookingForwardTitle}</p>
+                  <p className="mt-0.5 text-[13px] text-ink-soft">
+                    Send them to <span className="break-all font-mono text-ink">{address}</span> from your sign-in email.
                   </p>
                 </div>
                 <CopyLink value={address} label="Copy address" item="Address" variant="secondary" />
@@ -82,7 +85,9 @@ export default async function BookingsPage() {
           )}
 
           <div className="flex flex-wrap items-center justify-between gap-x-4">
-            <p className="mt-6 text-xs text-ink-soft">{bookingInboxNote}</p>
+            <p className="mt-6 min-w-0 flex-1 basis-64 text-xs text-ink-soft">
+              {address ? `${bookingPrivateWords} ${bookingPlacingWords(reads)} ${bookingInboxNote}.` : bookingInboxNote}
+            </p>
             <StorageMeter {...usage} />
           </div>
         </>

@@ -97,8 +97,8 @@ export const MEDELLIN_AND_GUATAPE: TripKnow = {
       tips: [
         {
           icon: "shield",
-          title: "Guard your drink and avoid strangers' homes",
-          text: "The UK government warns of drugging with scopolamine and of robbery through dating apps. Do not go to a stranger's home.",
+          title: "Keep your drink with you",
+          text: "Buy your own drinks and keep them in sight. Meet new people in public places.",
         },
         {
           icon: "drop",
