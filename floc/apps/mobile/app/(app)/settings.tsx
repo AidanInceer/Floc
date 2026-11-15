@@ -29,6 +29,7 @@ import { SettingsVibeTags } from "@/components/settings/settings-about";
 import { SettingsFeedback } from "@/components/settings/settings-feedback";
 import { SettingsChoices, choicesSummary } from "@/components/settings/settings-choices";
 import { useConsentChoice } from "@/components/consent/use-consent-choice";
+import { SettingsEstimate } from "@/components/settings/settings-estimate";
 import { Drawer, DrawerGroup } from "@/components/system/drawer";
 import { SettingsPrivacy, type Privacy } from "@/components/settings/settings-privacy";
 import { useTheme, type ThemeChoice } from "@/components/system/theme";
@@ -243,6 +244,8 @@ function SettingsPanels({
             }}
           />
         </Drawer>
+
+        <SettingsEstimate />
 
         {plan && plan.kind !== "hidden" ? (
           <Drawer title="Floc Pro" summary={plan.kind === "pro" ? "Pro" : "Free plan"}>

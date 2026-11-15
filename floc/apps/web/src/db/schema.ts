@@ -20,6 +20,8 @@ import { DEFAULT_CATEGORY, EXPENSE_CATEGORIES } from "@floc/core/money/expense-c
 import { DOC_CATEGORIES } from "@floc/core/documents/documents";
 import { PACK_CATEGORIES, PACK_ORIGINS, PACK_TIERS } from "@floc/core/packing/packing";
 import { PLANS } from "@floc/core/billing/plans";
+import { CABINS, PACES, STAY_STYLES } from "@floc/core/money/estimate/style";
+import { ESTIMATE_LINES } from "@floc/core/money/estimate/lines";
 import { AVATAR_ICONS } from "@floc/core/people/avatar-icon";
 import { PAGE_ICONS } from "@floc/core/notes/pages/page-icons";
 import { WISH_ITEM_KINDS, WISH_MEMBER_STATUSES } from "@floc/core/lists/wish-list";
@@ -209,6 +211,12 @@ export const userProfile = sqliteTable("user_profile", {
   bookingSites: text("booking_sites", { mode: "json" }).$type<unknown>(),
   friendCode: text("friend_code").unique(),
   friendTag: text("friend_tag").unique(),
+  /** IATA code your flights start from, for your own cost estimate (#574). Null: Floc may suggest one from your flight files. */
+  homeAirport: text("home_airport"),
+  /** Your travel style for cost estimates (#574, ADR-057). Null is the default: Economy, Mid-range, Balanced. */
+  travelCabin: text("travel_cabin", { enum: CABINS }),
+  travelStay: text("travel_stay", { enum: STAY_STYLES }),
+  travelPace: text("travel_pace", { enum: PACES }),
   ...audit,
 });
 
@@ -429,6 +437,17 @@ export const tripMembership = sqliteTable(
      * working while the member stays on the trip; the feed answers only the current number.
      */
     calendarFeedEpoch: integer("calendar_feed_epoch").notNull().default(0),
+    /**
+     * Your own cost estimate on this trip (#574, ADR-057): a travel style for this trip only (null falls through
+     * to the profile, as `pack_tier` does), nights for a trip with no days, and your budget. Private to you.
+     */
+    estCabin: text("est_cabin", { enum: CABINS }),
+    estStay: text("est_stay", { enum: STAY_STYLES }),
+    estPace: text("est_pace", { enum: PACES }),
+    estNights: integer("est_nights"),
+    /** Integer minor units (rule 1), in `budget_currency`. Never an expense, never in a balance (rule 2). */
+    budgetMinor: integer("budget_minor"),
+    budgetCurrency: text("budget_currency", { enum: CURRENCIES }),
     ...audit,
   },
   (t) => [
@@ -958,6 +977,29 @@ export const fxRate = sqliteTable(
   ],
 );
 
+/**
+ * One member's own figure or budget for one line of their cost estimate (#574, ADR-057). Private to that
+ * member; never an expense, never in a balance (rule 2). Unique per line, so a cleared line is revived, not duplicated.
+ */
+export const estimateOverride = sqliteTable(
+  "estimate_override",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    tripId: integer("trip_id")
+      .notNull()
+      .references(() => trip.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    line: text("line", { enum: ESTIMATE_LINES }).notNull(),
+    figureMinor: integer("figure_minor"),
+    budgetMinor: integer("budget_minor"),
+    currency: text("currency", { enum: CURRENCIES }).notNull(),
+    ...audit,
+  },
+  (t) => [uniqueIndex("estimate_override_line_idx").on(t.tripId, t.userId, t.line)],
+);
+
 /* -------------------------------------------------------------------------- */
 /* Polymorphic notes — the discussion threads on days, events and expenses    */
 /* -------------------------------------------------------------------------- */
@@ -1291,3 +1333,4 @@ export type Nudge = typeof nudge.$inferSelect;
 export type Friendship = typeof friendship.$inferSelect;
 export type UserCountryMark = typeof userCountryMark.$inferSelect;
 export type Subscription = typeof subscription.$inferSelect;
+export type EstimateOverride = typeof estimateOverride.$inferSelect;

@@ -54,6 +54,27 @@
     "comments.remove": {
       "mobile": "yes"
     },
+    "estimate.setBudget": {
+      "mobile": "yes"
+    },
+    "estimate.setLine": {
+      "mobile": "yes"
+    },
+    "estimate.setNights": {
+      "mobile": "yes"
+    },
+    "estimate.setSettings": {
+      "mobile": "yes"
+    },
+    "estimate.setStyle": {
+      "mobile": "yes"
+    },
+    "estimate.settings": {
+      "mobile": "yes"
+    },
+    "estimate.view": {
+      "mobile": "yes"
+    },
     "explore.friendSaves": {
       "mobile": "yes"
     },

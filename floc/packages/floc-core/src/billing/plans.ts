@@ -22,6 +22,7 @@ export const FEATURE_PLAN = {
   "booking.prefill": { plan: "pro", scope: "trip" },
   "files.extraStorage": { plan: "pro", scope: "trip" },
   "bookings.autoFile": { plan: "pro", scope: "user" },
+  "money.estimate": { plan: "pro", scope: "user" },
 } as const satisfies Record<string, { plan: Plan; scope: Scope }>;
 
 export type FeatureKey = keyof typeof FEATURE_PLAN;

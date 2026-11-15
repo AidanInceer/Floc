@@ -42,6 +42,26 @@ defaults GBP). Settle-up shows every amount in it, and a payer pays in it
 currency using a free daily FX rate. Display only — the ledger is always in the
 currency the expense/settlement was recorded in.
 
+**Estimate** — what a trip will roughly cost one member, as a range, from
+Floc's price table and their travel style (#574). Personal and Pro; never an
+expense, never touches a balance.
+
+**Estimate line** — one of the estimate's parts: Flights, Stay, Food and drink,
+Activities, Getting around. Each maps to expense categories; spending in no
+line shows under *Other*.
+
+**Guide** — Floc's own figure for a line, before the member replaces it with
+*their figure*.
+
+**Budget** — the most one member means to spend on a trip, optionally split by
+line. Private to them. Its *fit* is Fits, Tight or Over against the estimate.
+
+**Travel style** — a member's cabin, stay and pace. Lives on the profile; a
+change on one trip stays on that trip.
+
+**Home airport** — where a member's flights start, set on the profile or
+inferred from their own flight files until they confirm one.
+
 ## Notes
 
 **Notes** — the trip's tab of shared, freely written pages. Any member may
