@@ -76,7 +76,7 @@ function LineRow({ tripId, view, line }: { tripId: number; view: EstimateView; l
       <span className={FIGURE_CELL}>
         {line.plan ? <span className="font-mono text-ink">{wholeMoney(line.spent, currency)} of {wholeRange(line.plan, currency)}{line.own != null ? <span className="font-sans text-ink-faint"> · yours</span> : null}</span> : null}
         {needsHome ? (
-          <Sheet title="Where do you fly from?" trigger="Add home airport" triggerVariant="secondary"><HomeAirportForm code={null} suggested={null} /></Sheet>
+          <Sheet title="Where do you fly from?" trigger="Add home airport" triggerVariant="secondary"><HomeAirportForm suggested={null} /></Sheet>
         ) : (
           <ProgressBadge progress={line.progress} words={words} />
         )}
@@ -118,7 +118,7 @@ function Footer({ tripId, view }: { tripId: number; view: EstimateView }) {
       ) : null}
       {view.home?.inferred ? (
         <Sheet title="Where do you fly from?" trigger="Confirm airport" bareTrigger triggerClassName={linkTrigger}>
-          <HomeAirportForm code={null} suggested={view.home.code} />
+          <HomeAirportForm suggested={view.home.code} />
         </Sheet>
       ) : null}
     </div>

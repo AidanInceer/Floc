@@ -8,6 +8,8 @@ import { View } from "react-native";
 import { Body, Button, Field, Label, Segmented } from "@/components/system/ui";
 import { space } from "@/lib/theme";
 
+import { AirportPicker } from "./airport-picker";
+
 const start = (minor: number | null, currency: Currency) => (minor == null ? "" : toMajorInput(minor, currency));
 
 export function LineForm({ figure, budget, currency, guide, busy, onSave }: { figure: number | null; budget: number | null; currency: Currency; guide: string; busy: boolean; onSave: (figure: string, budget: string) => void }) {
@@ -65,14 +67,12 @@ export function NightsForm({ initial, busy, onSave }: { initial: number; busy: b
 
 /** A guess from your flight files is offered as a Confirm, never typed into the field for you. */
 export function AirportForm({ initial, suggested, busy, onSave }: { initial: string | null; suggested: string | null; busy: boolean; onSave: (code: string | null) => void }) {
-  const [raw, setRaw] = useState(initial ?? "");
   return (
     <View style={{ gap: space.md }}>
       {suggested ? <Body tone="ink-2">We think you fly from {airportName(suggested)} ({suggested}).</Body> : null}
       {suggested ? <Button label="Confirm" variant="quiet" fit="small" busy={busy} onPress={() => onSave(suggested)} /> : null}
       <Body tone="ink-2">Kept on your profile.</Body>
-      <Field label="Home airport code" value={raw} onChangeText={(t) => setRaw(t.toUpperCase())} autoCapitalize="characters" maxLength={3} autoCorrect={false} />
-      <Button label="Save airport" busy={busy} onPress={() => onSave(raw.trim() || null)} />
+      <AirportPicker code={initial} busy={busy} onPick={onSave} />
     </View>
   );
 }
