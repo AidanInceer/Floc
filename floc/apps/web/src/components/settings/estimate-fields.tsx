@@ -3,7 +3,8 @@ import Link from "next/link";
 
 import { saveHomeAirportForm, saveTravelStyleForm } from "@/app/trip/[id]/money/estimate-actions";
 import { ActionForm, SubmitButton } from "@/components/system/client-ui";
-import { buttonClass, cx, Input, segmentTrack } from "@/components/system/ui";
+import { ChoiceSegments } from "@/components/system/choice-segments";
+import { buttonClass, Input } from "@/components/system/ui";
 import { airportName } from "@floc/core/money/estimate/guide/home-airport";
 import {
   CABIN_LABELS, CABINS, PACE_LABELS, PACES, STAY_LABELS, STAY_STYLES,
@@ -15,21 +16,12 @@ import { SettingsRow } from "./settings-row";
 import { estimateSummary } from "@floc/core/money/estimate/line-words";
 
 const rowClass = "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 max-sm:grid-cols-1";
-const chip =
-  "block cursor-pointer whitespace-nowrap rounded-sm px-3 py-1.5 text-center text-sm font-medium text-ink-soft transition-colors duration-220 ease-(--ease) hover:bg-pen-soft hover:text-pen-deep peer-checked:bg-pen-soft peer-checked:text-pen-deep peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-pen";
 
 function Choice<T extends string>({ name, label, options, labels, value }: { name: string; label: string; options: readonly T[]; labels: Record<T, string>; value: T }) {
   return (
     <div className={rowClass}>
       <span id={`est-${name}`} className="text-sm">{label}</span>
-      <div role="radiogroup" aria-labelledby={`est-${name}`} className={cx(segmentTrack, "flex flex-wrap gap-0.5")}>
-        {options.map((o) => (
-          <label key={o} className="flex-auto">
-            <input type="radio" name={name} value={o} defaultChecked={o === value} className="peer sr-only" />
-            <span className={chip}>{labels[o]}</span>
-          </label>
-        ))}
-      </div>
+      <ChoiceSegments name={name} labelledBy={`est-${name}`} options={options} labels={labels} value={value} />
     </div>
   );
 }

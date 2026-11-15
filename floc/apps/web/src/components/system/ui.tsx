@@ -187,17 +187,21 @@ const tones: Record<Tone, string> = {
 
 export function Badge({
   tone = "neutral",
+  sentence,
   children,
   className,
 }: {
   tone?: Tone;
+  /** Sentence case, for a status that reads as words, not a label: the cost estimate's (#574). */
+  sentence?: boolean;
   children: ReactNode;
   className?: string;
 }) {
   return (
     <span
       className={cx(
-        "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-mono text-[11px] uppercase tracking-[0.06em]",
+        "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-mono text-[11px]",
+        !sentence && "uppercase tracking-[0.06em]",
         tones[tone],
         className,
       )}
