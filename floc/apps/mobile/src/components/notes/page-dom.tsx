@@ -17,10 +17,10 @@ import type { PageThread } from "@floc/editor/view/comments";
 import type { PageIcon } from "@floc/core/notes/pages/page-icons";
 import type { LinkKind, TripLinkItem } from "@floc/core/notes/pages/trip-links";
 
-import { BricolageGrotesque_600SemiBold } from "@expo-google-fonts/bricolage-grotesque/600SemiBold";
-import { DMMono_400Regular } from "@expo-google-fonts/dm-mono/400Regular";
-import { InstrumentSans_400Regular } from "@expo-google-fonts/instrument-sans/400Regular";
-import { InstrumentSans_600SemiBold } from "@expo-google-fonts/instrument-sans/600SemiBold";
+import { RedHatDisplay_800ExtraBold } from "@expo-google-fonts/red-hat-display/800ExtraBold";
+import { RedHatMono_400Regular } from "@expo-google-fonts/red-hat-mono/400Regular";
+import { RedHatText_400Regular } from "@expo-google-fonts/red-hat-text/400Regular";
+import { RedHatText_600SemiBold } from "@expo-google-fonts/red-hat-text/600SemiBold";
 
 import { pageCss, type FontFiles } from "@/lib/notes/page-css";
 import { FROM_APP, sendChanges, takeChange, takeOthers } from "@/lib/notes/relay";
@@ -33,10 +33,10 @@ const url = (asset: unknown): string | undefined => {
 };
 
 const FONTS: FontFiles = {
-  display: url(BricolageGrotesque_600SemiBold),
-  sans: url(InstrumentSans_400Regular),
-  sansBold: url(InstrumentSans_600SemiBold),
-  type: url(DMMono_400Regular),
+  display: url(RedHatDisplay_800ExtraBold),
+  sans: url(RedHatText_400Regular),
+  sansBold: url(RedHatText_600SemiBold),
+  type: url(RedHatMono_400Regular),
 };
 
 /** `change` takes a page update, `others` an awareness update, each as base64. */

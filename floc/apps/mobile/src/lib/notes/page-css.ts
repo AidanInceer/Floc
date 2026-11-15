@@ -19,10 +19,10 @@ function faces(files: FontFiles): string {
   const face = (family: string, weight: number, url: string | undefined) =>
     url ? `@font-face { font-family: "${family}"; font-weight: ${weight}; src: url("${url}"); }` : "";
   return [
-    face("Bricolage Grotesque", 600, files.display),
-    face("Instrument Sans", 400, files.sans),
-    face("Instrument Sans", 600, files.sansBold),
-    face("DM Mono", 400, files.type),
+    face("Red Hat Display", 800, files.display),
+    face("Red Hat Text", 400, files.sans),
+    face("Red Hat Text", 600, files.sansBold),
+    face("Red Hat Mono", 400, files.type),
   ].filter(Boolean).join("\n");
 }
 
