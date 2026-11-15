@@ -25,7 +25,7 @@ export function SettingsEstimate() {
   if (!data) return null;
   if (!data.pro) {
     return (
-      <Drawer title="Cost estimate" summary="Floc Pro">
+      <Drawer title="Budgeting" summary="Floc Pro">
         <Body tone="ink-2">Your home airport and travel style shape your own cost estimate on each trip. A Floc Pro feature.</Body>
         <Button label="See Floc Pro" variant="quiet" fit="small" onPress={() => router.setParams({ pro: String(Date.now()) })} />
       </Drawer>
@@ -33,7 +33,7 @@ export function SettingsEstimate() {
   }
   const code = airport ?? data.homeAirport ?? "";
   return (
-    <Drawer title="Cost estimate" summary={estimateSummary(data.homeAirport, data.style)}>
+    <Drawer title="Budgeting" summary={estimateSummary(data.homeAirport, data.style)}>
       <View style={{ gap: space.sm }}>
         {!data.homeAirport && data.inferred ? <Body tone="ink-3">We think you fly from {airportName(data.inferred)} ({data.inferred}).</Body> : null}
         {!data.homeAirport && data.inferred ? <Button label="Confirm" variant="quiet" fit="small" busy={save.isPending} onPress={() => save.mutate({ homeAirport: data.inferred })} /> : null}
