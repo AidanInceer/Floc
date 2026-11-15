@@ -11,6 +11,8 @@ import type { listSignInMethods } from "@/server/auth/sign-in-methods";
 import { GoogleCalendarIcon } from "@/components/system/icons/google-calendar";
 import { isLive, renewalLabel } from "@floc/core/billing/subscription-copy";
 import { ToggleRow } from "@/components/auth/account-ui";
+import { DataRow } from "@/components/settings/data-row";
+import type { ConsentChoice } from "@floc/core/consent/consent";
 import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
 import { AutoSaveForm } from "@/components/settings/auto-save-form";
 import { PrivacyLines } from "@/components/settings/privacy-lines";
@@ -59,9 +61,11 @@ export type AccountSettingsProps = {
   opened: SettingsSection | null;
   billing?: string;
   estimate: EstimateSettings;
+  /** The cookie choice this browser holds; null when not yet chosen. */
+  consent: ConsentChoice | null;
 };
 
-export function AccountSettings({ email, profile, linkedAccounts, calendarGranted, pro, opened, billing, estimate }: AccountSettingsProps) {
+export function AccountSettings({ email, profile, linkedAccounts, calendarGranted, pro, opened, billing, estimate, consent }: AccountSettingsProps) {
   const vibeTags = readVibeTags(profile.vibeTags);
   const row = (id: SettingsSection) => ({ id: `settings-${id}`, open: opened === id });
 
@@ -163,11 +167,7 @@ export function AccountSettings({ email, profile, linkedAccounts, calendarGrante
           ) : null}
         </SettingsRow>
 
-        <SettingsRow {...row("data")} title="Your data" summary="No analytics, no marketing email">
-          <p className="max-w-[62ch] text-sm text-ink-soft">
-            Floc sends no marketing email and runs no analytics. Notification emails are about your own trips.
-          </p>
-        </SettingsRow>
+        <DataRow {...row("data")} consent={consent} advertisingEmail={Boolean(profile.marketingEmailConsentAt)} />
       </SettingsSheet>
 
       {/* Why: the theme lives in the card behind your face in the top bar (ADR-055); signing out is in both. */}

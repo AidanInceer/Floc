@@ -9,12 +9,19 @@ export function PickChip({ label, on, onPress }: { label: string; on: boolean; o
       aria-pressed={on}
       onClick={onPress}
       className={cx(
-        "inline-flex h-[30px] items-center gap-1.5 rounded-sm border px-3 text-[13px] transition-colors duration-220 ease-(--ease)",
+        "inline-grid h-[30px] place-items-center rounded-sm border px-3 text-[13px] transition-colors duration-220 ease-(--ease)",
         on ? "border-pen-edge bg-pen-soft text-pen-deep" : "border-rule-2 text-ink-soft hover:border-pen",
       )}
     >
-      {on ? <CheckIcon size={12} /> : null}
-      {label}
+      {/* Why a hidden ticked copy in the same cell: the chip is always as wide as when ticked, so the row does not jump, and the words stay centred. */}
+      <span className="invisible col-start-1 row-start-1 inline-flex items-center gap-1.5" aria-hidden>
+        <CheckIcon size={12} />
+        {label}
+      </span>
+      <span className="col-start-1 row-start-1 inline-flex items-center gap-1.5">
+        {on ? <CheckIcon size={12} /> : null}
+        {label}
+      </span>
     </button>
   );
 }

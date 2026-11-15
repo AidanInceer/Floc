@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { CONSENT_CATEGORIES, CONSENT_MAX_AGE_SECONDS, FULL_CONSENT, NO_CONSENT, encodeConsent, readConsent } from "./consent";
+import { CONSENT_CATEGORIES, consentSummary, CONSENT_MAX_AGE_SECONDS, FULL_CONSENT, NO_CONSENT, encodeConsent, readConsent } from "./consent";
 
 describe("a consent choice", () => {
   it("reads back what was chosen", () => {
@@ -33,5 +33,21 @@ describe("a consent choice", () => {
 
   it("has three categories and no advertising", () => {
     expect(CONSENT_CATEGORIES.map((c) => c.key)).toEqual(["necessary", "functional", "analytics"]);
+  });
+});
+
+describe("the one-line summary of a cookie choice", () => {
+  it("says when nothing has been chosen", () => {
+    expect(consentSummary(null)).toBe("Not chosen yet");
+  });
+
+  it("names the optional categories that are on", () => {
+    expect(consentSummary(FULL_CONSENT)).toBe("Preferences and analytics on");
+    expect(consentSummary({ functional: false, analytics: true })).toBe("Analytics on");
+    expect(consentSummary({ functional: true, analytics: false })).toBe("Preferences on");
+  });
+
+  it("says when every optional category is off", () => {
+    expect(consentSummary(NO_CONSENT)).toBe("Optional cookies off");
   });
 });

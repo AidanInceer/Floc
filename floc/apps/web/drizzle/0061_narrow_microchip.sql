@@ -1,0 +1,1 @@
+ALTER TABLE `user_profile` ADD `marketing_email_consent_at` integer;
