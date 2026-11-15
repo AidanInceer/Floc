@@ -1,0 +1,10 @@
+@layer components {
+  /* Why: the banner is fixed over the foot of the page, so while it shows the footer keeps that much room and its links stay in reach. */
+  body:has(.consent-banner) .site-footer { padding-bottom: 7rem; }
+  @media (max-width: 639px) {
+    body:has(.consent-banner) .site-footer { padding-bottom: 12rem; }
+  }
+  /* Why: the Explore copy bar floats where the banner sits, so it waits for the answer. Visibility, as its own flex utility outranks this layer. */
+  body:has(.consent-banner) .trip-copy-bar { visibility: hidden; }
+  body:has(.consent-banner):has(.trip-copy-bar) { padding-bottom: 0; }
+}

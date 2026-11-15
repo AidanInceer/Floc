@@ -21,7 +21,7 @@ pnpm verify                                  # everything the main gate runs
 pnpm --filter floc-web db:query "<select>"   # read local.db
 ```
 
-**Data model change → ask Aidan first, every time.** Any table, column, constraint or index: say what and why, wait for a yes, then `/floc:schema-change`. Name it in push and release reports.
+**Data model change → ask Aidan first, every time.** Any table, column, constraint or index: say what and why, and what it changes on the [system map](docs/engineering/index.html#system-map), wait for a yes, then `/floc:schema-change`. Name it in push and release reports. Any change to the system map needs the same yes (`/floc:sync-docs`).
 
 ## Comments
 

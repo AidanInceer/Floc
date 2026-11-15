@@ -26,6 +26,7 @@ import { AVATAR_ICONS } from "@floc/core/people/avatar-icon";
 import { PAGE_ICONS } from "@floc/core/notes/pages/page-icons";
 import { WISH_ITEM_KINDS, WISH_MEMBER_STATUSES } from "@floc/core/lists/wish-list";
 import { ACTIVITY_KINDS, REMINDER_KINDS } from "@floc/core/notifications/rules";
+import { ANALYTICS_EVENTS, ANALYTICS_SURFACES } from "@floc/core/analytics/events";
 import {
   blob,
   index,
@@ -1277,6 +1278,42 @@ export const subscription = sqliteTable(
     /** Same job for store notifications, and one purchase can back one account only. */
     uniqueIndex("subscription_store_idx").on(t.storeTransactionId),
   ],
+);
+
+/**
+ * What Floc counts about its own use (#368). No user, address or device column, on purpose: a row cannot be tied to
+ * anyone. Not trip-owned, so no `deleted_at`; rows are deleted for good after a year (`purgeOldAnalytics`).
+ */
+export const analyticsEvent = sqliteTable(
+  "analytics_event",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    name: text("name", { enum: ANALYTICS_EVENTS }).notNull(),
+    surface: text("surface", { enum: ANALYTICS_SURFACES }).notNull(),
+    /** A route with its ids masked (`/trip/[id]/money`), never the path a person opened. */
+    route: text("route").notNull(),
+    props: text("props", { mode: "json" }).$type<Record<string, string | number | boolean> | null>(),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
+  },
+  (t) => [index("analytics_event_name_at_idx").on(t.name, t.createdAt)],
+);
+
+/**
+ * Which version of the Terms of use an account agreed to, and when (#549). One row for each version, kept when
+ * the terms change, so the record always names the text that account saw. Not trip-owned: no `deleted_at`.
+ */
+export const termsAcceptance = sqliteTable(
+  "terms_acceptance",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    /** `TERMS_VERSION` from @floc/core/legal/terms: the day that wording took effect. */
+    version: text("version").notNull(),
+    acceptedAt: integer("accepted_at", { mode: "timestamp" }).notNull(),
+  },
+  (t) => [uniqueIndex("terms_acceptance_user_version_idx").on(t.userId, t.version)],
 );
 
 export type User = typeof user.$inferSelect;

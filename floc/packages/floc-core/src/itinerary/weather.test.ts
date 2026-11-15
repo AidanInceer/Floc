@@ -1,27 +1,33 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  conditionLabel,
-  wmoToCondition,
-} from "./weather";
+import { conditionLabel, symbolToCondition, wetter } from "./weather";
 
-describe("wmoToCondition", () => {
-  it("maps the WMO code bands to the four buckets", () => {
-    expect(wmoToCondition(0)).toBe("sun");
-    expect(wmoToCondition(1)).toBe("part");
-    expect(wmoToCondition(2)).toBe("part");
-    expect(wmoToCondition(3)).toBe("cloud");
-    expect(wmoToCondition(45)).toBe("cloud");
-    expect(wmoToCondition(48)).toBe("cloud");
-    // Everything from drizzle (51) up is precipitation → rain.
-    expect(wmoToCondition(51)).toBe("rain");
-    expect(wmoToCondition(65)).toBe("rain");
-    expect(wmoToCondition(95)).toBe("rain");
+describe("symbolToCondition", () => {
+  it("maps MET Norway's symbols to the four buckets, day or night alike", () => {
+    expect(symbolToCondition("clearsky_day")).toBe("sun");
+    expect(symbolToCondition("clearsky_night")).toBe("sun");
+    expect(symbolToCondition("fair_day")).toBe("part");
+    expect(symbolToCondition("partlycloudy_polartwilight")).toBe("part");
+    expect(symbolToCondition("cloudy")).toBe("cloud");
+    expect(symbolToCondition("fog")).toBe("cloud");
   });
 
-  it("reads an unknown code as cloud, never a fabricated sun", () => {
-    // 4 is not a real WMO code and falls in no band.
-    expect(wmoToCondition(4)).toBe("cloud");
+  it("reads every kind of precipitation as rain", () => {
+    for (const symbol of ["lightrain", "heavyrainshowers_day", "sleet", "snow", "lightssnowshowersandthunder_night", "rainandthunder"]) {
+      expect(symbolToCondition(symbol), symbol).toBe("rain");
+    }
+  });
+
+  it("reads an unknown symbol as cloud, never a fabricated sun", () => {
+    expect(symbolToCondition("something_new")).toBe("cloud");
+  });
+});
+
+describe("wetter", () => {
+  it("keeps the worse of two conditions, so a day with a shower reads as rain", () => {
+    expect(wetter("sun", "rain")).toBe("rain");
+    expect(wetter("cloud", "part")).toBe("cloud");
+    expect(wetter("sun", "part")).toBe("part");
   });
 });
 

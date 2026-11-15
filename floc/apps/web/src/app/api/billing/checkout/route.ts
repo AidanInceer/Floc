@@ -9,6 +9,7 @@ import { headers } from "next/headers";
 import { appUrl } from "@/lib/env";
 import { auth } from "@/server/auth/auth";
 import { memberSession } from "@/server/auth/member-session";
+import { checkoutTerms } from "@/server/billing/checkout-terms";
 import {
   BILLING_INTERVALS,
   customerFor,
@@ -38,13 +39,15 @@ export async function POST(request: Request): Promise<Response> {
     name: session.user.name,
   });
 
+  const terms = checkoutTerms(appUrl());
   const checkout = await api.checkout.sessions.create({
     mode: "subscription",
     customer,
     line_items: [{ price, quantity: 1 }],
     // The thread back to the account, read by `checkout.session.completed`.
     client_reference_id: session.user.id,
-    subscription_data: { metadata: { userId: session.user.id } },
+    subscription_data: { metadata: { userId: session.user.id, ...terms.metadata } },
+    custom_text: { submit: { message: terms.submitMessage } },
     /**
      * Floc sells in GBP only, and both Prices are GBP, so Stripe already
      * refuses any other currency. Collecting the billing address is what makes

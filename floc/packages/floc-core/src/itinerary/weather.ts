@@ -1,22 +1,28 @@
 /**
  * Pure half of the trip forecast (ticket 148): no I/O, so the server aggregate
- * and its tests share it. Open-Meteo's dozens of WMO codes collapse to four
- * buckets because the app draws four glyphs.
+ * and its tests share it. MET Norway's symbols collapse to four buckets because
+ * the app draws four glyphs.
  */
-// Open-Meteo serves up to 16 days but the far end is noise; a fortnight is as
-// far as we draw (ticket 148).
-export const HORIZON_DAYS = 14;
+// MET Norway forecasts about nine and a half days ahead; nine whole days is as far
+// as we draw (#549 moved the forecast off Open-Meteo, whose free API is non-commercial).
+export const HORIZON_DAYS = 9;
 
 export type WeatherCondition = "sun" | "part" | "cloud" | "rain";
 
-// Snow (71–77, 85–86) is precipitation, so it's "rain" for v1. Unknown codes
-// read as cloud, never a fabricated sun.
-export function wmoToCondition(code: number): WeatherCondition {
-  if (code === 0) return "sun";
-  if (code === 1 || code === 2) return "part";
-  if (code === 3 || code === 45 || code === 48) return "cloud";
-  if (code >= 51) return "rain";
+const SEVERITY: Record<WeatherCondition, number> = { sun: 0, part: 1, cloud: 2, rain: 3 };
+
+// Snow, sleet and thunder are precipitation, so they're "rain" for v1. Unknown
+// symbols read as cloud, never a fabricated sun.
+export function symbolToCondition(symbol: string): WeatherCondition {
+  const base = symbol.split("_")[0];
+  if (/rain|sleet|snow|thunder/.test(base)) return "rain";
+  if (base === "clearsky") return "sun";
+  if (base === "fair" || base === "partlycloudy") return "part";
   return "cloud";
+}
+
+export function wetter(a: WeatherCondition, b: WeatherCondition): WeatherCondition {
+  return SEVERITY[b] > SEVERITY[a] ? b : a;
 }
 
 // Status is never colour (or a glyph) alone — the word travels with it.

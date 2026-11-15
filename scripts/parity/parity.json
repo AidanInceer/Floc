@@ -1,5 +1,8 @@
 {
   "procedures": {
+    "analytics.track": {
+      "mobile": "yes"
+    },
     "availability.calendar": {
       "mobile": "yes"
     },
@@ -85,6 +88,9 @@
       "mobile": "yes"
     },
     "explore.setSaved": {
+      "mobile": "yes"
+    },
+    "feedback.send": {
       "mobile": "yes"
     },
     "files.archived": {

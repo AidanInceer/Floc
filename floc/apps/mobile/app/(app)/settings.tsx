@@ -26,6 +26,9 @@ import { ScrollView, View } from "react-native";
 import { ProSection } from "@/components/billing/pro-section";
 import { SettingsAccount, SettingsDelete } from "@/components/settings/settings-account";
 import { SettingsVibeTags } from "@/components/settings/settings-about";
+import { SettingsFeedback } from "@/components/settings/settings-feedback";
+import { SettingsChoices, choicesSummary } from "@/components/settings/settings-choices";
+import { useConsentChoice } from "@/components/consent/use-consent-choice";
 import { SettingsEstimate } from "@/components/settings/settings-estimate";
 import { Drawer, DrawerGroup } from "@/components/system/drawer";
 import { SettingsPrivacy, type Privacy } from "@/components/settings/settings-privacy";
@@ -102,6 +105,7 @@ function SettingsPanels({
   onSignedOut: () => void;
 }) {
   const { choice, setChoice } = useTheme();
+  const choices = useConsentChoice();
   // Why: "See Floc Pro" on a locked estimate lands here with ?pro=1, so the Pro drawer opens itself (#574).
   const { pro: openPro } = useLocalSearchParams<{ pro?: string }>();
   const [privacy, setPrivacy] = useState<Privacy>({
@@ -302,6 +306,15 @@ function SettingsPanels({
                 : null
             }
           />
+        </Drawer>
+      </DrawerGroup>
+
+      <DrawerGroup label="Floc">
+        <Drawer first title="Feedback">
+          <SettingsFeedback />
+        </Drawer>
+        <Drawer title="Storage and page views" summary={choicesSummary(choices)}>
+          <SettingsChoices />
         </Drawer>
       </DrawerGroup>
 

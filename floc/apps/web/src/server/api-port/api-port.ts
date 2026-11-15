@@ -52,6 +52,8 @@ import { wishListsPort } from "@/server/api-port/wish-lists/wish-lists-port";
 import { mapPort } from "@/server/api-port/api-port-map";
 import { calendarImportPort } from "@/server/api-port/calendar-import/api-port-calendar-import";
 import { settingsPort } from "@/server/api-port/api-port-settings";
+import { feedbackPort } from "@/server/api-port/feedback/api-port-feedback";
+import { analyticsPort } from "@/server/api-port/analytics/api-port-analytics";
 import { socialPort } from "@/server/api-port/api-port-social";
 import { weatherPort } from "@/server/api-port/api-port-weather";
 import { calendarPort } from "@/server/api-port/api-port-calendar";
@@ -132,6 +134,8 @@ function toDetail(access: TripAccess, bookingPrefill: boolean): TripDetail {
 
 export const webPort: FlocPort = {
   ...settingsPort,
+  ...feedbackPort,
+  ...analyticsPort,
   ...calendarImportPort,
   ...mapPort,
   ...kitsPort,

@@ -70,6 +70,11 @@ describe("who is calling", () => {
     expect(clientKey("2001:db8::1", undefined)).toBe(clientKey("2001:db8:0:0:ffff::9", undefined));
   });
 
+  it("gives each IPv4 address written the IPv6 way its own key (#587)", () => {
+    expect(clientKey("::ffff:203.0.113.7", undefined)).toBe("203.0.113.7");
+    expect(clientKey("::ffff:203.0.113.7", undefined)).not.toBe(clientKey("::ffff:203.0.113.8", undefined));
+  });
+
   it("falls back to the socket's address", () => {
     expect(clientKey(undefined, "10.0.0.2")).toBe("10.0.0.2");
   });
