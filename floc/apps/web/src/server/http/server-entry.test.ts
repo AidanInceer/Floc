@@ -23,6 +23,9 @@ const response = () => ({ setHeader: vi.fn(), once: vi.fn(), writeHead: vi.fn(),
 
 describe("floc-web's entry", () => {
   it("puts the read and write limits in front of Next, and names the visitor on a socket upgrade (#587)", async () => {
+    // Why: the read limit refills 10 a second, so a slow runner earned one more request during the 600 (#587).
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-11-15T12:00:00Z"));
     await import("../../../server");
     const listener = createServer.mock.calls[0][0];
 
@@ -38,5 +41,6 @@ describe("floc-web's entry", () => {
 
     expect(fakeServer.on).toHaveBeenCalledWith("upgrade", expect.any(Function));
     expect(fakeServer.listen).toHaveBeenCalled();
+    vi.useRealTimers();
   });
 });
