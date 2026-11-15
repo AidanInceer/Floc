@@ -68,6 +68,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - A page its tab bar already names (a trip tab, My trips, Friends, Groups, Profile, Saved, Wish lists, Packing, Bookings) shows no visible page title; the `h1` stays for screen readers (`sr-only`).
 - No tiny all-caps kicker above a heading. The mono label names a value; it never introduces a section.
 - Sentence case. British English. Real content, never lorem ipsum.
+  - The cost estimate's status marks (Fits, Tight, In range, Not started) are sentence case: `Badge sentence` on the web, `Pill sentence` on the phone. Other badges keep the house capitals for now (Aidan, #574).
 - ✓ A field starts empty: no placeholder, no example, nothing pre-filled the person did not choose. A visible label or an `aria-label` names it.
   - One exception: *Plan the next one* on a finished trip's recap starts with the trip's other members ticked; the name field stays empty (#443).
   - One exception: *Add to Days* on a booking file starts with what Floc read from that booking — the flight, its day and its times — and the member saves it (#559).

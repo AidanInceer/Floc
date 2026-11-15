@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { SectionGlyph } from "@/components/trip/section-glyph";
 import { useTheme } from "@/components/system/theme";
+import { ChevronGlyph } from "@/components/system/glyphs";
 import { Pill } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { fonts, radius, size, space } from "@/lib/theme";
@@ -42,9 +43,14 @@ export function EstimateLine({ tripId, onOpen }: { tripId: number; onOpen: () =>
             </>
           ) : "Add a place to see what this trip will cost you"}
         </Text>
-        <Text style={{ color: c.pen, fontFamily: fonts.sans, fontSize: size.small }}>Budget</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
+          <Text style={{ color: c.pen, fontFamily: fonts.sans, fontSize: size.small }}>Budget</Text>
+          <View style={{ transform: [{ rotate: "-90deg" }] }}>
+            <ChevronGlyph color={c.pen} />
+          </View>
+        </View>
       </View>
-      {plan.fit ? <Pill word={fitWords(plan.fit, currency)} tone={FIT_TONE[plan.fit.kind]} /> : null}
+      {plan.fit ? <Pill sentence word={fitWords(plan.fit, currency)} tone={FIT_TONE[plan.fit.kind]} /> : null}
     </Pressable>
   );
 }

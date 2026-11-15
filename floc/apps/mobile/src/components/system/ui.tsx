@@ -324,16 +324,22 @@ function TextInputBox(props: TextInputProps) {
 export function Pill({
   word,
   tone = "pastel-blue",
+  sentence,
 }: {
   word: string;
-  tone?: "pastel-blue" | "pastel-green" | "pastel-yellow" | "pastel-red";
+  tone?: "pastel-blue" | "pastel-green" | "pastel-yellow" | "pastel-red" | "neutral";
+  /** Sentence case, for a status that reads as words: the cost estimate's (#574), as on the web. */
+  sentence?: boolean;
 }) {
   const { c } = useTheme();
+  const ground = tone === "neutral" ? c.sheet : c[tone];
+  const edge = tone === "neutral" ? c["rule-2"] : c[`${tone}-edge`];
+  const ink = tone === "neutral" ? c["ink-2"] : c[`${tone}-ink`];
   return (
     <View
       style={{
-        backgroundColor: c[tone],
-        borderColor: c[`${tone}-edge`],
+        backgroundColor: ground,
+        borderColor: edge,
         borderWidth: StyleSheet.hairlineWidth,
         borderRadius: radius.pill,
         paddingVertical: space.xs,
@@ -343,11 +349,11 @@ export function Pill({
     >
       <Text
         style={{
-          color: c[`${tone}-ink`],
+          color: ink,
           fontFamily: fonts.type,
           fontSize: size.label,
-          textTransform: "uppercase",
-          letterSpacing: 0.6,
+          textTransform: sentence ? "none" : "uppercase",
+          letterSpacing: sentence ? 0 : 0.6,
         }}
       >
         {word}

@@ -12,7 +12,7 @@ const glyph = (name: GlyphName) => <Glyph name={name} className="size-[14px]" />
 const n = (s: string) => <span className="nums">{s}</span>;
 
 const NOW: (Item & { tone: "red" | "yellow" | "green" | "blue" | "grey" })[] = [
-  { icon: glyph("money"), tone: "red", name: "Your cost and budget", eg: <>Sicily for you: {n("£710–£1,340")}, your budget fits</> },
+  { icon: glyph("receipt"), tone: "red", name: "Your cost and budget", eg: <>Sicily for you: {n("£710–£1,340")}, your budget fits</> },
   { icon: glyph("weather"), tone: "yellow", name: "Weather on your dates", eg: <>Etna on Monday: {n("14°")}</> },
   { icon: glyph("flight"), tone: "green", name: "Searches filled in", eg: <>Skyscanner opens on {n("LGW to PMO, 12 Sep, 6 adults")}</> },
   { icon: glyph("packing"), tone: "blue", name: "Packing from the forecast", eg: "A jumper goes on your list for Etna" },
@@ -22,7 +22,7 @@ const NOW: (Item & { tone: "red" | "yellow" | "green" | "blue" | "grey" })[] = [
 const SOON: Item[] = [
   { icon: glyph("tag"), name: "Price watch", eg: "Hear when your flights get cheaper." },
   { icon: glyph("offline"), name: "Works with no signal", eg: "Your trip opens on the plane." },
-  { icon: glyph("receipt"), name: "Snap the bill", eg: "A photo of the receipt goes into Money." },
+  { icon: glyph("files"), name: "Snap the bill", eg: "A photo of the receipt goes into Money." },
 ];
 
 function Row({ item, tile }: { item: Item; tile: string }) {
