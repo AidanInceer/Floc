@@ -67,7 +67,7 @@ function EstimateFields({ settings }: { settings: EstimateSettings }) {
 
 export function EstimateRow({ id, open, settings }: { id: string; open: boolean; settings: EstimateSettings }) {
   return (
-    <SettingsRow id={id} open={open} title="Cost estimate" summary={settings.pro ? estimateSummary(settings.homeAirport, settings.style) : "Floc Pro"}>
+    <SettingsRow id={id} open={open} title="Budgeting" summary={settings.pro ? estimateSummary(settings.homeAirport, settings.style) : "Floc Pro"}>
       <EstimateFields settings={settings} />
     </SettingsRow>
   );
