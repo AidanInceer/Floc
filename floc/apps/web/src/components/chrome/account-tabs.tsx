@@ -6,6 +6,7 @@ import { topBarFor, TOP_BAR_PREVIEW } from "@/server/chrome/top-bar";
 import { BookmarkIcon, EnvelopeIcon, GroupIcon, PersonIcon } from "@/components/system/icons/account";
 import { NavGlyph } from "@/components/system/icons/nav";
 import { ReactionGlyph } from "@/components/system/icons/reaction";
+import { COUNT_PIP } from "@/components/chrome/bead";
 import "./trip-tabs.css";
 
 export type { AccountTabKey };
@@ -29,8 +30,7 @@ const WASH: Partial<Record<AccountTabKey, CSSProperties>> = {
   wish: { "--section-wash": "var(--pen-2)", "--section-ink": "var(--pen)" } as CSSProperties,
 };
 
-const pipClass =
-  "absolute -right-1.5 -top-1.5 min-w-4 rounded-full border-2 border-paper bg-pen px-1 text-center font-mono text-[11px] font-semibold leading-[13px] text-sheet";
+const pipClass = `${COUNT_PIP} -right-1.5 border-paper`;
 
 /** The bar under the header on every account page: one level, four clusters, the same on each (#467, #623, #637). */
 export async function AccountTabs({ current, userId }: { current: AccountTabKey; userId: string }) {
