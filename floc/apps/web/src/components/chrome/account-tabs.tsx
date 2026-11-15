@@ -16,7 +16,7 @@ function iconFor(key: AccountTabKey, open: boolean): ReactNode {
     case "profile": return <PersonIcon />;
     case "friends": return <NavGlyph name="friends" />;
     case "groups": return <GroupIcon />;
-    case "wish": return <BookmarkIcon filled={open} />;
+    case "wish": return <span data-fill-hover className="inline-flex"><BookmarkIcon filled={open} /></span>;
     case "saved": return <ReactionGlyph kind="heart" mine={open} size={14} />;
     case "packing": return <NavGlyph name="packing" />;
     case "bookings": return <EnvelopeIcon />;
