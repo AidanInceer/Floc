@@ -5,7 +5,7 @@ import { ANALYTICS_KEEP_DAYS } from "@floc/core/analytics/events";
 import { CONTACT_EMAIL, CONTRACTING_PARTY, DATA_LOCATION, LOCATION_GAP } from "@/lib/legal/facts";
 import { DATA_HELD, DATA_KEPT, DATA_RECEIVERS } from "@/lib/legal/privacy-facts";
 
-import { LegalSection } from "../legal-prose";
+import { LegalSection, LegalTable } from "../legal-prose";
 
 const mail = <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>;
 
@@ -27,53 +27,25 @@ export function PrivacyDocument() {
       </LegalSection>
 
       <LegalSection title="What we hold, and why">
-        <div className="overflow-x-auto">
-          <table>
-            <thead>
-              <tr><th>What</th><th>Why</th><th>Legal ground</th></tr>
-            </thead>
-            <tbody>
-              {DATA_HELD.map((row) => (
-                <tr key={row.what}><td>{row.what}</td><td>{row.why}</td><td>{row.ground}</td></tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <LegalTable head={["What", "Why", "Legal ground"]} rows={DATA_HELD.map((row) => [row.what, row.why, row.ground])} />
         <p>We never see or hold your card number. Our logs hold no names, emails or trip content.</p>
       </LegalSection>
 
       <LegalSection title="Who else receives it">
         <p>These companies handle data for us, only to run Floc. None of them may use it for their own purposes.</p>
-        <div className="overflow-x-auto">
-          <table>
-            <thead>
-              <tr><th>Company</th><th>What for</th><th>What it receives</th></tr>
-            </thead>
-            <tbody>
-              {DATA_RECEIVERS.map((row) => (
-                <tr key={row.who}><td>{row.who}</td><td>{row.job}</td><td>{row.receives}</td></tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <LegalTable head={["Company", "What for", "What it receives"]} rows={DATA_RECEIVERS.map((row) => [row.who, row.job, row.receives])} />
         <p>The people on a trip see what is added to that trip. Your profile shows other people only what your privacy settings allow.</p>
         <p>{DATA_LOCATION ?? LOCATION_GAP}</p>
       </LegalSection>
 
       <LegalSection title="How long we keep it">
-        <div className="overflow-x-auto">
-          <table>
-            <thead>
-              <tr><th>What</th><th>How long</th></tr>
-            </thead>
-            <tbody>
-              {DATA_KEPT.map((row) => (
-                <tr key={row.what}><td>{row.what}</td><td>{row.kept}</td></tr>
-              ))}
-              <tr><td>Page-view counts</td><td>{Math.round(ANALYTICS_KEEP_DAYS / 30.4)} months. They hold nothing that names you.</td></tr>
-            </tbody>
-          </table>
-        </div>
+        <LegalTable
+          head={["What", "How long"]}
+          rows={[
+            ...DATA_KEPT.map((row) => [row.what, row.kept]),
+            ["Page-view counts", `${Math.round(ANALYTICS_KEEP_DAYS / 30.4)} months. They hold nothing that names you.`],
+          ]}
+        />
       </LegalSection>
 
       <LegalSection title="Deleting your account">

@@ -64,6 +64,15 @@
   .legal-prose table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
   .legal-prose th, .legal-prose td { padding: 0.5rem 0.75rem 0.5rem 0; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: top; }
   .legal-prose th { font-weight: 600; }
+  @media (max-width: 639px) {
+    .legal-table thead { display: none; }
+    .legal-table tr { display: block; padding: 0.75rem 0; border-bottom: 1px solid var(--rule); }
+    .legal-table td { display: block; padding: 0; border: 0; }
+    .legal-table td + td { margin-top: 0.25rem; }
+    .legal-table td::before { content: attr(data-label); display: block; font-family: var(--type); font-size: var(--text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+    .legal-table td:first-child::before { content: none; }
+    .legal-table td:first-child { font-weight: 600; }
+  }
 
   @media (prefers-reduced-motion: reduce) {
     .legal-sheet-dim, .legal-sheet-panel { transition: none; }

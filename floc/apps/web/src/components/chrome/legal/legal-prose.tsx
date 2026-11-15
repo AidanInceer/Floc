@@ -11,3 +11,21 @@ export function LegalSection({ title, children }: { title: string; children: Rea
     </section>
   );
 }
+
+/** A table on a wide screen; below sm each row stacks, its cells named by their column, so nothing scrolls sideways. */
+export function LegalTable({ head, rows }: { head: string[]; rows: ReactNode[][] }) {
+  return (
+    <table className="legal-table">
+      <thead>
+        <tr>{head.map((label) => <th key={label}>{label}</th>)}</tr>
+      </thead>
+      <tbody>
+        {rows.map((cells, row) => (
+          <tr key={row}>
+            {cells.map((cell, column) => <td key={head[column]} data-label={head[column]}>{cell}</td>)}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}

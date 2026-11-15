@@ -10,6 +10,9 @@ import { chooseConsent } from "@/lib/consent/consent-cookie";
 
 import { useConsent } from "./use-consent";
 
+// Why no switch for what Floc needs: it cannot be turned off, and a dead switch says less than the list below it.
+const OPTIONAL = CONSENT_CATEGORIES.filter((category) => category.key !== "necessary");
+
 /** The same choice as the banner, one switch each, changeable at any time from the Cookies page (#368). */
 export function ConsentChoices({ fromServer }: { fromServer: ConsentChoice | null }) {
   const consent = useConsent(fromServer);
@@ -28,15 +31,8 @@ export function ConsentChoices({ fromServer }: { fromServer: ConsentChoice | nul
         setSaved(true);
       }}
     >
-      {CONSENT_CATEGORIES.map((category) => (
-        <ToggleRow
-          key={category.key}
-          name={category.key}
-          label={category.label}
-          hint={category.detail}
-          disabled={category.key === "necessary"}
-          defaultChecked={category.key === "necessary" || Boolean(consent?.[category.key])}
-        />
+      {OPTIONAL.map((category) => (
+        <ToggleRow key={category.key} name={category.key} label={category.label} hint={category.detail} defaultChecked={Boolean(consent?.[category.key])} />
       ))}
       <div className="flex items-center gap-3">
         <Button type="submit" variant="primary">Save</Button>

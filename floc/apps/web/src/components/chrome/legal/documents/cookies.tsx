@@ -5,7 +5,7 @@ import { ConsentChoices } from "@/components/chrome/consent/consent-choices";
 import { STORAGE_LIST } from "@/lib/legal/storage-list";
 import { requestConsent } from "@/server/consent/consent";
 
-import { LegalSection } from "../legal-prose";
+import { LegalSection, LegalTable } from "../legal-prose";
 
 const CATEGORY_LABELS = Object.fromEntries(CONSENT_CATEGORIES.map((c) => [c.key, c.label]));
 
@@ -14,30 +14,25 @@ export async function CookiesDocument() {
   return (
     <>
       <LegalSection title="Your choice">
-        <p>Floc asks once, and again after 12 months. You can change your answer here at any time.</p>
+        <p>
+          What Floc needs to work is always on. These two are yours to choose. Floc asks once, and again after 12
+          months, and you can change your answer here at any time.
+        </p>
         <ConsentChoices fromServer={consent} />
       </LegalSection>
 
       <LegalSection title="What Floc stores on your device">
         <p>Floc sets no advertising cookies and no cookies from other companies.</p>
-        <div className="overflow-x-auto">
-        <table>
-          <thead>
-            <tr><th>Name</th><th>Kind</th><th>Group</th><th>What it is for</th><th>How long</th></tr>
-          </thead>
-          <tbody>
-            {STORAGE_LIST.map((thing) => (
-              <tr key={thing.name}>
-                <td className="whitespace-nowrap font-mono">{thing.name}</td>
-                <td>{thing.kind}</td>
-                <td>{CATEGORY_LABELS[thing.category]}</td>
-                <td>{thing.purpose}</td>
-                <td>{thing.lasts}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        </div>
+        <LegalTable
+          head={["Name", "Kind", "Group", "What it is for", "How long"]}
+          rows={STORAGE_LIST.map((thing) => [
+            <span key="name" className="font-mono">{thing.name}</span>,
+            thing.kind,
+            CATEGORY_LABELS[thing.category],
+            thing.purpose,
+            thing.lasts,
+          ])}
+        />
         <p>On floc.live the cookie names start with <span className="font-mono">__Secure-</span>.</p>
       </LegalSection>
 

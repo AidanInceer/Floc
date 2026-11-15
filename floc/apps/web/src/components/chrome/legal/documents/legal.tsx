@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ADDRESS_GAP, CONTACT_EMAIL, CONTRACTING_PARTY, POSTAL_ADDRESS } from "@/lib/legal/facts";
 import { DATA_SOURCES } from "@/lib/legal/data-sources";
 
-import { LegalSection } from "../legal-prose";
+import { LegalSection, LegalTable } from "../legal-prose";
 
 export function LegalNoticeDocument() {
   return (
@@ -29,22 +29,10 @@ export function LegalNoticeDocument() {
 
       <LegalSection title="Credits">
         <p>Floc uses data and type made by other people. Thank you to them.</p>
-        <div className="overflow-x-auto">
-          <table>
-            <thead>
-              <tr><th>What</th><th>From</th><th>Licence</th></tr>
-            </thead>
-            <tbody>
-              {DATA_SOURCES.map((source) => (
-                <tr key={source.what}>
-                  <td>{source.what}</td>
-                  <td><a href={source.url}>{source.from}</a></td>
-                  <td>{source.licence}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <LegalTable
+          head={["What", "From", "Licence"]}
+          rows={DATA_SOURCES.map((source) => [source.what, <a key="from" href={source.url}>{source.from}</a>, source.licence])}
+        />
       </LegalSection>
     </>
   );
