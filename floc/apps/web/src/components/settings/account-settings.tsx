@@ -43,11 +43,10 @@ const PROVIDER_LABELS: Record<string, string> = {
 };
 
 const accountLineClass = "flex flex-wrap items-center justify-between gap-3 py-2.5";
-const sheetLineClass = "flex items-center justify-end gap-3 px-[18px] py-3";
 const signOutClass = "-mr-2.5 inline-flex h-7 items-center gap-1.5 rounded-sm px-2.5 text-[13px] text-ink-soft hover:bg-pen-soft hover:text-pen-deep";
 
 const DELETE_WARNING =
-  "Delete your Floc account? Trips you're the sole admin of will hand admin to their earliest-joined remaining member. This can't be undone from the app.";
+  "Delete your Floc account? Trips you're the sole admin of will hand admin to their earliest-joined remaining member. Your trip content stays, under 'Deleted user', and costs already logged stay on the ledger. This can't be undone from the app.";
 
 type Subscription = Awaited<ReturnType<typeof subscriptionOf>>;
 
@@ -72,66 +71,6 @@ export function AccountSettings({ email, profile, linkedAccounts, calendarGrante
   return (
     <>
       <SettingsSheet>
-        <SettingsRow
-          {...row("privacy")}
-          title="Privacy"
-          summary={privacySummary({
-            isPrivate: profile.isPrivate,
-            rings: [profile.visibilityVibeTags, profile.visibilityTravelMap, profile.visibilityFriends, profile.visibilitySaved],
-          })}
-        >
-          <AutoSaveForm action={updatePrivacy} className="flex flex-col gap-5">
-            <PrivacyLines
-              isPrivate={profile.isPrivate}
-              rings={{
-                visibilityVibeTags: profile.visibilityVibeTags,
-                visibilityTravelMap: profile.visibilityTravelMap,
-                visibilityFriends: profile.visibilityFriends,
-                visibilitySaved: profile.visibilitySaved,
-              }}
-              pastTripsLatest={profile.pastTripsShow === "latest"}
-            />
-          </AutoSaveForm>
-        </SettingsRow>
-
-        <SettingsRow {...row("about-you")} title="Your travel style" summary={travelStyleSummary(vibeTags)}>
-          <AutoSaveForm action={updateVibeTags} className="flex flex-col gap-3">
-            <TravelStyle selected={vibeTags} />
-            <p className="text-xs text-ink-faint">Shown on your profile to the people you pick in Privacy.</p>
-          </AutoSaveForm>
-        </SettingsRow>
-
-        <SettingsRow {...row("trips")} title="Trips" summary={tripsSummary(PACK_TIER_LABELS[profile.packTier], profile.homeCurrency)}>
-          <TripsFields packTier={profile.packTier} packAutoGenerate={profile.packAutoGenerate} homeCurrency={profile.homeCurrency} />
-        </SettingsRow>
-
-        <EstimateRow {...row("estimate")} settings={estimate} />
-      </SettingsSheet>
-
-      {pro ? (
-        <SettingsSheet>
-          <ProRow {...row("billing")} subscription={pro.subscription} prices={pro.prices} billing={billing} />
-        </SettingsSheet>
-      ) : null}
-
-      <SettingsSheet>
-        <SettingsRow
-          {...row("notifications")}
-          title="Notifications"
-          summary={notificationSummary({
-            push: profile.notifyPush,
-            email: profile.notifyEmail,
-            reminders: profile.notifyReminders,
-            nextTrip: profile.notifyNextTrip,
-          })}
-        >
-          <AutoSaveForm action={updateNotifications} className="flex flex-col gap-4">
-            {NOTIFICATION_TOGGLES.map((t) => (
-              <ToggleRow key={t.name} name={t.name} label={t.label} hint={t.hint} defaultChecked={profile[t.name]} />
-            ))}
-          </AutoSaveForm>
-        </SettingsRow>
-
         <SettingsRow {...row("account")} title="Account" summary={email}>
           <div className="mx-auto flex w-full max-w-80 flex-col items-center gap-1.5">
             <span className="text-sm">Email</span>
@@ -167,25 +106,73 @@ export function AccountSettings({ email, profile, linkedAccounts, calendarGrante
           ) : null}
         </SettingsRow>
 
+        {pro ? <ProRow {...row("billing")} subscription={pro.subscription} prices={pro.prices} billing={billing} /> : null}
+
+        <SettingsRow
+          {...row("privacy")}
+          title="Privacy"
+          summary={privacySummary({
+            isPrivate: profile.isPrivate,
+            rings: [profile.visibilityVibeTags, profile.visibilityTravelMap, profile.visibilityFriends, profile.visibilitySaved],
+          })}
+        >
+          <AutoSaveForm action={updatePrivacy} className="flex flex-col gap-5">
+            <PrivacyLines
+              isPrivate={profile.isPrivate}
+              rings={{
+                visibilityVibeTags: profile.visibilityVibeTags,
+                visibilityTravelMap: profile.visibilityTravelMap,
+                visibilityFriends: profile.visibilityFriends,
+                visibilitySaved: profile.visibilitySaved,
+              }}
+              pastTripsLatest={profile.pastTripsShow === "latest"}
+            />
+          </AutoSaveForm>
+        </SettingsRow>
+
+        <SettingsRow
+          {...row("notifications")}
+          title="Notifications"
+          summary={notificationSummary({
+            push: profile.notifyPush,
+            email: profile.notifyEmail,
+            reminders: profile.notifyReminders,
+            nextTrip: profile.notifyNextTrip,
+          })}
+        >
+          <AutoSaveForm action={updateNotifications} className="flex flex-col gap-4">
+            {NOTIFICATION_TOGGLES.map((t) => (
+              <ToggleRow key={t.name} name={t.name} label={t.label} hint={t.hint} defaultChecked={profile[t.name]} />
+            ))}
+          </AutoSaveForm>
+        </SettingsRow>
+
         <DataRow {...row("data")} consent={consent} advertisingEmail={Boolean(profile.marketingEmailConsentAt)} />
       </SettingsSheet>
 
-      {/* Why: the theme lives in the card behind your face in the top bar (ADR-055); signing out is in both. */}
       <SettingsSheet>
-        <div className={sheetLineClass}>
-          <SignOutButton className={signOutClass} />
-        </div>
+        <SettingsRow {...row("about-you")} title="Your travel style" summary={travelStyleSummary(vibeTags)}>
+          <AutoSaveForm action={updateVibeTags} className="flex flex-col gap-3">
+            <TravelStyle selected={vibeTags} />
+            <p className="text-xs text-ink-faint">Shown on your profile to the people you pick in Privacy.</p>
+          </AutoSaveForm>
+        </SettingsRow>
+
+        <SettingsRow {...row("trips")} title="Trips" summary={tripsSummary(PACK_TIER_LABELS[profile.packTier], profile.homeCurrency)}>
+          <TripsFields packTier={profile.packTier} packAutoGenerate={profile.packAutoGenerate} homeCurrency={profile.homeCurrency} />
+        </SettingsRow>
+
+        <EstimateRow {...row("estimate")} settings={estimate} />
       </SettingsSheet>
 
+      {/* Why one line: leaving and deleting both end your use of Floc; the theme lives behind your face in the top bar (ADR-055). */}
       <SettingsSheet>
-        <SettingsRow {...row("delete")} title="Delete" danger>
-          <form action={deleteAccount} className="flex flex-col items-center gap-3.5 text-center">
-            <p className="max-w-[62ch] text-sm text-ink-soft">
-              Your trip content stays, under &ldquo;Deleted user&rdquo;. Costs already logged stay on the ledger.
-            </p>
-            <ConfirmSubmit message={DELETE_WARNING}>Delete my account</ConfirmSubmit>
+        <div className="flex items-center justify-between gap-3 px-[18px] py-3">
+          <form action={deleteAccount}>
+            <ConfirmSubmit message={DELETE_WARNING} confirmLabel="Delete my account">Delete account</ConfirmSubmit>
           </form>
-        </SettingsRow>
+          <SignOutButton className={signOutClass} />
+        </div>
       </SettingsSheet>
     </>
   );
