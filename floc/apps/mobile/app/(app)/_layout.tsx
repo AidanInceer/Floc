@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import { useTheme } from "@/components/system/theme";
 import { useReducedMotion } from "@/components/system/use-reduced-motion";
 import { client, queryClient, trpc } from "@/lib/api";
+import { usePageViews } from "@/lib/consent/page-views";
 import { registerThisPhone } from "@/lib/push/push";
 import { pushTap } from "@/lib/push/push-tap";
 
@@ -35,6 +36,7 @@ export default function AppLayout() {
   const { c } = useTheme();
   const reducedMotion = useReducedMotion();
   usePushTaps();
+  usePageViews();
   return (
     <Stack
       screenOptions={{

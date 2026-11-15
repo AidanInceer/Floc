@@ -1,5 +1,8 @@
 {
   "procedures": {
+    "analytics.track": {
+      "mobile": "yes"
+    },
     "availability.calendar": {
       "mobile": "yes"
     },

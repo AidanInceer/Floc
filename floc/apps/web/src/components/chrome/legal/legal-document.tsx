@@ -4,9 +4,11 @@ import { legalLinkFor } from "@/lib/legal/legal-sheet";
 import type { LegalHref } from "@/lib/legal/legal-links";
 
 import { ContactDocument } from "./documents/contact";
+import { CookiesDocument } from "./documents/cookies";
 
 const DOCUMENTS: Partial<Record<LegalHref, () => ReactNode>> = {
   "/contact": ContactDocument,
+  "/cookies": CookiesDocument,
 };
 
 export function LegalDocument({ href }: { href: LegalHref }) {

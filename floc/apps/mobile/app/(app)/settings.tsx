@@ -27,6 +27,7 @@ import { ProSection } from "@/components/billing/pro-section";
 import { SettingsAccount, SettingsDelete } from "@/components/settings/settings-account";
 import { SettingsVibeTags } from "@/components/settings/settings-about";
 import { SettingsFeedback } from "@/components/settings/settings-feedback";
+import { SettingsAnalytics, useAnalyticsConsent } from "@/components/settings/settings-analytics";
 import { Drawer, DrawerGroup } from "@/components/system/drawer";
 import { SettingsPrivacy, type Privacy } from "@/components/settings/settings-privacy";
 import { useTheme, type ThemeChoice } from "@/components/system/theme";
@@ -102,6 +103,7 @@ function SettingsPanels({
   onSignedOut: () => void;
 }) {
   const { choice, setChoice } = useTheme();
+  const counted = useAnalyticsConsent();
   const [privacy, setPrivacy] = useState<Privacy>({
     isPrivate: settings.isPrivate,
     visibilityVibeTags: settings.visibilityVibeTags,
@@ -190,6 +192,10 @@ function SettingsPanels({
               savePrivacy.mutate(next);
             }}
           />
+        </Drawer>
+
+        <Drawer title="Analytics" summary={counted ? "On" : "Off"}>
+          <SettingsAnalytics />
         </Drawer>
 
         <Drawer title="Your travel style" summary={travelStyleSummary(tags)}>
