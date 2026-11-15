@@ -308,7 +308,7 @@ function SettingsPanels({
         <Drawer first title="Feedback">
           <SettingsFeedback />
         </Drawer>
-        <Drawer title="Your choice" summary={choicesSummary(choices)}>
+        <Drawer title="Storage and page views" summary={choicesSummary(choices)}>
           <SettingsChoices />
         </Drawer>
       </DrawerGroup>

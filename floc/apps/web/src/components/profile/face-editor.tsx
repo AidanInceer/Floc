@@ -75,7 +75,7 @@ export function FaceEditor({ name }: { name: string }) {
         <div
           role="dialog"
           aria-label="Your name"
-          className="fixed inset-x-0 bottom-0 rounded-t-md border border-rule bg-sheet p-4 shadow-lift sm:absolute sm:inset-x-auto sm:bottom-auto sm:left-0 sm:top-full sm:mt-3 sm:w-[356px] sm:rounded-md"
+          className="fixed inset-x-0 bottom-0 z-[60] rounded-t-md sm:z-auto border border-rule bg-sheet p-4 shadow-lift sm:absolute sm:inset-x-auto sm:bottom-auto sm:left-0 sm:top-full sm:mt-3 sm:w-[356px] sm:rounded-md"
         >
           <form action={save} className="flex flex-col gap-3.5">
             <Field label="Name">

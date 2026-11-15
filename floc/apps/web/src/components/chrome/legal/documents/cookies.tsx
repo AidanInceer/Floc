@@ -25,7 +25,7 @@ export async function CookiesDocument() {
         <p>Floc sets no advertising cookies and no cookies from other companies.</p>
         <LegalTable
           head={["Name", "Kind", "Group", "How long", "What it is for"]}
-          short={["Kind", "Group", "How long"]}
+          short={["Kind", "Group"]}
           rows={STORAGE_LIST.map((thing) => [
             <span key="name" className="font-mono">{thing.name}</span>,
             thing.kind,

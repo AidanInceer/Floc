@@ -4,4 +4,6 @@
   @media (max-width: 639px) {
     body:has(.consent-banner) .site-footer { padding-bottom: 12rem; }
   }
+  /* Why: the Explore copy bar floats where the banner sits; it waits for the answer rather than cover Reject and Accept. */
+  body:has(.consent-banner) .trip-copy-bar { display: none; }
 }

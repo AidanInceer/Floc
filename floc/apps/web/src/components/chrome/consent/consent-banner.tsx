@@ -21,7 +21,7 @@ export function ConsentBanner({ fromServer }: { fromServer: ConsentChoice | null
   const onChoicesPage = usePathname() === "/cookies";
   if (consent || onChoicesPage) return null;
   return (
-    <section aria-label="Cookie choices" className="consent-banner pointer-events-none fixed inset-x-0 bottom-0 z-30 p-3 sm:p-4">
+    <section aria-label="Cookie choices" className="consent-banner pointer-events-none fixed inset-x-0 bottom-0 z-50 p-3 sm:p-4">
       <div className="pointer-events-auto mx-auto flex max-w-[46rem] flex-wrap items-center justify-end gap-x-5 gap-y-3 rounded-md border border-rule bg-sheet p-4 shadow-lifted">
         <p className="min-w-[15rem] flex-1 text-sm text-ink">
           Floc stores what it needs to work. With your yes, it also remembers small choices on this device and counts
