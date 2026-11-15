@@ -22,7 +22,7 @@ const NOW: (Item & { tone: "red" | "yellow" | "green" | "blue" | "grey" })[] = [
 const SOON: Item[] = [
   { icon: glyph("tag"), name: "Price watch", eg: "Hear when your flights get cheaper." },
   { icon: glyph("offline"), name: "Works with no signal", eg: "Your trip opens on the plane." },
-  { icon: glyph("receipt"), name: "Snap the bill", eg: "A photo of the receipt goes into Money." },
+  { icon: glyph("files"), name: "Snap the bill", eg: "A photo of the receipt goes into Money." },
 ];
 
 function Row({ item, tile }: { item: Item; tile: string }) {

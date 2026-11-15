@@ -54,14 +54,9 @@ const BAR_CELL = "max-sm:col-span-2 max-sm:col-start-2 max-sm:row-start-2";
 const FIGURE_CELL = "grid justify-items-end gap-1 text-[13px] max-sm:col-span-2 max-sm:col-start-2 max-sm:row-start-3 max-sm:flex max-sm:items-center max-sm:justify-between";
 const linkTrigger = "text-[13px] text-pen hover:underline";
 
-/** Why: the "·" stays with the word after it, so a narrow row never strands it, and a long part can still wrap. */
+/** Why: a no-break space keeps each "·" on the line of the part before it, so a wrapped line never starts with one. */
 function Detail({ text }: { text: string }) {
-  const parts = text.split(" · ");
-  return (
-    <small className="flex flex-wrap gap-x-1 text-[13px] text-ink-faint">
-      {parts.map((part, i) => <span key={i} className="min-w-0">{i < parts.length - 1 ? `${part} ·` : part}</span>)}
-    </small>
-  );
+  return <small className="text-[13px] text-ink-faint">{text.split(" · ").join("\u00a0· ")}</small>;
 }
 
 function LineRow({ tripId, view, line }: { tripId: number; view: EstimateView; line: PlanLine }) {

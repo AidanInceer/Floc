@@ -246,7 +246,7 @@ function SettingsPanels({
         <SettingsEstimate />
 
         {plan && plan.kind !== "hidden" ? (
-          <Drawer key={openPro ?? "shut"} defaultOpen={openPro === "1"} title="Floc Pro" summary={plan.kind === "pro" ? "Pro" : "Free plan"}>
+          <Drawer key={openPro ?? "shut"} defaultOpen={Boolean(openPro)} title="Floc Pro" summary={plan.kind === "pro" ? "Pro" : "Free plan"}>
             {pro}
           </Drawer>
         ) : null}

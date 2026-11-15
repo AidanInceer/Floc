@@ -27,7 +27,7 @@ export function SettingsEstimate() {
     return (
       <Drawer title="Cost estimate" summary="Floc Pro">
         <Body tone="ink-2">Your home airport and travel style shape your own cost estimate on each trip. A Floc Pro feature.</Body>
-        <Button label="See Floc Pro" variant="quiet" fit="small" onPress={() => router.setParams({ pro: "1" })} />
+        <Button label="See Floc Pro" variant="quiet" fit="small" onPress={() => router.setParams({ pro: String(Date.now()) })} />
       </Drawer>
     );
   }

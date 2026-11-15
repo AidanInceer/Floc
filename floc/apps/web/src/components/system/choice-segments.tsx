@@ -17,7 +17,7 @@ export function ChoiceSegments<T extends string>({
   value: T;
 }) {
   return (
-    <div role="radiogroup" aria-labelledby={labelledBy} className={cx(segmentTrack, "flex flex-wrap gap-0.5")}>
+    <div role="radiogroup" aria-labelledby={labelledBy} className={cx(segmentTrack, "flex flex-wrap gap-0.5", options.length === 4 && "max-sm:grid max-sm:grid-cols-2")}>
       {options.map((o) => (
         <label key={o} className="flex-auto">
           <input type="radio" name={name} value={o} defaultChecked={o === value} className="peer sr-only" />
