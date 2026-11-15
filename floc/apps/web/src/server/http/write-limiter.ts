@@ -61,7 +61,7 @@ export function clientKey(realIp: string | string[] | undefined, remoteAddress: 
 function network(address: string): string {
   const ip = address.split("%")[0].toLowerCase();
   if (!ip.includes(":")) return ip;
-  const mapped = /^::ffff:(d+.d+.d+.d+)$/.exec(ip);
+  const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(ip);
   if (mapped) return mapped[1];
   const halves = ip.split("::");
   const left = halves[0] ? halves[0].split(":") : [];
