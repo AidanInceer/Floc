@@ -8,7 +8,7 @@ import { TEXT_CAPS } from "@floc/core/text/text";
 
 import { submitFeedback, type FeedbackState } from "@/app/contact/actions";
 import { SubmitButton } from "@/components/system/client-ui";
-import { ErrorText, cx, panelFieldClass } from "@/components/system/ui";
+import { ErrorText, Textarea } from "@/components/system/ui";
 import { lastPage } from "@/lib/chrome/page-trail";
 
 /** Why the words are state (#271): React empties a form after its action, and a failed send must keep what was typed. */
@@ -24,11 +24,11 @@ export function FeedbackForm() {
 
   return (
     <form action={send} className="flex flex-col items-start gap-3">
-      <textarea name="message" aria-label="Feedback" required maxLength={TEXT_CAPS.feedback} value={message}
-        onChange={(event) => setMessage(event.target.value)} className={cx(panelFieldClass, "min-h-28")} />
+      <Textarea name="message" aria-label="Feedback" maxLength={TEXT_CAPS.feedback} value={message}
+        onChange={(event) => setMessage(event.target.value)} className="min-h-28" />
       <ErrorText>{state.error}</ErrorText>
       <div className="flex items-center gap-3">
-        <SubmitButton>Send</SubmitButton>
+        <SubmitButton disabled={!message.trim()}>Send</SubmitButton>
         {state.sent && !message ? <p role="status" className="text-sm text-ink-soft">{FEEDBACK_SENT}</p> : null}
       </div>
     </form>

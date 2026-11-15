@@ -12,8 +12,11 @@ export function LegalSection({ title, children }: { title: string; children: Rea
   );
 }
 
-/** A table on a wide screen; below sm each row stacks, its cells named by their column, so nothing scrolls sideways. */
-export function LegalTable({ head, rows }: { head: string[]; rows: ReactNode[][] }) {
+/**
+ * A table on a wide screen; below sm each row stacks, its cells named by their column, so nothing scrolls sideways.
+ * `short` names the columns of a word or two, which then share one line.
+ */
+export function LegalTable({ head, rows, short = [] }: { head: string[]; rows: ReactNode[][]; short?: string[] }) {
   return (
     <table className="legal-table">
       <thead>
@@ -22,7 +25,9 @@ export function LegalTable({ head, rows }: { head: string[]; rows: ReactNode[][]
       <tbody>
         {rows.map((cells, row) => (
           <tr key={row}>
-            {cells.map((cell, column) => <td key={head[column]} data-label={head[column]}>{cell}</td>)}
+            {cells.map((cell, column) => (
+              <td key={head[column]} data-label={head[column]} className={short.includes(head[column]) ? "legal-cell-short" : undefined}>{cell}</td>
+            ))}
           </tr>
         ))}
       </tbody>

@@ -4,7 +4,7 @@ import { View } from "react-native";
 
 import { Toggle } from "@/components/system/ui";
 import { saveConsent } from "@/lib/consent/consent";
-import { useConsentChoice } from "@/lib/consent/use-consent";
+import { useConsentChoice } from "@/components/consent/use-consent-choice";
 import { space } from "@/lib/theme";
 
 const OPTIONAL = CONSENT_CATEGORIES.filter((category) => category.key !== "necessary");

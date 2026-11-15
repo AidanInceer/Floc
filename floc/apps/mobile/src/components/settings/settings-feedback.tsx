@@ -43,7 +43,7 @@ export function SettingsFeedback() {
         maxLength={TEXT_CAPS.feedback}
       />
       {result && result !== "sent" ? <Body tone="red">{FEEDBACK_PROBLEMS[result]}</Body> : null}
-      {result === "sent" ? <Body tone="ink-3">{FEEDBACK_SENT}</Body> : null}
+      <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
       <Button
         label="Send"
         fit="small"
@@ -58,6 +58,8 @@ export function SettingsFeedback() {
           })
         }
       />
+      {result === "sent" ? <Body tone="ink-3">{FEEDBACK_SENT}</Body> : null}
+      </View>
     </View>
   );
 }

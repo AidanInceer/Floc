@@ -1,21 +1,9 @@
-/** Counts a screen view, only with a yes to analytics (#368). A failed count is dropped: it must never show. */
-import { usePathname } from "expo-router";
-import { useEffect } from "react";
-import { Platform } from "react-native";
+/** What the phone sends for a screen view (#368): nothing at all without a yes to analytics. */
+import type { ConsentChoice } from "@floc/core/consent/consent";
 
-import { client } from "@/lib/api";
-import { currentConsent, loadConsent } from "@/lib/consent/consent";
+export type ScreenView = { name: "page.view"; path: string; surface: "ios" | "android" };
 
-export function usePageViews(): void {
-  const path = usePathname();
-
-  useEffect(() => {
-    void loadConsent();
-  }, []);
-
-  useEffect(() => {
-    if (!currentConsent().analytics) return;
-    const surface = Platform.OS === "ios" ? "ios" : "android";
-    void client.analytics.track.mutate({ name: "page.view", path, surface }).catch(() => undefined);
-  }, [path]);
+export function screenView(path: string, os: string, consent: ConsentChoice): ScreenView | null {
+  if (!consent.analytics) return null;
+  return { name: "page.view", path, surface: os === "ios" ? "ios" : "android" };
 }

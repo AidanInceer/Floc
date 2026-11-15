@@ -10,13 +10,13 @@ import { fonts, size } from "@/lib/theme";
 
 const open = (path: string) => () => void Linking.openURL(`${API_BASE_URL}${path}`);
 
-export function TermsLine({ lead }: { lead: string }) {
+export function TermsLine() {
   const { c } = useTheme();
   return (
     <Text style={{ color: c["ink-3"], fontFamily: fonts.sans, fontSize: size.small }}>
-      {`${lead} `}
+      {"By continuing you agree to the "}
       <Text accessibilityRole="link" style={{ textDecorationLine: "underline" }} onPress={open("/terms")}>
-        Terms
+        Terms of use
       </Text>
       {" and the "}
       <Text accessibilityRole="link" style={{ textDecorationLine: "underline" }} onPress={open("/privacy")}>

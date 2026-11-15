@@ -92,7 +92,7 @@ export default function SignIn() {
           ) : null}
 
           <GoogleButton label="Continue with Google" onPress={withGoogle} disabled={busy} />
-          <TermsLine lead="By continuing you agree to the" />
+          <TermsLine />
 
           <OrRule label="or with email" />
 

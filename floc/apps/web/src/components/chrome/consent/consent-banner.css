@@ -1,0 +1,7 @@
+@layer components {
+  /* Why: the banner is fixed over the foot of the page, so while it shows the footer keeps that much room and its links stay in reach. */
+  body:has(.consent-banner) .site-footer { padding-bottom: 7rem; }
+  @media (max-width: 639px) {
+    body:has(.consent-banner) .site-footer { padding-bottom: 12rem; }
+  }
+}

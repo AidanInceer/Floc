@@ -28,7 +28,7 @@ import { SettingsAccount, SettingsDelete } from "@/components/settings/settings-
 import { SettingsVibeTags } from "@/components/settings/settings-about";
 import { SettingsFeedback } from "@/components/settings/settings-feedback";
 import { SettingsChoices, choicesSummary } from "@/components/settings/settings-choices";
-import { useConsentChoice } from "@/lib/consent/use-consent";
+import { useConsentChoice } from "@/components/consent/use-consent-choice";
 import { Drawer, DrawerGroup } from "@/components/system/drawer";
 import { SettingsPrivacy, type Privacy } from "@/components/settings/settings-privacy";
 import { useTheme, type ThemeChoice } from "@/components/system/theme";
@@ -195,10 +195,6 @@ function SettingsPanels({
           />
         </Drawer>
 
-        <Drawer title="Storage and analytics" summary={choicesSummary(choices)}>
-          <SettingsChoices />
-        </Drawer>
-
         <Drawer title="Your travel style" summary={travelStyleSummary(tags)}>
           <SettingsVibeTags
             tags={tags}
@@ -308,9 +304,12 @@ function SettingsPanels({
         </Drawer>
       </DrawerGroup>
 
-      <DrawerGroup label="Help">
+      <DrawerGroup label="Floc">
         <Drawer first title="Feedback">
           <SettingsFeedback />
+        </Drawer>
+        <Drawer title="Your choice" summary={choicesSummary(choices)}>
+          <SettingsChoices />
         </Drawer>
       </DrawerGroup>
 

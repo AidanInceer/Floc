@@ -71,7 +71,9 @@
     .legal-table td + td { margin-top: 0.25rem; }
     .legal-table td::before { content: attr(data-label); display: block; font-family: var(--type); font-size: var(--text-xs); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
     .legal-table td:first-child::before { content: none; }
-    .legal-table td:first-child { font-weight: 600; }
+    .legal-table td:first-child { font-weight: 600; text-wrap: balance; }
+    .legal-table td:first-child .font-mono { font-weight: 500; }
+    .legal-table td.legal-cell-short { display: inline-block; margin-right: 1.25rem; vertical-align: top; }
   }
 
   @media (prefers-reduced-motion: reduce) {

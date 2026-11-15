@@ -123,6 +123,15 @@ export function AuthForm({
     router.refresh();
   }
 
+  // Why on sign-in too, and before the first button (#549): Google here also makes a new account, and its terms record must be true.
+  const termsLine = (
+    <p className="text-xs text-ink-soft">
+      By continuing you agree to the{" "}
+      <Link href="/terms" className="underline underline-offset-2 hover:text-pen">Terms of use</Link> and the{" "}
+      <Link href="/privacy" className="underline underline-offset-2 hover:text-pen">Privacy policy</Link>.
+    </p>
+  );
+
   return (
     <Stack gap={4}>
       {justReset ? (
@@ -137,6 +146,7 @@ export function AuthForm({
             disabled={busy}
             label={mode === "signup" ? "Sign up with Google" : "Sign in with Google"}
           />
+          {termsLine}
           <div className="typed flex items-center gap-3 text-ink-faint">
             <span className="h-px flex-1 bg-rule" />
             or with email
@@ -147,6 +157,7 @@ export function AuthForm({
 
       <form onSubmit={handleSubmit} noValidate>
         <Stack gap={3}>
+          {showGoogle ? null : termsLine}
           {mode === "signup" ? (
             <Field label="Name">
               <Input
@@ -202,12 +213,6 @@ export function AuthForm({
                 ? "Create account"
                 : "Sign in"}
           </Button>
-          {/* Why on sign-in too (#549): Google here also makes a new account, and its terms record must be true. */}
-          <p className="text-xs text-ink-soft">
-            By continuing you agree to the{" "}
-            <Link href="/terms" className="underline underline-offset-2 hover:text-pen">Terms of use</Link> and the{" "}
-            <Link href="/privacy" className="underline underline-offset-2 hover:text-pen">Privacy policy</Link>.
-          </p>
         </Stack>
       </form>
     </Stack>

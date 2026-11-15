@@ -81,6 +81,7 @@ export default function SignUp() {
           <Body tone="ink-2">Takes a minute. No card needed.</Body>
 
           <GoogleButton label="Sign up with Google" onPress={withGoogle} disabled={busy} />
+          <TermsLine />
 
           <OrRule label="or with email" />
 
@@ -113,7 +114,6 @@ export default function SignUp() {
 
             {problem ? <Body tone="red">{problem}</Body> : null}
 
-            <TermsLine lead="By creating an account you agree to the" />
             <Button label="Create account" onPress={withPassword} busy={busy} />
           </View>
 

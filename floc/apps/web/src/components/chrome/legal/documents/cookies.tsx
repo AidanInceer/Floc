@@ -24,13 +24,14 @@ export async function CookiesDocument() {
       <LegalSection title="What Floc stores on your device">
         <p>Floc sets no advertising cookies and no cookies from other companies.</p>
         <LegalTable
-          head={["Name", "Kind", "Group", "What it is for", "How long"]}
+          head={["Name", "Kind", "Group", "How long", "What it is for"]}
+          short={["Kind", "Group", "How long"]}
           rows={STORAGE_LIST.map((thing) => [
             <span key="name" className="font-mono">{thing.name}</span>,
             thing.kind,
             CATEGORY_LABELS[thing.category],
-            thing.purpose,
             thing.lasts,
+            thing.purpose,
           ])}
         />
         <p>On floc.live the cookie names start with <span className="font-mono">__Secure-</span>.</p>

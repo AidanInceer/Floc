@@ -20,7 +20,7 @@ import { useLivePage, useNotesSocket, usePageList } from "@/components/notes/use
 import { useNotesData } from "@/components/notes/use-notes-data";
 import { usePageRelay } from "@/components/notes/use-page-relay";
 import { useTheme } from "@/components/system/theme";
-import { useConsentChoice } from "@/lib/consent/use-consent";
+import { useConsentChoice } from "@/components/consent/use-consent-choice";
 import { Failed, Loading } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";

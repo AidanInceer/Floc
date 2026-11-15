@@ -43,8 +43,8 @@ export const DATA_SOURCES: DataSource[] = [
     paidUse: "yes",
   },
   {
-    what: "Type: Bricolage Grotesque, Instrument Sans, DM Mono",
-    from: "Their designers, through Google Fonts",
+    what: "Typefaces",
+    from: "Bricolage Grotesque, Instrument Sans and DM Mono, through Google Fonts",
     url: "https://fonts.google.com/",
     licence: "SIL Open Font Licence 1.1",
     paidUse: "yes",
