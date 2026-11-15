@@ -27,6 +27,7 @@ export type Fact =
   | { kind: "tripOverview"; tripId: number }
   | { kind: "ideas"; tripId: number }
   | { kind: "money"; tripId: number }
+  | { kind: "estimate"; tripId: number }
   | { kind: "packing"; tripId: number }
   | { kind: "documents"; tripId: number }
   | { kind: "tripLinks"; tripId: number }
@@ -73,6 +74,8 @@ const PAGES: Pages = {
   tripOverview: ({ tripId }) => [{ path: `/trip/${tripId}/overview` }],
   ideas: ({ tripId }) => [{ path: `/trip/${tripId}/overview` }],
   money: ({ tripId }) => [{ path: `/trip/${tripId}/money` }],
+  // A member's own estimate (#574) shows on Money and as the Overview banner.
+  estimate: ({ tripId }) => [{ path: `/trip/${tripId}/money` }, { path: `/trip/${tripId}/overview` }],
   packing: ({ tripId }) => [{ path: `/trip/${tripId}/packing` }],
   // Days too since ticket 322: a file can sit on an event, and the block draws
   // a marker when it does.

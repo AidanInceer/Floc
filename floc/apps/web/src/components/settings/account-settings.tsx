@@ -19,6 +19,8 @@ import { ProStatus } from "@/components/settings/pro-status";
 import { SettingsRow, SettingsSheet } from "@/components/settings/settings-row";
 import { TravelStyle } from "@/components/settings/travel-style";
 import { TripsFields } from "@/components/settings/trips-fields";
+import { EstimateRow } from "@/components/settings/estimate-fields";
+import type { EstimateSettings } from "@floc/core/money/estimate/view";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { PACK_TIER_LABELS } from "@floc/core/packing/packing";
 import { notificationSummary, privacySummary, travelStyleSummary, tripsSummary } from "@floc/core/people/settings-summary";
@@ -56,9 +58,10 @@ export type AccountSettingsProps = {
   pro: { subscription: Subscription; prices: ProPrice[] } | null;
   opened: SettingsSection | null;
   billing?: string;
+  estimate: EstimateSettings;
 };
 
-export function AccountSettings({ email, profile, linkedAccounts, calendarGranted, pro, opened, billing }: AccountSettingsProps) {
+export function AccountSettings({ email, profile, linkedAccounts, calendarGranted, pro, opened, billing, estimate }: AccountSettingsProps) {
   const vibeTags = readVibeTags(profile.vibeTags);
   const row = (id: SettingsSection) => ({ id: `settings-${id}`, open: opened === id });
 
@@ -97,6 +100,8 @@ export function AccountSettings({ email, profile, linkedAccounts, calendarGrante
         <SettingsRow {...row("trips")} title="Trips" summary={tripsSummary(PACK_TIER_LABELS[profile.packTier], profile.homeCurrency)}>
           <TripsFields packTier={profile.packTier} packAutoGenerate={profile.packAutoGenerate} homeCurrency={profile.homeCurrency} />
         </SettingsRow>
+
+        <EstimateRow {...row("estimate")} settings={estimate} />
       </SettingsSheet>
 
       {pro ? (
