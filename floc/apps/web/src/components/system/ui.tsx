@@ -300,7 +300,7 @@ export function Avatar({
       title={title ?? name}
       aria-label={name}
       className={cx(
-        "inline-flex shrink-0 items-center justify-center rounded-sm border border-rule-strong font-mono font-semibold",
+        "inline-flex shrink-0 items-center justify-center rounded-sm font-mono font-semibold",
         tone ?? whoTone(name),
       )}
     >
