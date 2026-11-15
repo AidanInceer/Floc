@@ -6,7 +6,7 @@ import { REGIONS } from "@floc/core/trip/explore/preset-trips";
 
 import { FinderChip, linkClass } from "@/components/explore/finder/finder-chip";
 import { RangeBars } from "@/components/explore/finder/range-bars";
-import { PillToggle } from "@/components/system/client-ui";
+import { PillToggle } from "@/components/system/segment-track";
 import { cx } from "@/components/system/ui";
 import { useListingRates } from "@/components/explore/listing-rates";
 import { countWord } from "@floc/core/text/count-word";

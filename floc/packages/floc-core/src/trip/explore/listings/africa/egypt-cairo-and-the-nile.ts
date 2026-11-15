@@ -20,7 +20,7 @@ export const egyptCairoAndTheNile = defineTrip({
     { kind: "base", place: "Edfu", nights: 2, lat: 24.978, lng: 32.873 },
     { kind: "hop", place: "Aswan", mode: "ferry", detail: "a day on the river" },
     { kind: "base", place: "Aswan", nights: 3, lat: 24.089, lng: 32.899 },
-    { kind: "hop", place: "Abu Simbel", mode: "car", detail: "day trip" },
+    { kind: "hop", place: "Abu Simbel", mode: "car", detail: "day trip", lat: 22.337, lng: 31.626 },
   ],
   highlights: ["Giza before the crowds", "The Valley of the Kings", "Abu Simbel at dawn"],
   bestMonths: "October to April",

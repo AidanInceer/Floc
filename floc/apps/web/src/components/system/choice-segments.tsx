@@ -1,7 +1,5 @@
-import { cx, segmentTrack } from "./ui";
-
-const chip =
-  "block cursor-pointer whitespace-nowrap rounded-sm px-3 py-1.5 text-center text-sm font-medium text-ink-soft transition-colors duration-220 ease-(--ease) hover:bg-pen-soft hover:text-pen-deep peer-checked:bg-pen-soft peer-checked:text-pen-deep peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-pen";
+import { SegmentTrack } from "./segment-track";
+import { cx, trackRadioClass } from "./ui";
 
 export function ChoiceSegments<T extends string>({
   name,
@@ -17,13 +15,13 @@ export function ChoiceSegments<T extends string>({
   value: T;
 }) {
   return (
-    <div role="radiogroup" aria-labelledby={labelledBy} className={cx(segmentTrack, "flex flex-wrap gap-0.5", options.length === 4 && "max-sm:grid max-sm:grid-cols-2")}>
+    <SegmentTrack role="radiogroup" aria-labelledby={labelledBy} className={cx("flex flex-wrap gap-0.5", options.length === 4 && "max-sm:grid max-sm:grid-cols-2")}>
       {options.map((o) => (
         <label key={o} className="flex-auto">
           <input type="radio" name={name} value={o} defaultChecked={o === value} className="peer sr-only" />
-          <span className={chip}>{labels[o]}</span>
+          <span className={cx(trackRadioClass, "whitespace-nowrap px-3 py-1.5 text-sm")}>{labels[o]}</span>
         </label>
       ))}
-    </div>
+    </SegmentTrack>
   );
 }

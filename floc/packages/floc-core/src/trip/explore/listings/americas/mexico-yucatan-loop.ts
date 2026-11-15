@@ -16,7 +16,7 @@ export const mexicoYucatanLoop = defineTrip({
     { kind: "base", place: "Tulum", nights: 3, lat: 20.211, lng: -87.465 },
     { kind: "hop", place: "Valladolid", mode: "car", detail: "2h" },
     { kind: "base", place: "Valladolid", nights: 2, lat: 20.689, lng: -88.201 },
-    { kind: "hop", place: "Chichén Itzá", mode: "car", detail: "day trip" },
+    { kind: "hop", place: "Chichén Itzá", mode: "car", detail: "day trip", lat: 20.684, lng: -88.568 },
     { kind: "hop", place: "Mérida", mode: "car", detail: "2h 30" },
     { kind: "base", place: "Mérida", nights: 3, lat: 20.967, lng: -89.623 },
     { kind: "hop", place: "Bacalar", mode: "car", detail: "5h" },

@@ -142,7 +142,7 @@ export const PALAWAN_ISLAND_HOP: TripKnow = {
         {
           icon: "shield",
           title: "Use a reputable ferry operator",
-          text: "The UK government says the ferry network has a poor safety record and names Coron among places with sexual assaults on British nationals.",
+          text: "Pick a well-known ferry company and a boat with room on it. In Coron, go out at night with your group.",
         },
         {
           icon: "health",

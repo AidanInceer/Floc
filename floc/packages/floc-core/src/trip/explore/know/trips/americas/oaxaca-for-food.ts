@@ -108,7 +108,7 @@ export const OAXACA_FOR_FOOD: TripKnow = {
         {
           icon: "drop",
           title: "Drink bottled or boiled water",
-          text: "Avoid ice. The UK government lists dengue and Zika.",
+          text: "Avoid ice, and use repellent against mosquitoes.",
         },
         {
           icon: "shield",

@@ -156,7 +156,7 @@ export const SOSSUSVLEI_AND_SWAKOPMUND: TripKnow = {
         {
           icon: "sun",
           title: "Be off the dunes by 10:00 in summer",
-          text: "The sand and the air get dangerously hot.",
+          text: "The sand and the air get very hot after that.",
         },
         {
           icon: "moon",

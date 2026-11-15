@@ -37,7 +37,8 @@ import {
   Textarea,
   cx,
 } from "@/components/system/ui";
-import { PillToggle, SubmitButton, useSheetClose } from "@/components/system/client-ui";
+import { SubmitButton, useSheetClose } from "@/components/system/client-ui";
+import { PillToggle } from "@/components/system/segment-track";
 
 export type FormMember = { userId: string; name: string };
 export type FormDay = { id: number; date: string; label: string };

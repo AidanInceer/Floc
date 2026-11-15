@@ -30,6 +30,11 @@ describe("stopsOf", () => {
     expect(osaka.dayOuts).toEqual([{ place: "Kobe", mode: "car", detail: "1h" }]);
   });
 
+  it("carries a day out's own place on the map", () => {
+    const [kyoto] = stopsOf(listing([base("Kyoto", 3, 35, 135.8), { kind: "hop", place: "Nara", mode: "train", detail: "45m", lat: 34.7, lng: 135.8 }]));
+    expect(kyoto.dayOuts).toEqual([{ place: "Nara", mode: "train", detail: "45m", lat: 34.7, lng: 135.8 }]);
+  });
+
   it("keeps a hop before the first base as the way in, and drops a day out with no stop to leave from", () => {
     const [first] = stopsOf(listing([hop("Nowhere"), hop("Lisbon", "ferry"), base("Lisbon", 4)]));
     expect(first.arrive).toEqual({ place: "Lisbon", mode: "ferry", detail: "2h" });

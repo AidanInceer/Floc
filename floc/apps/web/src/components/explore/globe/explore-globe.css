@@ -26,30 +26,43 @@
   pointer-events: none;
 }
 
-/* A dot per listing, named on hover and when picked. The globe sets `transform`, so the dot centres with a margin. */
+/*
+ * A pin per listing, named on hover and when picked (Aidan: pins, not dots). The globe sets `transform` to the place, and the
+ * margin stands the pin's tip on it. Trips that start in one town sit side by side (`--step`, pin-steps.ts).
+ */
 .explore-pin {
   position: absolute;
   left: 0;
   top: 0;
-  width: 14px;
-  height: 14px;
-  margin: -7px 0 0 -7px;
+  width: 22px;
+  height: 24px;
+  margin: -24px 0 0 -11px;
+  translate: calc(var(--step, 0) * 15px) 0;
   pointer-events: auto;
 }
+/* Why: a finger needs more than the drawn pin. */
+@media (max-width: 639px) {
+  .explore-pin::after { content: ""; position: absolute; inset: -8px; }
+}
+/* A square with one sharp corner, turned so that corner points down at the place. */
 .explore-pin i {
-  display: block;
+  position: absolute;
+  left: 11px;
+  bottom: 0;
   width: 14px;
   height: 14px;
-  border-radius: 50%;
+  border-radius: 50% 50% 50% 0;
   border: 2px solid var(--pen);
   background: var(--sheet);
   box-shadow: var(--shadow-sm);
+  transform-origin: 0 100%;
+  rotate: -45deg;
   transition: scale 0.25s var(--ease), background-color 0.25s var(--ease);
 }
 .explore-pin span {
   position: absolute;
-  left: 20px;
-  top: 50%;
+  left: 26px;
+  top: 7px;
   translate: 0 -50%;
   white-space: nowrap;
   padding: 2px 7px;
@@ -94,8 +107,20 @@
   box-shadow: var(--shadow-sm);
 }
 .explore-atlas .atlas-world:hover { color: var(--ink); border-color: var(--pen); }
+
+/* Zoom out and in, where "Every trip" sits once a trip is open. */
+.explore-atlas .atlas-zoom {
+  position: absolute;
+  --edge: 1rem;
+  left: max(var(--edge), calc((100% - 76rem) / 2 + var(--edge)));
+  bottom: 16px;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+}
 @media (min-width: 640px) {
-  .explore-atlas .atlas-world { --edge: 1.5rem; }
+  .explore-atlas .atlas-world,
+  .explore-atlas .atlas-zoom { --edge: 1.5rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

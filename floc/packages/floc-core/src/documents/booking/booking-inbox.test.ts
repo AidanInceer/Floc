@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   BOOKING_INBOX_BYTES, bookingInboxCutoff, bookingInboxDaysLeft, bookingInboxDeleteCutoff,
-  bookingInboxLeftWords, bookingInboxNote, bookingPlacingWords, bookingsAddress,
+  bookingForwardTitle, bookingInboxLeftWords, bookingInboxNote, bookingPlacingWords, bookingPrivateWords, bookingsAddress,
 } from "./booking-inbox";
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -27,6 +27,11 @@ describe("a file's time in Bookings", () => {
   it("says a forward finds its trip only with Pro (ADR-050)", () => {
     expect(bookingPlacingWords(true)).toBe("Floc adds each one to the trip with matching dates.");
     expect(bookingPlacingWords(false)).toBe("With Pro, Floc adds each one to the trip with matching dates.");
+  });
+
+  it("asks for a forward in one short line, and says who sees the files", () => {
+    expect(bookingForwardTitle).toBe("Forward your booking emails");
+    expect(bookingPrivateWords).toBe("Only you see these files.");
   });
 
   it("holds as much as a free trip", () => {

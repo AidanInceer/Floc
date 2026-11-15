@@ -189,7 +189,7 @@ export const RAJASTHAN_FORTS_AND_PALACES: TripKnow = {
         {
           icon: "health",
           title: "Carry face masks and check the air",
-          text: "Air pollution is a major hazard from October to February in north India.",
+          text: "The air in north India is poor from October to February.",
         },
         {
           icon: "drop",
@@ -203,8 +203,8 @@ export const RAJASTHAN_FORTS_AND_PALACES: TripKnow = {
         },
         {
           icon: "shield",
-          title: "Avoid the Pakistan border area",
-          text: "The UK government advises against travel within **10 km** of it, and lists nothing for Delhi, Agra or Rajasthan.",
+          title: "Stay clear of the Pakistan border",
+          text: "UK advice is against travel within **10 km** of the border. This route does not go near it.",
         },
         {
           icon: "weather",

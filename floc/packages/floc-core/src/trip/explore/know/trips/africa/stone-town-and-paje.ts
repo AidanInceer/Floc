@@ -108,7 +108,7 @@ export const STONE_TOWN_AND_PAJE: TripKnow = {
         {
           icon: "shield",
           title: "Use hotel-arranged taxis",
-          text: "Bags are snatched in Stone Town and on beaches. Do not walk empty beaches alone at night.",
+          text: "Keep your bag close in Stone Town, and take a taxi instead of the beach path at night.",
         },
       ],
     },

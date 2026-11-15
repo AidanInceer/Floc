@@ -40,10 +40,10 @@ function nearLand(land: readonly Piece[], stop: Spot, r: number, scale: number) 
  * A listing's countries cut from the outline file, with no tiles: `codes` are filled as the trip's own, the rest of the land
  * plain. The frame fits the first stop's country when it can, the route when it cannot.
  */
-export function drawOutline(stops: readonly Spot[], codes: ReadonlySet<string>, land: readonly Piece[], size: Size): Drawing {
+export function drawOutline(stops: readonly Spot[], codes: ReadonlySet<string>, land: readonly Piece[], size: Size, also: readonly Spot[] = []): Drawing {
   if (stops.length === 0) return { home: "", other: "", islets: [], frame: null };
   const first = [...codes][0] ?? "";
-  const frame = frameFor(stops, homePiece(land, first, stops[0]!), size);
+  const frame = frameFor(stops, homePiece(land, first, stops[0]!), size, also);
   // Why: an islet under the outline's detail can fall in the sea; a patch of land under it says there is ground here. A town
   // on the shore needs none: its mark already touches the coast, and a patch there reads as a smudge.
   const islets = land.length === 0 ? [] : stops.flatMap((stop) => {

@@ -5,7 +5,8 @@ import Link from "next/link";
 import { Menu, SubmitButton } from "@/components/system/client-ui";
 import { ChevronIcon } from "@/components/system/icons";
 import { ListIcon, SparkIcon } from "@/components/system/icons/packing";
-import { buttonClass, cx, menuItemClass } from "@/components/system/ui";
+import { SegmentTrack } from "@/components/system/segment-track";
+import { buttonClass, cx, menuItemClass, trackSegmentClass } from "@/components/system/ui";
 import { PACK_TIERS, PACK_TIER_LABELS, type PackTier } from "@floc/core/packing/packing";
 
 export type FillAuto = {
@@ -43,22 +44,14 @@ function SavedLists({ kits, apply }: { kits: Kit[]; apply: (kitId: number) => Pr
 /** Why: the panel closes on any submit, and a tier is a setting you change, then Add all — so it stops here. */
 function TierTrack({ tier, setTier }: Pick<FillAuto, "tier" | "setTier">) {
   return (
-    <form action={setTier} onSubmit={(e) => e.stopPropagation()} className="flex gap-0.5 rounded-md bg-sheet-3 p-1" aria-label="How you pack">
-      {PACK_TIERS.map((t) => (
-        <button
-          key={t}
-          type="submit"
-          name="packTier"
-          value={t}
-          aria-pressed={t === tier}
-          className={cx(
-            "flex-1 rounded-sm py-1 text-[13px] transition-colors",
-            t === tier ? "bg-sheet text-ink shadow-card" : "text-ink-soft hover:text-ink",
-          )}
-        >
-          {PACK_TIER_LABELS[t]}
-        </button>
-      ))}
+    <form action={setTier} onSubmit={(e) => e.stopPropagation()} aria-label="How you pack">
+      <SegmentTrack className="flex gap-0.5">
+        {PACK_TIERS.map((t) => (
+          <button key={t} type="submit" name="packTier" value={t} aria-pressed={t === tier} className={cx(trackSegmentClass(t === tier), "flex-1 py-1 text-[13px]")}>
+            {PACK_TIER_LABELS[t]}
+          </button>
+        ))}
+      </SegmentTrack>
     </form>
   );
 }

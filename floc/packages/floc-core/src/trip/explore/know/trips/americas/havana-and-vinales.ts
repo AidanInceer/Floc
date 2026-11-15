@@ -141,12 +141,12 @@ export const HAVANA_AND_VINALES: TripKnow = {
         {
           icon: "drop",
           title: "Carry water and charge your phone",
-          text: "Power cuts and water shortages are severe.",
+          text: "Power cuts and water shortages are common.",
         },
         {
           icon: "shield",
-          title: "Stay away from protests and crowds",
-          text: "Muggings happen in Havana and opportunistic crime is increasing, so keep away from large gatherings.",
+          title: "Keep your phone and bag out of sight",
+          text: "Petty theft happens in Havana, mostly in crowds. Walk round any protest.",
         },
       ],
     },

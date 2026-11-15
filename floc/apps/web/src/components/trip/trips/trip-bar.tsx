@@ -61,9 +61,10 @@ export function TripBar({ trip, next = false }: { trip: TripCardData; next?: boo
           <TripOpenLink href={href} className="mt-1 inline-block text-ink after:absolute after:inset-0 after:content-['']">
             <h3 className="text-lg leading-tight sm:text-xl">{trip.name}</h3>
           </TripOpenLink>
-          <p className="mt-1 flex flex-wrap gap-x-2 text-sm text-ink-soft">
-            <span className="nums text-xs">{formatDateRange(trip.startDate, trip.endDate)}</span>
-            <span>{trip.where ?? "Place not set"}</span>
+          {/* Why: the dot hangs in the gap before the place, so a place that wraps to its own line leaves the dot cut off, not stranded. */}
+          <p className="nums mt-1 flex flex-wrap items-baseline gap-x-4 overflow-x-clip text-xs text-ink-soft">
+            <span>{formatDateRange(trip.startDate, trip.endDate)}</span>
+            <span className="relative before:absolute before:-left-2.5 before:content-['·']">{trip.where ?? "Place not set"}</span>
           </p>
           <div className="mt-3">
             <AvatarRow people={trip.members} size={22} />

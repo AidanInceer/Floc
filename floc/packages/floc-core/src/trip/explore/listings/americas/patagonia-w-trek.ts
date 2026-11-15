@@ -13,7 +13,7 @@ export const patagoniaWTrek = defineTrip({
     "The Perito Moreno glacier, three days of walking under Fitz Roy, then over the border for the W trek in Torres del Paine, refugio to refugio.",
   legs: [
     { kind: "base", place: "El Calafate", nights: 2, lat: -50.338, lng: -72.264, country: "AR" },
-    { kind: "hop", place: "Perito Moreno", mode: "car", detail: "day trip" },
+    { kind: "hop", place: "Perito Moreno", mode: "car", detail: "day trip", lat: -50.495, lng: -73.137 },
     { kind: "hop", place: "El Chaltén", mode: "car", detail: "3h" },
     { kind: "base", place: "El Chaltén", nights: 3, lat: -49.331, lng: -72.886, country: "AR" },
     { kind: "hop", place: "Puerto Natales", mode: "car", detail: "8h by bus" },

@@ -13,7 +13,7 @@ export const croatiaAndMontenegro = defineTrip({
     "Down the Dalmatian coast by fast ferry: Split and the falls at Krka, Hvar, Korčula, three nights in Dubrovnik, then over the border to the bay of Kotor.",
   legs: [
     { kind: "base", place: "Split", nights: 2, lat: 43.508, lng: 16.44, country: "HR" },
-    { kind: "hop", place: "Krka", mode: "car", detail: "day trip" },
+    { kind: "hop", place: "Krka", mode: "car", detail: "day trip", lat: 43.805, lng: 15.963 },
     { kind: "hop", place: "Hvar", mode: "ferry", detail: "1h" },
     { kind: "base", place: "Hvar", nights: 2, lat: 43.172, lng: 16.443, country: "HR" },
     { kind: "hop", place: "Korčula", mode: "ferry", detail: "1h 30" },

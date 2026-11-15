@@ -126,12 +126,12 @@ export const VICTORIA_FALLS_BOTH_SIDES: TripKnow = {
         {
           icon: "shield",
           title: "Keep away from hippos and crocodiles",
-          text: "Wild animals kill. Do not swim in the river outside a licensed trip.",
+          text: "They live along the Zambezi. Swim only on a licensed trip.",
         },
         {
           icon: "shield",
           title: "Check the safety record of adventure sports",
-          text: "The UK government notes serious accidents on both sides.",
+          text: "Choose an operator with a good record, and check that your insurance covers the activity.",
         },
         {
           icon: "lock",

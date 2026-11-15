@@ -3,7 +3,7 @@ import { ToggleRow } from "@/components/auth/account-ui";
 import { AutoSaveForm } from "@/components/settings/auto-save-form";
 import { CookieSettings } from "@/components/settings/cookie-settings";
 import { SettingsRow } from "@/components/settings/settings-row";
-import { panelTitleClass } from "@/components/system/ui";
+import { Button, panelTitleClass } from "@/components/system/ui";
 import type { ConsentChoice } from "@floc/core/consent/consent";
 import { dataSummary } from "@floc/core/people/settings-summary";
 
@@ -34,6 +34,13 @@ export function DataRow({
             defaultChecked={advertisingEmail}
           />
         </AutoSaveForm>
+        <section aria-labelledby="data-requests" className="flex flex-col gap-3 border-t border-rule pt-5">
+          <h3 id="data-requests" className={panelTitleClass}>Coming soon</h3>
+          <div className="flex flex-wrap gap-2">
+            <Button disabled>Request your data</Button>
+            <Button disabled>Request data deletion</Button>
+          </div>
+        </section>
       </div>
     </SettingsRow>
   );

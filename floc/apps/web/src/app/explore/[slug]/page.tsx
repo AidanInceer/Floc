@@ -9,12 +9,15 @@ import { tripKnow } from "@floc/core/trip/explore/know/trip-knows";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { TripHero } from "@/components/explore/trip/trip-hero";
 import { TripKnow } from "@/components/explore/trip/trip-know";
 import { TripPlan } from "@/components/explore/trip/trip-plan";
 import { SavedTripsProvider } from "@/components/explore/save/saved-trips";
+import { ChevronIcon } from "@/components/system/icons";
+import { buttonClass, cx } from "@/components/system/ui";
 import { ListingWishProvider } from "@/components/lists/wish/listing-wish";
 import { wishListParam } from "@/lib/landing/start-trip";
 import { listWishListsFor, wishListPeopleToAsk } from "@/server/wish-lists/wish-lists";
@@ -59,6 +62,10 @@ export default async function ExploreTripPage({ params, searchParams }: Props) {
     <SavedTripsProvider ids={saved} signedIn={!!userId}>
       <ListingWishProvider value={{ lists, along }}>
         <div className="mx-auto w-full max-w-[84rem] px-4 pb-32 pt-6 sm:px-6 lg:pb-24">
+          <Link href="/explore" className={cx(buttonClass("ghost"), "mb-3")}>
+            <ChevronIcon direction="left" size={12} />
+            Every trip
+          </Link>
           <TripHero trip={trip} figures={plan.inPlan} rates={rates} />
           <TripPlan trip={trip} plan={plan} signedIn={!!userId} startOpen={query.start !== undefined} />
           <TripKnow know={tripKnow(trip.id)} />

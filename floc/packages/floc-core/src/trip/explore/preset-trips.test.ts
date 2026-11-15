@@ -57,6 +57,18 @@ describe("preset trip shape", () => {
     }
   });
 
+  it("puts every day out on the map, within a day's reach of the base it leaves from", () => {
+    for (const preset of PRESET_TRIPS) {
+      preset.legs.forEach((leg, i) => {
+        if (leg.kind !== "hop" || preset.legs[i + 1]?.kind === "base") return;
+        const from = preset.legs.slice(0, i).reverse().find((l) => l.kind === "base");
+        if (from?.kind !== "base") return;
+        const near = leg.lat !== undefined && leg.lng !== undefined && Math.hypot(leg.lat - from.lat, leg.lng - from.lng) < 3;
+        expect(near, `${preset.id}: ${leg.place}`).toBe(true);
+      });
+    }
+  });
+
   it("puts every base somewhere on the map", () => {
     for (const preset of PRESET_TRIPS) {
       for (const leg of preset.legs) {

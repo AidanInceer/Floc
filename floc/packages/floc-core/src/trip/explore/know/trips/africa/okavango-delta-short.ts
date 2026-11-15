@@ -98,12 +98,12 @@ export const OKAVANGO_DELTA_SHORT: TripKnow = {
         {
           icon: "health",
           title: "Take malaria cover and repellent",
-          text: "Malaria risk is low June to September and high October to May. Ask a clinic. Ticks and schistosomiasis (a parasite in fresh water) are listed risks.",
+          text: "Malaria risk is low June to September and higher October to May. Ask a travel clinic, and use repellent.",
         },
         {
           icon: "drop",
           title: "Stay out of rivers and lakes",
-          text: "Animals and disease are the risk. Do not touch carcasses: anthrax occurs in wild animals.",
+          text: "Hippos and crocodiles live in the water, so swim in the camp pool. Leave any dead animal alone, as it can carry disease.",
         },
         {
           icon: "shield",

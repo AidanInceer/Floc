@@ -13,10 +13,10 @@ export const portoToSeville = defineTrip({
     "Port lodges and the Douro, trams and Sintra from Lisbon, a night inside Évora's walls, three beach days in the Algarve, then over the border to Seville.",
   legs: [
     { kind: "base", place: "Porto", nights: 2, lat: 41.158, lng: -8.629, country: "PT" },
-    { kind: "hop", place: "Douro valley", mode: "car", detail: "day trip" },
+    { kind: "hop", place: "Douro valley", mode: "car", detail: "day trip", lat: 41.19, lng: -7.546 },
     { kind: "hop", place: "Lisbon", mode: "train", detail: "3h" },
     { kind: "base", place: "Lisbon", nights: 3, lat: 38.722, lng: -9.139, country: "PT" },
-    { kind: "hop", place: "Sintra", mode: "train", detail: "day trip" },
+    { kind: "hop", place: "Sintra", mode: "train", detail: "day trip", lat: 38.798, lng: -9.388 },
     { kind: "hop", place: "Évora", mode: "car", detail: "1h 30" },
     { kind: "base", place: "Évora", nights: 1, lat: 38.571, lng: -7.909, country: "PT" },
     { kind: "hop", place: "Lagos", mode: "car", detail: "3h" },

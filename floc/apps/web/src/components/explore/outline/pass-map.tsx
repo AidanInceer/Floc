@@ -43,7 +43,9 @@ export function PassMap({ trip }: { trip: PresetTrip }) {
   const shown = useRef<string | null>(null);
   const box = useBox(canvas);
   const route = useMemo(() => tripRoute(trip), [trip]);
-  const d = useMemo(() => (box ? drawOutline(route.stops, tripCodes(trip.country, route.stops, land), land, box) : null), [route, trip.country, land, box]);
+  // Why: a day out is drawn as far as its real place, so the frame must hold that place too (Abu Simbel from Aswan).
+  const outs = useMemo(() => (route.outs ?? []).flatMap((o) => (o.lat !== undefined && o.lng !== undefined ? [{ lat: o.lat, lng: o.lng }] : [])), [route]);
+  const d = useMemo(() => (box ? drawOutline(route.stops, tripCodes(trip.country, route.stops, land), land, box, outs) : null), [route, trip.country, land, box, outs]);
 
   useEffect(() => {
     const node = canvas.current;

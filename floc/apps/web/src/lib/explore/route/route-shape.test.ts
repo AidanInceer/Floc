@@ -66,6 +66,40 @@ describe("routeShape", () => {
     expect(routeShape(route, at, OPTS).pieces.map((p) => p.kind)).toEqual(["out", "leg"]);
   });
 
+  it("sends a day out towards its own place, and no shorter than the least spur", () => {
+    const route: TripRoute = {
+      stops: [{ place: "Kyoto", lat: 0, lng: 0 }, { place: "Osaka", lat: -1, lng: -10 }],
+      moves: [{ mode: "train", time: "30m" }],
+      outs: [{ at: 0, place: "Nara", mode: "train", lat: -1, lng: 0 }],
+    };
+    const [out] = routeShape(route, at, OPTS).pieces;
+    const tip = out!.px[out!.mid]!;
+    expect(tip.x).toBeCloseTo(0);
+    expect(tip.y).toBeCloseTo(OPTS.out);
+  });
+
+  it("sends a day out away from the trip's middle when its own place would land on another stop", () => {
+    const route: TripRoute = {
+      stops: [{ place: "Torridon", lat: 0, lng: 0 }, { place: "Skye", lat: -1.5, lng: 0 }],
+      moves: [{ mode: "car", time: "1h" }],
+      outs: [{ at: 0, place: "Applecross", mode: "car", lat: -1.4, lng: 0.1 }],
+    };
+    const [out] = routeShape(route, at, OPTS).pieces;
+    const tip = out!.px[out!.mid]!;
+    expect(tip.x).toBeCloseTo(0);
+    expect(tip.y).toBeCloseTo(-OPTS.out);
+  });
+
+  it("draws a day out as far as its place when that is past the least spur", () => {
+    const route: TripRoute = {
+      stops: [{ place: "Aswan", lat: 0, lng: 0 }, { place: "Luxor", lat: 10, lng: 0 }],
+      moves: [{ mode: "train", time: "3h" }],
+      outs: [{ at: 0, place: "Abu Simbel", mode: "car", lat: -3, lng: -4 }],
+    };
+    const [out] = routeShape(route, at, OPTS).pieces;
+    expect(out!.px[out!.mid]).toEqual({ x: -80, y: 60 });
+  });
+
   it("gives a leg its mark only when it is long enough to hold it", () => {
     const route: TripRoute = {
       stops: [{ place: "A", lat: 0, lng: 0 }, { place: "B", lat: 0, lng: 1 }, { place: "C", lat: 0, lng: 6 }, { place: "D", lat: 0, lng: 30 }],
