@@ -1,0 +1,1 @@
+ALTER TABLE `user_profile` ADD `calendar_all_day_only` integer DEFAULT false NOT NULL;

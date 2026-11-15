@@ -29,6 +29,7 @@ import {
   revokeGoogleGrant,
 } from "@/server/calendar/calendar-import";
 import { setAvailability } from "@/server/itinerary/availability";
+import { calendarAllDayOnly, setCalendarAllDayOnly } from "@/server/calendar/calendar-options";
 
 let world: Scenario;
 const fetchMock = vi.fn();
@@ -89,6 +90,24 @@ describe("fillFromCalendar", () => {
     ]);
   });
 
+  it("leaves a day with only timed events free once you keep all-day events only", async () => {
+    await link(GOOGLE_CALENDAR_SCOPE);
+    await setCalendarAllDayOnly(world.member, true);
+    fetchMock.mockReturnValueOnce(answer([timed("2027-09-05"), { start: { date: "2027-09-07" }, end: { date: "2027-09-08" } }]));
+
+    expect(await run()).toEqual({ status: "filled", free: 4, busy: 1 });
+    expect((await marks()).filter((m) => !m.available).map((m) => m.date)).toEqual(["2027-09-07"]);
+  });
+
+  it("remembers all-day only per person, off until set", async () => {
+    expect(await calendarAllDayOnly(world.member)).toBe(false);
+    await setCalendarAllDayOnly(world.member, true);
+    expect(await calendarAllDayOnly(world.member)).toBe(true);
+    expect(await calendarAllDayOnly(world.admin)).toBe(false);
+    await setCalendarAllDayOnly(world.member, false);
+    expect(await calendarAllDayOnly(world.member)).toBe(false);
+  });
+
   it("keeps days marked by hand, either way", async () => {
     await link(GOOGLE_CALENDAR_SCOPE);
     await setAvailability(world.ours.id, world.member, ["2027-09-05"], true);
@@ -108,7 +127,7 @@ describe("fillFromCalendar", () => {
     expect(out).toEqual({ status: "filled", free: 28, busy: 0 });
   });
 
-  it("asks for start, end, status and your own reply, from the primary calendar only", async () => {
+  it("asks for start, end, status, type and your own reply, from the primary calendar only", async () => {
     await link(GOOGLE_CALENDAR_SCOPE);
     fetchMock.mockReturnValueOnce(answer([]));
     await run();
@@ -117,7 +136,7 @@ describe("fillFromCalendar", () => {
     const u = new URL(url);
     expect(u.pathname).toBe("/calendar/v3/calendars/primary/events");
     expect(u.searchParams.get("singleEvents")).toBe("true");
-    expect(u.searchParams.get("fields")).toBe("nextPageToken,items(status,start,end,attendees(self,responseStatus))");
+    expect(u.searchParams.get("fields")).toBe("nextPageToken,items(status,eventType,start,end,attendees(self,responseStatus))");
     expect(u.searchParams.get("timeMin")).toBe("2027-09-03T00:00:00Z");
     expect(u.searchParams.get("timeMax")).toBe("2027-09-10T00:00:00Z");
     expect((init.headers as Record<string, string>).Authorization).toBe("Bearer tok");

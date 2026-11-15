@@ -36,6 +36,7 @@ import {
   SubmitButton,
 } from "@/components/system/client-ui";
 import { calendarEnabled } from "@/server/calendar/calendar-import";
+import { calendarAllDayOnly } from "@/server/calendar/calendar-options";
 import { DatesBoard } from "@/components/availability/dates-board";
 import { DatesFold } from "@/components/availability/dates-fold";
 import { BestWindowCard } from "@/components/availability/best-window-card";
@@ -49,6 +50,7 @@ import {
   clearMyAvailability,
   clearTripDates,
   fillFromGoogleCalendar,
+  keepCalendarAllDayOnly,
   removeTripGuest,
   saveAvailability,
   setTripDates,
@@ -72,7 +74,7 @@ export default async function DatesPage({
   const tripId = trip.id;
 
   const files = documentsEnabled();
-  const [rows, dayLoads, routeDays, forecast, weatherPro, bookingPrefill, guests, docs, sites] = await Promise.all([
+  const [rows, dayLoads, routeDays, forecast, weatherPro, bookingPrefill, guests, docs, sites, allDayOnly] = await Promise.all([
     listAvailability(tripId),
     listDayLoads(tripId),
     listRouteDays(tripId),
@@ -85,6 +87,7 @@ export default async function DatesPage({
     // Rule 11: no storage volume, no files — and no query for them.
     files ? listDocuments(tripId, viewer.id) : Promise.resolve([]),
     bookingSitesOf(viewer.id),
+    calendarEnabled() ? calendarAllDayOnly(viewer.id) : Promise.resolve(false),
   ]);
 
   const free = rows.filter((r) => r.available);
@@ -148,7 +151,12 @@ export default async function DatesPage({
       tripId={tripId}
       calendar={
         calendarEnabled()
-          ? { fill: fillFromGoogleCalendar.bind(null, tripId), returned: calendar === "fill" || calendar === "refused" ? calendar : null }
+          ? {
+              fill: fillFromGoogleCalendar.bind(null, tripId),
+              returned: calendar === "fill" || calendar === "refused" ? calendar : null,
+              allDayOnly,
+              keepAllDayOnly: keepCalendarAllDayOnly,
+            }
           : null
       }
       firstMonth={firstMonth}

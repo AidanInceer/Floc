@@ -8,13 +8,18 @@ import type { FlocPort } from "@floc/api/port";
 
 import { scoped } from "@/server/api-port/api-port-scope";
 import { calendarEnabled, fillFromCalendar, hasCalendarAccess, removeCalendarAccess } from "@/server/calendar/calendar-import";
+import { calendarAllDayOnly, setCalendarAllDayOnly } from "@/server/calendar/calendar-options";
 import { refresh } from "@/server/freshness";
 
-type CalendarPort = Pick<FlocPort, "calendarAccess" | "fillFromCalendar" | "removeCalendarAccess">;
+type CalendarPort = Pick<FlocPort, "calendarAccess" | "fillFromCalendar" | "setCalendarAllDayOnly" | "removeCalendarAccess">;
 
 export const calendarImportPort: CalendarPort = {
   async calendarAccess(viewerId) {
-    return { enabled: calendarEnabled(), granted: await hasCalendarAccess(viewerId) };
+    return {
+      enabled: calendarEnabled(),
+      granted: await hasCalendarAccess(viewerId),
+      allDayOnly: await calendarAllDayOnly(viewerId),
+    };
   },
 
   async fillFromCalendar(viewerId, tripId, month) {
@@ -31,6 +36,8 @@ export const calendarImportPort: CalendarPort = {
     }
     return result;
   },
+
+  setCalendarAllDayOnly: (viewerId, on) => setCalendarAllDayOnly(viewerId, on),
 
   async removeCalendarAccess(viewerId) {
     const refusal = await removeCalendarAccess(viewerId);

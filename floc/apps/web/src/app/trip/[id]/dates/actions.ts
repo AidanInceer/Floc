@@ -5,12 +5,13 @@
 // server/itinerary/itinerary.ts since the window decides which days exist (ticket 140).
 import { isIsoDate } from "@floc/core/dates/dates";
 import { windowProblem } from "@floc/core/trip/trip-window";
-import { requireTripAccess } from "@/server/access";
+import { requireTripAccess, requireUser } from "@/server/access";
 import { setTripWindow } from "@/server/itinerary/itinerary";
 import { clearAvailabilityFor, setAvailability } from "@/server/itinerary/availability";
 import { refresh } from "@/server/freshness";
 import { removeGuest } from "@/server/guests/guests";
 import { fillFromCalendar, type CalendarFill } from "@/server/calendar/calendar-import";
+import { setCalendarAllDayOnly } from "@/server/calendar/calendar-options";
 
 // Client-provided, so checked not trusted; isIsoDate rejects impossible
 // well-shaped dates like 2026-02-31 (ticket 113).
@@ -107,4 +108,11 @@ export async function fillFromGoogleCalendar(tripId: number, month: string): Pro
     refresh({ kind: "tripDates", tripId: access.trip.id }, { kind: "tripOverview", tripId: access.trip.id });
   }
   return result;
+}
+
+// The viewer's own import choice (ADR-031): not a trip setting, so it needs a session, not a trip.
+export async function keepCalendarAllDayOnly(on: boolean): Promise<void> {
+  if (typeof on !== "boolean") throw new Error("Not a choice.");
+  const viewer = await requireUser();
+  await setCalendarAllDayOnly(viewer.id, on);
 }

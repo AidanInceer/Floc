@@ -13,7 +13,7 @@ import { dayLook } from "@/components/availability/day-look";
 import { ForecastPanel } from "@/components/availability/forecast-panel";
 import { useCalendarSlots } from "@/components/availability/calendar-fill";
 import { MonthGrid, type DayView } from "@/components/availability/month-grid";
-import type { CalendarFillResult, CalendarReturn } from "@/components/availability/use-calendar-fill";
+import type { CalendarSource } from "@/components/availability/use-calendar-fill";
 import { useAvailabilityPaint } from "@/components/availability/use-availability-paint";
 import { useWindowPick } from "@/components/availability/use-window-pick";
 import { addMonths, type IsoMonth } from "@floc/core/dates/availability";
@@ -42,7 +42,7 @@ export type DatesBoardProps = {
   save: (add: string[], remove: string[]) => Promise<void>;
   saveDates: (start: string | null, end: string | null) => Promise<{ error?: string }>;
   /** Null with no Google key: no button, no menu item (rule 11). */
-  calendar: { fill: (month: string) => Promise<CalendarFillResult>; returned: CalendarReturn } | null;
+  calendar: CalendarSource | null;
 };
 
 // Only the trip's own days carry weather (ticket 148).

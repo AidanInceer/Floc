@@ -1,6 +1,6 @@
 /**
  * Google's calendar API, and nothing else (#444, ADR-031). Asks for each event's start, end,
- * status and the person's own reply, so titles, places, notes and guests never leave Google.
+ * status, type and the person's own reply, so titles, places, notes and guests never leave Google.
  *
  * Why nothing is logged here: an event, a token or an address is personal data. A failure says
  * only which kind it was.
@@ -32,7 +32,7 @@ function eventsUrl(range: ImportRange, pageToken: string | null): string {
     maxResults: "250",
     // Why 1: more attendees would come back with their addresses; one keeps only the person's own.
     maxAttendees: "1",
-    fields: "nextPageToken,items(status,start,end,attendees(self,responseStatus))",
+    fields: "nextPageToken,items(status,eventType,start,end,attendees(self,responseStatus))",
   });
   if (pageToken) q.set("pageToken", pageToken);
   return `${EVENTS_URL}?${q}`;

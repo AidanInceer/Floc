@@ -1,7 +1,10 @@
 /** The calendar-import half of the port (#444, ADR-031). Only the viewer's own days are ever written. */
 
-/** Whether Floc can offer Google Calendar at all (a key is set), and whether this person has already given access. */
-export type CalendarAccess = { enabled: boolean; granted: boolean };
+/**
+ * Whether Floc can offer Google Calendar at all (a key is set), whether this person has already given
+ * access, and whether their import counts all-day events only.
+ */
+export type CalendarAccess = { enabled: boolean; granted: boolean; allDayOnly: boolean };
 
 /**
  * What one read of the primary calendar came to. `needs-access` means Google has not been given the
@@ -21,6 +24,9 @@ export type CalendarImportPort = {
    * (`YYYY-MM`). Hand marks are kept; nothing from the calendar is stored.
    */
   fillFromCalendar(viewerId: string, tripId: number, month: string): Promise<CalendarFill>;
+
+  /** Remembers whether this person's import counts all-day events only (ADR-031). */
+  setCalendarAllDayOnly(viewerId: string, on: boolean): Promise<void>;
 
   /** Revokes the calendar at Google, then forgets it. Null when done; otherwise the sentence that says why not. */
   removeCalendarAccess(viewerId: string): Promise<string | null>;

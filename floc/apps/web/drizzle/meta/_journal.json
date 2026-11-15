@@ -414,6 +414,13 @@
       "when": 1794680733443,
       "tag": "0058_great_iron_monger",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "6",
+      "when": 1794745733320,
+      "tag": "0059_flaky_stingray",
+      "breakpoints": true
     }
   ]
 }
