@@ -2,6 +2,7 @@
  * The one line under each closed Settings row, the same on web and phone.
  * It answers the row, so a closed row tells you what is set without opening it.
  */
+import { consentSummary, type ConsentChoice } from "../consent/consent";
 import { ringTicks, type Visibility } from "./visibility";
 
 export function privacySummary({ isPrivate, rings }: { isPrivate: boolean; rings: Visibility[] }): string {
@@ -28,4 +29,8 @@ const NOTIFY_WORDS = { push: "Push", email: "Email", reminders: "Reminders", nex
 export function notificationSummary(notify: Record<keyof typeof NOTIFY_WORDS, boolean>): string {
   const on = (Object.keys(NOTIFY_WORDS) as (keyof typeof NOTIFY_WORDS)[]).filter((k) => notify[k]);
   return on.length ? on.map((k) => NOTIFY_WORDS[k]).join(", ") : "All off";
+}
+
+export function dataSummary(consent: ConsentChoice | null, advertisingEmail: boolean): string {
+  return `${consentSummary(consent)}, advertising email ${advertisingEmail ? "on" : "off"}`;
 }

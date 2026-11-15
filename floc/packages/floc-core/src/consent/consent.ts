@@ -19,6 +19,15 @@ export const CONSENT_CATEGORIES = [
   { key: "analytics", label: "Analytics", detail: "Allow us to count which pages are visited, so that we can improve the service. No cookie is set and no information that identifies you is recorded." },
 ] as const;
 
+/** The closed Settings row's line for a choice. */
+export function consentSummary(choice: ConsentChoice | null): string {
+  if (!choice) return "Not chosen yet";
+  if (choice.functional && choice.analytics) return "Preferences and analytics on";
+  if (choice.analytics) return "Analytics on";
+  if (choice.functional) return "Preferences on";
+  return "Optional cookies off";
+}
+
 const FORMAT = /^1\.f([01])\.a([01])\.(\d{4}-\d{2}-\d{2})$/;
 
 /** The stored form. `day` is when the choice was made; the reader, not the cookie's own age, decides when it lapses. */

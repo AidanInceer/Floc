@@ -17,6 +17,7 @@ import { Badge } from "@/components/system/ui";
 import { FaceEditor } from "@/components/profile/face-editor";
 import { AccountTabs } from "@/components/chrome/account-tabs";
 import { AccountSettings } from "@/components/settings/account-settings";
+import { requestConsent } from "@/server/consent/consent";
 import { readEstimateSettings } from "@/server/money/estimate/estimate-settings";
 
 export const metadata = { title: "Your profile" };
@@ -74,6 +75,7 @@ export default async function ProfilePage({
             opened={settingsSectionFor(asked, proOff)}
             billing={asked.billing}
             estimate={estimate}
+            consent={await requestConsent()}
           />
         </div>
       </AccountPage>

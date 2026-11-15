@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  dataSummary,
   notificationSummary,
   privacySummary,
   travelStyleSummary,
@@ -58,5 +59,12 @@ describe("notification summary", () => {
 
   it("says when all are off", () => {
     expect(notificationSummary({ push: false, email: false, reminders: false, nextTrip: false })).toBe("All off");
+  });
+});
+
+describe("the Your data line", () => {
+  it("names the cookie choice, then advertising email, with a comma", () => {
+    expect(dataSummary({ functional: false, analytics: true }, false)).toBe("Analytics on, advertising email off");
+    expect(dataSummary(null, true)).toBe("Not chosen yet, advertising email on");
   });
 });

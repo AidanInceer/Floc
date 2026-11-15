@@ -1,4 +1,4 @@
-const SETTINGS_SECTIONS = ["privacy", "about-you", "trips", "estimate", "billing", "notifications", "account", "data", "delete"] as const;
+const SETTINGS_SECTIONS = ["privacy", "about-you", "trips", "estimate", "billing", "notifications", "account", "data"] as const;
 export type SettingsSection = (typeof SETTINGS_SECTIONS)[number];
 
 type Asked = { section?: string; billing?: string };
