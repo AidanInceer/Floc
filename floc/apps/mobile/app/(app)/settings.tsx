@@ -26,6 +26,7 @@ import { ScrollView, View } from "react-native";
 import { ProSection } from "@/components/billing/pro-section";
 import { SettingsAccount, SettingsDelete } from "@/components/settings/settings-account";
 import { SettingsVibeTags } from "@/components/settings/settings-about";
+import { SettingsFeedback } from "@/components/settings/settings-feedback";
 import { Drawer, DrawerGroup } from "@/components/system/drawer";
 import { SettingsPrivacy, type Privacy } from "@/components/settings/settings-privacy";
 import { useTheme, type ThemeChoice } from "@/components/system/theme";
@@ -297,6 +298,12 @@ function SettingsPanels({
                 : null
             }
           />
+        </Drawer>
+      </DrawerGroup>
+
+      <DrawerGroup label="Help">
+        <Drawer first title="Feedback">
+          <SettingsFeedback />
         </Drawer>
       </DrawerGroup>
 

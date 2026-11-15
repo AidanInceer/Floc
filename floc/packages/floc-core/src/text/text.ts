@@ -28,6 +28,8 @@ export const TEXT_CAPS = {
   packingKitName: 80,
   /** One idea on the overview — a line, not a paragraph. */
   ideaTitle: 140,
+  /** One message to Floc (#271). */
+  feedback: 2000,
 } as const;
 
 export type TextCap = keyof typeof TEXT_CAPS;

@@ -54,6 +54,17 @@
     box-shadow: var(--shadow);
   }
 
+  .legal-prose { color: var(--ink); font-size: var(--text-base); line-height: 1.6; }
+  .legal-prose > * + * { margin-top: 0.75rem; }
+  .legal-prose h3 { margin-top: 1.5rem; font-size: var(--text-lg); font-weight: 600; }
+  .legal-prose ul { padding-left: 1.25rem; list-style: disc; }
+  .legal-prose li + li { margin-top: 0.25rem; }
+  .legal-prose a { color: var(--pen); text-decoration: underline; text-underline-offset: 2px; }
+  .legal-prose a:hover { color: var(--pen-deep); }
+  .legal-prose table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+  .legal-prose th, .legal-prose td { padding: 0.5rem 0.75rem 0.5rem 0; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: top; }
+  .legal-prose th { font-weight: 600; }
+
   @media (prefers-reduced-motion: reduce) {
     .legal-sheet-dim, .legal-sheet-panel { transition: none; }
   }

@@ -17,6 +17,8 @@ export type OutboundEmail = {
   cta?: { label: string; url: string };
   /** CTA carries a credential; keep it out of production logs (#149). */
   sensitive?: boolean;
+  /** Where an answer goes: the member who wrote in, for mail to Floc's own mailbox (#271). */
+  replyTo?: string;
 };
 
 /**
@@ -43,7 +45,8 @@ function resend(key: string) {
   return resendClient;
 }
 
-async function deliver(email: OutboundEmail): Promise<void> {
+/** False only when the provider refused the mail; the console fallback counts as delivered (rule 11). */
+async function deliver(email: OutboundEmail): Promise<boolean> {
   const html = renderShell(email);
   const from = process.env.EMAIL_FROM ?? "Floc <no-reply@floc.live>";
   const key = process.env.RESEND_API_KEY;
@@ -59,21 +62,23 @@ async function deliver(email: OutboundEmail): Promise<void> {
         showCta ? `\n${email.cta!.label}: ${email.cta!.url}` : ""
       }`,
     );
-    return;
+    return true;
   }
 
   const client = await resend(key);
-  await client.emails.send({
+  const { error } = await client.emails.send({
     from,
     to: email.to,
     subject: email.subject,
     html,
+    ...(email.replyTo ? { replyTo: email.replyTo } : {}),
   });
+  return !error;
 }
 
 /** The one send entry point (ticket 111): a single send is a batch of one. */
-export async function sendEmails(batch: OutboundEmail[]): Promise<void> {
-  await Promise.all(batch.map(deliver));
+export async function sendEmails(batch: OutboundEmail[]): Promise<boolean[]> {
+  return Promise.all(batch.map(deliver));
 }
 
 /** `ada@floc.example` → `a…a@floc.example`: enough to tell apart, not enough to be an address. */

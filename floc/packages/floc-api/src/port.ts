@@ -35,6 +35,7 @@ import type { FriendsPort } from "./port/friends";
 import type { NotificationsPort } from "./port/notifications";
 import type { CommentsPort } from "./port/comments";
 import type { WishListsPort } from "./port/wish-lists";
+import type { FeedbackPort } from "./port/feedback";
 
 export type * from "./port/account";
 export type * from "./port/trips";
@@ -93,6 +94,7 @@ export type FlocPort = AccountPort &
   NotificationsPort &
   CommentsPort &
   WishListsPort &
+  FeedbackPort &
   ExplorePort &
   PagesPort &
   import("./port-calendar").CalendarImportPort;

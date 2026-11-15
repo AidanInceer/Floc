@@ -10,6 +10,7 @@ import { billingRouter } from "./routers/billing";
 import { bookingsRouter } from "./routers/bookings/bookings";
 import { commentsRouter } from "./routers/comments";
 import { exploreRouter } from "./routers/explore";
+import { feedbackRouter } from "./routers/feedback/feedback";
 import { filesRouter } from "./routers/files";
 import { friendsRouter } from "./routers/friends";
 import { groupsRouter } from "./routers/groups";
@@ -56,6 +57,7 @@ export const appRouter = router({
   availability: availabilityRouter,
   billing: billingRouter,
   notifications: notificationsRouter,
+  feedback: feedbackRouter,
 });
 
 export type AppRouter = typeof appRouter;
