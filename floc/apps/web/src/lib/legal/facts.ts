@@ -6,11 +6,15 @@ export const CONTACT_EMAIL = "hello@floc.live";
 export const CONTRACTING_PARTY = "Aidan Inceer, trading as Floc";
 
 /**
- * Not known yet, so the pages say so and do not guess. Fill both before Floc takes real payment (#551):
- * UK distance-selling rules need a postal address, and the privacy policy must say where data is held.
+ * Why (#549): UK distance-selling rules need a postal address before Floc takes payment, and a sole trader's
+ * address is often a home. It lives in the server's settings (FLOC_POSTAL_ADDRESS), not in the code.
  */
-export const POSTAL_ADDRESS: string | null = null;
-export const DATA_LOCATION: string | null = null;
+export function postalAddress(): string | null {
+  return process.env.FLOC_POSTAL_ADDRESS?.trim() || null;
+}
 
 export const ADDRESS_GAP = "A postal address will be shown here before Floc takes any payment.";
-export const LOCATION_GAP = "The countries where these companies hold Floc's data will be listed here before Floc takes any payment.";
+
+/** Railway runs floc-web in europe-west4 (the Netherlands); the Turso database is in aws-eu-west-1 (Ireland). */
+export const DATA_LOCATION =
+  "Floc's website and files are in the Netherlands, and its database is in Ireland. Email, payment, notifications and sign-in with Google can hold data in the United States. When data leaves the UK and the EU, we rely on the UK's data bridge with the United States or on the contract terms the UK approves for this.";

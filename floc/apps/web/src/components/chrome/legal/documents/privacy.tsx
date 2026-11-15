@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { ANALYTICS_KEEP_DAYS } from "@floc/core/analytics/events";
 
-import { CONTACT_EMAIL, CONTRACTING_PARTY, DATA_LOCATION, LOCATION_GAP } from "@/lib/legal/facts";
+import { CONTACT_EMAIL, CONTRACTING_PARTY, DATA_LOCATION } from "@/lib/legal/facts";
 import { DATA_HELD, DATA_KEPT, DATA_RECEIVERS } from "@/lib/legal/privacy-facts";
 
 import { LegalSection, LegalTable } from "../legal-prose";
@@ -35,7 +35,7 @@ export function PrivacyDocument() {
         <p>These companies handle data for us, only to run Floc. None of them may use it for their own purposes.</p>
         <LegalTable head={["Company", "What for", "What it receives"]} rows={DATA_RECEIVERS.map((row) => [row.who, row.job, row.receives])} />
         <p>The people on a trip see what is added to that trip. Your profile shows other people only what your privacy settings allow.</p>
-        <p>{DATA_LOCATION ?? LOCATION_GAP}</p>
+        <p>{DATA_LOCATION}</p>
       </LegalSection>
 
       <LegalSection title="How long we keep it">

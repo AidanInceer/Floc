@@ -1,9 +1,10 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DATA_SOURCES } from "./data-sources";
+import { DATA_LOCATION, postalAddress } from "./facts";
 import { DATA_RECEIVERS } from "./privacy-facts";
 
 const server = (path: string) => readFileSync(join(process.cwd(), "src/server", path), "utf8").toLowerCase();
@@ -33,5 +34,24 @@ describe("what the legal pages say about outside services", () => {
 
   it("has a written fix beside every source a paid product may not use freely", () => {
     for (const source of DATA_SOURCES.filter((s) => s.paidUse !== "yes")) expect(source.note, source.what).toBeTruthy();
+  });
+});
+
+describe("the facts the legal pages state about Floc itself", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("takes the postal address from FLOC_POSTAL_ADDRESS, so it is not in the code", () => {
+    vi.stubEnv("FLOC_POSTAL_ADDRESS", "  1 High Street, Bristol, BS1 1AA  ");
+    expect(postalAddress()).toBe("1 High Street, Bristol, BS1 1AA");
+  });
+
+  it("has no postal address when FLOC_POSTAL_ADDRESS is empty, so the page shows the gap", () => {
+    vi.stubEnv("FLOC_POSTAL_ADDRESS", " ");
+    expect(postalAddress()).toBeNull();
+  });
+
+  it("names the countries where the website and the database run", () => {
+    expect(DATA_LOCATION).toContain("Netherlands");
+    expect(DATA_LOCATION).toContain("Ireland");
   });
 });

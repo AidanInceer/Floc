@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { ADDRESS_GAP, CONTACT_EMAIL, CONTRACTING_PARTY, POSTAL_ADDRESS } from "@/lib/legal/facts";
+import { ADDRESS_GAP, CONTACT_EMAIL, CONTRACTING_PARTY, postalAddress } from "@/lib/legal/facts";
 import { DATA_SOURCES } from "@/lib/legal/data-sources";
 
 import { LegalSection, LegalTable } from "../legal-prose";
@@ -13,7 +13,7 @@ export function LegalNoticeDocument() {
           Floc is run by {CONTRACTING_PARTY}, a sole trader in the United Kingdom. Floc is not a company, and it is
           not a travel agent or a tour operator.
         </p>
-        <p>{POSTAL_ADDRESS ?? ADDRESS_GAP}</p>
+        <p>{postalAddress() ?? ADDRESS_GAP}</p>
         <p>
           Email: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
         </p>
