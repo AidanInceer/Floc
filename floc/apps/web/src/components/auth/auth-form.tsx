@@ -202,6 +202,12 @@ export function AuthForm({
                 ? "Create account"
                 : "Sign in"}
           </Button>
+          {/* Why on sign-in too (#549): Google here also makes a new account, and its terms record must be true. */}
+          <p className="text-xs text-ink-soft">
+            By continuing you agree to the{" "}
+            <Link href="/terms" className="underline underline-offset-2 hover:text-pen">Terms of use</Link> and the{" "}
+            <Link href="/privacy" className="underline underline-offset-2 hover:text-pen">Privacy policy</Link>.
+          </p>
         </Stack>
       </form>
     </Stack>

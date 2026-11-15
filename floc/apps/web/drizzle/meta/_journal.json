@@ -414,6 +414,13 @@
       "when": 1794701514947,
       "tag": "0058_round_toxin",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "6",
+      "when": 1794702196079,
+      "tag": "0059_next_bastion",
+      "breakpoints": true
     }
   ]
 }

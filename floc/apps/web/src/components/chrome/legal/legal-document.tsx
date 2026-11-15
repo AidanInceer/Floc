@@ -5,10 +5,16 @@ import type { LegalHref } from "@/lib/legal/legal-links";
 
 import { ContactDocument } from "./documents/contact";
 import { CookiesDocument } from "./documents/cookies";
+import { LegalNoticeDocument } from "./documents/legal";
+import { PrivacyDocument } from "./documents/privacy";
+import { TermsDocument } from "./documents/terms";
 
 const DOCUMENTS: Partial<Record<LegalHref, () => ReactNode>> = {
   "/contact": ContactDocument,
   "/cookies": CookiesDocument,
+  "/legal": LegalNoticeDocument,
+  "/privacy": PrivacyDocument,
+  "/terms": TermsDocument,
 };
 
 export function LegalDocument({ href }: { href: LegalHref }) {

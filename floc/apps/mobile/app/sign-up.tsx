@@ -20,19 +20,17 @@
 import { isValidEmail, passwordWeakness } from "@floc/core/text/credentials";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, Linking, Platform, ScrollView, Text, View } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 
 import { GoogleButton } from "@/components/auth/google-button";
+import { TermsLine } from "@/components/auth/terms-line";
 import { Body, Button, Field, OrRule, Screen } from "@/components/system/ui";
-import { API_BASE_URL } from "@/lib/config";
 import { TextLink } from "@/components/system/text-controls";
 import { signIn, signUp } from "@/lib/auth";
 import { explainGoogle, explainSignUp } from "@/lib/auth-errors";
-import { fonts, size, space } from "@/lib/theme";
-import { useTheme } from "@/components/system/theme";
+import { space } from "@/lib/theme";
 
 export default function SignUp() {
-  const { c } = useTheme();
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -115,17 +113,7 @@ export default function SignUp() {
 
             {problem ? <Body tone="red">{problem}</Body> : null}
 
-            <Text style={{ color: c["ink-3"], fontFamily: fonts.sans, fontSize: size.small }}>
-              {"By creating an account you agree to the "}
-              <Text accessibilityRole="link" style={{ textDecorationLine: "underline" }} onPress={() => void Linking.openURL(`${API_BASE_URL}/terms`)}>
-                Terms
-              </Text>
-              {" and the "}
-              <Text accessibilityRole="link" style={{ textDecorationLine: "underline" }} onPress={() => void Linking.openURL(`${API_BASE_URL}/privacy`)}>
-                Privacy policy
-              </Text>
-              .
-            </Text>
+            <TermsLine lead="By creating an account you agree to the" />
             <Button label="Create account" onPress={withPassword} busy={busy} />
           </View>
 

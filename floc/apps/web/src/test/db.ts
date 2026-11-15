@@ -25,6 +25,7 @@ export async function migrateTestDb(): Promise<void> {
 // new table needing clearing is an obvious edit, not a silent gap.
 const TABLES = [
   schema.analyticsEvent,
+  schema.termsAcceptance,
   schema.bookingInbox,
   schema.inboundMail,
   schema.reminder,

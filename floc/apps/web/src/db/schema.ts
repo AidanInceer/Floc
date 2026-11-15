@@ -1256,6 +1256,24 @@ export const analyticsEvent = sqliteTable(
   (t) => [index("analytics_event_name_at_idx").on(t.name, t.createdAt)],
 );
 
+/**
+ * Which version of the Terms of use an account agreed to, and when (#549). One row for each version, kept when
+ * the terms change, so the record always names the text that account saw. Not trip-owned: no `deleted_at`.
+ */
+export const termsAcceptance = sqliteTable(
+  "terms_acceptance",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    /** `TERMS_VERSION` from @floc/core/legal/terms: the day that wording took effect. */
+    version: text("version").notNull(),
+    acceptedAt: integer("accepted_at", { mode: "timestamp" }).notNull(),
+  },
+  (t) => [uniqueIndex("terms_acceptance_user_version_idx").on(t.userId, t.version)],
+);
+
 export type User = typeof user.$inferSelect;
 export type UserProfile = typeof userProfile.$inferSelect;
 export type Trip = typeof trip.$inferSelect;
