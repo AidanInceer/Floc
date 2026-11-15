@@ -24,6 +24,8 @@ export async function migrateTestDb(): Promise<void> {
 // Children before parents, so a delete never trips an FK. Listed by hand so a
 // new table needing clearing is an obvious edit, not a silent gap.
 const TABLES = [
+  schema.analyticsEvent,
+  schema.termsAcceptance,
   schema.bookingInbox,
   schema.inboundMail,
   schema.reminder,

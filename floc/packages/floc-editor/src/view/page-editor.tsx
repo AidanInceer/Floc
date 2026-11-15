@@ -26,8 +26,8 @@ export type PageEditorProps = {
   doc: Y.Doc;
   awareness: Awareness | null;
   me: { id: string; name: string };
-  /** Where this person's folded headings are kept on the device. */
-  foldKey: string;
+  /** Where this person's folded headings are kept on the device. Null keeps none: they said no to remembering choices (#368). */
+  foldKey: string | null;
   links: readonly TripLinkItem[];
   threads: readonly PageThread[];
   onOpenLink: (kind: LinkKind, id: number) => void;
@@ -68,8 +68,9 @@ export function PageEditor(props: PageEditorProps) {
       awareness,
       user,
       names,
-      folded: readFolds(`floc-folds:${foldKey}`),
+      folded: foldKey ? readFolds(`floc-folds:${foldKey}`) : new Set<string>(),
       onFold: (folded) => {
+        if (!foldKey) return;
         try { localStorage.setItem(`floc-folds:${foldKey}`, JSON.stringify([...folded])); } catch { /* a full or blocked store only forgets folds */ }
       },
       onFull: () => setFull(true),

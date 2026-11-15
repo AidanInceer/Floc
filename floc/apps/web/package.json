@@ -1,6 +1,6 @@
 {
   "name": "floc-web",
-  "version": "0.235.0",
+  "version": "0.236.0",
   "private": true,
   "description": "Floc v1 — group travel planner. Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.",
   "type": "module",
@@ -53,6 +53,7 @@
     "@opentelemetry/instrumentation-undici": "0.35.0",
     "@opentelemetry/resources": "3.1.1",
     "@opentelemetry/sdk-trace": "3.1.1",
+    "@photostructure/tz-lookup": "11.8.0",
     "@trpc/server": "^11.0.0",
     "better-auth": "~1.7.14",
     "drizzle-orm": "^0.45.2",

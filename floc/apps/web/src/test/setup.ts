@@ -72,5 +72,5 @@ vi.mock("@/server/auth/auth", () => ({
 // Stubbed so a suite never depends on RESEND_API_KEY or prints a send.
 vi.mock("@/server/auth/email", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/server/auth/email")>();
-  return { ...actual, sendEmails: async () => {} };
+  return { ...actual, sendEmails: async (batch: unknown[]) => batch.map(() => true) };
 });

@@ -9,6 +9,10 @@ import { headers } from "next/headers";
 import { AppChrome } from "@/components/chrome/app-chrome";
 import { WhichTripPrompt } from "@/components/bookings/which-trip-prompt";
 import { ClientErrorReporter } from "@/components/chrome/client-error-reporter";
+import { PageTrail } from "@/components/chrome/page-trail";
+import { ConsentBanner } from "@/components/chrome/consent/consent-banner";
+import { PageViewBeacon } from "@/components/chrome/consent/page-view-beacon";
+import { requestConsent } from "@/server/consent/consent";
 import { SiteFooter } from "@/components/chrome/site-footer";
 import { SessionRenewal } from "@/components/chrome/session-renewal";
 import { NONCE_HEADER } from "@/lib/http/csp";
@@ -69,7 +73,7 @@ export default async function RootLayout({
   children: React.ReactNode;
   modal: React.ReactNode;
 }) {
-  const [session, nonce] = await Promise.all([getSession(), headers().then((h) => h.get(NONCE_HEADER) ?? undefined)]);
+  const [session, nonce, consent] = await Promise.all([getSession(), headers().then((h) => h.get(NONCE_HEADER) ?? undefined), requestConsent()]);
 
   // The badge on Trips (ticket 146): an invite arrives while you're elsewhere in the app, so it shows from
   // anywhere. Friend requests count on the account bar's Friends tab (#637).
@@ -113,6 +117,9 @@ export default async function RootLayout({
         {modal}
         {session?.user ? <SessionRenewal /> : null}
         <ClientErrorReporter />
+        <PageTrail />
+        <PageViewBeacon />
+        <ConsentBanner fromServer={consent} />
       </body>
     </html>
   );

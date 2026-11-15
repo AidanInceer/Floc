@@ -47,33 +47,34 @@ async function anchorTrip(
   return place.id;
 }
 
-/** A well-formed Open-Meteo response for the horizon, rain on the 5th day. */
-function meteoBody(from: string, days = HORIZON_DAYS) {
-  const daily = {
-    time: [] as string[],
-    weather_code: [] as number[],
-    temperature_2m_max: [] as number[],
-    temperature_2m_min: [] as number[],
+const ACCRA = { lat: 5.6037, lng: -0.187 }; // Africa/Accra: UTC all year, so local hours equal MET's.
+
+type Entry = { time: string; data: Record<string, unknown> };
+
+function entry(time: string, temp: number, block: "next_1_hours" | "next_6_hours", symbol: string, rain = 0): Entry {
+  return {
+    time,
+    data: {
+      instant: { details: { air_temperature: temp } },
+      [block]: { summary: { symbol_code: symbol }, details: { precipitation_amount: rain } },
+    },
   };
-  for (let i = 0; i < days; i++) {
-    daily.time.push(addDays(from, i));
-    daily.weather_code.push(i === 4 ? 61 : 0);
-    daily.temperature_2m_max.push(25 + (i % 3));
-    daily.temperature_2m_min.push(15 + (i % 3));
+}
+
+/** A MET Norway response like the real one: hourly for two days, then six-hourly; rain on the 5th day. */
+function metBody(from: string, days = HORIZON_DAYS) {
+  const series: Entry[] = [];
+  for (let h = 0; h < 48; h++) {
+    const date = addDays(from, Math.floor(h / 24));
+    const hh = String(h % 24).padStart(2, "0");
+    series.push(entry(`${date}T${hh}:00:00Z`, 18 + (h % 6), "next_1_hours", "clearsky_day", h === 13 ? 0.5 : 0));
   }
-  const hourly = {
-    time: [] as string[],
-    temperature_2m: [] as number[],
-    weather_code: [] as number[],
-    precipitation_probability: [] as number[],
-  };
-  for (let h = 0; h < 24; h++) {
-    hourly.time.push(`${from}T${String(h).padStart(2, "0")}:00`);
-    hourly.temperature_2m.push(18 + (h % 6));
-    hourly.weather_code.push(0);
-    hourly.precipitation_probability.push(h === 12 ? 70 : 0);
+  for (let d = 2; d <= days; d++) {
+    for (const hh of ["00", "06", "12", "18"]) {
+      series.push(entry(`${addDays(from, d)}T${hh}:00:00Z`, 20 + d, "next_6_hours", d === 4 ? "lightrain" : "fair_day", d === 4 ? 2 : 0));
+    }
   }
-  return { daily, hourly };
+  return { properties: { timeseries: series } };
 }
 
 function stubFetch(body: unknown) {
@@ -110,44 +111,60 @@ describe("getTripForecast", () => {
 
   it("refuses a free trip however it asks, without calling out", async () => {
     await anchorTrip(world.ours.dayId);
-    const fetchMock = stubFetch(meteoBody(today()));
+    const fetchMock = stubFetch(metBody(today()));
     await db.delete(schema.subscription);
 
     expect(await getTripForecast(world.ours.id)).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("bounds the request to the honest horizon and maps the days", async () => {
-    await anchorTrip(world.ours.dayId);
+  it("asks MET Norway for the place, names Floc, and maps the days in the place's own time", async () => {
+    await anchorTrip(world.ours.dayId, ACCRA);
     const from = today();
-    const fetchMock = stubFetch(meteoBody(from));
+    const fetchMock = stubFetch(metBody(from));
 
     const forecast = await getTripForecast(world.ours.id);
 
     expect(forecast).not.toBeNull();
-    // The request itself carries the 14-day bound and the place.
-    const calledUrl = String((fetchMock.mock.calls[0] as unknown[])[0]);
-    expect(calledUrl).toContain(`forecast_days=${HORIZON_DAYS}`);
-    expect(calledUrl).toContain("latitude=38.7200");
+    const [calledUrl, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(calledUrl).toContain("api.met.no");
+    expect(calledUrl).toContain("lat=5.6037");
+    expect(calledUrl).toContain("lon=-0.1870");
+    // MET Norway refuses a request that does not say who is asking.
+    expect(new Headers(init.headers).get("user-agent")).toContain("floc.live");
 
     expect(forecast!.placeName).toBe("Lisbon");
     expect(forecast!.from).toBe(from);
-    // The last day with data is from + 13, not a guessed 15th day.
     expect(forecast!.horizonEnd).toBe(addDays(from, HORIZON_DAYS - 1));
     expect(forecast!.days).toHaveLength(HORIZON_DAYS);
+    expect(forecast!.days[0]).toMatchObject({ condition: "sun", hi: 23, lo: 18 });
     expect(forecast!.days[4].condition).toBe("rain");
 
-    // Hourly is thinned to every third hour — eight points, 12:00 wet.
+    // Hourly is thinned to every third hour; a point carries the rain until the next one.
     const firstDay = forecast!.hourly[from];
-    expect(firstDay).toHaveLength(8);
     expect(firstDay.map((p) => p.hour)).toEqual([
       "00:00", "03:00", "06:00", "09:00", "12:00", "15:00", "18:00", "21:00",
     ]);
-    expect(firstDay[4]).toMatchObject({ hour: "12:00", pop: 70 });
+    expect(firstDay[4]).toMatchObject({ hour: "12:00", rain: 0.5 });
+    // Past two days MET Norway gives six-hour steps, so a day has four points.
+    expect(forecast!.hourly[addDays(from, 4)].map((p) => p.hour)).toEqual(["00:00", "06:00", "12:00", "18:00"]);
+    expect(forecast!.hourly[addDays(from, 4)][0].rain).toBe(2);
+  });
+
+  it("shows hours in the place's own time, not MET Norway's UTC", async () => {
+    await anchorTrip(world.ours.dayId, { lat: 35.68, lng: 139.69 }); // Tokyo, UTC+9 all year
+    const from = today();
+    stubFetch(metBody(from));
+
+    const forecast = await getTripForecast(world.ours.id);
+
+    // 15:00 UTC on the first day is midnight the next day in Tokyo.
+    expect(forecast!.hourly[addDays(from, 1)][0].hour).toBe("00:00");
+    expect(forecast!.hourly[from][0].hour).toBe("09:00");
   });
 
   it("does not treat an undated, unplaced trip as an error — returns null, no fetch", async () => {
-    const fetchMock = stubFetch(meteoBody(today()));
+    const fetchMock = stubFetch(metBody(today()));
     // world.ours has no dates and no placed location.
     expect(await getTripForecast(world.ours.id)).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();

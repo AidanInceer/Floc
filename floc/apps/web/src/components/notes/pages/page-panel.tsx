@@ -5,6 +5,7 @@ import type { HocuspocusProviderWebsocket } from "@hocuspocus/provider";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef } from "react";
 import { PageEditor } from "@floc/editor/view/page-editor";
+import { useConsent } from "@/components/chrome/consent/use-consent";
 import { PageTop } from "@floc/editor/view/page-top";
 import type { PageThread } from "@floc/editor/view/comments";
 import { LIVE_STATUS_WORDS } from "@floc/core/notes/live/live-status";
@@ -31,6 +32,7 @@ export function PagePanel({ tripId, page, parent, socket, epoch, viewer, links, 
   onOpen: (id: number) => void;
 }) {
   const router = useRouter();
+  const remember = Boolean(useConsent(null)?.functional);
   const live = useLivePage(socket, tripId, page.id, epoch);
   const handle = useRef<{ focusStart: () => void } | null>(null);
   const openLink = useCallback((kind: LinkKind) => router.push(`/trip/${tripId}/${LINK_TABS[kind]}`), [router, tripId]);
@@ -59,7 +61,7 @@ export function PagePanel({ tripId, page, parent, socket, epoch, viewer, links, 
             doc={live.doc}
             awareness={live.provider.awareness}
             me={viewer}
-            foldKey={`${tripId}:${page.id}`}
+            foldKey={remember ? `${tripId}:${page.id}` : null}
             links={links}
             threads={threads}
             handle={handle}

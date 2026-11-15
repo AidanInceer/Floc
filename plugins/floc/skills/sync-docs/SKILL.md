@@ -18,6 +18,16 @@ good outcome; adding words is the cost.
 
 The docs live in the private `AidanInceer/floc-docs` repo. The main checkout holds the clone. A task worktree's `docs/` is its own floc-docs worktree on `docs/<branch>`, cut from main, so edit `docs/...` as usual: no other session's pages are in it, and `pnpm delivery finish` merges the branch into floc-docs main after the code merges. Doc edits never show in the Floc diff: list the pages you changed in your report. An older worktree whose `docs/` is still a link to the shared clone hands that list to `/floc:push --docs` and claims its pages (step 5).
 
+## The system map comes first
+
+The [system map](docs/engineering/index.html#system-map) is the one picture of all of Floc, left to right: who uses it, the edge, the gates, the doors into floc-web, the server modules, the outside services and the stored data, with running it, CI and the people along the bottom. Check it on every change, before any other page.
+
+**The map changes when the diff** adds, removes, renames or rewires a part it shows: a surface, an edge or gate, a door (`app/api/*`, a socket, a feed), a `server/` module or a link between modules, an outside service or SDK, a data store, a data model change, a cron or webhook, a CI stage, or a count it states (tables, procedures, test files).
+
+**Ask Aidan before you change it**, every time, as you would for a data model change: say which boxes and lines change and why, and wait for a yes. With a data model change, ask both in one message. A refused change leaves the map alone; say so in the report.
+
+**How to edit it.** Each box is a `data-node` element with `data-what` (one plain sentence) and `data-code` (the real path); each line is a row in the JSON at the end of the figure: `[from, to]`, plus a kind: `event` (cron, webhook, mail), `both` (calls out, webhooks back), `dep` (a link between modules, shown only on hover), `planned`, `build`. Keep the left-to-right order. Open it (`Open the system map`), point at the changed part and check its whole flow lights up.
+
 ## 1. Read the change
 
 ```bash
@@ -30,7 +40,8 @@ Include untracked files. If the user named a commit range, diff that instead.
 
 | The diff touches | Update |
 |---|---|
-| `db/schema.ts` | [ERD](docs/engineering/data-model.html) block, relationships and "Tables by feature"; the feature page's *Built on* |
+| `db/schema.ts` | [ERD](docs/engineering/data-model.html) block, relationships and "Tables by feature"; the feature page's *Built on*; the [system map](docs/engineering/index.html#system-map) (ask first) |
+| A surface, door, gate, `server/` module, outside service, data store, cron or CI stage | the [system map](docs/engineering/index.html#system-map) (ask first) |
 | Layers, seams, trip state, deploy | [architecture](docs/engineering/index.html) |
 | Sign-in, sessions, Better Auth | [security](docs/engineering/security.html#auth) |
 | Trip access, roles, `assertAdmin`, a new door into a trip | [access](docs/engineering/access.html) |
@@ -116,5 +127,5 @@ so in your report. Whichever of you finishes first pushes both sets of edits.
 ## Report
 
 Each page changed, one line on what changed and the net lines added or
-removed. Pages you judged and left alone, if the user would expect a change.
+removed. Always say whether the system map changed, and that Aidan said yes to it. Pages you judged and left alone, if the user would expect a change.
 Any page another branch is also editing. Nothing else.
