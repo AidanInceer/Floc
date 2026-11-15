@@ -49,14 +49,14 @@ function Summary({ tripId, view }: { tripId: number; view: EstimateView }) {
   );
 }
 
-const ROW = "grid grid-cols-[26px_minmax(160px,1fr)_minmax(140px,220px)_230px_26px] items-center gap-3.5 border-b border-rule py-3 pl-6 pr-4 text-[15px] max-sm:grid-cols-[26px_1fr_26px] max-sm:gap-x-2.5 max-sm:gap-y-1.5 max-sm:pl-3.5 max-sm:pr-2";
+const ROW = "grid grid-cols-[26px_minmax(160px,1fr)_minmax(140px,220px)_230px_26px] items-center gap-3.5 border-b border-rule py-3 pl-6 pr-4 text-[15px] max-sm:grid-cols-[26px_1fr_26px] max-sm:gap-x-2.5 max-sm:gap-y-1.5 max-sm:pl-4 max-sm:pr-4";
 const BAR_CELL = "max-sm:col-span-2 max-sm:col-start-2 max-sm:row-start-2";
 const FIGURE_CELL = "grid justify-items-end gap-1 text-[13px] max-sm:col-span-2 max-sm:col-start-2 max-sm:row-start-3 max-sm:flex max-sm:items-center max-sm:justify-between";
 const linkTrigger = "text-[13px] text-pen hover:underline";
 
-/** Why: the "·" stays with the word after it, so a narrow row never strands it, and a long part can still wrap. */
+/** Why: a no-break space keeps each "·" on the line of the part before it, so a wrapped line never starts with one. */
 function Detail({ text }: { text: string }) {
-  return <small className="text-[13px] text-ink-faint">{text.split(" · ").join(" · ")}</small>;
+  return <small className="text-[13px] text-ink-faint">{text.split(" · ").join("\u00a0· ")}</small>;
 }
 
 function LineRow({ tripId, view, line }: { tripId: number; view: EstimateView; line: PlanLine }) {

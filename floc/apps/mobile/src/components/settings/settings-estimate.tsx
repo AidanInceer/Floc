@@ -3,6 +3,7 @@ import { airportName } from "@floc/core/money/estimate/guide/home-airport";
 import { estimateSummary } from "@floc/core/money/estimate/line-words";
 import { CABIN_LABELS, CABINS, PACE_LABELS, PACES, STAY_LABELS, STAY_STYLES } from "@floc/core/money/estimate/style";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 
@@ -12,6 +13,7 @@ import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 
 export function SettingsEstimate() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const settings = useQuery(trpc.estimate.settings.queryOptions());
   const [airport, setAirport] = useState<string | null>(null);
@@ -25,6 +27,7 @@ export function SettingsEstimate() {
     return (
       <Drawer title="Cost estimate" summary="Floc Pro">
         <Body tone="ink-2">Your home airport and travel style shape your own cost estimate on each trip. A Floc Pro feature.</Body>
+        <Button label="See Floc Pro" variant="quiet" fit="small" onPress={() => router.setParams({ pro: String(Date.now()) })} />
       </Drawer>
     );
   }

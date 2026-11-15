@@ -24,7 +24,7 @@ function Lock() {
     <Card>
       <Body bold>Cost estimate and budget</Body>
       <Body tone="ink-2">See roughly what this trip will cost you, set your own budget and track it. Only you see it. A Floc Pro feature.</Body>
-      <Button label="See Floc Pro" variant="quiet" fit="small" onPress={() => router.push("/settings")} />
+      <Button label="See Floc Pro" variant="quiet" fit="small" onPress={() => router.push({ pathname: "/settings", params: { pro: "1" } })} />
     </Card>
   );
 }

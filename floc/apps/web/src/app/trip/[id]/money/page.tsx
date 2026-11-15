@@ -287,7 +287,7 @@ function SettleUpPanel({
   };
 
   const column = (title: string, empty: string, note: string, rows: SettleRow[]) => (
-    <section className="rounded-md bg-sheet p-6">
+    <section className="rounded-md border border-rule bg-sheet p-6">
       <SectionHeading className="border-b border-rule pb-3">{title}</SectionHeading>
       {rows.length === 0 ? (
         <p className="flex min-h-[5rem] flex-col md:min-h-[8rem] items-center justify-center gap-1 text-center">
@@ -308,7 +308,7 @@ function SettleUpPanel({
         {column("You are owed", "Nothing to chase", "Everyone has paid you back.", settle.rows.filter((r) => r.payee === viewerId))}
       </div>
       {others.length > 0 ? (
-        <section className="rounded-md bg-sheet px-6 py-4">
+        <section className="rounded-md border border-rule bg-sheet px-6 py-4">
           <h3 className="text-xs font-medium text-ink-soft">Between the others</h3>
           <ul className="mt-1 flex flex-col">
             {others.map((r) => (
