@@ -10,7 +10,7 @@ import Svg, { Circle, Line, Path, Rect, Text as SvgText } from "react-native-svg
 import { useTheme } from "../system/theme";
 import { fonts, radius, size, space } from "@/lib/theme";
 
-export type HourlyPoint = { hour: string; condition: WeatherCondition; temp: number; pop: number };
+export type HourlyPoint = { hour: string; condition: WeatherCondition; temp: number; rain: number };
 
 const W = 700;
 const H = 132;
@@ -18,6 +18,8 @@ const PAD = 26;
 const TOP = 34;
 const BASE = 96;
 const RAIN_Y = H - 18;
+// 5 mm or more until the next point draws the full bar.
+const rainBar = (mm: number) => (Math.min(mm, 5) / 5) * 15;
 
 function Key({ word, ground, bar }: { word: string; ground: string; bar: boolean }) {
   const { c } = useTheme();
@@ -55,13 +57,13 @@ export function HourlyCurve({ points }: { points: HourlyPoint[] }) {
         <Svg width={width} height={(width * H) / W} viewBox={`0 0 ${W} ${H}`}>
           <Line x1={PAD} y1={RAIN_Y} x2={W - PAD} y2={RAIN_Y} stroke={c.rule} strokeWidth={StyleSheet.hairlineWidth * 2} />
           {points.map((p, i) =>
-            p.pop > 0 ? (
+            p.rain > 0 ? (
               <Rect
                 key={`r-${p.hour}`}
                 x={x(i) - 13}
-                y={RAIN_Y - (3 + (p.pop / 100) * 15)}
+                y={RAIN_Y - (3 + rainBar(p.rain))}
                 width={26}
-                height={3 + (p.pop / 100) * 15}
+                height={3 + rainBar(p.rain)}
                 rx={1.5}
                 fill={c.pen}
                 opacity={0.4}
@@ -86,7 +88,7 @@ export function HourlyCurve({ points }: { points: HourlyPoint[] }) {
       ) : null}
       <View style={{ flexDirection: "row", gap: space.md }}>
         <Key word="Temperature" ground={c.pen} bar={false} />
-        <Key word="Chance of rain" ground={c.pen} bar />
+        <Key word="Rain" ground={c.pen} bar />
       </View>
     </View>
   );

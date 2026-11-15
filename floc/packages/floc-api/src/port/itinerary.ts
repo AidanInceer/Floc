@@ -103,7 +103,7 @@ export type TripForecastView = {
     from: string;
     horizonEnd: string;
     days: { date: string; condition: WeatherCondition; label: string; hi: number; lo: number }[];
-    hourly: Record<string, { hour: string; condition: WeatherCondition; temp: number; pop: number }[]>;
+    hourly: Record<string, { hour: string; condition: WeatherCondition; temp: number; rain: number }[]>;
   } | null;
 };
 

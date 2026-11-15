@@ -25,7 +25,7 @@ export const DATA_RECEIVERS = [
   { who: "Expo", job: "Passes notifications to Apple and Google", receives: "Your phone's push address and the text of a notification" },
   { who: "Google", job: "Sign in with Google, and Google Calendar if you connect it", receives: "That you signed in to Floc. Floc receives your name, email, Google picture and free or busy times" },
   { who: "OpenStreetMap (Nominatim)", job: "Finds a place when you search for one", receives: "The words you search for, not who you are" },
-  { who: "Open-Meteo", job: "The weather forecast", receives: "The map position of a stop, not who you are" },
+  { who: "MET Norway", job: "The weather forecast", receives: "The map position of a stop, not who you are" },
   { who: "Frankfurter", job: "Exchange rates", receives: "Nothing about you" },
 ] as const;
 

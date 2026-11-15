@@ -22,11 +22,10 @@ export const DATA_SOURCES: DataSource[] = [
   },
   {
     what: "Weather forecast",
-    from: "Open-Meteo",
-    url: "https://open-meteo.com/",
+    from: "MET Norway (the Norwegian Meteorological Institute)",
+    url: "https://api.met.no/",
     licence: "CC BY 4.0",
-    paidUse: "no",
-    note: "The free API is for non-commercial use only, and an app with a subscription is commercial. Before Floc takes payment: buy Open-Meteo's commercial plan, or change to MET Norway (CC BY 4.0, free for commercial use).",
+    paidUse: "yes",
   },
   {
     what: "Exchange rates",

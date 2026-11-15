@@ -12,7 +12,7 @@ const server = (path: string) => readFileSync(join(process.cwd(), "src/server", 
 // Each file that sends data out, the word that proves it still does, and the name the privacy policy must use.
 const CALLED = [
   { file: "itinerary/places.ts", needle: "nominatim", who: "Nominatim" },
-  { file: "itinerary/weather.ts", needle: "open-meteo", who: "Open-Meteo" },
+  { file: "itinerary/weather.ts", needle: "api.met.no", who: "MET Norway" },
   { file: "money/fx.ts", needle: "frankfurter", who: "Frankfurter" },
   { file: "notifications/expo-push.ts", needle: "expo", who: "Expo" },
   { file: "auth/email.ts", needle: "resend", who: "Resend" },
