@@ -1,6 +1,7 @@
-import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ensureProfile } from "@/server/auth/profile";
+import { clearRatesMemo } from "@/server/money/fx";
 import { givePro, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 
 import { estimatePort } from "./api-port-estimate";
@@ -13,7 +14,11 @@ beforeEach(async () => {
   world = await seedScenario();
   await ensureProfile(world.admin);
   await ensureProfile(world.member);
+  clearRatesMemo();
+  // Why: the estimate reads exchange rates; a test must never wait on the real provider.
+  vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => ({ date: "2026-11-01", rates: { GBP: 0.85 } }) })));
 });
+afterEach(() => vi.unstubAllGlobals());
 
 describe("estimatePort", () => {
   it("gives a free member the lock and no figures", async () => {
