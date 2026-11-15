@@ -136,6 +136,16 @@ export const auth = betterAuth({
     },
   },
   databaseHooks: {
+    // Why not a guest (#549): a guest on an invite link has agreed to nothing; the account they later make is recorded here.
+    user: {
+      create: {
+        after: async (created) => {
+          if ((created as { isAnonymous?: boolean | null }).isAnonymous) return;
+          const { recordTermsAcceptance } = await import("@/server/legal/terms-acceptance");
+          await recordTermsAcceptance(created.id);
+        },
+      },
+    },
     account: {
       create: {
         after: async (created) => {

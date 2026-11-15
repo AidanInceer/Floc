@@ -8,6 +8,8 @@ import { createNotesLive } from "./src/server/notes/live/notes-live.ts";
 import { attachNotesLive } from "./src/server/notes/live/live-socket.ts";
 import { sessionResolver } from "./src/server/notes/live/live-session.ts";
 import { limitWrites } from "./src/server/http/write-gate.ts";
+import { limitReads } from "./src/server/http/page-gate.ts";
+import { setVisitorAddress, withVisitorAddress } from "./src/server/http/visitor-address.ts";
 import { withRequestId } from "./src/server/http/request-id.ts";
 import { log } from "./src/server/observability/log.ts";
 
@@ -24,7 +26,9 @@ const app = next({ dev, port });
 await app.prepare();
 
 const handle = app.getRequestHandler();
-const server = createServer(withRequestId(limitWrites(handle)));
+const server = createServer(withRequestId(withVisitorAddress(limitReads(limitWrites(handle)))));
+// Why first: the Notes socket checks its session by the visitor's address, and an upgrade skips the listener above.
+server.on("upgrade", (req) => setVisitorAddress(req));
 const live = createNotesLive({ resolveUser: sessionResolver(`http://127.0.0.1:${port}`) });
 attachNotesLive(server, live, app.getUpgradeHandler());
 

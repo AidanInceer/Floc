@@ -30,7 +30,7 @@ describe("account mail", () => {
   it("stops confirming and resetting one address past the day's cap (#582)", async () => {
     const auth = await loadAuth();
     const mail = await import("@/server/auth/email");
-    const send = vi.spyOn(mail, "sendEmails").mockResolvedValue();
+    const send = vi.spyOn(mail, "sendEmails").mockResolvedValue([]);
     const user = { email: "capped@example.test" } as never;
     for (let i = 0; i < 7; i += 1) {
       await auth.options.emailVerification?.sendVerificationEmail?.({ user, url: "https://floc.test/v", token: "t" });

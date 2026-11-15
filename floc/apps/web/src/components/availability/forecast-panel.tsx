@@ -104,7 +104,7 @@ function DayHours({ date, day, points, back }: { date: IsoDate; day: DailyForeca
             <span className="nums font-mono text-ink-soft">{h.hour}</span>
             <span className="text-ink-soft"><WeatherGlyph condition={h.condition} /></span>
             <b className="nums font-medium">{h.temp}°</b>
-            <span className="nums font-mono text-[11px] text-pen" aria-label={h.pop ? `${h.pop}% chance of rain` : undefined}>{h.pop ? `${h.pop}%` : ""}</span>
+            <span className="nums font-mono text-[11px] text-pen" aria-label={h.rain ? `${h.rain} mm of rain` : undefined}>{h.rain ? `${h.rain} mm` : ""}</span>
           </li>
         ))}
       </ol>

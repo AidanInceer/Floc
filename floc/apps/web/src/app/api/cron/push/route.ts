@@ -11,6 +11,7 @@ import { purgeArchivedPages } from "@/server/notes/pages/page-purge";
 import { purgeOldGuests } from "@/server/guests/guest-purge";
 import { purgeArchivedFiles } from "@/server/documents/archive/archive";
 import { purgeWaitingBookings } from "@/server/documents/bookings/booking-inbox";
+import { purgeOldAnalytics } from "@/server/analytics/analytics";
 
 export const runtime = "nodejs";
 
@@ -34,6 +35,7 @@ export async function POST(request: Request): Promise<Response> {
     guests: await attempt("guests", () => purgeOldGuests()),
     files: await attempt("files", () => purgeArchivedFiles()),
     bookings: await attempt("bookings", () => purgeWaitingBookings()),
+    analytics: await attempt("analytics", () => purgeOldAnalytics()),
   };
   const failed = Object.values(result).includes(null);
   return Response.json(result, { status: failed ? 500 : 200 });

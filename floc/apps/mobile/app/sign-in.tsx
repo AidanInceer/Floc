@@ -8,6 +8,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { GoogleButton } from "@/components/auth/google-button";
+import { TermsLine } from "@/components/auth/terms-line";
 import { Body, Button, Dropdown, Field, OrRule, Screen } from "@/components/system/ui";
 import { useTheme } from "@/components/system/theme";
 import { takeEndedNotice } from "@/lib/session/session-ended";
@@ -91,6 +92,7 @@ export default function SignIn() {
           ) : null}
 
           <GoogleButton label="Continue with Google" onPress={withGoogle} disabled={busy} />
+          <TermsLine />
 
           <OrRule label="or with email" />
 

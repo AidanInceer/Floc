@@ -14,7 +14,7 @@ import { EMAIL_LIMITS, EMAIL_WAIT_MS, type PlannedPush } from "@floc/core/notifi
 import { absoluteUrl, type OutboundEmail } from "@/server/auth/email";
 import { addressConfirmed, claim, hasPhone, markSent, planDue, release, switchedOff, type Channel } from "@/server/notifications/outbox";
 
-export type EmailSender = (emails: OutboundEmail[]) => Promise<void>;
+export type EmailSender = (emails: OutboundEmail[]) => Promise<unknown>;
 
 const EMAIL: Channel = {
   claimKey: "emailClaimedAt",

@@ -48,7 +48,7 @@ type Deps = {
   received: () => Promise<ReceivedMail>;
   loadAttachments: () => Promise<InboundAttachment[]>;
   barcodes: (file: { mimeType: string; bytes: Uint8Array }) => Promise<string[]>;
-  send: (batch: OutboundEmail[]) => Promise<void>;
+  send: (batch: OutboundEmail[]) => Promise<unknown>;
   /** The reply limit. Absent uses the process-wide one. */
   replies?: Pick<ReturnType<typeof mailCap>, "allow">;
 };

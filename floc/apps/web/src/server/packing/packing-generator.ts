@@ -3,7 +3,7 @@
  * forecast, hands both to the pure catalogue, writes what comes back.
  *
  * Nothing new is persisted for weather (rule 10) — this reads the same cached
- * Open-Meteo aggregate the Overview does. Every read can come back empty and
+ * MET Norway aggregate the Overview does. Every read can come back empty and
  * the answer is still a list, never a throw (rule 11).
  *
  * It owns its own SQL rather than calling the packing aggregate, because the
@@ -50,8 +50,7 @@ const NO_WEATHER = { hottest: null, firstRain: null };
 /**
  * What we know about this trip, as much or as little as that is. An undated
  * trip skips the forecast entirely: with no window there is nothing to
- * intersect a forecast against, and a place's next fortnight is not this trip's
- * weather.
+ * intersect a forecast against, and a place's next days are not this trip's weather.
  */
 export async function packingPlanFor(trip: {
   id: number;
@@ -84,7 +83,7 @@ export async function packingPlanFor(trip: {
     ? { hottest: Math.round(Math.max(...window.map((d) => d.hi))), firstRain: window.find((d) => d.condition === "rain")?.date ?? null }
     : NO_WEATHER;
 
-  // Beyond the fortnight horizon and provider-unreachable land here together:
+  // Beyond the nine-day horizon and provider-unreachable land here together:
   // to a packer they are the same fact, that we can't tell you the weather, so
   // here's a list that doesn't assume any.
   return { nights, climate, gap: climate ? null : "no-forecast", places, ...weather };

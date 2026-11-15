@@ -45,6 +45,9 @@ from a booking `floc/packages/floc-core/src/documents/booking/`.
 | Sign in, invites, guests | `floc/apps/web/src/server/auth/`, `floc/apps/web/src/server/guests/`, `floc/apps/web/src/components/guest/` | `floc/apps/mobile/src/components/auth/` |
 | Landing page | `floc/apps/web/src/app/page.tsx`, `floc/apps/web/src/components/landing/` | — |
 | Settings, Pro | `floc/apps/web/src/app/settings/`, `floc/apps/web/src/components/settings/`, `floc/apps/web/src/server/billing/` | `floc/apps/mobile/src/components/settings/` |
+| Legal pages, terms record (#549) | `floc/apps/web/src/components/chrome/legal/` (text in `documents/`), `floc/apps/web/src/lib/legal/`, `floc/apps/web/src/server/legal/`, `floc/packages/floc-core/src/legal/` | `floc/apps/mobile/src/components/auth/terms-line.tsx` |
+| Cookie choice and page-view count (#368) | `floc/apps/web/src/components/chrome/consent/`, `floc/apps/web/src/lib/consent/`, `floc/apps/web/src/server/analytics/`, `floc/packages/floc-core/src/consent/`, `floc/packages/floc-core/src/analytics/` | `floc/apps/mobile/src/lib/consent/`, `floc/apps/mobile/src/components/settings/settings-choices.tsx` |
+| Feedback form (#271) | `floc/apps/web/src/app/contact/`, `floc/apps/web/src/server/feedback/`, `floc/packages/floc-core/src/feedback/` | `floc/apps/mobile/src/components/settings/settings-feedback.tsx` |
 
 ## Design system
 
@@ -61,6 +64,7 @@ from a booking `floc/packages/floc-core/src/documents/booking/`.
 | Mockups (`/floc:prototype`) | `floc/wireframe/` pages; shared kit `scripts/wireframe/`, served as `/_house/` by `scripts/wireframe-server.mjs` on :4100 |
 | Dev servers for the preview tools | `.claude/launch.json` |
 | Logs, error capture, request timing, tracing | `floc/apps/web/src/server/observability/`, `floc/apps/web/src/lib/client-error/` |
+| Rate limits and the visitor's address behind an edge (#587) | `floc/apps/web/src/server/http/` |
 | `pnpm verify`, `pnpm checks`, publish, release and quality gates | `scripts/checks/`, `scripts/delivery/`, `scripts/workspace/`, `scripts/quality/` |
 | Web checks (tokens, css, icons, bundle) and db scripts | `floc/apps/web/scripts/` |
 | End to end | `floc/apps/web/e2e/`, `floc/apps/mobile/.maestro/` |
