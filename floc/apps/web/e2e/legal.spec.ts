@@ -7,12 +7,13 @@ test("a footer legal link rises as a sheet over the page, and closing steps back
   await page.locator(".site-footer").getByRole("link", { name: "Privacy policy" }).click();
   await expect(page).toHaveURL(/\/privacy$/);
   const sheet = page.getByRole("dialog");
+  const tabs = sheet.getByRole("navigation", { name: "Legal" });
   await expect(sheet.getByRole("heading", { level: 1 })).toHaveText("Privacy policy");
 
-  await sheet.getByRole("link", { name: "Cookies" }).click();
+  await tabs.getByRole("link", { name: "Cookies" }).click();
   await expect(page).toHaveURL(/\/cookies$/);
   await expect(sheet.getByRole("heading", { level: 1 })).toHaveText("Cookies");
-  await expect(sheet.getByRole("link", { name: "Cookies" })).toHaveAttribute("aria-current", "page");
+  await expect(tabs.getByRole("link", { name: "Cookies" })).toHaveAttribute("aria-current", "page");
 
   await page.keyboard.press("Escape");
   await expect(page).toHaveURL(/\/$/);
