@@ -6,4 +6,6 @@
   }
   /* Why: the Explore copy bar floats where the banner sits, so it waits for the answer. Visibility, as its own flex utility outranks this layer. */
   body:has(.consent-banner) .trip-copy-bar { visibility: hidden; }
+  body:has(.consent-banner):has(.trip-copy-bar) { padding-bottom: 0; }
+  /* Why z-30: under every sheet that asks for input (the invite gate, the name sheet, a dialog), never over one. */
 }

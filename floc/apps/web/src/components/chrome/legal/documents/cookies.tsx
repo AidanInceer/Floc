@@ -13,7 +13,7 @@ export async function CookiesDocument() {
   const consent = await requestConsent();
   return (
     <>
-      <LegalSection title="Your choice">
+      <LegalSection title="Storage and page views">
         <p>
           What Floc needs to work is always on. These two are yours to choose. Floc asks once, and again after 12
           months, and you can change your answer here at any time.
