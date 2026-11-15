@@ -10,9 +10,9 @@
  * self-hosted via next/font (app/layout.tsx); a fourth needs an argument, not a
  * preference.
  *
- *   - `--display` (Bricolage Grotesque) for headings and figures. The character.
- *   - `--sans` (Instrument Sans) for running text and controls. The book.
- *   - `--type` (DM Mono, tabular) for every figure, date, time and small
+ *   - `--display` (Red Hat Display, 800) for headings. The character.
+ *   - `--sans` (Red Hat Text) for running text and controls. The book.
+ *   - `--type` (Red Hat Mono, tabular) for every figure, date, time and small
  *     uppercase label. All money. `.typed`, `.nums`, `font-mono`.
  *
  * The handwriting face is retired — it belonged to the notebook. The
@@ -163,16 +163,16 @@
    * The three faces (ticket 189), loaded and self-hosted via next/font (see
    * app/layout.tsx). The `-face` variables carry the next/font family; the
    * fallback stack behind each covers the moment before it swaps in.
-   *   - `--display` (Bricolage Grotesque) — headings and figures. The character.
-   *   - `--sans`    (Instrument Sans)      — running text and controls. The book.
-   *   - `--type`    (DM Mono, tabular)     — every date, time, amount and small
+   *   - `--display` (Red Hat Display, 800) — headings. The character.
+   *   - `--sans`    (Red Hat Text)         — running text and controls. The book.
+   *   - `--type`    (Red Hat Mono, tabular) — every date, time, amount and small
    *     uppercase label. `.typed`, `.nums`, `font-mono`.
    */
-  --display: var(--font-display-face), "Bricolage Grotesque", "Trebuchet MS",
+  --display: var(--font-display-face), "Red Hat Display", "Trebuchet MS",
     system-ui, sans-serif;
-  --sans: var(--font-body-face), "Instrument Sans", system-ui, -apple-system,
+  --sans: var(--font-body-face), "Red Hat Text", system-ui, -apple-system,
     "Segoe UI", Roboto, sans-serif;
-  --type: var(--font-data-face), "DM Mono", "Cascadia Mono", Consolas,
+  --type: var(--font-data-face), "Red Hat Mono", "Cascadia Mono", Consolas,
     "Courier New", monospace;
 
   /*
@@ -421,7 +421,7 @@
   h2,
   h3 {
     font-family: var(--display);
-    font-weight: 600;
+    font-weight: 800;
     letter-spacing: -0.015em;
     line-height: 1.15;
     text-wrap: balance;

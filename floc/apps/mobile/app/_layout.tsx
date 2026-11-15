@@ -6,16 +6,13 @@
  * separate navigator, because a session can end at any moment — a token
  * expiring while a trip is open has to land on sign-in from wherever it was.
  */
-import {
-  BricolageGrotesque_600SemiBold,
-  BricolageGrotesque_700Bold,
-} from "@expo-google-fonts/bricolage-grotesque";
-import { DMMono_400Regular, DMMono_500Medium } from "@expo-google-fonts/dm-mono";
-import {
-  InstrumentSans_400Regular,
-  InstrumentSans_400Regular_Italic,
-  InstrumentSans_600SemiBold,
-} from "@expo-google-fonts/instrument-sans";
+// Why: one import per weight, so the bundle carries only these six files, not every weight in each package.
+import { RedHatDisplay_800ExtraBold } from "@expo-google-fonts/red-hat-display/800ExtraBold";
+import { RedHatMono_400Regular } from "@expo-google-fonts/red-hat-mono/400Regular";
+import { RedHatMono_500Medium } from "@expo-google-fonts/red-hat-mono/500Medium";
+import { RedHatText_400Regular } from "@expo-google-fonts/red-hat-text/400Regular";
+import { RedHatText_400Regular_Italic } from "@expo-google-fonts/red-hat-text/400Regular_Italic";
+import { RedHatText_600SemiBold } from "@expo-google-fonts/red-hat-text/600SemiBold";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { Stack, useRouter, useSegments } from "expo-router";
@@ -33,18 +30,16 @@ import { signOutHere } from "@/lib/sign-out";
 import { onSessionEnded, sessionResumed } from "@/lib/session/session-ended";
 
 /**
- * The seven files behind the three faces (#no-ticket). Two weights each for
- * display and sans, two for the mono, and the sans italic the route map's nights wear.
- * Every one is its own family; see the note in `lib/theme.ts` for why.
+ * The six Red Hat files (type-fonts pick W4): display at 800, two sans, two mono, and the sans italic
+ * the route map's nights wear. Every one is its own family; see `lib/theme.ts` for why.
  */
 const FACES = {
-  BricolageGrotesque_600SemiBold,
-  BricolageGrotesque_700Bold,
-  InstrumentSans_400Regular,
-  InstrumentSans_400Regular_Italic,
-  InstrumentSans_600SemiBold,
-  DMMono_400Regular,
-  DMMono_500Medium,
+  RedHatDisplay_800ExtraBold,
+  RedHatText_400Regular,
+  RedHatText_400Regular_Italic,
+  RedHatText_600SemiBold,
+  RedHatMono_400Regular,
+  RedHatMono_500Medium,
 };
 
 /** The routes Better Auth's emails redirect into. See `deepLinked` below. */
@@ -84,9 +79,9 @@ function Routes() {
     if (signedIn && !inApp && !deepLinked) router.replace("/trips");
   }, [ready, landed, signedIn, inApp, deepLinked, router]);
 
-  // Rendering a screen before the session is known would flash sign-in at
+  // Why: rendering a screen before the session is known would flash sign-in at
   // somebody who is already signed in, every cold start. The faces wait with
-  // it: text drawn in Roboto and then reflowed into Bricolage is a worse first
+  // it: text drawn in Roboto and then reflowed into Red Hat is a worse first
   // impression than a beat of nothing. The curtain is that beat, and it holds
   // until both are known.
   return (

@@ -25,13 +25,14 @@ export function palette(theme: Theme): Palette {
  * Native cannot synthesise a bold, and Android quietly renders the regular instead (#189).
  */
 export const fonts = {
-  display: "BricolageGrotesque_600SemiBold",
-  displayBold: "BricolageGrotesque_700Bold",
-  sans: "InstrumentSans_400Regular",
-  sansItalic: "InstrumentSans_400Regular_Italic",
-  sansBold: "InstrumentSans_600SemiBold",
-  type: "DMMono_400Regular",
-  typeBold: "DMMono_500Medium",
+  display: "RedHatDisplay_800ExtraBold",
+  // Why: one heading weight on both surfaces, 800 (type-fonts pick W4); the key stays so callers need not change.
+  displayBold: "RedHatDisplay_800ExtraBold",
+  sans: "RedHatText_400Regular",
+  sansItalic: "RedHatText_400Regular_Italic",
+  sansBold: "RedHatText_600SemiBold",
+  type: "RedHatMono_400Regular",
+  typeBold: "RedHatMono_500Medium",
 } as const;
 
 // Why: Tailwind's rhythm restated where Tailwind cannot reach, so a screen never invents a gap.

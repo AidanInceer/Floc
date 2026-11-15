@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { faceOverlap } from "./face-overlap";
 
-// Two initials in DM Mono at 11 px: each glyph is 0.6 em, so the pair is 13.2 px wide on any letters.
+// Two initials in Red Hat Mono at 11 px: each glyph is 0.6 em, so the pair is 13.2 px wide on any letters.
 const INITIALS = 2 * 0.6 * 11;
 
 describe("faceOverlap", () => {
