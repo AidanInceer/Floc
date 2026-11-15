@@ -7,7 +7,7 @@ const page = (cookie = "", protocol = "https:") => {
   const removed: string[] = [];
   vi.stubGlobal("document", doc);
   vi.stubGlobal("location", { protocol });
-  vi.stubGlobal("localStorage", { removeItem: (k: string) => removed.push(k) });
+  vi.stubGlobal("localStorage", { removeItem: (k: string) => removed.push(k), "floc-folds:1:2": "[]", "floc-theme": "dark" });
   return { doc, removed };
 };
 
@@ -50,6 +50,6 @@ describe("the consent cookie", () => {
   it("removes what it remembered when the answer is no", () => {
     const { removed } = page();
     chooseConsent({ functional: false, analytics: true });
-    expect(removed).toEqual(["floc:ideas-sort"]);
+    expect(removed).toEqual(["floc:ideas-sort", "floc-folds:1:2"]);
   });
 });

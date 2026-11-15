@@ -48,7 +48,7 @@ type Props = {
   start: string;
   theme: "light" | "dark";
   me: { id: string; name: string };
-  foldKey: string;
+  foldKey: string | null;
   title: string;
   icon: PageIcon | null;
   links: TripLinkItem[];

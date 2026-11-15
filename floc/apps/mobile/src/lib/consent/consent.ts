@@ -1,6 +1,6 @@
 /**
  * The consent choice on the phone (#368): the same two choices as the web, both off until a yes, asked again
- * after a year. The phone stores nothing "functional" today, so only analytics has a switch.
+ * after a year. On the phone, "functional" is the headings you fold in Notes.
  */
 import { NO_CONSENT, encodeConsent, readConsent, type ConsentChoice } from "@floc/core/consent/consent";
 import { today } from "@floc/core/dates/dates";

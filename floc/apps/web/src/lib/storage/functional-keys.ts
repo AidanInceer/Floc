@@ -4,4 +4,7 @@
  */
 export const FUNCTIONAL_KEYS = ["floc:ideas-sort"] as const;
 
+/** Keys that start with one of these, for storage with one entry a thing: folded headings on each notes page (#408). */
+export const FUNCTIONAL_PREFIXES = ["floc-folds:"] as const;
+
 export type FunctionalKey = (typeof FUNCTIONAL_KEYS)[number];

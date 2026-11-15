@@ -7,7 +7,7 @@ import { LIVE_CACHE_PREFIX } from "@floc/core/notes/live/live-epoch";
 
 import { THEME_STORAGE_KEY } from "@/lib/theme";
 
-import { FUNCTIONAL_KEYS } from "../storage/functional-keys";
+import { FUNCTIONAL_KEYS, FUNCTIONAL_PREFIXES } from "../storage/functional-keys";
 
 export type StoredThing = {
   name: string;
@@ -28,4 +28,5 @@ export const STORAGE_LIST: StoredThing[] = [
   { name: "floc.bookings.asked", kind: "Session storage", category: "necessary", purpose: "Remembers that you answered which trip a forwarded booking belongs to.", lasts: "Until you close the tab", days: null },
   { name: `${LIVE_CACHE_PREFIX}…`, kind: "Browser database", category: "necessary", purpose: "A copy of the notes page you have open, so an edit is not lost when the connection drops.", lasts: "Until you sign out", days: null },
   { name: FUNCTIONAL_KEYS[0], kind: "Local storage", category: "functional", purpose: "How you last sorted Ideas.", lasts: "Until you turn this off", days: null },
+  { name: `${FUNCTIONAL_PREFIXES[0]}…`, kind: "Local storage", category: "functional", purpose: "Which headings you folded on a notes page.", lasts: "Until you turn this off", days: null },
 ];

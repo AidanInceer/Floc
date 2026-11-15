@@ -5,7 +5,7 @@
 import { CONSENT_COOKIE, CONSENT_MAX_AGE_SECONDS, encodeConsent, readConsent, type ConsentChoice } from "@floc/core/consent/consent";
 import { today, type IsoDate } from "@floc/core/dates/dates";
 
-import { FUNCTIONAL_KEYS } from "@/lib/storage/functional-keys";
+import { FUNCTIONAL_KEYS, FUNCTIONAL_PREFIXES } from "@/lib/storage/functional-keys";
 
 export function consentCookie(choice: ConsentChoice, day: IsoDate, secure: boolean): string {
   return `${CONSENT_COOKIE}=${encodeConsent(choice, day)}; Max-Age=${CONSENT_MAX_AGE_SECONDS}; Path=/; SameSite=Lax${secure ? "; Secure" : ""}`;
@@ -33,7 +33,8 @@ export function chooseConsent(choice: ConsentChoice): void {
   held = choice;
   if (!choice.functional) {
     try {
-      for (const key of FUNCTIONAL_KEYS) localStorage.removeItem(key);
+      const kept = Object.keys(localStorage).filter((key) => FUNCTIONAL_PREFIXES.some((prefix) => key.startsWith(prefix)));
+      for (const key of [...FUNCTIONAL_KEYS, ...kept]) localStorage.removeItem(key);
     } catch {
       // A browser that refuses storage holds nothing to remove.
     }

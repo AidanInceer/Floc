@@ -15,7 +15,7 @@ export const FULL_CONSENT: ConsentChoice = { functional: true, analytics: true }
 
 export const CONSENT_CATEGORIES = [
   { key: "necessary", label: "Needed", detail: "Keeps you signed in, keeps the theme you picked, and remembers this choice. Always on." },
-  { key: "functional", label: "Remember my choices", detail: "Remembers small choices on this device, such as how you sort Ideas." },
+  { key: "functional", label: "Remember my choices", detail: "Remembers small choices on this device, such as how you sort Ideas and which headings you fold in Notes." },
   { key: "analytics", label: "Count page views", detail: "Counts which pages are opened, so we can see what is used. No cookie, and nothing that names you." },
 ] as const;
 

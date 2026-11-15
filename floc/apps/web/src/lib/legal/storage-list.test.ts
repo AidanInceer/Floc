@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { CONSENT_COOKIE } from "@floc/core/consent/consent";
 
-import { FUNCTIONAL_KEYS } from "../storage/functional-keys";
+import { FUNCTIONAL_KEYS, FUNCTIONAL_PREFIXES } from "../storage/functional-keys";
 import { THEME_STORAGE_KEY } from "../theme";
 import { STORAGE_LIST } from "./storage-list";
 
@@ -10,7 +10,7 @@ const names = (category: string) => STORAGE_LIST.filter((s) => s.category === ca
 
 describe("the list of what Floc stores on a device", () => {
   it("names every key that waits for a yes, and nothing else, as functional", () => {
-    expect(names("functional").sort()).toEqual([...FUNCTIONAL_KEYS].sort());
+    expect(names("functional").sort()).toEqual([...FUNCTIONAL_KEYS, ...FUNCTIONAL_PREFIXES.map((prefix) => `${prefix}…`)].sort());
   });
 
   it("names the consent cookie and the theme", () => {

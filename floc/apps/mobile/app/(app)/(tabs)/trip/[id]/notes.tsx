@@ -20,6 +20,7 @@ import { useLivePage, useNotesSocket, usePageList } from "@/components/notes/use
 import { useNotesData } from "@/components/notes/use-notes-data";
 import { usePageRelay } from "@/components/notes/use-page-relay";
 import { useTheme } from "@/components/system/theme";
+import { useConsentChoice } from "@/lib/consent/use-consent";
 import { Failed, Loading } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
@@ -48,6 +49,7 @@ export default function Notes() {
   const tripId = Number(id);
   const router = useRouter();
   const { theme, c } = useTheme();
+  const remember = useConsentChoice().functional;
   const { data: session } = useSession();
   const viewer = useMemo(() => (session?.user ? { id: session.user.id, name: session.user.name } : null), [session?.user.id, session?.user.name]);
   const [sheet, setSheet] = useState(false);
@@ -97,7 +99,7 @@ export default function Notes() {
           start={start}
           theme={theme}
           me={viewer}
-          foldKey={`${tripId}:${page.id}`}
+          foldKey={remember ? `${tripId}:${page.id}` : null}
           title={page.title}
           icon={page.icon}
           links={data.links}
