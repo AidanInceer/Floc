@@ -45,6 +45,12 @@ describe("readEstimate", () => {
     expect(view.plan.lines.every((l) => l.plan !== null)).toBe(true);
   });
 
+  it("names a home airport that has no flight guide", async () => {
+    await setTravelProfile(world.admin, { homeAirport: "INV" });
+    const view = await readEstimate(trip(), world.admin);
+    expect(view.home).toEqual({ code: "INV", name: "Inverness", inferred: false });
+  });
+
   it("suggests a home airport from the member's own flight files", async () => {
     await placeLisbon();
     await db.insert(schema.document).values({
