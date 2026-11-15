@@ -1,9 +1,9 @@
 import { ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
 
-const QUIET = "!px-3 !text-ink-soft hover:!bg-red-soft hover:!text-red disabled:!opacity-100 disabled:!text-ink-faint";
+const QUIET = "hover:!border-red/60 hover:!bg-red-soft hover:!text-red hover:!shadow-none";
 
 /**
- * Reset and clear sit under the board, quiet but in view (ticket 133: disabled, never absent).
+ * Clear and reset sit under the board, in view (ticket 133: disabled, never absent).
  * Reset confirms when an itinerary rides on the window (ticket 140); clear does not — marks paint back.
  */
 export function DatesActions({
@@ -20,22 +20,22 @@ export function DatesActions({
   hasMarks: boolean;
 }) {
   return (
-    <div className="-mr-3 flex flex-wrap justify-end gap-1">
+    <div className="flex flex-wrap justify-end gap-2">
+      <form action={clear}>
+        <SubmitButton variant="secondary" disabled={!hasMarks} className={QUIET}>
+          Clear availability
+        </SubmitButton>
+      </form>
       <form action={reset}>
         {resetCost ? (
-          <ConfirmSubmit variant="ghost" confirmVariant="danger" className={QUIET} message={resetCost.message} confirmLabel={resetCost.label}>
+          <ConfirmSubmit variant="danger" message={resetCost.message} confirmLabel={resetCost.label}>
             Reset dates
           </ConfirmSubmit>
         ) : (
-          <SubmitButton variant="ghost" disabled={!hasDates} className={QUIET}>
+          <SubmitButton variant="danger" disabled={!hasDates}>
             Reset dates
           </SubmitButton>
         )}
-      </form>
-      <form action={clear}>
-        <SubmitButton variant="ghost" disabled={!hasMarks} className={QUIET}>
-          Clear availability
-        </SubmitButton>
       </form>
     </div>
   );
