@@ -13,7 +13,7 @@ export const capeToVictoriaFalls = defineTrip({
     "Table Mountain and the Cape, the red dunes of Sossusvlei, the coast at Swakopmund, Etosha's waterholes, a mokoro in the Okavango, elephants at Chobe and the spray of the falls to end.",
   legs: [
     { kind: "base", place: "Cape Town", nights: 3, lat: -33.925, lng: 18.424, country: "ZA" },
-    { kind: "hop", place: "Cape Point", mode: "car", detail: "day trip" },
+    { kind: "hop", place: "Cape Point", mode: "car", detail: "day trip", lat: -34.357, lng: 18.497 },
     { kind: "hop", place: "Windhoek", mode: "flight", detail: "2h" },
     { kind: "base", place: "Windhoek", nights: 1, lat: -22.56, lng: 17.066, country: "NA" },
     { kind: "hop", place: "Sossusvlei", mode: "car", detail: "5h" },

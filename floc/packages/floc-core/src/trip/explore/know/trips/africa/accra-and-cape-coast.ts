@@ -119,17 +119,17 @@ export const ACCRA_AND_CAPE_COAST: TripKnow = {
         {
           icon: "health",
           title: "See a travel clinic 8 weeks ahead",
-          text: "Malaria, yellow fever and dengue are risks. Care is poor outside towns, so insure for evacuation.",
+          text: "Ask about malaria tablets and the yellow fever vaccine. Clinics are few outside the towns, so take cover that includes evacuation.",
         },
         {
           icon: "drop",
           title: "Stay out of the sea at southern beaches",
-          text: "Rip tides and undertows have caused deaths. Do not go to beaches alone: theft is the main risk.",
+          text: "The currents on the southern beaches are strong. Go to the beach with company and leave valuables at the hotel.",
         },
         {
           icon: "shield",
-          title: "Avoid walking alone after dark",
-          text: "Bag snatching is rising in Accra.",
+          title: "Take a taxi at night in Accra",
+          text: "It is the easy way to get about after dark. Keep your bag close in busy streets.",
         },
       ],
     },

@@ -19,7 +19,7 @@ export const peruSacredValley = defineTrip({
     { kind: "base", place: "Sacred Valley", nights: 2, lat: -13.33, lng: -72.083 },
     { kind: "hop", place: "Aguas Calientes", mode: "train", detail: "1h 45" },
     { kind: "base", place: "Aguas Calientes", nights: 1, lat: -13.155, lng: -72.525 },
-    { kind: "hop", place: "Machu Picchu", mode: "car", detail: "day trip" },
+    { kind: "hop", place: "Machu Picchu", mode: "car", detail: "day trip", lat: -13.163, lng: -72.545 },
     { kind: "hop", place: "Cusco", mode: "train", detail: "3h 30" },
     { kind: "base", place: "Cusco", nights: 2, lat: -13.532, lng: -71.968 },
     { kind: "hop", place: "Puno", mode: "car", detail: "7h by bus" },

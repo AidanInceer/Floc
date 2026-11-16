@@ -7,7 +7,7 @@ export type StayStyle = (typeof STAY_STYLES)[number];
 export const PACES = ["easy", "balanced", "active"] as const;
 export type Pace = (typeof PACES)[number];
 
-export const CABIN_LABELS: Record<Cabin, string> = { economy: "Economy", premium: "Premium economy", business: "Business", first: "First" };
+export const CABIN_LABELS: Record<Cabin, string> = { economy: "Economy", premium: "Economy+", business: "Business", first: "First" };
 export const STAY_LABELS: Record<StayStyle, string> = { budget: "Budget", mid: "Mid-range", high: "High-end" };
 export const PACE_LABELS: Record<Pace, string> = { easy: "Easy", balanced: "Balanced", active: "Active" };
 

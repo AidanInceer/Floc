@@ -14,7 +14,7 @@ export const oaxacaForFood = defineTrip({
     "One city, five nights, a lot of mole: a market cooking class, tlayudas at night, a mezcal palenque and the petrified falls of Hierve el Agua.",
   legs: [
     { kind: "base", place: "Oaxaca", nights: 5, lat: 17.073, lng: -96.726 },
-    { kind: "hop", place: "Hierve el Agua", mode: "car", detail: "day trip" },
+    { kind: "hop", place: "Hierve el Agua", mode: "car", detail: "day trip", lat: 16.866, lng: -96.276 },
   ],
   highlights: ["A cooking class from the market", "Mezcal at a village palenque", "Monte Albán"],
   bestMonths: "October to April",

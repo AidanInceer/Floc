@@ -16,7 +16,7 @@ const CARET_BLINK_MS = 500;
 const JITTER_MS = [0, 34, -18, 52, -8, 22, -26, 64, 6, -14, 40];
 
 type Keystroke = { at: number; text: string };
-export type TypingScript = { strokes: Keystroke[]; markAt: number; doneAt: number };
+export type TypingScript = { strokes: Keystroke[]; markAt: number; doneAt: number; still?: true };
 export type HeadlineFrame = { text: string; caret: boolean; sweep: number };
 
 function keystrokes(words: readonly string[]): { strokes: Keystroke[]; markAt: number } {
@@ -51,6 +51,11 @@ export function typingScript(words: readonly string[], startDelayMs: number, end
   };
 }
 
+/** The word already typed, no caret: only the mark plays, sweeping from `markAt`. The phone hero uses it. */
+export function stillScript(word: string, markAt: number): TypingScript {
+  return { strokes: [{ at: 0, text: word }], markAt, doneAt: markAt + SWEEP_MS, still: true };
+}
+
 // A hand on a highlighter: a slow first touch, then a quick stroke that eases out.
 function penStroke(p: number): number {
   if (p < 0.12) return 0.5 * (p / 0.12) ** 2 * 0.12;
@@ -63,5 +68,5 @@ export function frameAt(script: TypingScript, time: number): HeadlineFrame {
   const idle = time - stroke.at;
   const blinkOn = idle < CARET_SOLID_MS || Math.floor((idle - CARET_SOLID_MS) / CARET_BLINK_MS) % 2 === 1;
   const p = Math.min(1, Math.max(0, (time - script.markAt) / (script.doneAt - script.markAt)));
-  return { text: stroke.text, caret: time < script.markAt && blinkOn, sweep: p === 0 ? 0 : penStroke(p) };
+  return { text: stroke.text, caret: !script.still && time < script.markAt && blinkOn, sweep: p === 0 ? 0 : penStroke(p) };
 }

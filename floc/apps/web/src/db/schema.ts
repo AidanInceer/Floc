@@ -205,6 +205,8 @@ export const userProfile = sqliteTable("user_profile", {
   notifyReminders: integer("notify_reminders", { mode: "boolean" }).notNull().default(true),
   /** The "next trip?" prompt after a quiet spell has its own switch (#626, ADR-056). */
   notifyNextTrip: integer("notify_next_trip", { mode: "boolean" }).notNull().default(true),
+  /** When the person agreed to advertising email; null means no consent. The time is the record UK law asks for. */
+  marketingEmailConsentAt: integer("marketing_email_consent_at", { mode: "timestamp" }),
   /** Explore's last quiz answers, read through `readAnswers` — a bad shape reads as none. */
   exploreAnswers: text("explore_answers", { mode: "json" }).$type<unknown>(),
   /** Your flight and stay sites, read through `readBookingSites`; null or a bad shape reads as the default (wireframe/booking-sites J). */

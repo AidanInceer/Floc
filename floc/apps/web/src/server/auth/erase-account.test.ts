@@ -74,6 +74,14 @@ describe("erasing an account", () => {
     expect(profile?.friendCode).toBeNull();
   });
 
+  it("withdraws consent to advertising email", async () => {
+    await db.update(schema.userProfile).set({ marketingEmailConsentAt: new Date() }).where(eq(schema.userProfile.userId, world.member));
+    await eraseAccount(world.member);
+
+    const profile = await db.select().from(schema.userProfile).where(eq(schema.userProfile.userId, world.member)).get();
+    expect(profile?.marketingEmailConsentAt).toBeNull();
+  });
+
   it("revokes Floc's Google grant first, so Floc leaves their Google account too (#444)", async () => {
     await eraseAccount(world.member);
     expect(revokeGoogleGrant).toHaveBeenCalledWith(world.member);

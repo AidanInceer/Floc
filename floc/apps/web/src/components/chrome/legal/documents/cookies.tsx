@@ -3,12 +3,13 @@ import Link from "next/link";
 import { ConsentChoices } from "@/components/chrome/consent/consent-choices";
 import { CONTACT_EMAIL } from "@/lib/legal/facts";
 import { STORAGE_CATEGORIES } from "@/lib/legal/storage-list";
+import { getSession } from "@/server/access";
 import { requestConsent } from "@/server/consent/consent";
 
 import { LegalSection, LegalTable } from "../legal-prose";
 
 export async function CookiesDocument() {
-  const consent = await requestConsent();
+  const [consent, session] = await Promise.all([requestConsent(), getSession()]);
   return (
     <>
       <LegalSection title="1. About this policy">
@@ -40,11 +41,23 @@ export async function CookiesDocument() {
       </LegalSection>
 
       <LegalSection title="4. Managing your preferences">
-        <p>
-          You may give, change or withdraw your consent at any time below. Your decision is recorded for 12 months,
-          after which we ask again. Withdrawing consent removes the preference data stored on this device.
-        </p>
-        <ConsentChoices fromServer={consent} />
+        {session?.user ? (
+          <p>
+            You may give, change or withdraw your consent at any time under{" "}
+            <Link href="/profile?section=data#settings-data">Your data</Link> on your profile. Your decision is
+            recorded for 12 months, after which we ask again. Withdrawing consent removes the preference data stored
+            on this device.
+          </p>
+        ) : (
+          <>
+            <p>
+              You may give, change or withdraw your consent at any time below. Your decision is recorded for 12
+              months, after which we ask again. Withdrawing consent removes the preference data stored on this device.
+            </p>
+            {/* Why: with no account there is no profile to send you to, and a no must stay as easy as a yes (#368). */}
+            <ConsentChoices fromServer={consent} />
+          </>
+        )}
         <p>
           You may also block or delete cookies in your browser settings. If you block strictly necessary cookies, you
           will not be able to sign in.

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { readFileSync } from "node:fs";
 
+import { stopsOf } from "@floc/core/trip/explore/listing-stops";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 
 import { tripCodes } from "./country";
@@ -70,13 +71,39 @@ describe("frameFor", () => {
   });
 
   it("zooms in on stops that would sit almost on top of each other, so a line can be seen between them", () => {
-    const stops = [{ lat: 40.2, lng: -5.9 }, { lat: 40.0, lng: -5.6 }];
+    const stops = [{ lat: 40.5, lng: -5.9 }, { lat: 40.0, lng: -5.0 }];
     const frame = frameFor(stops, homePiece(land, "ES", stops[0]!), size);
     const [a, b] = stops.map(frame.point);
-    expect(Math.hypot(a!.x - b!.x, a!.y - b!.y)).toBeGreaterThanOrEqual(size.height * 0.2 - 0.5);
+    expect(Math.hypot(a!.x - b!.x, a!.y - b!.y)).toBeGreaterThanOrEqual(size.height * 0.15 - 0.5);
     expect(frame.view.north - frame.view.south).toBeLessThan(8);
     expect(a!.y).toBeGreaterThan(size.height * 0.25);
     expect(a!.y).toBeLessThan(size.height * 0.75);
+  });
+
+  it("zooms in no further than four tenths of the land's frame, so the country can still be told", () => {
+    const stops = [{ lat: 40.05, lng: -5.9 }, { lat: 40.0, lng: -5.85 }];
+    const whole = frameFor([stops[0]!], homePiece(land, "ES", stops[0]!), size);
+    const frame = frameFor(stops, homePiece(land, "ES", stops[0]!), size);
+    expect(frame.view.north - frame.view.south).toBeCloseTo((whole.view.north - whole.view.south) * 0.4);
+  });
+
+  it("keeps as much of the land in the drawing as the stops allow when it zooms in on a coast", () => {
+    const stops = [{ lat: 36.3, lng: -6 }, { lat: 36.3, lng: -4.9 }];
+    const frame = frameFor(stops, homePiece(land, "ES", stops[0]!), size);
+    expect(frame.view.north - frame.view.south).toBeLessThan(8);
+    expect(frame.view.north).toBeGreaterThan(40);
+    for (const p of stops.map(frame.point)) expect(p.y).toBeLessThan(size.height * 0.84 + 0.5);
+  });
+
+  it("holds a day out's place in the drawing, and does not zoom in to part it from its stop", () => {
+    const stops = [{ lat: 37, lng: -6 }, { lat: 43, lng: -3 }];
+    const out = { lat: 31, lng: -7 };
+    const frame = frameFor(stops, homePiece(land, "ES", stops[0]!), size, [out]);
+    const p = frame.point(out);
+    expect(p.y).toBeLessThan(size.height);
+    expect(p.x).toBeGreaterThan(0);
+    const near = frameFor(stops, homePiece(land, "ES", stops[0]!), size, [{ lat: 37.1, lng: -6 }]);
+    expect(near.view).toEqual(frameFor(stops, homePiece(land, "ES", stops[0]!), size).view);
   });
 
   it("zooms no further than the whole route", () => {
@@ -96,25 +123,35 @@ describe("every listing", () => {
   const fine = landFromPacked(JSON.parse(readFileSync("public/land-50m.json", "utf8")));
   const SIZES = [{ width: 240, height: 170 }, { width: 432, height: 216 }];
 
-  it("keeps its stops apart where the route is wide enough to allow it", () => {
-    const tight: string[] = [];
+  it("keeps every stop inside the drawing", () => {
+    const wrong: string[] = [];
     for (const trip of PRESET_TRIPS) {
       const stops = trip.legs.flatMap((l) => (l.kind === "base" ? [{ place: l.place, lat: l.lat, lng: l.lng }] : []));
       for (const box of SIZES) {
         const frame = frameFor(stops, homePiece(fine, [...tripCodes(trip.country, stops, fine)][0] ?? "", stops[0]!), box);
-        const px = stops.map(frame.point);
-        for (let i = 0; i < px.length; i++) {
-          for (let j = i + 1; j < px.length; j++) {
-            const apart = Math.hypot(px[i]!.x - px[j]!.x, px[i]!.y - px[j]!.y);
-            const high = frame.view.north - frame.view.south;
-            const wide = Math.max(Math.max(...stops.map((x) => x.lat)) - Math.min(...stops.map((x) => x.lat)), ((Math.max(...stops.map((x) => x.lng)) - Math.min(...stops.map((x) => x.lng))) * Math.cos((stops[0]!.lat * Math.PI) / 180)) / (box.width / box.height));
-            const room = high > wide * 1.5 * 1.02 + 0.01;
-            if (room && apart > 0.5 && apart < box.height * 0.17) tight.push(`${trip.id} ${stops[i]!.place}/${stops[j]!.place} ${Math.round(apart)}px in ${box.height}`);
-          }
+        for (const stop of stops) {
+          const p = frame.point(stop);
+          if (p.x < 0 || p.x > box.width || p.y < 0 || p.y > box.height) wrong.push(`${trip.id} ${stop.place} is off the drawing`);
         }
       }
     }
-    expect(tight).toEqual([]);
+    expect(wrong).toEqual([]);
+  });
+
+  it("keeps every day out inside the trip page's map", () => {
+    const wrong: string[] = [];
+    for (const trip of PRESET_TRIPS) {
+      const stops = stopsOf(trip);
+      const outs = stops.flatMap((s) => s.dayOuts.flatMap((o) => (o.lat !== undefined && o.lng !== undefined ? [{ place: o.place, lat: o.lat, lng: o.lng }] : [])));
+      for (const box of [{ width: 580, height: 435 }, { width: 311, height: 233 }]) {
+        const frame = frameFor(stops, homePiece(fine, [...tripCodes(trip.country, stops, fine)][0] ?? "", stops[0]!), box, outs);
+        for (const out of outs) {
+          const p = frame.point(out);
+          if (p.x < 8 || p.x > box.width - 8 || p.y < 8 || p.y > box.height - 8) wrong.push(`${trip.id} ${out.place} is off the ${box.width}px map`);
+        }
+      }
+    }
+    expect(wrong).toEqual([]);
   });
 });
 

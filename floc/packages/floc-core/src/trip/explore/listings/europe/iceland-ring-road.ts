@@ -13,7 +13,7 @@ export const icelandRingRoad = defineTrip({
     "The whole ring, anticlockwise: waterfalls on the south coast, the glacier lagoon, a night in the east fjords, Mývatn and Akureyri, then Snæfellsnes on the way back. Car and guesthouses included.",
   legs: [
     { kind: "base", place: "Reykjavík", nights: 1, lat: 64.146, lng: -21.942 },
-    { kind: "hop", place: "Golden Circle", mode: "car", detail: "day drive" },
+    { kind: "hop", place: "Golden Circle", mode: "car", detail: "day drive", lat: 64.31, lng: -20.302 },
     { kind: "hop", place: "Vík", mode: "car", detail: "3h" },
     { kind: "base", place: "Vík", nights: 1, lat: 63.418, lng: -19.006 },
     { kind: "hop", place: "Höfn", mode: "car", detail: "3h 30" },

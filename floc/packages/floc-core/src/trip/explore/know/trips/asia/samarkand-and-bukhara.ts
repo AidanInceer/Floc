@@ -125,7 +125,7 @@ export const SAMARKAND_AND_BUKHARA: TripKnow = {
         {
           icon: "health",
           title: "Insure with evacuation cover",
-          text: "Medical care is poor and hospitals badly equipped outside the cities.",
+          text: "Hospitals outside the cities are basic.",
         },
         {
           icon: "health",

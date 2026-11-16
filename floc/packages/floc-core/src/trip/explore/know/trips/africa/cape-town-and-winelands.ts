@@ -113,7 +113,7 @@ export const CAPE_TOWN_AND_WINELANDS: TripKnow = {
         {
           icon: "shield",
           title: "Keep to busy places after dark",
-          text: "Carjackings happen at junctions and petrol stations after dark. Violent crime can happen in tourist areas.",
+          text: "After dark, take a taxi or a ride app from door to door, and keep car doors locked when you drive.",
         },
         {
           icon: "health",

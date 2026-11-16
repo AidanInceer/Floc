@@ -123,7 +123,7 @@ export const ALBANIAN_RIVIERA: TripKnow = {
         {
           icon: "shield",
           title: "Avoid protests in central Tirana",
-          text: "The UK government says protests on 15 October 2026 brought some violence and property damage.",
+          text: "Protests are held in the centre from time to time. Walk round them.",
         },
         {
           icon: "health",
@@ -133,7 +133,7 @@ export const ALBANIAN_RIVIERA: TripKnow = {
         {
           icon: "shield",
           title: "Use licensed boat firms and watch your pockets",
-          text: "Safety kit can be poor. Watch for pickpockets in tourist areas.",
+          text: "Check that the boat has life jackets before you board. Keep your wallet in a front pocket in busy places.",
         },
       ],
     },

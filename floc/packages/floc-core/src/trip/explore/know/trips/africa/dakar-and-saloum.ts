@@ -122,12 +122,12 @@ export const DAKAR_AND_SALOUM: TripKnow = {
         {
           icon: "health",
           title: "Insure for medical evacuation",
-          text: "Care outside Dakar is limited. The UK government lists dengue, Zika, yellow fever and diphtheria.",
+          text: "Care outside Dakar is limited. Ask a travel clinic about vaccines, and use repellent.",
         },
         {
           icon: "shield",
-          title: "Avoid walking alone after dark",
-          text: "Hotels popular with foreigners have been robbed. Protests in Dakar can block the airport road. Take care in border areas near Mali.",
+          title: "Take a taxi at night in Dakar",
+          text: "Use the hotel safe for your passport and spare cash. A protest in Dakar can block the airport road, so allow extra time for your flight.",
         },
       ],
     },

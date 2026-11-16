@@ -1,7 +1,6 @@
 import type { PresetFigure } from "@floc/core/trip/explore/detail/preset-detail-types";
 import { stopsOf } from "@floc/core/trip/explore/listing-stops";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
-import Link from "next/link";
 
 import { TripMap } from "@/components/explore/trip/trip-map";
 import { PostcardStamp } from "@/components/explore/postcard-stamp";
@@ -29,10 +28,7 @@ export function TripHero({ trip, figures, rates }: { trip: PresetTrip; figures: 
           <SaveHeart presetId={trip.id} title={trip.title} className="!border !border-rule !shadow-none max-lg:hidden" />
         </div>
         <p className="typed sm:pr-24 lg:pr-36">
-          <Link href="/explore" className="hover:text-ink">
-            Explore
-          </Link>{" "}
-          / {trip.region} / {trip.country}
+          {trip.region} / {trip.country}
         </p>
         <PageTitle className="mt-2.5 tracking-[-0.025em] sm:pr-24 lg:pr-36">{trip.title}</PageTitle>
         <p className="mt-3 max-w-[56ch] text-md text-ink-soft">{trip.summary}</p>

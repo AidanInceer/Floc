@@ -20,7 +20,7 @@ export const newZealandNorthIsland = defineTrip({
     { kind: "base", place: "Coromandel", nights: 2, lat: -36.835, lng: 175.79 },
     { kind: "hop", place: "Rotorua", mode: "car", detail: "3h" },
     { kind: "base", place: "Rotorua", nights: 2, lat: -38.137, lng: 176.251 },
-    { kind: "hop", place: "Waitomo", mode: "car", detail: "day trip" },
+    { kind: "hop", place: "Waitomo", mode: "car", detail: "day trip", lat: -38.261, lng: 175.103 },
     { kind: "hop", place: "Tongariro", mode: "car", detail: "2h 30" },
     { kind: "base", place: "Tongariro", nights: 2, lat: -39.2, lng: 175.58 },
     { kind: "hop", place: "Wellington", mode: "car", detail: "4h 30" },

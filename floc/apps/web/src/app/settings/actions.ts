@@ -11,6 +11,7 @@ import { removeCalendarAccess } from "@/server/calendar/calendar-import";
 import { unlinkSignIn } from "@/server/auth/sign-in-methods";
 import { eraseAccount } from "@/server/auth/erase-account";
 import { bookingSitesOf, toggleBookingSite } from "@/server/auth/booking-sites";
+import { setMarketingEmailConsent } from "@/server/consent/marketing-consent";
 import {
   ensureProfile,
   updateProfileFields,
@@ -68,6 +69,13 @@ export async function updateNotifications(formData: FormData): Promise<void> {
     notifyReminders: formData.get("notifyReminders") === "on",
     notifyNextTrip: formData.get("notifyNextTrip") === "on",
   });
+}
+
+export async function updateMarketingEmail(formData: FormData): Promise<void> {
+  const viewer = await requireUser();
+  await ensureProfile(viewer.id);
+  await setMarketingEmailConsent(viewer.id, formData.get("marketingEmail") === "on", new Date());
+  refresh({ kind: "accountSettings" });
 }
 
 export async function deleteAccount(): Promise<void> {

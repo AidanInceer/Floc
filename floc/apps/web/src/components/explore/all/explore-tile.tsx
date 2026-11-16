@@ -41,7 +41,7 @@ export function ExploreTile({
   children?: ReactNode;
   footer?: ReactNode;
   action?: ReactNode;
-  /** Sits in the map's top-left corner, opposite the heart: a top pick's sun (#624). */
+  /** Sits in the tile's bottom-right corner: a top pick's sun (#624). */
   mark?: ReactNode;
 }) {
   const rates = useListingRates();
@@ -64,7 +64,7 @@ export function ExploreTile({
         </span>
         {mark}
       </Link>
-      <SaveHeart presetId={trip.id} title={trip.title} className="absolute right-2.5 top-2.5 z-10" />
+      <SaveHeart presetId={trip.id} title={trip.title} className="absolute right-1.5 top-1.5 z-10" />
       {action ? (
         <div className={cx(lastLineClass, "px-3.5", footer ? "pb-1.5" : "pb-3.5")}>
           {/* Why: beside an action on a phone the figures stack, nights over price, rather than wrap at the dot. */}

@@ -188,7 +188,7 @@ export const JAPAN_GOLDEN_ROUTE: TripKnow = {
         {
           icon: "shield",
           title: "Check menu prices before you sit down",
-          text: "The UK government warns of drink spiking and street touts in Kabukicho, Roppongi and Shibuya. Do not follow touts.",
+          text: "Street touts in Kabukicho, Roppongi and Shibuya lead to bars with high cover charges. Choose your own bar, and keep your drink with you.",
         },
       ],
     },

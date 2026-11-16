@@ -4,7 +4,8 @@ import { useState } from "react";
 
 import { BillingAction } from "@/components/auth/billing-buttons";
 import { CheckIcon, MinusIcon } from "@/components/system/icons";
-import { cx, segmentTrack } from "@/components/system/ui";
+import { SegmentTrack } from "@/components/system/segment-track";
+import { cx, trackSegmentClass } from "@/components/system/ui";
 import type { BillingInterval } from "@floc/core/billing/plans";
 import type { Currency } from "@floc/core/money/currency";
 import { formatMoney } from "@floc/core/money/money";
@@ -72,19 +73,19 @@ export function ProCompare({ prices }: { prices: Price[] }) {
         {/* Why: with no price to quote (a Stripe read failed), Pro is still on sale; the checkout says what went wrong. */}
         <div className="flex items-center justify-between gap-2 rounded-sm bg-sheet-2 p-2.5 sm:flex-col sm:rounded-t-none sm:pb-3">
             {prices.length > 1 ? (
-              <div role="group" aria-label="Billing period" className={cx(segmentTrack, "flex gap-0.5")}>
+              <SegmentTrack role="group" aria-label="Billing period" className="flex gap-0.5">
                 {prices.map((p) => (
                   <button
                     key={p.interval}
                     type="button"
                     aria-pressed={p.interval === picked}
                     onClick={() => setPicked(p.interval)}
-                    className="h-7 rounded-sm px-2.5 text-[13px] font-medium text-ink-soft transition-colors duration-220 ease-(--ease) hover:text-pen-deep aria-pressed:bg-pen-soft aria-pressed:text-pen-deep"
+                    className={cx(trackSegmentClass(p.interval === picked), "h-7 px-2.5 text-[13px]")}
                   >
                     {PERIODS[p.interval].word}
                   </button>
                 ))}
-              </div>
+              </SegmentTrack>
             ) : null}
             <BillingAction
               path="/api/billing/checkout"

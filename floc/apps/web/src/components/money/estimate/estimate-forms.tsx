@@ -2,7 +2,9 @@ import { ActionForm, SubmitButton } from "@/components/system/client-ui";
 import { Field, Input } from "@/components/system/ui";
 import { toMajorInput } from "@floc/core/money/money";
 import type { Currency } from "@floc/core/money/currency";
-import { airportName } from "@floc/core/money/estimate/guide/home-airport";
+import { chosenAirport } from "@floc/core/money/estimate/guide/airports/airports";
+
+import { AirportField } from "./airport-field";
 import type { PlanLine } from "@floc/core/money/estimate/plan";
 import { wholeRange } from "@floc/core/money/estimate/words";
 import {
@@ -65,23 +67,20 @@ export function NightsForm({ tripId, nights }: { tripId: number; nights: number 
 }
 
 /** Your home airport. A guess from your flight files is offered as a Confirm, never typed into the field for you. */
-export function HomeAirportForm({ code, suggested }: { code: string | null; suggested: string | null }) {
+export async function HomeAirportForm({ suggested }: { suggested: string | null }) {
   return (
     <div className="grid gap-4">
       {suggested ? (
         <ActionForm action={saveHomeAirportForm} className="flex flex-wrap items-center justify-between gap-3">
           <input type="hidden" name="airport" value={suggested} />
-          <span className="text-[13px] text-ink-soft">We think you fly from {airportName(suggested)} ({suggested}).</span>
+          <span className="text-[13px] text-ink-soft">We think you fly from {(await chosenAirport(suggested))?.label}.</span>
           <SubmitButton variant="secondary">Confirm</SubmitButton>
         </ActionForm>
       ) : null}
-      <ActionForm action={saveHomeAirportForm} className="grid gap-4" keepAnswers>
-        <Field label="Home airport code" hint="Kept on your profile.">
-          <Input name="airport" maxLength={3} autoComplete="off" defaultValue={code ?? undefined} className="font-mono uppercase" />
-        </Field>
-        <div className="flex justify-end">
-          <SubmitButton>Save airport</SubmitButton>
-        </div>
+      <ActionForm action={saveHomeAirportForm} keepAnswers>
+        <label htmlFor="budget-airport" className="typed mb-1 block">Home airport</label>
+        <AirportField id="budget-airport" chosen={null} describedBy="budget-airport-hint" />
+        <span id="budget-airport-hint" className="mt-1 block text-xs text-ink-faint">Kept on your profile.</span>
       </ActionForm>
     </div>
   );

@@ -88,13 +88,18 @@ export function DayRow({ day, open, onToggle }: { day: PlanDay; open: boolean; o
           <Summary day={day} />
         </span>
         <span className="nums hidden text-xs text-ink-faint sm:block">{span}</span>
-        <ChevronIcon direction={open ? "up" : "down"} size={14} className="text-ink-faint" />
+        <ChevronIcon direction="down" size={14} className={cx("text-ink-faint transition-transform duration-220 ease-(--ease)", open && "rotate-180")} />
       </button>
-      {open ? (
-        <div id={`day-${day.n}-plan`}>
+      {/* Why: the day grows to its height as it opens, as a stop does on the Overview (Aidan, ADR-061). */}
+      <div
+        id={`day-${day.n}-plan`}
+        inert={!open}
+        className={cx("grid transition-[grid-template-rows] duration-220 ease-(--ease)", open ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}
+      >
+        <div className="min-h-0 overflow-y-clip">
           <DayRail day={day} />
         </div>
-      ) : null}
+      </div>
     </li>
   );
 }

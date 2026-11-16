@@ -4,8 +4,9 @@ import Link from "next/link";
 import { saveHomeAirportForm, saveTravelStyleForm } from "@/app/trip/[id]/money/estimate-actions";
 import { ActionForm, SubmitButton } from "@/components/system/client-ui";
 import { ChoiceSegments } from "@/components/system/choice-segments";
-import { buttonClass, Input } from "@/components/system/ui";
-import { airportName } from "@floc/core/money/estimate/guide/home-airport";
+import { AirportField } from "@/components/money/estimate/airport-field";
+import { buttonClass } from "@/components/system/ui";
+import { chosenAirport } from "@floc/core/money/estimate/guide/airports/airports";
 import {
   CABIN_LABELS, CABINS, PACE_LABELS, PACES, STAY_LABELS, STAY_STYLES,
 } from "@floc/core/money/estimate/style";
@@ -27,7 +28,7 @@ function Choice<T extends string>({ name, label, options, labels, value }: { nam
 }
 
 
-function EstimateFields({ settings }: { settings: EstimateSettings }) {
+async function EstimateFields({ settings }: { settings: EstimateSettings }) {
   if (!settings.pro) {
     return (
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -42,20 +43,14 @@ function EstimateFields({ settings }: { settings: EstimateSettings }) {
       {!homeAirport && inferred ? (
         <ActionForm action={saveHomeAirportForm} className={rowClass}>
           <input type="hidden" name="airport" value={inferred} />
-          <span className="text-sm">We think you fly from {airportName(inferred)} ({inferred}).</span>
+          <span className="text-sm">We think you fly from {(await chosenAirport(inferred))?.label}.</span>
           <SubmitButton variant="secondary">Confirm</SubmitButton>
         </ActionForm>
       ) : null}
-      <ActionForm action={saveHomeAirportForm} className={rowClass} keepAnswers>
-        <label htmlFor="est-airport" className="text-sm">
-          Home airport
-          {homeAirport ? <span className="block text-xs text-ink-faint">{airportName(homeAirport)}</span> : null}
-        </label>
-        <span className="flex items-center gap-2">
-          <Input id="est-airport" name="airport" maxLength={3} autoComplete="off" defaultValue={homeAirport ?? undefined} className="w-20 font-mono uppercase" />
-          <SubmitButton variant="secondary">Save</SubmitButton>
-        </span>
-      </ActionForm>
+      <AutoSaveForm action={saveHomeAirportForm} className={rowClass.replace("items-center", "items-start")}>
+        <label htmlFor="est-airport" className="text-sm sm:pt-1.5">Home airport</label>
+        <AirportField key={homeAirport ?? "none"} id="est-airport" chosen={await chosenAirport(homeAirport)} />
+      </AutoSaveForm>
       <AutoSaveForm action={saveTravelStyleForm} className="flex flex-col gap-4">
         <Choice name="cabin" label="Cabin" options={CABINS} labels={CABIN_LABELS} value={style.cabin} />
         <Choice name="stay" label="Stay" options={STAY_STYLES} labels={STAY_LABELS} value={style.stay} />
@@ -67,7 +62,7 @@ function EstimateFields({ settings }: { settings: EstimateSettings }) {
 
 export function EstimateRow({ id, open, settings }: { id: string; open: boolean; settings: EstimateSettings }) {
   return (
-    <SettingsRow id={id} open={open} title="Cost estimate" summary={settings.pro ? estimateSummary(settings.homeAirport, settings.style) : "Floc Pro"}>
+    <SettingsRow id={id} open={open} title="Budgeting" summary={settings.pro ? estimateSummary(settings.homeAirport, settings.style) : "Floc Pro"}>
       <EstimateFields settings={settings} />
     </SettingsRow>
   );

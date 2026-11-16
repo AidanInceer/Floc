@@ -150,7 +150,7 @@ export const KATHMANDU_AND_POON_HILL: TripKnow = {
         {
           icon: "shield",
           title: "Avoid cheap trek deals",
-          text: "The UK government reports guides who hurry clients high, then call paid helicopters.",
+          text: "A good guide climbs slowly. Book through an agency that your hotel or a friend knows.",
         },
         {
           icon: "weather",

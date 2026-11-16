@@ -188,7 +188,7 @@ export const CAPE_TO_VICTORIA_FALLS: TripKnow = {
         {
           icon: "health",
           title: "Keep away from Cape fur seals",
-          text: "Rabies is in seals in South Africa and Namibia. If bitten, get medical help at once.",
+          text: "Some seals in South Africa and Namibia carry rabies. See a doctor the same day for any bite.",
         },
         {
           icon: "walk",

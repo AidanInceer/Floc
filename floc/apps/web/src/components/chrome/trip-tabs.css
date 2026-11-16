@@ -7,6 +7,15 @@
     background: var(--section-wash);
   }
 
+  /* Why: the Wish lists bookmark fills on hover as it does when open, so hover shows the tab it opens (Aidan). */
+  [data-fill-hover] path {
+    transition: fill 0.22s var(--ease);
+  }
+  .trip-tab:hover [data-fill-hover] path,
+  .trip-tab:focus-visible [data-fill-hover] path {
+    fill: currentColor;
+  }
+
   /* Once the tile has a place (ADR-052), it is the open tab's wash; the glyph keeps its ink. */
   [data-tile] .trip-tab[aria-current="page"] .trip-tab-icon,
   [data-tile] .trip-tab[data-pressed] .trip-tab-icon,

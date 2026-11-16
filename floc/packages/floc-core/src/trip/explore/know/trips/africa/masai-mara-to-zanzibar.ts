@@ -162,7 +162,7 @@ export const MASAI_MARA_TO_ZANZIBAR: TripKnow = {
         {
           icon: "shield",
           title: "Use hotel taxis in Stone Town",
-          text: "Bags are snatched in Stone Town and on beaches. Avoid crowds and protests.",
+          text: "Keep your bag close in Stone Town and on the beaches, and take a hotel taxi at night.",
         },
         {
           icon: "car",

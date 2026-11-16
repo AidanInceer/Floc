@@ -10,6 +10,7 @@ import { flightsSeenBy } from "@/server/money/estimate/flights-seen";
 import type { Currency } from "@floc/core/money/currency";
 import { convertMinor } from "@floc/core/money/money";
 import { guideFor, guideIn, type GuideLine } from "@floc/core/money/estimate/guide/guide";
+import { findAirport, loadAirports } from "@floc/core/money/estimate/guide/airports/airports";
 import { airportName, inferHomeAirport } from "@floc/core/money/estimate/guide/home-airport";
 import type { EstimateLine } from "@floc/core/money/estimate/lines";
 import { planFor, type OwnLine } from "@floc/core/money/estimate/plan";
@@ -34,9 +35,10 @@ export async function readEstimate(trip: TripDates, viewerId: string, known?: Le
     known?.splits ?? listSplits(trip.id),
   ]);
   const currency = homes.get(viewerId) ?? "GBP";
-  const [rates, inferred] = await Promise.all([
+  const [rates, inferred, airports] = await Promise.all([
     getHomeRates(currency),
     profile.homeAirport ? null : flightsSeenBy(viewerId).then(inferHomeAirport),
+    loadAirports(),
   ]);
   const toHome: Partial<Record<Currency, number>> = rates?.toHome ?? {};
   const homeCode = profile.homeAirport ?? inferred;
@@ -48,7 +50,7 @@ export async function readEstimate(trip: TripDates, viewerId: string, known?: Le
   return {
     currency,
     style,
-    home: homeCode ? { code: homeCode, name: airportName(homeCode), inferred: !profile.homeAirport } : null,
+    home: homeCode ? { code: homeCode, name: findAirport(airports, homeCode)?.name ?? airportName(homeCode), inferred: !profile.homeAirport } : null,
     nights: shape.nights,
     places: shape.stops.length > 0,
     plan: planFor({

@@ -8,9 +8,12 @@ export const BEAD_ITEMS = "gap-2";
 export const BEAD_ITEM =
   "group flex h-full shrink-0 items-center rounded-sm px-1.5 text-sm font-medium text-ink-soft transition-colors hover:text-ink aria-[current=page]:text-ink sm:gap-1.5";
 
+// Why: an 18px ring with a 14px line inside puts a one-digit count in a true circle, its figure centred to the pixel.
+export const COUNT_PIP =
+  "absolute -top-1.5 h-[18px] min-w-[18px] rounded-full border-2 bg-pen px-0.5 text-center font-mono text-[11px] font-semibold leading-[14px] text-sheet";
+
 // A count on a glyph's tile — invites on Trips, news in the inbox — so it never widens the bar.
-export const BEAD_COUNT =
-  "absolute -right-2 -top-1.5 min-w-4 rounded-full border-2 border-sheet bg-pen px-1 text-center font-mono text-[11px] font-semibold leading-[13px] text-sheet";
+export const BEAD_COUNT = `${COUNT_PIP} -right-2 border-sheet`;
 
 // The glyph's tile: the one thing in the bar that shows hover, open and here.
 export const BEAD_TILE =

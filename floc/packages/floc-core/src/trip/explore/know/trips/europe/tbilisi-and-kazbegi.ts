@@ -117,7 +117,7 @@ export const TBILISI_AND_KAZBEGI: TripKnow = {
         {
           icon: "shield",
           title: "Avoid protests on Rustaveli Avenue",
-          text: "Daily protests have run since late 2024 and can escalate without warning, especially on Saturday evenings. Joining one can mean extra questions on exit or refused re-entry.",
+          text: "Protests are held there most evenings. Walk round them and do not join in, as that can cause trouble at the border.",
           link: { label: "UK safety advice for Georgia", href: "https://www.gov.uk/foreign-travel-advice/georgia/safety-and-security" },
         },
         {

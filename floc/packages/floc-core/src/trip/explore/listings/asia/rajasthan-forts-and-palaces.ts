@@ -24,7 +24,7 @@ export const rajasthanFortsAndPalaces = defineTrip({
     { kind: "base", place: "Jodhpur", nights: 2, lat: 26.238, lng: 73.024 },
     { kind: "hop", place: "Udaipur", mode: "car", detail: "5h" },
     { kind: "base", place: "Udaipur", nights: 3, lat: 24.585, lng: 73.713 },
-    { kind: "hop", place: "Kumbhalgarh", mode: "car", detail: "day trip" },
+    { kind: "hop", place: "Kumbhalgarh", mode: "car", detail: "day trip", lat: 25.149, lng: 73.587 },
   ],
   highlights: ["The Taj Mahal at sunrise", "Mehrangarh fort above the blue city", "A boat on Lake Pichola"],
   bestMonths: "October to March",

@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 
 import { addIdea, removeIdea, voteIdea } from "@/app/trip/[id]/overview/actions";
 import { Avatar, EmptyState, Input, cx, iconButtonClass } from "@/components/system/ui";
-import { ActionForm, PillToggle, SubmitButton } from "@/components/system/client-ui";
+import { ActionForm, SubmitButton } from "@/components/system/client-ui";
+import { PillToggle } from "@/components/system/segment-track";
 import { readStored, writeStored } from "@/lib/storage/browser-storage";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import {

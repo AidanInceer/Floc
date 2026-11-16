@@ -157,7 +157,7 @@ export const MEXICO_YUCATAN_LOOP: TripKnow = {
         {
           icon: "drop",
           title: "Drink bottled or boiled water",
-          text: "Avoid ice. The UK government lists dengue and Zika, so use repellent.",
+          text: "Avoid ice, and use repellent against mosquitoes.",
         },
         {
           icon: "health",
@@ -167,7 +167,7 @@ export const MEXICO_YUCATAN_LOOP: TripKnow = {
         {
           icon: "shield",
           title: "Take care after dark in downtown Cancún",
-          text: "The UK government notes gang clashes there and in nearby areas, and assaults on British travellers. Stay in lit tourist areas in Tulum and Cancún.",
+          text: "Stay in the lit tourist areas of Tulum and Cancún at night, and take a registered taxi back.",
         },
       ],
     },
