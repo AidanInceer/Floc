@@ -12,6 +12,8 @@ const pending = (over: Partial<PendingPush> = {}): PendingPush => ({
   tripName: "Rome",
   text: "Ada nudged you about Rome",
   href: "/trip/7/money",
+  kind: "nudge_sent",
+  actor: "Ada",
   ...over,
 });
 
@@ -26,7 +28,16 @@ describe("planPushes", () => {
         href: "/trip/7/money",
         notificationIds: [1],
         lines: ["Ada nudged you about Rome"],
+        parts: [{ kind: "nudge_sent", actor: "Ada" }],
       },
+    ]);
+  });
+
+  it("keeps who did what for each line, so an email can draw their face and the feature (#653)", () => {
+    const [push] = planPushes([pending(), pending({ notificationId: 2, kind: "expense_added", actor: "Jo" })], [], now);
+    expect(push.parts).toEqual([
+      { kind: "nudge_sent", actor: "Ada" },
+      { kind: "expense_added", actor: "Jo" },
     ]);
   });
 

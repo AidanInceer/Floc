@@ -30,7 +30,7 @@ const SIGNED_OUT: Awaited<ReturnType<typeof topBarFor>> = {
 };
 
 const display = localFont({
-  src: "./fonts/red-hat-display-latin.woff2",
+  src: "../../public/fonts/red-hat-display-latin.woff2",
   variable: "--font-display-face",
   weight: "800",
   style: "normal",
@@ -38,7 +38,7 @@ const display = localFont({
 });
 
 const body = localFont({
-  src: "./fonts/red-hat-text-latin.woff2",
+  src: "../../public/fonts/red-hat-text-latin.woff2",
   variable: "--font-body-face",
   weight: "300 700",
   style: "normal",
@@ -46,7 +46,7 @@ const body = localFont({
 });
 
 const mono = localFont({
-  src: "./fonts/red-hat-mono-latin.woff2",
+  src: "../../public/fonts/red-hat-mono-latin.woff2",
   variable: "--font-data-face",
   weight: "300 700",
   style: "normal",

@@ -45,6 +45,12 @@ export function isReminder(kind: ActivityKind): kind is ReminderKind {
   return (REMINDER_KINDS as readonly ActivityKind[]).includes(kind);
 }
 
+export const LIMIT_FREE_KINDS = [...REMINDER_KINDS, "trip_invited"] as const satisfies ActivityKind[];
+
+export function skipsLimits(kind: ActivityKind): boolean {
+  return (LIMIT_FREE_KINDS as readonly ActivityKind[]).includes(kind);
+}
+
 export const RECEIPT_KINDS = ["booking_filed", "booking_waiting"] as const satisfies ActivityKind[];
 export type ReceiptKind = (typeof RECEIPT_KINDS)[number];
 

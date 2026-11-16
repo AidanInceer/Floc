@@ -146,9 +146,9 @@ describe("a member forwards a booking to the shared address", () => {
     await run();
     expect(await waiting()).toHaveLength(1);
     const [[reply]] = send.mock.calls;
-    const text = reply[0].lines.join(" ");
-    expect(text).toContain("king.docx");
-    expect(text).not.toContain("../");
+    const names = reply[0].rows.map((r: { text: string }) => r.text).join(" ");
+    expect(names).toContain("king.docx");
+    expect(names).not.toContain("../");
   });
 
   it("says why a file left behind before download was refused", async () => {
@@ -157,7 +157,7 @@ describe("a member forwards a booking to the shared address", () => {
     });
     await run();
     const [[reply]] = send.mock.calls;
-    expect(reply[0].lines).toContain("scan.pdf: Files are capped at 8 MB");
+    expect(reply[0].rows).toContainEqual(expect.objectContaining({ text: "scan.pdf", note: "Files are capped at 8 MB" }));
   });
 });
 

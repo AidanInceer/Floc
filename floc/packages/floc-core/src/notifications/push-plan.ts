@@ -1,3 +1,5 @@
+import type { ActivityKind } from "./rules";
+
 export const PUSH_WAIT_MS = 2 * 60_000;
 export const PUSH_TRIP_GAP_MS = 15 * 60_000;
 export const PUSH_DAY_CAP = 6;
@@ -15,6 +17,8 @@ export type PendingPush = {
   tripName: string | null;
   text: string;
   href: string;
+  kind: ActivityKind;
+  actor: string | null;
   exempt?: boolean;
 };
 
@@ -28,6 +32,7 @@ export type PlannedPush = {
   href: string;
   notificationIds: number[];
   lines: string[];
+  parts: { kind: ActivityKind; actor: string | null }[];
   exempt?: boolean;
 };
 
@@ -51,6 +56,7 @@ function message(items: PendingPush[]): PlannedPush {
     href: oneHref ? first.href : "/inbox",
     notificationIds: items.map((i) => i.notificationId),
     lines: items.map((i) => i.text),
+    parts: items.map((i) => ({ kind: i.kind, actor: i.actor })),
     ...(first.exempt ? { exempt: true } : {}),
   };
 }

@@ -29,6 +29,7 @@ const config: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         ],
       },
+      { source: "/fonts/:file*", headers: [{ key: "Access-Control-Allow-Origin", value: "*" }] },
     ];
   },
   images: {

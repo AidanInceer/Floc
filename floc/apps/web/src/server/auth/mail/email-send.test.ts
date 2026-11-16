@@ -24,6 +24,15 @@ describe("sending through the mail provider", () => {
     expect(send).toHaveBeenCalledWith(expect.objectContaining({ to: "hello@floc.live", replyTo: "priya@a.seed.floc.test" }));
   });
 
+  it("sends an HTML part and a plain-text part of the same mail (#653)", async () => {
+    send.mockResolvedValue({ data: { id: "3" }, error: null });
+    await realEmail.sendEmails([mail]);
+    const sent = send.mock.calls[0][0];
+    expect(sent.html.replace(/\u00a0/g, " ")).toContain("The map is slow.");
+    expect(sent.text).toContain("The map is slow.");
+    expect(sent.text).not.toMatch(/<[a-z]/i);
+  });
+
   it("says so when the provider refuses the mail", async () => {
     send.mockResolvedValue({ data: null, error: { message: "domain not verified" } });
     expect(await realEmail.sendEmails([mail])).toEqual([false]);

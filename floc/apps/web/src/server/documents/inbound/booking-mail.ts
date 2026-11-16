@@ -19,7 +19,7 @@ import { recordActivity } from "@/server/notifications/activity";
 import { saveWaitingBooking } from "../bookings/booking-inbox";
 import { tripsToPlaceIn } from "../bookings/booking-inbox-rows";
 import { saveDocument } from "../document-save";
-import { isBookingsAddress } from "./inbound-address";
+import { bookingsAddressForReply, isBookingsAddress } from "./inbound-address";
 import { claimInboundMail, overInboundLimit, releaseInboundMail } from "./inbound-mail-rows";
 import { userIdForEmail } from "./inbound-sender";
 import type { ReceivedMail } from "./resend-received";
@@ -92,13 +92,15 @@ async function knownSender(mail: InboundMail): Promise<{ userId: string; address
 
 type Where = Awaited<ReturnType<typeof tripFor>>;
 
-async function keep(userId: string, file: InboundAttachment, details: BookingDetails | null, access: Where): Promise<string | null> {
+type Kept = { name: string; refusal: string | null };
+
+async function keep(userId: string, file: InboundAttachment, details: BookingDetails | null, access: Where): Promise<Kept> {
   const input = { name: file.filename, mimeType: file.contentType, category: details ? bookingCategory(details) : ("other" as const) };
   let refusal: string | null;
   if (!file.bytes) refusal = rejectUpload(file.contentType, file.sizeBytes) ?? "That file could not be read";
   else if (access) refusal = await saveDocument(access, { ...input, bytes: file.bytes, shared: false, bookingDetails: storeBookingDetails(details) });
   else refusal = await saveWaitingBooking(userId, { ...input, bytes: file.bytes, details });
-  return refusal ? `${cleanFileName(file.filename)}: ${refusal}` : null;
+  return { name: cleanFileName(file.filename), refusal };
 }
 
 export async function receiveBookingMail(mail: InboundMail, deps: Deps): Promise<void> {
@@ -116,7 +118,7 @@ async function receiveFrom(sender: { userId: string; address: string }, mail: In
   const received = await deps.received();
   if (received.severalFrom) return;
   if (!received.proven) {
-    await reply(deps, received, emails.inboundUnproven({ to: sender.address }));
+    await reply(deps, received, emails.inboundUnproven({ to: sender.address, bookings: bookingsAddressForReply(), received: new Date() }));
     return;
   }
   if (await overInboundLimit(mail.emailId, sender.userId)) return;
@@ -128,16 +130,16 @@ async function receiveFrom(sender: { userId: string; address: string }, mail: In
   const details = reads ? await readDetails(received.html, attached, deps) : null;
   const access = await tripFor(sender.userId, details);
 
-  const refused: string[] = [];
-  for (const file of attached) {
-    const refusal = await keep(sender.userId, file, details, access);
-    if (refusal) refused.push(refusal);
-  }
+  const kept: Kept[] = [];
+  for (const file of attached) kept.push(await keep(sender.userId, file, details, access));
+  const saved = kept.filter((k) => !k.refusal).map((k) => k.name);
+  const refused = kept.flatMap((k) => (k.refusal ? [{ name: k.name, reason: k.refusal }] : []));
 
-  const savedCount = attached.length - refused.length;
-  if (savedCount > 0) await receipt(sender.userId, access?.trip.id ?? null);
-  if (attached.length === 0 || refused.length > 0) {
-    await reply(deps, received, emails.inboundPartlySaved({ to: sender.address, savedCount, refused }));
+  if (saved.length > 0) await receipt(sender.userId, access?.trip.id ?? null);
+  if (attached.length === 0) {
+    await reply(deps, received, emails.inboundNothingAttached({ to: sender.address, bookings: bookingsAddressForReply(), received: new Date() }));
+  } else if (refused.length > 0) {
+    await reply(deps, received, emails.inboundPartlySaved({ to: sender.address, bookings: bookingsAddressForReply(), saved, refused }));
   }
 }
 

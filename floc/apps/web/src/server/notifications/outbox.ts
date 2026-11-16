@@ -6,7 +6,7 @@ import { alias } from "drizzle-orm/sqlite-core";
 import { db } from "@/db";
 import { activity, notification, pushToken, tripMembership, user, userProfile } from "@/db/schema";
 import { planPushes, type Limits, type PendingPush, type PlannedPush } from "@floc/core/notifications/push-plan";
-import { REMINDER_KINDS, isReminder, type ActivityKind } from "@floc/core/notifications/rules";
+import { LIMIT_FREE_KINDS, isReminder, skipsLimits, type ActivityKind } from "@floc/core/notifications/rules";
 import { touch } from "@/server/audit";
 import { notificationRows, stillVisible } from "@/server/notifications/visible";
 
@@ -83,7 +83,9 @@ async function due(channel: Channel, now: Date): Promise<PendingPush[]> {
     tripName: r.tripName,
     text: channel.words(r.kind, { actor: r.actorDisplayName ?? r.actorName, trip: r.tripName, detail: r.detail }),
     href: r.href,
-    ...(isReminder(r.kind) ? { exempt: true } : {}),
+    kind: r.kind,
+    actor: isReminder(r.kind) ? null : (r.actorDisplayName ?? r.actorName),
+    ...(skipsLimits(r.kind) ? { exempt: true } : {}),
   }));
 }
 
@@ -94,7 +96,7 @@ async function sentToday(channel: Channel, now: Date) {
     .from(notification)
     .innerJoin(activity, eq(activity.id, notification.activityId))
     .where(
-      and(isNotNull(sent), gte(sent, new Date(now.getTime() - 86_400_000)), notInArray(activity.kind, REMINDER_KINDS)),
+      and(isNotNull(sent), gte(sent, new Date(now.getTime() - 86_400_000)), notInArray(activity.kind, LIMIT_FREE_KINDS)),
     )
     .all();
   return rows.map((r) => ({ userId: r.userId, tripId: r.tripId, sentAt: r.sentAt! }));

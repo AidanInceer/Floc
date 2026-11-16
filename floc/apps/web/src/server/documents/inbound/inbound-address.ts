@@ -10,6 +10,10 @@ export function bookingsInboxAddress(): string | null {
   return process.env.RESEND_WEBHOOK_SECRET && documentsEnabled() ? bookingsAddress(domain()) : null;
 }
 
+export function bookingsAddressForReply(): string {
+  return bookingsAddress(domain()) ?? "Floc's bookings address";
+}
+
 export function isBookingsAddress(raw: string): boolean {
   const expected = bookingsAddress(domain());
   if (!expected) return false;

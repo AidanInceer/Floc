@@ -4,6 +4,7 @@ window.WF = (function () {
     ["Every page", ["Top bar", "Account menu"]],
     ["Browsing", ["Explore", "My trips", "Friends"]],
     ["In a trip", ["Trip", "Trip overview", "Dates", "Days", "Money", "Packing", "Trip notes", "Files"]],
+    ["Outside the app", ["Emails"]],
     ["Design playground", ["Concept art", "Logos", "Type & fonts"]],
   ];
   var PLAYGROUND = "Design playground";

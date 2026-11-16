@@ -7,6 +7,8 @@ import type { OutboundEmail } from "@/server/auth/email";
 import { insertNudge } from "@/server/trips/roster";
 import { sendDueEmails } from "@/server/notifications/email-fallback";
 import { registerPushToken, sendDuePushes } from "@/server/notifications/push";
+import { recordActivity } from "@/server/notifications/activity";
+import { sendDueReminders } from "@/server/notifications/reminders";
 
 let world: Scenario;
 
@@ -51,6 +53,27 @@ describe("the email fallback", () => {
 
     await sendDueEmails(send, minutes(90));
     expect(sent).toHaveLength(1);
+  });
+
+  it("draws it as a letter about its trip, linking to the setting that stops it (#653)", async () => {
+    await nudge();
+    const { sent, send } = mailer();
+    await sendDueEmails(send, minutes(11));
+    expect(sent[0]).toMatchObject({
+      layout: "letter",
+      trip: { name: "Ours" },
+      settingsUrl: expect.stringContaining("#settings-notifications"),
+    });
+  });
+
+  it("emails a reminder, which nobody did, with no face beside it (#653)", async () => {
+    await db.update(schema.trip).set({ startDate: "2026-09-20", endDate: "2026-09-22" }).where(eq(schema.trip.id, world.ours.id));
+    await sendDueReminders(new Date("2026-09-13T09:00:00Z"));
+    const { sent, send } = mailer();
+    await sendDueEmails(send, new Date(Date.now() + 365 * 86_400_000));
+    const mine = sent.find((m) => m.to === `${world.member}@example.test`);
+    expect(mine).toMatchObject({ subject: "Ours starts in a week", layout: "letter" });
+    expect(mine?.rows).toBeUndefined();
   });
 
   it("never emails an address its account has not confirmed: anyone can sign up with someone else's", async () => {
@@ -115,6 +138,19 @@ describe("the email fallback", () => {
 
     await sendDueEmails(send, minutes(72));
     expect(sent).toHaveLength(2);
+  });
+
+  it("sends a trip invite inside the hour that holds other mail for the trip", async () => {
+    await nudge();
+    const { sent, send } = mailer();
+    await sendDueEmails(send, minutes(11));
+    await db.transaction((tx) =>
+      recordActivity(tx, { kind: "trip_invited", tripId: world.ours.id, actorId: world.admin, subjectId: null, href: "/trips", affected: [world.member] }),
+    );
+    await db.update(schema.activity).set({ lastModifiedAt: new Date(Date.now() - 60 * 60_000) });
+
+    await sendDueEmails(send, minutes(30));
+    expect(sent.map((m) => m.subject)).toEqual(["Ada nudged you about Ours", "Ada invited you to Ours"]);
   });
 
   it("sends once when two runs overlap", async () => {

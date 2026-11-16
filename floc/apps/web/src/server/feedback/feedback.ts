@@ -4,7 +4,7 @@ import { feedbackPage, type FeedbackResult, type FeedbackSurface } from "@floc/c
 import { TEXT_CAPS, asText } from "@floc/core/text/text";
 
 import { CONTACT_EMAIL } from "@/lib/legal/facts";
-import { emailConfigured, sendEmails } from "@/server/auth/email";
+import { emailConfigured, emails, sendEmails } from "@/server/auth/email";
 import { writeLimiter } from "@/server/http/write-limiter";
 import { describeError } from "@/server/observability/describe-error";
 import { log } from "@/server/observability/log";
@@ -30,17 +30,13 @@ export async function sendFeedback(from: Sender, words: Words, { send, limiter, 
   const version = asText(words.appVersion).trim().slice(0, 40) || "unknown";
   try {
     const accepted = await send([
-      {
+      emails.feedback({
         to: process.env.FEEDBACK_TO || CONTACT_EMAIL,
-        replyTo: from.email,
-        subject: `Feedback from ${from.name}`,
-        lines: [
-          ...message.split(/\n+/).map((line) => line.trim()).filter(Boolean),
-          `From ${from.name}, ${from.email}, user ${from.id}`,
-          `Page ${feedbackPage(words.page)}`,
-          `${words.surface} ${version}`,
-        ],
-      },
+        from,
+        message,
+        page: feedbackPage(words.page),
+        surface: `${words.surface} ${version}`,
+      }),
     ]);
     if (accepted.every(Boolean)) {
       log.info("feedback.sent", { surface: words.surface });
