@@ -20,7 +20,7 @@ export const SITE_USE: Record<BookingSite, string> = {
 
 export type BookingSites = { flights: FlightSite[]; stays: StaySite[] };
 
-export const MAX_SITES = 3;
+export const MAX_SITES = 2;
 
 export const DEFAULT_BOOKING_SITES: BookingSites = {
   flights: ["Google Flights", "Skyscanner"],
@@ -57,6 +57,18 @@ export function toggleSite(sites: BookingSites, kind: SiteKind, site: BookingSit
   const list = sites[kind] as string[];
   const next = list.includes(site) ? list.filter((s) => s !== site) : [...list, site];
   return { ...sites, [kind]: next };
+}
+
+export type SiteChoice = { site: BookingSite; use: string; on: boolean; can: boolean; why: string | null };
+
+export function siteChoices(sites: BookingSites, kind: SiteKind): SiteChoice[] {
+  const mine = sites[kind] as readonly string[];
+  return CATALOGUE[kind].map((site) => {
+    const on = mine.includes(site);
+    const can = canToggleSite(sites, kind, site);
+    const why = can ? null : on ? "Keep at least one" : `Up to ${MAX_SITES}`;
+    return { site, use: SITE_USE[site], on, can, why };
+  });
 }
 
 export function splitBySites<L extends { site: string }>(links: L[], preferred: readonly string[]): { mine: L[]; more: L[] } {

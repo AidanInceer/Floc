@@ -89,13 +89,16 @@ export function NotesWorkspace({ tripId, pages, archived, openId, epoch, viewer,
         {shut ? (
           <button type="button" className="notes-tool" aria-label="Show pages" title="Show pages" onClick={() => setShut(false)}><Icon name="rail" /></button>
         ) : (
-          <>
-            <div className="notes-rail-head">
-              <span className="typed">Pages</span>
-              <button type="button" className="notes-tool" aria-label="Hide pages" title="Hide pages" onClick={() => setShut(true)}><Icon name="rail" /></button>
-            </div>
-            <PageRail pages={pages} archived={archived} openId={page.id} byPage={byPage} actions={actions} now={new Date(now)} error={error} />
-          </>
+          <PageRail
+            pages={pages}
+            archived={archived}
+            openId={page.id}
+            byPage={byPage}
+            actions={actions}
+            now={new Date(now)}
+            error={error}
+            tool={<button type="button" className="notes-tool" aria-label="Hide pages" title="Hide pages" onClick={() => setShut(true)}><Icon name="rail" /></button>}
+          />
         )}
       </aside>
       <PagePanel

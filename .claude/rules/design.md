@@ -85,6 +85,8 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - One main action per screen. One visible action per row; more verbs go behind a `…` menu. A row may also show the one or two things a person checks or flips at a glance; every other verb stays in the menu:
   - A Saved tile on Lists shows Start trip beside its heart (#467). It is a quiet pen word with an arrow at the right end of the tile's last line, sharing that line with the figures (nights and price, or Explore trips); below sm only the arrow shows, and a trip's nights sit over its price. A compact country tile keeps the house heart size, larger than the mockup's, so its press target stays full size.
   - A My trips card shows two toggles beside its `…`, star and mute (a bell, slashed when muted). Each says its state in its label (`aria-pressed`, Mute/Unmute).
+- A setting is never a tick beside a link in a row: your booking sites are ticked in one Booking sites dialog, and rows show only the buttons (ADR-065).
+- On Notes, New page heads the page rail, where a Pages label would sit (Aidan).
 - Rows on one surface beat cards for everything. No borders around borders, no boxes inside boxes.
 - A row of cards whose last line is short stretches that line's cards to the full width, so it leaves no hole (Aidan, the Pro band's Coming soon).
 - Below a panel's coloured head, every part — a field or a section — takes one title style and is ruled off edge to edge from the part above (`panelTitleClass`, `panelBandClass` in `ui.tsx`). A part whose controls name themselves (the event type tiles) needs no title. An empty part shows its button, not a sentence about being empty.

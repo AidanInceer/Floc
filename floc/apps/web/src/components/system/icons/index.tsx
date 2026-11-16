@@ -142,6 +142,16 @@ export function OutIcon(props: IconProps) {
   );
 }
 
+export function SlidersIcon(props: IconProps) {
+  return (
+    <LineIcon {...props}>
+      <path d="M2.2 4.4h1.4M6.4 4.4h5.4M2.2 9.6h5.4M10.4 9.6h1.4" />
+      <circle cx="5" cy="4.4" r="1.4" />
+      <circle cx="9" cy="9.6" r="1.4" />
+    </LineIcon>
+  );
+}
+
 export function CogIcon(props: IconProps) {
   return (
     <LineIcon {...props}>

@@ -186,7 +186,7 @@ function Archived({ pages, actions, now }: { pages: RailArchived[]; actions: Rai
   );
 }
 
-export function PageRail({ pages, archived, openId, byPage, actions, now, error, footer }: {
+export function PageRail({ pages, archived, openId, byPage, actions, now, error, tool, footer }: {
   pages: RailPage[];
   archived: RailArchived[];
   openId: number;
@@ -194,6 +194,7 @@ export function PageRail({ pages, archived, openId, byPage, actions, now, error,
   actions: RailActions;
   now: Date;
   error: string | null;
+  tool?: ReactNode;
   footer?: ReactNode;
 }) {
   const openPage = pages.find((page) => page.id === openId);
@@ -213,6 +214,14 @@ export function PageRail({ pages, archived, openId, byPage, actions, now, error,
   );
   return (
     <>
+      <div className="notes-rail-head">
+        <button type="button" className="notes-new" disabled={!!full} title={full ?? undefined} onClick={() => actions.add(null)}>
+          <Icon name="plus" />
+          New page
+        </button>
+        {tool}
+      </div>
+      {error ? <p className="notes-error notes-rail-error" role="alert">{error}</p> : null}
       <ul className="notes-list" aria-label="Pages">
         {tops.map((top) => {
           const kids = pages.filter((page) => page.parentId === top.id);
@@ -229,11 +238,6 @@ export function PageRail({ pages, archived, openId, byPage, actions, now, error,
         })}
       </ul>
       <div className="notes-foot">
-        {error ? <p className="notes-error" role="alert">{error}</p> : null}
-        <button type="button" className="notes-new" disabled={!!full} title={full ?? undefined} onClick={() => actions.add(null)}>
-          <Icon name="plus" />
-          New page
-        </button>
         {footer}
         <Archived pages={archived} actions={actions} now={now} />
       </div>
