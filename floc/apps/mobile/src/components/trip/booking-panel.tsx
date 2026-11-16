@@ -6,6 +6,7 @@ import { Card, Segmented, SectionTitle } from "../system/ui";
 import { TextLink } from "../system/text-controls";
 import { OffsiteNote } from "./booking-links";
 import { StayRows } from "./booking/stay-rows";
+import { BookingSitesButton } from "./booking-sites-sheet";
 import { SiteLinks } from "./site-links";
 import { space } from "@/lib/theme";
 
@@ -21,11 +22,14 @@ export function BookingPanel({ tripId, plan, onOpenDays }: { tripId: number; pla
 
   return (
     <View style={{ gap: space.sm }}>
-      <SectionTitle>Get booking</SectionTitle>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: space.sm }}>
+        <SectionTitle>Get booking</SectionTitle>
+        <BookingSitesButton />
+      </View>
       <Segmented options={KINDS} value={kind} onChange={setKind} />
       {kind === "flights" ? (
         <Card>
-          <SiteLinks kind="flights" label="Search flights" links={plan.flights} centred />
+          <SiteLinks kind="flights" links={plan.flights} centred />
         </Card>
       ) : plan.stays === "unset" ? (
         <Card>

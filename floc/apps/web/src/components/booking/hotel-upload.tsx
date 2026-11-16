@@ -1,23 +1,22 @@
 import { DocumentUpload } from "@/components/documents/document-upload";
 import { UploadIcon } from "@/components/system/icons";
-import { iconFrameClass } from "@/components/system/ui";
+import { menuItemClass } from "@/components/system/ui";
 
 export function HotelUpload({ tripId, dayId, place }: { tripId: number; dayId: number; place: string }) {
-  const title = `Add a booking for ${place}`;
   return (
     <DocumentUpload
       tripId={tripId}
       scope="shared"
       dayId={dayId}
       category="hotel"
-      title={title}
+      title={`Add a booking for ${place}`}
       bareTrigger
-      className={iconFrameClass()}
+      className={menuItemClass}
       trigger={
-        <>
-          <UploadIcon />
-          <span className="sr-only">{title}</span>
-        </>
+        <span className="flex items-center gap-2">
+          <UploadIcon size={12} />
+          Add booking file
+        </span>
       }
     />
   );

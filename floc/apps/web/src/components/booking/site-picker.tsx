@@ -1,11 +1,12 @@
 "use client";
 
-import { MAX_SITES, SITE_USE, canToggleSite, splitBySites, type SiteKind } from "@floc/core/trip/booking/booking-sites";
+import { SITE_USE, splitBySites, type SiteKind } from "@floc/core/trip/booking/booking-sites";
 import type { BookingLink } from "@floc/core/trip/booking/booking-links";
 import { useBookingSites } from "@/components/booking/booking-sites";
+import { SiteButtons } from "@/components/booking/site-buttons";
 import { Menu } from "@/components/system/client-ui";
-import { CheckIcon, ChevronIcon, OutIcon } from "@/components/system/icons";
-import { ExternalButtonLink, cx, iconFrameClass } from "@/components/system/ui";
+import { ChevronIcon, OutIcon } from "@/components/system/icons";
+import { cx, iconFrameClass } from "@/components/system/ui";
 
 const SITE_MENU_PANEL =
   "w-max min-w-[15rem] max-w-[min(20rem,calc(100vw-2rem))] rounded-md border border-rule-strong bg-sheet p-1 text-left shadow-raised";
@@ -17,7 +18,6 @@ export function SitePicker({
   head,
   align = "right",
   drop = "down",
-  split = false,
   className,
 }: {
   kind: SiteKind;
@@ -26,22 +26,11 @@ export function SitePicker({
   head?: string;
   align?: "left" | "right";
   drop?: "down" | "up";
-  split?: boolean;
   className?: string;
 }) {
-  const { sites, fresh } = useBookingSites();
-  const { mine } = splitBySites(links, sites[kind]);
   return (
-    <div className={cx("flex items-start gap-2", split && "max-sm:contents", className)}>
-      <div className={cx("flex min-w-0 flex-wrap items-center gap-2", split && "max-sm:order-1 max-sm:basis-full")}>
-        {mine.map((l) => (
-          <ExternalButtonLink key={l.site} href={l.url} className={cx("max-sm:px-2.5", l.site === fresh && "site-fresh")}>
-            {l.site}
-            <OutIcon size={11} />
-            <span className="sr-only">(opens another site)</span>
-          </ExternalButtonLink>
-        ))}
-      </div>
+    <div className={cx("flex items-start gap-2", className)}>
+      <SiteButtons kind={kind} links={links} />
       <Menu label={`More sites: ${label}`} align={align} drop={drop} trigger={<ChevronIcon direction="down" />} triggerClassName={iconFrameClass()} panelClassName={SITE_MENU_PANEL}>
         <SiteMenuList kind={kind} links={links} head={head} />
       </Menu>
@@ -55,53 +44,27 @@ function SiteMenuList({ kind, links, head }: { kind: SiteKind; links: BookingLin
   return (
     <>
       {head ? <p className="nums mb-0.5 border-b border-rule px-2.5 pb-2 pt-1.5 font-mono text-[11px] text-ink-faint">{head}</p> : null}
-      <p className="flex items-baseline justify-between px-2.5 pb-0.5 pt-1.5 text-xs text-ink-faint">
-        Your sites
-        <span className="nums font-mono text-[11px]">
-          {mine.length} of {MAX_SITES}
-        </span>
-      </p>
-      {mine.map((l) => <SiteLine key={l.site} kind={kind} link={l} />)}
+      <p className="px-2.5 pb-0.5 pt-1.5 text-xs text-ink-faint">Your sites</p>
+      {mine.map((l) => <SiteLine key={l.site} link={l} />)}
       {more.length ? <p className="px-2.5 pb-0.5 pt-2 text-xs text-ink-faint">More sites</p> : null}
-      {more.map((l) => <SiteLine key={l.site} kind={kind} link={l} use />)}
+      {more.map((l) => <SiteLine key={l.site} link={l} use />)}
     </>
   );
 }
 
-function SiteLine({ kind, link, use }: { kind: SiteKind; link: BookingLink; use?: boolean }) {
-  const { sites, toggle } = useBookingSites();
-  const on = (sites[kind] as string[]).includes(link.site);
-  const can = canToggleSite(sites, kind, link.site);
-  const why = can ? "" : on ? " (keep at least one)" : ` (up to ${MAX_SITES})`;
+function SiteLine({ link, use }: { link: BookingLink; use?: boolean }) {
   return (
-    <div className="flex items-center gap-1">
-      <a
-        href={link.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        role="menuitem"
-        className="flex min-w-0 flex-1 items-center gap-2.5 rounded-sm px-2.5 py-1.5 text-sm text-ink-2 transition-colors hover:bg-pen-soft hover:text-pen-deep max-sm:py-2.5"
-      >
-        <OutIcon size={11} />
-        <span className="truncate">{link.site}</span>
-        {use ? <span className="ml-auto whitespace-nowrap pl-3 text-xs text-ink-faint">{SITE_USE[link.site]}</span> : null}
-        <span className="sr-only">(opens another site)</span>
-      </a>
-      <button
-        type="button"
-        role="menuitemcheckbox"
-        aria-checked={on}
-        aria-label={(on ? `Drop ${link.site} from your sites` : `Add ${link.site} to your sites`) + why}
-        title={why ? why.slice(2, -1).replace(/^./, (c) => c.toUpperCase()) : undefined}
-        disabled={!can}
-        onClick={() => toggle(kind, link.site)}
-        className={cx(
-          "relative mr-0.5 grid size-[26px] shrink-0 place-items-center rounded-sm border transition-colors after:absolute after:-inset-x-2 after:-inset-y-1 after:content-[''] disabled:cursor-default disabled:opacity-40",
-          on ? "border-pen bg-pen text-sheet" : "border-rule-strong bg-sheet text-transparent enabled:hover:border-pen enabled:hover:text-pen-edge",
-        )}
-      >
-        <CheckIcon size={12} />
-      </button>
-    </div>
+    <a
+      href={link.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      role="menuitem"
+      className="flex min-w-0 items-center gap-2.5 rounded-sm px-2.5 py-1.5 text-sm text-ink-2 transition-colors hover:bg-pen-soft hover:text-pen-deep max-sm:py-2.5"
+    >
+      <OutIcon size={11} />
+      <span className="truncate">{link.site}</span>
+      {use ? <span className="ml-auto whitespace-nowrap pl-3 text-xs text-ink-faint">{SITE_USE[link.site]}</span> : null}
+      <span className="sr-only">(opens another site)</span>
+    </a>
   );
 }

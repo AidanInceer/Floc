@@ -682,7 +682,7 @@ describe("filling dates from Google Calendar (#444)", () => {
 
 describe("your booking sites (wireframe/booking-sites J)", () => {
   it("passes one tick to the host and hands back what stands", async () => {
-    const after = { flights: ["Google Flights", "Skyscanner"], stays: ["Booking.com", "Trip.com", "Airbnb"] };
+    const after = { flights: ["Google Flights", "Skyscanner"], stays: ["Booking.com", "Airbnb"] };
     const toggleBookingSite = vi.fn().mockResolvedValue(after);
     const { caller: ana } = caller("u1", fakePort({ toggleBookingSite }));
     await expect(ana.settings.bookingSite({ kind: "stays", site: "Airbnb" })).resolves.toEqual(after);
