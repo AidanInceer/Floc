@@ -15,7 +15,7 @@ import { Alert, ScrollView, View } from "react-native";
 
 import { GoingLine } from "@/components/trip/going-section";
 import { IdeasSection } from "@/components/trip/ideas/ideas-section";
-import { EstimateLine } from "@/components/trip/overview/estimate-line";
+import { EstimateRow } from "@/components/trip/overview/estimate-row";
 import { LeftToSort } from "@/components/trip/left-to-sort";
 import { BookingsCard } from "@/components/trip/overview/bookings-card";
 import { FilesLine } from "@/components/trip/overview/files-line";
@@ -77,6 +77,7 @@ export default function Overview() {
         recap={recapShows(trip.data.endDate, today()) ? <RecapFoot tripId={tripId} tripName={trip.data.name} others={othersOf(trip.data, session?.user.id)} /> : null}
         files={<FilesLine tripId={tripId} files={files.data} failed={files.isError} onRetry={() => void files.refetch()} onOpen={() => go("files")} />}
       >
+        <EstimateRow tripId={tripId} onOpen={() => router.push({ pathname: "/trip/[id]/money", params: { id: tripId, view: "budget" } })} />
         <GoingLine
           people={trip.data.members}
           statuses={statusesFor(trip.data, availability.data)}
@@ -87,7 +88,6 @@ export default function Overview() {
 
       <TripMapSection route={route} tone={pastelOf(tripPastel(readTripColor(trip.data.colorKey), tripId))} />
 
-      <EstimateLine tripId={tripId} onOpen={() => router.push({ pathname: "/trip/[id]/money", params: { id: tripId, view: "budget" } })} />
       <IdeasSection tripId={tripId} datesUnset={!trip.data.startDate && !trip.data.endDate} />
 
       {legs.length > 0 ? <BookingsCard tripId={tripId} legs={legs} wholeTrip={wholeTrip} onOpenFiles={() => go("files")} /> : null}
