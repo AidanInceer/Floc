@@ -1,0 +1,51 @@
+/* The live Pro band (components/landing/pro-band), copied by eye. Only the words differ by variant. */
+body { margin: 0; background: var(--sheet); }
+.ghost { margin: 0; padding: 28px 24px; text-align: center; font-family: var(--type); font-size: 12px; color: var(--ink-3); }
+
+.pro-slab { --slant: 44px; --pad: 64px; position: relative; isolation: isolate; padding-block: calc(var(--slant) + var(--pad)); color: var(--slab-ink); }
+@media (min-width: 40rem) { .pro-slab { --slant: 88px; --pad: 96px; } }
+.pro-slab::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--slab); clip-path: polygon(0 var(--slant), 100% 0, 100% calc(100% - var(--slant)), 0 100%); }
+
+.wrap { max-width: 84rem; margin: 0 auto; padding: 0 16px; }
+@media (min-width: 640px) { .wrap { padding: 0 24px; } }
+.top { display: grid; gap: 32px; }
+@media (min-width: 60rem) { .top { grid-template-columns: 1fr 22rem; align-items: center; gap: 56px; } }
+
+.intro { margin-bottom: 32px; max-width: 36rem; }
+.band-title { margin: 0; font-family: var(--display); font-weight: 800; font-size: clamp(2.2rem, 4.4vw, 3.4rem); line-height: 1.04; letter-spacing: -0.03em; text-wrap: balance; }
+#lede { margin: 14px 0 0; max-width: 30rem; font-size: 17px; line-height: 1.5; opacity: 0.75; }
+
+.now-h { margin: 0 0 14px; font-size: 16px; font-weight: 600; }
+.now, .soon { list-style: none; margin: 0; padding: 0; display: grid; }
+.now { gap: 14px; }
+@media (min-width: 640px) { .now { grid-template-columns: 1fr 1fr; gap: 18px 24px; } }
+.row { display: flex; align-items: flex-start; gap: 12px; }
+.row p { display: grid; min-width: 0; margin: 0; }
+.row b { font-size: 16px; font-weight: 600; }
+.eg { text-wrap: pretty; font-size: 14px; opacity: 0.7; }
+
+.tile { display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: var(--radius-sm); background: var(--t); color: var(--t-ink); }
+.tile svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+.tone-red { --t: var(--pastel-red); --t-ink: var(--pastel-red-ink); }
+.tone-yellow { --t: var(--pastel-yellow); --t-ink: var(--pastel-yellow-ink); }
+.tone-green { --t: var(--pastel-green); --t-ink: var(--pastel-green-ink); }
+.tone-blue { --t: var(--pastel-blue); --t-ink: var(--pastel-blue-ink); }
+.tone-grey { --t: var(--sheet-2); --t-ink: var(--ink-2); }
+.tile-soon { --t: transparent; --t-ink: var(--slab-ink); border: 1px dashed color-mix(in srgb, var(--slab-ink) 40%, transparent); }
+
+.soon-band { margin-top: 40px; }
+.soon-h { margin: 0 0 16px; font-family: var(--display); font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+.soon { gap: 12px; }
+@media (min-width: 768px) { .soon { display: flex; flex-wrap: wrap; } .soon > li { flex: 1 1 calc(33.333% - 8px); } }
+.soon > li { padding: 16px; border-radius: var(--radius-md); border: 1px dashed color-mix(in srgb, var(--slab-ink) 45%, transparent); }
+
+.card { display: grid; gap: 16px; padding: 22px; border-radius: var(--radius-md); background: var(--sheet); color: var(--ink); box-shadow: var(--shadow-lift); }
+.card-name { font-size: 16px; font-weight: 600; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 4px; margin-top: 12px; border-radius: var(--radius-md); background: var(--sheet-3); }
+.seg span { position: relative; padding: 8px 0; text-align: center; font-size: 14px; border-radius: var(--radius-sm); color: var(--ink-2); }
+.seg .on { background: var(--sheet); color: var(--ink); box-shadow: var(--shadow-sm); }
+.best { position: absolute; top: -22px; left: 50%; transform: translateX(-50%); height: 20px; padding: 0 8px; display: inline-flex; align-items: center; border-radius: var(--radius-pill); background: var(--ink); color: var(--sheet); font-size: 11px; font-weight: 600; font-style: normal; white-space: nowrap; }
+.price { margin: 0; font-size: 14px; }
+.price .nums { font-size: 34px; }
+.save { margin: -8px 0 0; font-size: 13px; color: var(--ink-2); }
+.get { display: flex; height: 44px; align-items: center; justify-content: center; border-radius: var(--radius-sm); background: var(--pro-mark); color: var(--sheet); font-weight: 600; text-decoration: none; }
