@@ -1,17 +1,24 @@
-export type Trade = { dir: 1 | -1; indices: [number, number, number, number] };
+export type Trade = { from: number; to: number; indices: number[] };
+
+const around = (day: number) => [day - 1, day, day + 1];
 
 export function tradeFor(from: number, to: number): Trade | null {
-  if (Math.abs(to - from) !== 1) return null;
-  const low = Math.min(from, to) - 1;
-  return { dir: to > from ? 1 : -1, indices: [low, low + 1, low + 2, low + 3] };
+  if (from === to) return null;
+  const indices = [...new Set([...around(from), ...around(to)])].sort((a, b) => a - b);
+  return { from, to, indices };
 }
 
-export function tradeTracks(dir: 1 | -1, focusPx: number) {
-  const side = "var(--days-side)";
-  const wide = `${focusPx}px`;
-  const left = `${side} ${wide} ${side} 0px`;
-  const right = `0px ${side} ${wide} ${side}`;
-  return dir > 0 ? { before: left, after: right } : { before: right, after: left };
+function tracksAround(indices: number[], focus: number, focusPx: number) {
+  return indices
+    .map((i) => (i === focus ? `${focusPx}px` : Math.abs(i - focus) === 1 ? "var(--days-side)" : "0px"))
+    .join(" ");
+}
+
+export function tradeTracks(trade: Trade, focusPx: number) {
+  return {
+    before: tracksAround(trade.indices, trade.from, focusPx),
+    after: tracksAround(trade.indices, trade.to, focusPx),
+  };
 }
 
 export function slotIndices(focusIndex: number, trade: Trade | null): number[] {

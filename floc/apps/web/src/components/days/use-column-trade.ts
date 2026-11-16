@@ -5,7 +5,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type 
 import { slotIndices, tradeFor, tradeTracks, type Trade } from "@/lib/days/column-trade";
 import "./days-trade.css";
 
-const MOVE_MS = 450;
+const MOVE_MS = 650;
 
 type Playing = { trade: Trade; tracks: string; after: string; moving: boolean };
 
@@ -22,7 +22,7 @@ export function useColumnTrade(focusIndex: number, gridRef: RefObject<HTMLDivEle
       setPlaying(null);
       return;
     }
-    const { before, after } = tradeTracks(trade.dir, Math.round(focus.getBoundingClientRect().width));
+    const { before, after } = tradeTracks(trade, Math.round(focus.getBoundingClientRect().width));
     setPlaying({ trade, tracks: before, after, moving: false });
   }, [focusIndex, gridRef]);
 
