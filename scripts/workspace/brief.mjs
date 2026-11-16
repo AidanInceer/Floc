@@ -5,11 +5,6 @@ import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { isPrimary, isScratch, listWorktrees, mainCheckout, worktreesDir } from "./worktrees.mjs";
 
-/**
- * Claude Code SessionStart hook: what a new session must know before it reads
- * AGENTS.md or a skill — is the main checkout current, are the cached skills
- * the repo's, and what else is in flight. It never fails the session.
- */
 export function briefLines(f) {
   const lines = [];
   if (f.primary) {

@@ -15,7 +15,6 @@ beforeEach(async () => {
   await ensureProfile(world.admin);
   await ensureProfile(world.member);
   clearRatesMemo();
-  // Why: the estimate reads exchange rates; a test must never wait on the real provider.
   vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => ({ date: "2026-11-01", rates: { GBP: 0.85 } }) })));
 });
 afterEach(() => vi.unstubAllGlobals());

@@ -1,8 +1,3 @@
-/**
- * One document, as a row (ticket 239). Presentational only — no fetching — so
- * the Overview block (client) and the Files page (server) render the same
- * thing. Anything that acts on the row arrives as `children`.
- */
 import Link from "next/link";
 
 import {
@@ -23,12 +18,10 @@ export type DocumentRowData = {
   uploadedBy: string;
   uploaderName: string;
   ownerId: string | null;
-  /** Set when the file sits on a live event (ticket 323). */
   dayEventId?: number | null;
   eventTitle?: string | null;
 };
 
-/** Grey, so it does not compete with the category colour beside it. */
 export function KindChip({ mimeType }: { mimeType: string }) {
   return (
     <span className="inline-flex w-10 shrink-0 justify-center rounded-full bg-sheet-3 py-0.5 font-mono text-[11px] text-ink-soft">
@@ -37,7 +30,6 @@ export function KindChip({ mimeType }: { mimeType: string }) {
   );
 }
 
-/** The filing, as a chip. Static here; the Files page wraps it in its menu. */
 export function CategoryChip({ category }: { category: DocCategory }) {
   return (
     <span
@@ -60,11 +52,8 @@ export function DocumentRow({
 }: {
   tripId: number;
   doc: DocumentRowData;
-  /** Uploaded by the viewer — the byline says "You" rather than their name. */
   mine: boolean;
-  /** The re-file control. Absent on Overview, where the row is a preview. */
   filing?: React.ReactNode;
-  /** Anything else that acts on the row — removal, on the Files page. */
   children?: React.ReactNode;
 }) {
   return (

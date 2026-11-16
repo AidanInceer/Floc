@@ -1,4 +1,3 @@
-// H2 — Everyone's way there. Three going from London, two from Barcelona, one line from each city to Sicily on the paper globe. Your seat in Manchester waits; Join draws your line.
 import { calmHeadline, lede, ctas, clock, reduce, narrow, onView, face, people, you, ico, STOPS } from "./common.js";
 import { painter, loadWorld, arc, flight, frames, span } from "./paper.js";
 
@@ -40,7 +39,6 @@ export function renderConverge(stage) {
   const dest = scene.querySelector(".p2-dest");
   const v = narrow();
 
-  // The sphere sits low, so its top edge curves across the band and Europe lands on the dome; Sicily sits near the foot.
   const g = painter(canvas, (w, hh) => {
     const R = Math.max(w * (v ? 2.4 : 1.05), 560);
     return { R, cx: w / 2, cy: R + (v ? 18 : 26) };
@@ -54,7 +52,6 @@ export function renderConverge(stage) {
     const [w, hh] = [canvas.clientWidth, canvas.clientHeight];
     const f = { R: Math.max(w * (v ? 2.4 : 1.05), 560) };
     f.cy = f.R + (v ? 18 : 26);
-    // Sicily at 82% of the band's height, centred a little right of the middle on a wide screen.
     const dy = (f.cy - hh * (v ? 0.68 : 0.8)) / f.R;
     g.view = { lat: TO.lat - Math.asin(Math.min(0.99, dy)) * 180 / Math.PI, lng: v ? 6 : 3 };
   }

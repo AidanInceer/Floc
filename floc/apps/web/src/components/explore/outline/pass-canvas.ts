@@ -9,14 +9,9 @@ import type { TripRoute } from "@/lib/explore/route/trip-route";
 import type { Frame, Size } from "./frame";
 
 type Point = { x: number; y: number };
-/** The land as the outline drawing cut it, in the drawing's px. */
 type Land = { home: string; other: string; islets: (Point & { r: number })[] };
 type Scene = { route: TripRoute; land: Land; frame: Frame; box: Size; tone: string; moving: boolean };
 
-/**
- * The pass's map on a canvas: the outline drawing, with the route in Explore's map style. A new pick plays the globe's move
- * on the drawing: in close to the start, along with the pen, back out to the whole trip. Returns a stop function.
- */
 export function passCanvas(canvas: HTMLCanvasElement, { route, land, frame, box, tone, moving }: Scene) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return () => {};
@@ -47,7 +42,6 @@ export function passCanvas(canvas: HTMLCanvasElement, { route, land, frame, box,
     ctx!.translate(pose.at.x - pose.centre.x * k, pose.at.y - pose.centre.y * k);
     ctx!.scale(k, k);
     ctx!.lineWidth = 0.75 / k;
-    // Why: the trip's countries go under the rest, so where two shapes overlap (Morocco and Western Sahara) the drawn border wins.
     ctx!.fillStyle = colour(`tone-${tone}`);
     ctx!.fill(paths.home);
     ctx!.fillStyle = colour("sheet-3");

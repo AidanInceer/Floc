@@ -1,8 +1,3 @@
-/**
- * The phone hero's ticket (ADR-019): the plane crosses the tear, each field
- * fills in turn, then the ticket is stamped and the headline's mark sweeps.
- * `step` counts the beats played so far, as `useScene` gives it.
- */
 export const TICKET_FIELDS = ["dates", "going", "route", "each"] as const;
 
 const FLY_MS = 1000;

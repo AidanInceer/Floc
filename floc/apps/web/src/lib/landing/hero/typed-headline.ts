@@ -1,7 +1,6 @@
 export const HEADLINE_WORDS = ["started", "shared", "taking shape", "sorted."] as const;
 export const START_DELAY_MS = 2000;
 
-// The chosen wireframe study (C3). typingScript stretches these evenly to end with the scene below.
 const DELETE_MS = 44;
 const THINK_MS = 280;
 const TYPE_MS = 84;
@@ -12,7 +11,6 @@ const MARK_AFTER_MS = 1060;
 const SWEEP_MS = 640;
 const CARET_SOLID_MS = 420;
 const CARET_BLINK_MS = 500;
-// Why: an even key rhythm reads as a machine; these nudges read as someone typing.
 const JITTER_MS = [0, 34, -18, 52, -8, 22, -26, 64, 6, -14, 40];
 
 type Keystroke = { at: number; text: string };
@@ -39,7 +37,6 @@ function keystrokes(words: readonly string[]): { strokes: Keystroke[]; markAt: n
   return { strokes, markAt: at + MARK_AFTER_MS };
 }
 
-/** Rests on the first word until `startDelayMs`, then types the rest so the mark finishes at `endMs`. */
 export function typingScript(words: readonly string[], startDelayMs: number, endMs: number): TypingScript {
   const study = keystrokes(words);
   const stretch = (endMs - startDelayMs) / (study.markAt + SWEEP_MS);
@@ -51,12 +48,10 @@ export function typingScript(words: readonly string[], startDelayMs: number, end
   };
 }
 
-/** The word already typed, no caret: only the mark plays, sweeping from `markAt`. The phone hero uses it. */
 export function stillScript(word: string, markAt: number): TypingScript {
   return { strokes: [{ at: 0, text: word }], markAt, doneAt: markAt + SWEEP_MS, still: true };
 }
 
-// A hand on a highlighter: a slow first touch, then a quick stroke that eases out.
 function penStroke(p: number): number {
   if (p < 0.12) return 0.5 * (p / 0.12) ** 2 * 0.12;
   return 0.06 + 0.94 * (1 - (1 - (p - 0.12) / 0.88) ** 3);

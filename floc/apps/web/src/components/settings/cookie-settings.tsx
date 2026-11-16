@@ -9,10 +9,6 @@ import { useConsent } from "@/components/chrome/consent/use-consent";
 import { AutoSaveForm } from "@/components/settings/auto-save-form";
 import { chooseConsent } from "@/lib/consent/consent-cookie";
 
-/**
- * The cookie choice in Settings, saved as each switch moves like every other row. No key on the form, so the
- * switch you moved keeps its focus; a refresh redraws the row's summary from the new cookie.
- */
 export function CookieSettings({ fromServer }: { fromServer: ConsentChoice | null }) {
   const consent = useConsent(fromServer);
   const router = useRouter();

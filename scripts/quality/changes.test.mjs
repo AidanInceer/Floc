@@ -4,7 +4,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { collectChanges, collectStaged } from "./changes.mjs";
+import { changedLines, collectChanges, collectStaged } from "./changes.mjs";
 
 test("release changes include earlier commits, staged edits and untracked source", (t) => {
   const root = mkdtempSync(join(tmpdir(), "floc-diff-"));
@@ -56,4 +56,22 @@ test("staged changes list only staged lines of staged files", (t) => {
   assert.deepEqual([...changes.keys()].sort(), ["floc/[id]/new.ts", "floc/a.ts"]);
   assert.deepEqual([...changes.get("floc/a.ts")], [1]);
   assert.deepEqual([...changes.get("floc/[id]/new.ts")], [1, 2]);
+});
+
+const diffOf = (hunks) => ["diff --git a/floc/a.ts b/floc/a.ts", "--- a/floc/a.ts", "+++ b/floc/a.ts", ...hunks].join("\n");
+
+test("a line that only lost a comment is not a code change", () => {
+  const changes = changedLines(diffOf(["@@ -1,2 +1 @@", "-// note", "-export const a = 1; // trailing", "+export const a = 1;"]));
+  assert.equal(changes.has("floc/a.ts"), false);
+});
+
+test("a line whose code changed beside a comment is still a change", () => {
+  const changes = changedLines(diffOf(["@@ -1 +1 @@", "-export const a = 1; // trailing", "+export const a = 2;"]));
+  assert.deepEqual([...changes.get("floc/a.ts")], [1]);
+});
+
+test("a header-like line inside a hunk is content, not a file", () => {
+  const changes = changedLines(diffOf(["@@ -1 +1,2 @@", "-x", "+++ b/not-a-file", "+y"]));
+  assert.deepEqual([...changes.keys()], ["floc/a.ts"]);
+  assert.deepEqual([...changes.get("floc/a.ts")], [1, 2]);
 });

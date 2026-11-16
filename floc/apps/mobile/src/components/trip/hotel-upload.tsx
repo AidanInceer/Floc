@@ -12,7 +12,6 @@ export function useCanUpload(tripId: number) {
   return useQuery(trpc.files.canUpload.queryOptions({ tripId })).data !== false;
 }
 
-/** A stop's hotel booking: the usual file sheet, filed as Hotel on the stop's first day. */
 export function HotelUpload({ tripId, dayId, place, open, onClose }: { tripId: number; dayId: number; place: string; open: boolean; onClose: () => void }) {
   const queryClient = useQueryClient();
   const [problem, setProblem] = useState<string | null>(null);

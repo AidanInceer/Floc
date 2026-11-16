@@ -1,7 +1,3 @@
-/**
- * The Pro block in Settings — the web's Billing panel, in the one colour the
- * product pays for. Gold marks the paid perk; it never stands in for blue.
- */
 import type { BillingStatus, StoreClaim, StoreClaimResult } from "@floc/api/port";
 import Constants from "expo-constants";
 import { deepLinkToSubscriptions } from "expo-iap";

@@ -1,17 +1,14 @@
-// Round 3: the paper globe from the earlier hero rounds (landing-hero-flock), in the house globe's tokens.
 import { painter, loadWorld } from "../landing-hero-flock/globes.js";
 import { arc, token } from "../landing-hero-flock/round3.js";
 import { reduce } from "./common.js";
 
 export { painter, loadWorld, arc, token };
 
-// The aeroplane the live hero flies (landing/hero/flight.tsx), nose to the right. Never a paper plane.
 const PLANE = typeof Path2D === "undefined" ? null : new Path2D("M23 12c0-1-1-1.4-2-1.4h-6L9.5 3h-2l3 7.6H5L3.2 8H1.6l1 4-1 4h1.6L5 13.4h5.5l-3 7.6h2l5.5-7.6h6c1 0 2-.4 2-1.4Z");
 
 export const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 export const clamp = (v, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, v));
 
-/** A dashed route along `path`, drawn to `shown` (0–1), with the plane at its front fading as it lands. */
 export function flight(g, path, shown, { plane = true, alpha = 1 } = {}) {
   if (shown <= 0) return;
   const c = g.ctx;
@@ -41,7 +38,6 @@ export function flight(g, path, shown, { plane = true, alpha = 1 } = {}) {
   c.restore();
 }
 
-/** Every frame until `fn(now)` returns false. Reduced motion jumps far ahead, so every span is done. */
 export function frames(fn) {
   let id = 0;
   const tick = (now) => { if (fn(reduce ? now + 1e7 : now) !== false) id = requestAnimationFrame(tick); };
@@ -49,5 +45,4 @@ export function frames(fn) {
   return () => cancelAnimationFrame(id);
 }
 
-/** 0–1 progress of a span that starts at `from` ms and lasts `ms`, eased. */
 export const span = (t, from, ms) => ease(clamp((t - from) / ms));

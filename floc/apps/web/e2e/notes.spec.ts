@@ -2,11 +2,6 @@ import { expect, test } from "@playwright/test";
 
 import { priya } from "./people";
 
-/**
- * Notes pages (#408), end to end: the seeded pages arrive over the live
- * socket, a line typed through the `/` menu lands, and a page made from the
- * list can be archived and brought back.
- */
 test.use({ storageState: priya.state });
 
 test("a member writes on a page and keeps the page list", async ({ page }) => {

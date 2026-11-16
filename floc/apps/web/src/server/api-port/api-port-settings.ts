@@ -1,7 +1,3 @@
-/**
- * Why: every read and write goes through the modules `/settings` and `/profile`
- * already call — a rule with two implementations is a rule with two behaviours.
- */
 import "server-only";
 
 import type { FlocPort, MySettings } from "@floc/api/port";
@@ -40,15 +36,11 @@ export const settingsPort: SettingsPort = {
   markTourSeen: (viewerId) => markTourSeen(viewerId),
 
   async loadMySettings(viewerId): Promise<MySettings> {
-    // The lazy row first, so somebody who has never opened settings on the web
-    // reads back defaults rather than a hole.
     const profile = await ensureProfile(viewerId);
     const [identity, linked] = await Promise.all([
       loadIdentity(viewerId),
       listSignInMethods(viewerId),
     ]);
-    // The session proved this id a moment ago; a missing row is the account
-    // being deleted mid-request, not an ordinary state.
     if (!identity) throw new Error("No such account.");
 
     return {
@@ -79,8 +71,6 @@ export const settingsPort: SettingsPort = {
   async updateIdentity(viewerId, input) {
     await ensureProfile(viewerId);
     await updateProfileFields(viewerId, { displayName: input.displayName });
-    // The name and face ride on every roster and every expense line, so every
-    // page showing this person is now stale.
     refresh({ kind: "profile" });
     refresh({ kind: "tripList" });
   },
@@ -100,9 +90,6 @@ export const settingsPort: SettingsPort = {
 
   async updateVibeTags(viewerId, tags) {
     await ensureProfile(viewerId);
-    // Re-checked against the seed list even though the router already did:
-    // this is the function the web's action calls too, and the guard belongs
-    // where the write is.
     const picked = parseVibeTags(tags);
     await updateProfileFields(viewerId, { vibeTags: picked.length ? picked : null });
     refresh({ kind: "profile" });
@@ -134,7 +121,6 @@ export const settingsPort: SettingsPort = {
   },
 
   async unlinkSignIn(viewerId, accountId) {
-    // Refused, not obeyed: without a method there is no way back in.
     if (await unlinkSignIn(viewerId, accountId)) return false;
     refresh({ kind: "accountSettings" });
     return true;

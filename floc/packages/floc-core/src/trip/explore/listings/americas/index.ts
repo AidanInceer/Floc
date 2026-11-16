@@ -16,7 +16,6 @@ import { galapagosByLand } from "./galapagos-by-land";
 import { zionAndBryce } from "./zion-and-bryce";
 import { salarDeUyuni } from "./salar-de-uyuni";
 
-// Order is the order on Explore; the first few lead the map. `pnpm explore:new` adds a line here.
 export const AMERICAS: PresetTrip[] = [
   mexicoYucatanLoop,
   costaRicaVolcanoAndCoast,

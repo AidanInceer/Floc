@@ -10,7 +10,6 @@ export async function loadFinder(userId: string): Promise<Finder | null> {
   return savedFinder(profile?.exploreAnswers);
 }
 
-// Why: a search is for this visit; coming back to last week's typed word would look like a bug.
 export async function saveFinder(userId: string, finder: Finder): Promise<void> {
   await ensureProfile(userId);
   await updateProfileFields(userId, { exploreAnswers: { finder: { ...finder, q: "" } } });

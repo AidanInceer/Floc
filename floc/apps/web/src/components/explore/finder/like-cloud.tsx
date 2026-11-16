@@ -8,7 +8,6 @@ import { FinderChip, linkClass } from "@/components/explore/finder/finder-chip";
 import { ChevronIcon } from "@/components/system/icons";
 import { cx } from "@/components/system/ui";
 
-/** What you like, as one cloud of tags. Pace, effort and getting around open behind "See more"; a picked one stays in view. */
 export function LikeCloud({ finder, onChange }: { finder: Finder; onChange: (next: Finder) => void }) {
   const [more, setMore] = useState(false);
   const extra = more ? MORE_TAGS : MORE_TAGS.filter((t) => finder.likes.includes(t));

@@ -6,11 +6,9 @@ import { markKey, weekJoins, type DayMark } from "@floc/core/dates/day-marks";
 
 export type DayView = Omit<DateCellProps, "date" | "join" | "mark"> & { mark: DayMark };
 
-/** One month, week by week, so a run of the same mark can join into one shape. */
 export function MonthGrid({ month, view }: { month: IsoMonth; view: (date: string) => DayView }) {
   return (
     <div
-      // `touch-none`: else the browser claims a week-to-week drag as a page scroll (ticket 127).
       className="grid touch-none grid-cols-7 gap-y-[3px]"
       role="grid"
       aria-label={formatMonth(month)}

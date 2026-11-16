@@ -1,4 +1,3 @@
-/** "Add to Days" from the Files page (#559): the form's answers, checked at the door. */
 import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

@@ -1,10 +1,3 @@
-/**
- * Notes (#408) — the trip's pages, the same editor as the website. The page is
- * drawn in a web view (an Expo DOM component) so the phone gets every block,
- * table and comment; the app holds the live doc, the socket and the copy kept
- * offline. The bar names the open page and opens the list as a sheet; the tab reopens the
- * last page you had open.
- */
 import { LINK_TABS, type LinkKind } from "@floc/core/notes/pages/trip-links";
 import { useQuery } from "@tanstack/react-query";
 import * as SecureStore from "expo-secure-store";
@@ -32,7 +25,6 @@ function useOpenPage(tripId: number, pageIds: number[] | undefined): [number | n
   const [open, setOpen] = useState<number | null>(null);
   useEffect(() => {
     if (!pageIds?.length || (open !== null && pageIds.includes(open))) return;
-    // A store that will not open costs the last page, never the tab (rule 11).
     SecureStore.getItemAsync(lastKey(tripId))
       .then((saved) => setOpen(pageIds.find((id) => id === Number(saved)) ?? pageIds[0]))
       .catch(() => setOpen(pageIds[0]));

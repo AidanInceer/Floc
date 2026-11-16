@@ -1,8 +1,3 @@
-/**
- * Why: icons were spread over 14 files, and agents spent several searches
- * finding one. Every exported `…Icon` or `…Glyph` component now lives in
- * components/system/icons/, one file per area.
- */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";

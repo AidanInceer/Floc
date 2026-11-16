@@ -1,12 +1,3 @@
-/**
- * Who is actually on a trip (ticket 242, split out of the old membership file).
- * Every write to *the roster* goes through here, `invites.ts` included, so the
- * revive-on-rejoin rule has one home. Other people's facts also live on the
- * `trip_membership` row — packing's tier is packing's, and reads it from there.
- *
- * Leaving spans this table and the trip row and must not be split (ticket 108),
- * so `leaveTripAs` writes both in one transaction.
- */
 import "server-only";
 
 import { and, count, eq, gt, inArray, isNull, ne, sql } from "drizzle-orm";
@@ -22,7 +13,6 @@ import { recordActivity, type Tx } from "@/server/notifications/activity";
 import { countMembershipsOf } from "@/server/trips/trips";
 import { isLiveMember } from "@/server/trips/live-member";
 
-/** Matches one live membership row. Every roster read and write goes through this. */
 export function liveMembership(tripId: number, userId: string) {
   return and(
     eq(tripMembership.tripId, tripId),
@@ -31,7 +21,6 @@ export function liveMembership(tripId: number, userId: string) {
   );
 }
 
-/** Roster count — the one fact the invite teaser may show. */
 export async function countMembers(tripId: number): Promise<number> {
   const [row] = await db
     .select({ value: count() })
@@ -42,11 +31,6 @@ export async function countMembers(tripId: number): Promise<number> {
   return row?.value ?? 0;
 }
 
-/**
- * Must revive a soft-deleted row rather than no-op, or a kick would permanently
- * bar a re-invited member — the one write that deliberately reaches past
- * `deletedAt`. Both doors into a trip land here; `invites.ts` owns which door.
- */
 export async function addMember(tripId: number, userId: string): Promise<void> {
   if (!(await isLiveMember(tripId, userId))) assertRoom("tripsPerUser", await countMembershipsOf(db, userId));
   await db.transaction(async (tx) => {
@@ -55,8 +39,6 @@ export async function addMember(tripId: number, userId: string): Promise<void> {
       .values({ tripId, userId, role: "member" })
       .onConflictDoUpdate({
         target: [tripMembership.tripId, tripMembership.userId],
-        // mapPromptAt clears: rejoining moots the "keep these countries?" question (ticket 95).
-        // Why role resets on a revived row: a kicked admin must not walk back in as admin.
         set: {
           role: sql`CASE WHEN ${tripMembership.deletedAt} IS NULL THEN ${tripMembership.role} ELSE 'member' END`,
           deletedAt: null,
@@ -75,7 +57,6 @@ export async function addMember(tripId: number, userId: string): Promise<void> {
   });
 }
 
-/** `mapPromptAt` parks the "keep these countries?" question for later (ticket 95) — leaving and being kicked leave the same mark since only they can answer it. */
 async function markRemoved(tx: Tx, tripId: number, userId: string, by: string): Promise<boolean> {
   const gone = await tx
     .update(tripMembership)
@@ -114,11 +95,6 @@ export async function setMemberRoleAdmin(
     .where(liveMembership(tripId, userId));
 }
 
-/**
- * Leaving (ticket 65) — succession and archiving in the same transaction, so they can't come apart.
- * Last admin leaving with others remaining: admin passes to earliest-joined (succession, not
- * a fifth power — rule 6). Last member out archives, never deletes, the trip.
- */
 export async function leaveTripAs(args: {
   tripId: number;
   userId: string;
@@ -153,12 +129,6 @@ export async function leaveTripAs(args: {
   if (left) kickFromTripNotes(tripId, userId);
 }
 
-/**
- * Roster half of account deletion (ticket 06) — same succession rule as `leaveTripAs`,
- * but walks every trip at once and does not archive an emptied one (other rows stay
- * attributed to a placeholder; archiving on the account's behalf is nobody's decision).
- * A trip left with no admin is an accepted v1 edge case.
- */
 export async function handOverAndLeaveAllTrips(userId: string): Promise<void> {
   const mine = await db
     .select({ tripId: tripMembership.tripId, role: tripMembership.role })
@@ -172,7 +142,6 @@ export async function handOverAndLeaveAllTrips(userId: string): Promise<void> {
     .map((m) => m.tripId);
 
   if (adminTripIds.length > 0) {
-    // One read for every trip administered, not a query+write per trip (ticket 114).
     const others = await db
       .select({
         tripId: tripMembership.tripId,
@@ -207,11 +176,9 @@ export async function handOverAndLeaveAllTrips(userId: string): Promise<void> {
       );
       promotions.push(setMemberRoleAdmin(tripId, heir.userId));
     }
-    await Promise.all(promotions); // distinct trips, cannot race each other
+    await Promise.all(promotions);
   }
 
-  // No mapPromptAt here unlike removeMembership: there's no later to answer it in —
-  // the account and its profile are both going in this same request (ticket 114).
   await db
     .update(tripMembership)
     .set({ deletedAt: new Date(), lastModifiedAt: new Date() })
@@ -219,9 +186,6 @@ export async function handOverAndLeaveAllTrips(userId: string): Promise<void> {
   kickFromTripNotes(null, userId);
 }
 
-/* -------------------------------------------------------------- the nudge */
-
-/** A poke aimed at one member of the roster. It reaches them through the inbox, like every other change (#344). */
 export async function insertNudge(args: {
   tripId: number;
   fromUserId: string;

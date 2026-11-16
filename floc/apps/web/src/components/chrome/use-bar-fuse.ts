@@ -15,7 +15,6 @@ import {
   type Pull,
 } from "@/lib/bar-fuse";
 
-// useLayoutEffect warns during SSR; on the server there is nothing to measure.
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 const JOIN_MS = 360;
@@ -99,12 +98,10 @@ function drawSkin(row: HTMLElement, svg: SVGSVGElement, path: Element, radius: n
   path.setAttribute("d", skinPath(boxes, height - 2, radius - 1, boxes.slice(1).map(() => neck)));
 }
 
-/** Eases the words' fold from `from` back to where the scroll has it, once a hold lets go. */
 function easeFold(from: number, to: () => number, set: (t: number) => void, done: () => void) {
   return tween(SPLIT_MS, (k) => set(from + (to() - from) * k), done);
 }
 
-// Why: scroll sets how far the words have folded; the join plays once on crossing the mark, so the scroll is never hijacked.
 export function useBarFuse(rowRef: RefObject<HTMLElement | null>, svgRef: RefObject<SVGSVGElement | null>) {
   useIsoLayoutEffect(() => {
     const row = rowRef.current;
@@ -118,7 +115,6 @@ export function useBarFuse(rowRef: RefObject<HTMLElement | null>, svgRef: RefObj
     let t = 0;
     let joined = false;
     let held = false;
-    // Why: a trip opening resets the scroll mid-hold; the words keep their fold until the hold lets go, then ease back.
     let heldFold: number | null = null;
     let easing = false;
     let unfold = () => {};
@@ -194,7 +190,6 @@ export function useBarFuse(rowRef: RefObject<HTMLElement | null>, svgRef: RefObj
     pull = settled();
     update();
 
-    // Why: a longer name or a new count changes what folds; style writes are attributes, so they never wake this.
     const watch = new MutationObserver(relayout);
     watch.observe(row, { childList: true, subtree: true, characterData: true });
     window.addEventListener("scroll", schedule, { passive: true });

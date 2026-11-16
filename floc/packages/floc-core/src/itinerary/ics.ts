@@ -1,9 +1,3 @@
-/**
- * A trip's itinerary as an iCalendar file (RFC 5545), for #334.
- *
- * Times are floating — no `TZID`, no `Z` — because Floc stores none (rule 10):
- * 09:00 means 09:00 wherever the trip is, which is what a floating time says.
- */
 import { addDays } from "../dates/dates";
 
 export type CalendarEntry = {
@@ -27,7 +21,6 @@ function escapeText(value: string): string {
     .replace(/\r\n|\r|\n/g, "\\n");
 }
 
-// Why: the limit is octets, so a multi-byte character must not be cut in two.
 function fold(line: string): string {
   const encoder = new TextEncoder();
   const parts: string[] = [];

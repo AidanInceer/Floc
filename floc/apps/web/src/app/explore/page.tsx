@@ -1,8 +1,3 @@
-/**
- * /explore — ready-made trip ideas to start from. Listings are static and
- * editorial: nothing bookable (see docs/partner-trips.html). Public, because
- * the reason to make an account is on this page; starting a trip needs one.
- */
 import { EMPTY_FINDER } from "@floc/core/trip/explore/finder/finder";
 import { comingSeason } from "@floc/core/trip/explore/finder/season-picks";
 import { countryName, readCountryCode } from "@floc/core/people/countries";
@@ -25,7 +20,6 @@ export const metadata = publicMetadata({
 
 type Props = { searchParams: Promise<{ country?: string | string[] }> };
 
-/** `?country=PT` comes from a want-to-go country on Lists (#467): Explore opens searched for it. */
 export default async function ExplorePage({ searchParams }: Props) {
   const code = readCountryCode((await searchParams).country);
   const country = code ? countryName(code) : null;

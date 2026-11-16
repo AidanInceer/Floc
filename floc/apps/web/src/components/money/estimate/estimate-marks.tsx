@@ -14,7 +14,6 @@ export function ProgressBadge({ progress, words }: { progress: LineProgress; wor
 
 const pct = (v: number, max: number) => `${Math.max(0, Math.min(100, (v / max) * 100))}%`;
 
-/** Spent as an ink fill, the plan as a red wash, the budget as a line. Its words live beside it, never in it. */
 export function SpendBar({ spent, plan, budget, label, thin }: { spent: number; plan: Range | null; budget?: number | null; label: string; thin?: boolean }) {
   const max = Math.max(plan?.[1] ?? 0, spent, budget ?? 0) * 1.1 || 1;
   return (

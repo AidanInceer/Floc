@@ -1,9 +1,3 @@
-/**
- * The reads ticket 118 moved off the `page.tsx` files and into the
- * aggregates. Each is checked against a scenario with a second, disjoint
- * trip, for the two ways a hand-written join goes quietly wrong: rule 5 (no
- * cross-trip leakage) and rule 8 (soft-deleted rows stay gone).
- */
 import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -77,7 +71,7 @@ describe("the itinerary's reads", () => {
     const days = await listDaysWithEvents(world.ours.id);
 
     expect(days).toHaveLength(1);
-    expect(days[0].events.map((e) => e.time)).toEqual(["09:00", "19:00"]); // time decides order, not order_index
+    expect(days[0].events.map((e) => e.time)).toEqual(["09:00", "19:00"]);
     expect(days[0].events.every((e) => e.dayId === world.ours.dayId)).toBe(true);
   });
 
@@ -161,7 +155,7 @@ describe("the itinerary's reads", () => {
       .where(eq(schema.day.id, world.ours.dayId));
     await db.insert(schema.day).values({
       tripId: world.ours.id,
-      date: "2026-08-30", // earlier than seeded
+      date: "2026-08-30",
       overnightPlaceId: lisbon,
     });
 
@@ -199,9 +193,8 @@ describe("the money tab's reads", () => {
     let splits = await listSplits(world.ours.id);
     expect(splits).toHaveLength(2);
     expect(splits.every((s) => s.expenseId === ours)).toBe(true);
-    expect(splits.reduce((a, s) => a + s.owedAmountMinor, 0)).toBe(1000); // snapshot rows sum to the original total (rule 2)
+    expect(splits.reduce((a, s) => a + s.owedAmountMinor, 0)).toBe(1000);
 
-    // Bug the join closed: an unfiltered inArray read let a deleted expense's splits count into balances.
     await db
       .update(schema.expense)
       .set({ deletedAt: new Date() })
@@ -242,12 +235,11 @@ describe("the trip lists and the invite teaser", () => {
       .where(eq(schema.tripMembership.userId, world.member));
 
     expect(await listTripsFor(world.member, { archived: false })).toEqual([]);
-    expect(await countMembers(world.ours.id)).toBe(1); // roster count drops with them
+    expect(await countMembers(world.ours.id)).toBe(1);
   });
 
   it("resolves an invite token to the fields the teaser may show", async () => {
     const found = await findTripByInviteToken("token-ours");
-    // Host name joined on in ticket 147, no email/id, so the link says who's planning it.
     expect(found).toEqual({
       id: world.ours.id,
       name: "Ours",
@@ -312,7 +304,7 @@ describe("the friends page's reads", () => {
 
     const rows = await listFriendshipsFor(world.admin);
     expect(rows).toHaveLength(2);
-    expect(rows.filter((r) => r.friendId === world.admin)).toHaveLength(1); // which end you're at tells incoming from outgoing
+    expect(rows.filter((r) => r.friendId === world.admin)).toHaveLength(1);
     expect(await listFriendshipsFor(world.member)).toHaveLength(1);
   });
 

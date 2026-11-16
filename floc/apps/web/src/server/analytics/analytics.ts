@@ -1,7 +1,3 @@
-/**
- * Floc's own count of what is used (#368). Kept only with a yes to analytics, and only as an event name, a surface
- * and a route with no ids. The request's address and the session are never read here.
- */
 import "server-only";
 
 import { lt } from "drizzle-orm";

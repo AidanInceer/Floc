@@ -1,9 +1,3 @@
-/**
- * #442: answering from the invite page with a name and no account. The name
- * comes first; a guest then writes only their own answers, only on the trip the
- * link names. A dead link answers as it always did, and a member is sent to the
- * trip itself.
- */
 import { and, eq, isNull } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -23,7 +17,6 @@ let ideaId: number;
 let made = 0;
 let callerIp = "1.2.3.4";
 
-// The stubbed Better Auth has no anonymous sign-in; this one does what the plugin does.
 (auth.api as Record<string, unknown>).signInAnonymous = async () => {
   made += 1;
   const id = `g-made-${made}`;

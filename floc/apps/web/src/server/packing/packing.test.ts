@@ -1,8 +1,3 @@
-/**
- * The packing aggregate's two things worth pinning (ticket 219): a re-claim
- * after an unclaim has to survive the unique index, and every read has to be
- * blind to soft-deleted rows (rule 8).
- */
 import { and, eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

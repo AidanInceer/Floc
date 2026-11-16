@@ -4,7 +4,6 @@ import { useState } from "react";
 
 import { steadyOrder } from "@floc/core/trip/ideas";
 
-/** The list in the order it was first shown; a new `orderKey` (the reader picking a sort) orders it afresh. */
 export function useSteadyOrder<T extends { id: number }>(sorted: readonly T[], orderKey = ""): T[] {
   const ids = sorted.map((i) => i.id);
   const [held, setHeld] = useState({ orderKey, ids });

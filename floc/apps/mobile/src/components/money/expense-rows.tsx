@@ -1,7 +1,3 @@
-/**
- * Every cost, one card of hairline rows with a band per day (#317), as a ledger app lists them: the category tile, what
- * it was and who paid, then the amount and what it means for you. A row opens the cost to edit.
- */
 import { DEFAULT_CATEGORY, isExpenseCategory } from "@floc/core/money/expense-category";
 import { formatMoney } from "@floc/core/money/money";
 import type { Ledger } from "@floc/api/port";
@@ -61,7 +57,6 @@ export function ExpenseRows({
   expenses: Expense[];
   paidByOf: (expense: Expense) => string;
   shareOf: (expense: Expense) => { words: string; tone: ShareTone };
-  /** The day a cost belongs to, as words — costs with no day group last. */
   dayLabel: (dayId: number | null) => string;
   onEdit: (expenseId: number) => void;
 }) {
@@ -71,7 +66,6 @@ export function ExpenseRows({
     <Card style={{ padding: 0, gap: 0, overflow: "hidden" }}>
       {groups.map((group, g) => (
         <View key={group.day}>
-          {/* Why: one undated group needs no heading — "No day yet" over every cost said nothing. */}
           {groups.length > 1 ? (
             <View style={{ paddingHorizontal: space.md, paddingTop: space.md, paddingBottom: space.xs, backgroundColor: c["sheet-2"], borderTopWidth: g === 0 ? 0 : StyleSheet.hairlineWidth, borderTopColor: c.rule }}>
               <Label>{group.day}</Label>

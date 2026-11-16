@@ -1,19 +1,3 @@
-/**
- * Packing — your bag first, then the group's gear by person.
- *
- * TWO LISTS THAT NEVER MERGE (#220). A shared line is the group's and anyone
- * may claim or drop it; your bag is yours and nobody else can see or tick it.
- * The API keeps them apart, and so does this — there is no view that shows one
- * flat list, because there is no one flat list. Selecting is per list for the
- * same reason: a picked set spanning both would be one press over two rules.
- *
- * WHAT DRAWS A LINE IS NOT HERE. `packing-rows` owns a row, `packing-section`
- * owns a list's heading, count, toolbar and grouping, `packing-setup` owns the
- * once-a-trip controls. This owns the queries, the writes and what is picked.
- *
- * ADDING LEADS, SETUP SITS ABOVE IT. Setup is two lines, not four, because it
- * is furniture on every visit for a job done once (#126).
- */
 import {
   packedLineCount,
   type PackingLineGroup,
@@ -42,13 +26,11 @@ import { space } from "@/lib/theme";
 
 
 
-/** The phone has no inline link here, so a gap's link reads as plain words. */
 function whyLine(plan: Parameters<typeof ideasWhy>[0]): string {
   const why = ideasWhy(plan);
   return why.link ? `${why.text} ${why.link.label} ${why.link.after}` : why.text;
 }
 
-/** Which list is being picked in, or neither. One state, so a set cannot span both. */
 type Picking = { list: "shared" | "mine"; ids: Set<number> } | null;
 
 type LaneLine = SharedLine & { laneUserId?: string | null };
@@ -80,10 +62,6 @@ function sharedClaimGroups(
   ].filter((group) => group.lines.length > 0);
 }
 
-/**
- * The kit sheet's one busy flag and one message. Three mutations share a sheet,
- * and folding them here keeps the screen's own branching inside its ceiling.
- */
 function sheetState(
   apply: { isPending: boolean },
   save: { isPending: boolean; isError: boolean; error: { message: string } | null },
@@ -91,8 +69,6 @@ function sheetState(
 ): { busy: boolean; error: string | null } {
   return {
     busy: apply.isPending || save.isPending || drop.isPending,
-    // Only saving can be rejected for something the user typed; the other two
-    // take an id the sheet drew, so their failures are not this sheet's news.
     error: save.isError && save.error ? save.error.message : null,
   };
 }
@@ -100,8 +76,6 @@ function sheetState(
 export default function Packing() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
-  // A screen keeps rendering for a frame while it leaves, and `id` is gone by
-  // then: NaN goes down the wire as null and the server rightly refuses it.
   const ready = Number.isFinite(tripId);
   const queryClient = useQueryClient();
 
@@ -137,13 +111,9 @@ export default function Packing() {
       again();
     },
   });
-  // Saving leaves the sheet open: you have just made a kit and the list it
-  // joined is the thing worth seeing.
   const saveKit = useMutation({ ...trpc.packing.saveKit.mutationOptions(), onSuccess: again });
   const dropKit = useMutation({ ...trpc.packing.deleteKit.mutationOptions(), onSuccess: again });
   const kitState = sheetState(applyKit, saveKit, dropKit);
-  // Picking closes on success: the rows it referred to are gone, so a bar still
-  // counting them would be counting nothing.
   const closePicking = () => {
     setPicking(null);
     again();
@@ -169,7 +139,6 @@ export default function Packing() {
     onPress: () => removeSuggested.mutate({ tripId }),
   };
 
-  /** Toggling one row inside whichever list is being picked in. */
   const toggle = (list: "shared" | "mine", lineId: number) =>
     setPicking((current) => {
       const ids = new Set(current?.list === list ? current.ids : []);
@@ -293,7 +262,6 @@ export default function Packing() {
           )}
         />
 
-        {/* Room for the pinned bar, so the last row is never under it. */}
         {picking ? <View style={{ height: 150 }} /> : null}
       </ScrollView>
 

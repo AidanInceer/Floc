@@ -11,7 +11,6 @@ const BY_COUNTRY: Record<string, Currency> = {
 
 const forCountry = (code: string | null | undefined): Currency | undefined => (code ? BY_COUNTRY[code.toUpperCase()] : undefined);
 
-/** "fr-CH,fr;q=0.9" → the regions named, in the order the browser lists them. */
 function regionsOf(acceptLanguage: string): string[] {
   return acceptLanguage
     .split(",")
@@ -19,7 +18,6 @@ function regionsOf(acceptLanguage: string): string[] {
     .filter((region): region is string => Boolean(region));
 }
 
-/** A guest's currency: their country, then the regions in their browser's languages, then pounds. */
 export function guessCurrency({ country, acceptLanguage }: { country: string | null; acceptLanguage: string | null }): Currency {
   return forCountry(country) ?? regionsOf(acceptLanguage ?? "").map(forCountry).find(Boolean) ?? "GBP";
 }

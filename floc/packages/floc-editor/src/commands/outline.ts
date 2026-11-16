@@ -1,4 +1,3 @@
-/** A page's top-level lines in the shape `@floc/core/notes/pages/page-outline` reads. */
 import type { Node } from "@tiptap/pm/model";
 import type { OutlineLine } from "@floc/core/notes/pages/page-outline";
 

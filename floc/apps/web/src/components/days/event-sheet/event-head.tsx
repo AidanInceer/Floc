@@ -14,11 +14,6 @@ const NAME =
 const TIME =
   "rounded-sm border border-transparent bg-transparent px-1.5 py-1 font-mono text-[17px] tabular-nums text-inherit transition-colors hover:border-current/35 focus:border-current focus:outline-none max-sm:text-[15px] max-sm:[&::-webkit-calendar-picker-indicator]:hidden";
 
-/**
- * The top of the event form is the block it makes (wireframe/modal-forms B3): the type's
- * wash, its glyph, and the name and times typed straight into it. `aside` sits beside
- * the ✕ — the edit form's save status.
- */
 export function EventHead({
   dateLabel,
   type,
@@ -36,7 +31,6 @@ export function EventHead({
   onTitle: (title: string) => void;
   when: ReactNode;
   aside?: ReactNode;
-  /** Add puts the cursor in the name, not on the ✕ (ticket 74). */
   autoFocus?: boolean;
 }) {
   return (
@@ -75,7 +69,6 @@ export function EventHead({
   );
 }
 
-/** Start and end, or All day. Ticking All day takes the times away rather than disabling them. */
 export function EventWhen({
   time,
   endTime,
@@ -93,7 +86,6 @@ export function EventWhen({
         <input type="hidden" name="allDay" value="on" />
       ) : (
         <>
-          {/* step={60}: a quarter-hour picker quietly rounded 10:50 to 10:45. */}
           <input type="time" name="time" required step={60} defaultValue={time ?? ""} aria-label="Starts" className={cx(TIME, "-ml-1.5")} />
           <span className="text-sm opacity-70">to</span>
           <input type="time" name="endTime" step={60} defaultValue={endTime ?? ""} aria-label="Ends" className={TIME} />

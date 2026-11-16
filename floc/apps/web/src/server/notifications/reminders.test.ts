@@ -1,4 +1,3 @@
-/** #346, #626: date reminders reach every member once, obey the switch, and chase only who owes. */
 import { and, eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

@@ -1,10 +1,3 @@
-/**
- * Invites (tickets 05, 146; split out of membership.test.ts by ticket 242).
- * The rules worth failing on: an invite must not be a membership, re-inviting
- * must land on the row a decline left behind, an invite to a trip nobody can
- * open must stop asking, and accepting must be one operation — a join that
- * skipped `settleInvite` would keep badging a trip you are already on.
- */
 import { and, eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -100,7 +93,7 @@ describe("asking someone by name", () => {
     expect((await invitesFor(world.ours.id)).map((i) => i.status)).toEqual([
       "pending",
     ]);
-    expect(await membership(world.ours.id, world.outsider)).toBeUndefined(); // being invited is not being in
+    expect(await membership(world.ours.id, world.outsider)).toBeUndefined();
     expect(await countMembers(world.ours.id)).toBe(2);
   });
 
@@ -153,7 +146,6 @@ describe("asking someone by name", () => {
     await declineInvite(world.ours.id, world.outsider);
     expect(await listPendingInvitesFor(world.outsider)).toEqual([]);
 
-    // Different member asking this time — the invite records who asked now.
     await ask([world.outsider], world.member);
 
     const rows = await invitesFor(world.ours.id);
@@ -237,7 +229,6 @@ describe("answering", () => {
     await joinWithLink(world.ours.id, world.outsider);
 
     expect(await membership(world.ours.id, world.outsider)).toBeDefined();
-    // Left pending, this would keep badging the chrome for a trip they are on.
     expect(await countPendingInvitesFor(world.outsider)).toBe(0);
   });
 
@@ -247,7 +238,7 @@ describe("answering", () => {
 
     const row = await membership(world.ours.id, world.member);
     expect(row?.deletedAt).toBeNull();
-    expect(row?.mapPromptAt).toBeNull(); // rejoining makes the travel-map question moot (ticket 95)
+    expect(row?.mapPromptAt).toBeNull();
   });
 
   it("records no second join for someone already on the trip", async () => {

@@ -1,7 +1,6 @@
 import { currencySymbol, minorPerMajor, type Currency } from "../currency";
 import type { BudgetFit, LineProgress, Range } from "./budget";
 
-/** An estimate figure in whole units: a guide is a rough range, so pence would claim a precision it does not have. */
 export function wholeMoney(minor: number, currency: Currency): string {
   const amount = Math.round(minor / minorPerMajor(currency)).toLocaleString("en-GB");
   const symbol = currencySymbol(currency);

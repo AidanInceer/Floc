@@ -1,8 +1,3 @@
-/**
- * Why: sign-up and forgot-password mail whatever address is typed, so anyone could make Floc send mail to a
- * stranger again and again and spend the sending domain's name (#582, as ADR-036 for inbound mail). Per
- * process, like the write limiter. Addresses are held as hashes only.
- */
 import { createHash } from "node:crypto";
 
 const DAY = 24 * 60 * 60 * 1000;

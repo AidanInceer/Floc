@@ -8,7 +8,6 @@ const at = (q: { x: number; y: number }) => `translate(${q.x.toFixed(1)}px, ${q.
 
 type Flying = { route: number; landing: number };
 
-/** The dashed line from home and the plane on it. Both leave as a route opens (`alpha`). */
 export function drawFlight(paint: Painter, view: LatLng, home: LatLng, path: LatLng[], f: Flying, alpha: number) {
   if (!alpha) return;
   paint.faded(alpha, () => {
@@ -18,7 +17,6 @@ export function drawFlight(paint: Painter, view: LatLng, home: LatLng, path: Lat
   if (f.route && alpha === 1) paint.plane(view, path, f.route, f.landing);
 }
 
-/** Moves each trip's pin to its place; a pin near the edge of the dome fades, and all of them leave as a route opens (`fade`). */
 export function moveFlags(paint: Painter, flags: HTMLElement, places: LatLng[], view: LatLng, fade: number) {
   places.forEach((place, i) => {
     const el = flags.children[i] as HTMLElement | undefined;

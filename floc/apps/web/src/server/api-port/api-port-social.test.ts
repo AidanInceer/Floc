@@ -1,18 +1,3 @@
-/**
- * The social half of the port, against a real database (tickets 18, 46, 146).
- *
- * The point of these is not that the queries work — `friends.test.ts` and
- * `invites.test.ts` already prove that. It is that the *same rules* survive
- * the new door the phone comes through. Three of them cannot be checked by
- * reading the code, because they are about what is NOT returned:
- *
- *   rule 5, applied to people — a stranger's profile and an id that was never
- *   an account must answer identically, or this becomes a way to find out who
- *   has a Floc account (ticket 46);
- *   rule 5 — any member may invite (#312), but nobody outside the trip may;
- *   ticket 146 — only accepted friends may be offered, else a trip invite is
- *   a backdoor friend request.
- */
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { eq } from "drizzle-orm";
@@ -30,7 +15,6 @@ beforeEach(async () => {
   world = await seedScenario();
 });
 
-/** #360: three ways to ask someone you have not shared a trip with. */
 describe("finding someone to ask", () => {
   async function befriend(a: string, b: string) {
     const [lo, hi] = a < b ? [a, b] : [b, a];
@@ -61,7 +45,6 @@ describe("finding someone to ask", () => {
   });
 });
 
-/** Two people who share a trip are co-travellers, which is a ring (ticket 46). */
 describe("someone else's profile (rule 5, applied to people)", () => {
   it("shows a co-traveller their fellow member", async () => {
     const seen = await webPort.loadProfileOf(world.member, world.admin);
@@ -77,7 +60,6 @@ describe("someone else's profile (rule 5, applied to people)", () => {
   });
 
   it("sends you elsewhere for your own face", async () => {
-    // `me.profile` owns this one, and it is writable where the other is not.
     expect(await webPort.loadProfileOf(world.admin, world.admin)).toBeNull();
   });
 });
@@ -89,7 +71,6 @@ describe("friend requests (ticket 46)", () => {
     const mine = await webPort.loadFriends(world.member);
     const theirs = await webPort.loadFriends(world.admin);
     expect(mine.outgoing.map((p) => p.id)).toEqual([world.admin]);
-    // The same row, read from the other end — never merged into one list.
     expect(theirs.incoming.map((p) => p.id)).toEqual([world.member]);
   });
 
@@ -136,13 +117,10 @@ describe("inviting (#312, ticket 146)", () => {
   it("gives an admin the share token, never the trip id", async () => {
     const panel = await webPort.loadTripInvites(world.admin, world.ours.id);
     expect(readShareToken(panel.token)).toBe("token-ours");
-    // Why by part: the signature is random, so a substring test fails whenever it happens to hold the id's digits.
     expect(panel.token.split(".")).not.toContain(String(world.ours.id));
   });
 
   it("offers only accepted friends, and never one already on the roster", async () => {
-    // Ada and Mo share the trip, so Mo is a candidate on relation alone —
-    // except that he is already a member, which is the stronger filter.
     await webPort.requestFriend(world.admin, world.member);
     await webPort.acceptFriend(world.member, world.admin);
 
@@ -151,8 +129,6 @@ describe("inviting (#312, ticket 146)", () => {
   });
 
   it("puts an invite on the invitee's list, and accepting joins them", async () => {
-    // Ozz has to be a friend before he can be asked (ticket 146), and a shared
-    // trip is what makes that request legal in the first place.
     await db.insert(schema.tripMembership).values({
       tripId: world.theirs.id,
       userId: world.admin,

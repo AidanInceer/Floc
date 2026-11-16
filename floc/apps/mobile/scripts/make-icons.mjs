@@ -1,9 +1,4 @@
 #!/usr/bin/env node
-/**
- * Draws the store icons from the wordmark's chevrons (ticket 292), so the app
- * icon cannot drift from `wordmark.tsx`. Rerun after either changes:
- *   node scripts/make-icons.mjs
- */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,16 +9,12 @@ const assets = join(dirname(fileURLToPath(import.meta.url)), "..", "assets");
 const PAPER = "#fafafa";
 const PEN = "#4e68d8";
 
-// The wordmark's own geometry, in its own 28x22 box. Copied, not imported:
-// `@floc/core` holds token values, not artwork, and the app must not reach
-// into the web app's components.
 const CHEVRONS = [
   "M3.4 16.5 7 12.9 10.6 16.5",
   "M10.4 10 14 6.4 17.6 10",
   "M17.4 16.5 21 12.9 24.6 16.5",
 ];
 
-/** `fraction` is how much of the shorter side the mark spans. */
 function mark({ width, height, fraction, background }) {
   const scale = (Math.min(width, height) * fraction) / 28;
   const x = (width - 28 * scale) / 2;
@@ -38,18 +29,13 @@ function mark({ width, height, fraction, background }) {
 }
 
 const files = [
-  // Full bleed: iOS rounds the corners itself, so the paper must reach the edge.
   ["icon.png", { width: 1024, height: 1024, fraction: 0.74, background: PAPER }],
-  // Android masks this to a circle and supplies the background separately, so
-  // the mark stays inside the safe centre and the layer is transparent.
   ["adaptive-icon.png", { width: 1024, height: 1024, fraction: 0.5, background: null }],
   ["splash.png", { width: 1284, height: 2778, fraction: 0.34, background: PAPER }],
 ];
 
 mkdirSync(assets, { recursive: true });
 for (const [name, options] of files) {
-  // The App Store rejects an icon carrying an alpha channel; the Android
-  // foreground layer needs one.
   const image = sharp(mark(options));
   const png = await (options.background
     ? image.flatten({ background: options.background }).removeAlpha()

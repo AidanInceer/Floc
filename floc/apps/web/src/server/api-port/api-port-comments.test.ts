@@ -1,15 +1,3 @@
-/**
- * Event comments through the port, against a real database (ticket 325).
- *
- * WHAT THESE ARE FOR. The phone is the second road to a table the website
- * already writes, and the rules that matter are the ones a second road drops:
- * a thread stays one level deep, an event from another trip is not readable,
- * and "may I delete this" answers the same on both.
- *
- * THE TRIP BOUNDARY IS THE ONE WORTH PROVING. A `dayEventId` is a number a
- * client picks; the resolver has to refuse another trip's rather than hand
- * back its thread.
- */
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
@@ -24,7 +12,6 @@ beforeEach(async () => {
   world = await seedScenario();
 });
 
-/** The one event both the admin and the member can see. */
 const ours = () => ({ trip: world.ours.id, event: world.ours.eventId });
 
 describe("talking about an event", () => {
@@ -41,7 +28,6 @@ describe("talking about an event", () => {
     const thread = await webPort.listEventComments(world.member, ours().trip, ours().event);
     expect(thread.map((c) => c.body)).toEqual(["Booked the 09:40."]);
     expect(thread[0].authorName).toBe("Ada");
-    // A time crosses as a string, because a Date does not survive JSON.
     expect(typeof thread[0].createdAt).toBe("string");
   });
 
@@ -60,7 +46,6 @@ describe("talking about an event", () => {
     const [reply] = withReply.replies;
     expect(reply.body).toBe("Ferry.");
 
-    // Answering the reply attaches to the same parent, not under the reply.
     await webPort.addEventComment(world.admin, ours().trip, ours().event, reply.id, "Agreed.");
     const [again] = await webPort.listEventComments(world.admin, ours().trip, ours().event);
     expect(again.replies.map((r) => r.body)).toEqual(["Ferry.", "Agreed."]);
@@ -103,7 +88,6 @@ describe("changing what was said", () => {
     await webPort.addEventComment(world.member, ours().trip, ours().event, null, "Mine.");
     const [comment] = await webPort.listEventComments(world.member, ours().trip, ours().event);
 
-    // The admin's powers are enumerated in rule 6 and this is not one of them (rule 6).
     expect(await webPort.editComment(world.admin, ours().trip, comment.id, "Not mine.")).toBe(
       "You can only edit your own comments.",
     );
@@ -143,7 +127,6 @@ describe("reacting", () => {
     await webPort.reactToComment(world.member, ours().trip, comment.id, "up");
     const [agreed] = await webPort.listEventComments(world.member, ours().trip, ours().event);
     expect(agreed.reactions.up).toEqual({ count: 1, mine: true });
-    // Somebody else's reaction counts but is not theirs.
     const [seen] = await webPort.listEventComments(world.admin, ours().trip, ours().event);
     expect(seen.reactions.up).toEqual({ count: 1, mine: false });
 

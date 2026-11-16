@@ -1,4 +1,3 @@
-/** First-trip glyphs: the Ideas bulb, a pin for where, people for the invite, the tabs' own marks for the rest. */
 import type { Sorted, WalkthroughStepKey } from "@floc/core/trip/walkthrough";
 import { LineIcon } from "@/components/system/icons";
 

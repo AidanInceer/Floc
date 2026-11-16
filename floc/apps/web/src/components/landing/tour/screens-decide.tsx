@@ -83,7 +83,6 @@ export function WhereScreen() {
   );
 }
 
-// People free on each September day; 12–19 is the week all six can make.
 const FREE = [2, 3, 1, 2, 4, 3, 2, 3, 4, 5, 4, 6, 6, 6, 6, 6, 6, 6, 6, 3, 2, 4, 3, 1, 2, 3, 2, 1, 2, 3];
 const MINE = new Set([5, 6, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 22, 26]);
 const ANSWERED = [

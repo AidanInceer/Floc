@@ -8,7 +8,6 @@ import { GuestIdeas } from "./guest-ideas";
 import { GuestPanel } from "./guest-panel";
 import { useGuestAnswer } from "./use-guest-answer";
 
-/** What somebody on a share link may answer with a name (#442, ADR-029): the ideas and their own days. Nothing else. */
 export function GuestAnswers({ token, ideas, mine, firstMonth, tripStart, tripEnd, signUpHref }: {
   token: string;
   ideas: GuestIdea[];

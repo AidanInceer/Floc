@@ -1,7 +1,3 @@
-/**
- * Explore — your last finder and your saved trips. The listings themselves are static
- * `@floc/core` data both clients read directly.
- */
 import { NIGHTS_SCALE } from "@floc/core/trip/explore/finder/finder";
 import { readFinder } from "@floc/core/trip/explore/finder/finder-read";
 import { ALL_TAGS, type TripTag } from "@floc/core/trip/explore/finder/tag-groups";
@@ -22,7 +18,6 @@ const finder = z
     price: z.object({ unit: z.enum(["trip", "night"]), min: pounds, max: pounds }),
     likes: z.array(z.enum(ALL_TAGS as [TripTag, ...TripTag[]])).max(ALL_TAGS.length),
   })
-  // Why: the shape is checked above; readFinder drops a range that is upside down or off its unit's scale.
   .transform((input) => readFinder(input) ?? input);
 
 export const exploreRouter = router({
@@ -30,13 +25,10 @@ export const exploreRouter = router({
 
   setFinder: protectedProcedure.input(finder).mutation(({ ctx, input }) => ctx.port.setExploreFinder(ctx.viewer.id, input)),
 
-  /** Your saved Explore trips, newest first (#467). Only yours; a friend's reach you through their profile (ADR-045). */
   saves: protectedProcedure.query(({ ctx }) => ctx.port.listSavedTrips(ctx.viewer.id)),
 
-  /** Friends who saved what you saved, for the initials on your Saved tiles (#544, ADR-045). */
   friendSaves: protectedProcedure.query(({ ctx }) => ctx.port.friendsWhoSaved(ctx.viewer.id)),
 
-  /** The heart. The host ignores an id Explore does not list. */
   setSaved: protectedProcedure
     .input(z.object({ presetId: z.string().trim().min(1).max(80), saved: z.boolean() }))
     .mutation(({ ctx, input }) => ctx.port.setTripSaved(ctx.viewer.id, input.presetId, input.saved)),

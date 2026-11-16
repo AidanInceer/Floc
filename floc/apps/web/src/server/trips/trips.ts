@@ -1,11 +1,3 @@
-/**
- * The `trip` row itself — what a trip *is*: its name, window, tags, colour and
- * its two lifecycle marks (ticket 242, split out of the old membership file).
- *
- * Who is on it lives in `roster.ts`, who was asked in `invites.ts`, and who can
- * make which dates in `availability.ts`. Only `listTripsFor` reaches across, to
- * ask which trips are yours — nothing here writes a row it does not own.
- */
 import "server-only";
 
 import { Refusal } from "@floc/core/errors/refusal";
@@ -36,7 +28,6 @@ export type TripListRow = {
   muted: boolean;
 };
 
-/** `archived` is a param so /trips and /trips/archived share one query (ticket 118). */
 export async function listTripsFor(
   userId: string,
   { archived }: { archived: boolean },
@@ -73,7 +64,6 @@ export async function listTripsFor(
   }));
 }
 
-/** Only the viewer's own membership row: muting a trip quiets it for you, nobody else (#346). */
 export async function setTripMuted(tripId: number, userId: string, muted: boolean) {
   await db
     .update(tripMembership)
@@ -87,7 +77,6 @@ export async function setTripMuted(tripId: number, userId: string, muted: boolea
     );
 }
 
-/** Only the viewer's own membership row, so a star never reaches anyone else. */
 export async function setTripStarred(tripId: number, userId: string, starred: boolean) {
   await db
     .update(tripMembership)
@@ -106,13 +95,10 @@ export type NewTripRow = {
   startDate: string | null;
   endDate: string | null;
   createdBy: string;
-  /** What the first notes page starts with; blank when left out. */
   firstPage?: PageBlock[];
 };
 
-/** Smallest thing that exists at creation (ticket 01), inside the caller's transaction. */
 export async function insertTripWithAdmin(tx: Tx, input: NewTripRow, held?: number): Promise<number> {
-  // A start alone is a real answer at creation; a full window must be a valid one.
   const problem = input.startDate && input.endDate ? windowProblem(input.startDate, input.endDate) : null;
   if (problem) throw new Refusal(problem);
   assertRoom("tripsPerUser", held ?? (await countMembershipsOf(tx, input.createdBy)));
@@ -136,7 +122,6 @@ export async function insertTripWithAdmin(tx: Tx, input: NewTripRow, held?: numb
   return created.id;
 }
 
-/** Every trip someone is on, archived included: an archived trip still walks with the account when it is deleted. */
 export async function countMembershipsOf(q: Pick<Tx, "select">, userId: string): Promise<number> {
   const [{ n }] = await q
     .select({ n: count() })
@@ -146,7 +131,6 @@ export async function countMembershipsOf(q: Pick<Tx, "select">, userId: string):
   return n;
 }
 
-/** `held`: the creator's trip count, read beforehand beside other work so the transaction does one less round trip. */
 export async function createTripWithAdmin(input: NewTripRow, held?: number): Promise<number> {
   return db.transaction((tx) => insertTripWithAdmin(tx, input, held));
 }
@@ -155,13 +139,6 @@ export async function tripsHeldBy(userId: string): Promise<number> {
   return countMembershipsOf(db, userId);
 }
 
-/**
- * A patch of the trip's own fields — one function rather than one per field,
- * since the shared `last_modified_at` stamp is the only rule they had in common
- * (same shape as `updateProfileFields`). A key left out is left alone; `null` is
- * a real value, since both dates and the colour clear back to a default (rule 9,
- * ticket 213). Validation is pure and lives in `lib/`; callers run it first.
- */
 export type TripPatch = Partial<{
   name: string;
   startDate: string | null;
@@ -178,12 +155,6 @@ export async function updateTrip(tripId: number, patch: TripPatch): Promise<void
     .where(and(eq(trip.id, tripId), isNull(trip.deletedAt)));
 }
 
-/**
- * Changes the trip's lock (#358). Whoever still holds the old link now resolves
- * to nothing, which is the normal not-found page — same shape as a guessed
- * token, so a revoked link and a made-up one are indistinguishable (rule 5).
- * Members already through the door keep their `trip_membership` row.
- */
 export async function resetInviteToken(tripId: number): Promise<string> {
   const minted = crypto.randomUUID();
   const [row] = await db
@@ -194,7 +165,6 @@ export async function resetInviteToken(tripId: number): Promise<string> {
   return row?.inviteToken ?? minted;
 }
 
-/** Archiving is reversible and keeps every row — the delete below is the one-way door. */
 export async function setTripArchived(
   tripId: number,
   archived: boolean,
@@ -205,7 +175,6 @@ export async function setTripArchived(
     .where(and(eq(trip.id, tripId), isNull(trip.deletedAt)));
 }
 
-/** Soft-delete only — admin is the *only* role that can delete (ticket 01). */
 export async function softDeleteTrip(tripId: number): Promise<void> {
   await db
     .update(trip)

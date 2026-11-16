@@ -33,7 +33,6 @@ function allRow(s) {
       </button>`;
 }
 
-// Each shortlisted heading face with its weight steps, lightest first; the live set on its own at the end.
 const FAMILIES = ["H", "J", "W"].map((k) => {
   const sets = ALL_SETS.filter((s) => s.key[0] === k).sort((a, b) => a.d - b.d);
   return { name: sets[0].display, sets };

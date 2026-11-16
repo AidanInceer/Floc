@@ -1,8 +1,3 @@
-/**
- * What Tab, Enter and Backspace do to a line (#408), as the prototype settled
- * it: lists continue, an empty list line steps out then ends, Backspace at the
- * start outdents before it does anything else. Tables keep their own keys.
- */
 import type { Node } from "@tiptap/pm/model";
 import { TextSelection, type Command, type EditorState } from "@tiptap/pm/state";
 import { MAX_INDENT } from "@floc/core/notes/pages/page-blocks";
@@ -13,7 +8,6 @@ import { outlineOf } from "./outline";
 
 const isTextBlock = (node: Node) => (TEXT_BLOCKS as readonly string[]).includes(node.type.name);
 
-/** The top-level line the caret is in, or null inside a table or on a non-text block. */
 function currentLine(state: EditorState) {
   const { $from } = state.selection;
   if ($from.depth !== 1) return null;

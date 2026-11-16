@@ -3,7 +3,6 @@ import type { Piece, Shape } from "@/lib/explore/route/route-shape";
 
 import type { RouteInk } from "./route-ink";
 
-/** A name on the map, held to a stop or to the tip of a day out. A stop with nights has them written small beneath, in `sub`. */
 export type Name = { of: "stop" | "out"; k: number; text: string; sub: string; w: number; h: number; dx: number; dy: number };
 
 export const TAG = { h: 20, gap: 18 };
@@ -14,13 +13,11 @@ export const fonts = (ink: RouteInk) => ({
   time: `500 10px ${ink.type}`,
 });
 
-/** How wide a leg's tag is with its time written in: the icon, the gap, the time. */
 export function tagWidth(ctx: CanvasRenderingContext2D, ink: RouteInk) {
   ctx.font = fonts(ink).time;
   return (time: string) => 34 + ctx.measureText(time).width;
 }
 
-/** Where a leg's tag sits, at the view the route was built at: off the middle of the leg, on the outside of its bend. */
 export function tagBox(p: Piece, at: Point, width: number): Box {
   const [x, y] = [at.x + p.bulge.x * TAG.gap, at.y + p.bulge.y * TAG.gap];
   return { left: x - width / 2, top: y - TAG.h / 2, right: x + width / 2, bottom: y + TAG.h / 2 };
@@ -31,7 +28,6 @@ function measure(ctx: CanvasRenderingContext2D, font: string, text: string) {
   return ctx.measureText(text).width;
 }
 
-/** Every name the map writes, placed clear of the stops, the tags and each other at the view the shape was built at. */
 export function nameRoute(ctx: CanvasRenderingContext2D, shape: Shape, ink: RouteInk, view: Box): Name[] {
   const f = fonts(ink);
   const width = tagWidth(ctx, ink);

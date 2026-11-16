@@ -1,11 +1,3 @@
-/**
- * Scenario B — the messy case (#no-ticket).
- *
- * Everything A leaves out: a bigger roster than a phone screen wants, an
- * invite you have not answered, a friend request waiting on you, a past trip
- * behind the upcoming one, three currencies, and a bag nobody has finished.
- * The states that only appear once a group has been going a while.
- */
 import { db } from "../index.ts";
 import { availability, day, dayEvent, note, place, tripInvite } from "../schema.ts";
 import type { Person } from "./people.ts";
@@ -60,7 +52,6 @@ const PEOPLE: Person[] = [
       map: { green: ["SE", "NO"] },
     },
   },
-  // On your trip but not your friend — friends-only rings hide from you here.
   {
     handle: "ruth",
     name: "Ruth Okonkwo",
@@ -71,7 +62,6 @@ const PEOPLE: Person[] = [
       map: { green: ["US", "CA"], yellow: ["GB"] },
     },
   },
-  // On nobody's trip, and not yet a friend — a stranger, so no profile at all.
   {
     handle: "elliot",
     name: "Elliot Vance",
@@ -130,7 +120,6 @@ async function buildDolomites(you: string, crew: string[]): Promise<number> {
     ],
   });
 
-  // Only half the roster has answered — the state the calendar is actually for.
   for (const userId of [you, nadia, jonas]) {
     await db.insert(availability).values(
       [0, 1, 2, 3, 4, 5, 6, 7].map((offset) => ({
@@ -304,14 +293,12 @@ async function packDolomites(tripId: number, you: string, crew: string[]): Promi
   });
 }
 
-/** `roster` is you first, then the crew in the order `buildDolomites` got them. */
 async function spendDolomites(
   tripId: number,
   days: { id: number }[],
   roster: string[],
 ): Promise<void> {
   const [you, nadia, callum, mei, jonas, ruth] = roster;
-  // Three currencies and an uneven split — the settle-up screen's hard case.
   await addExpense({
     tripId,
     dayId: days[0].id,
@@ -358,7 +345,6 @@ async function spendDolomites(
   });
 }
 
-/** A trip you can see the invite for but not the inside of — never a membership row. */
 async function buildTokyoInvite(you: string, crew: string[]): Promise<number> {
   const [nadia, mei, jonas, ruth] = crew;
 
@@ -382,7 +368,6 @@ async function buildTokyoInvite(you: string, crew: string[]): Promise<number> {
   return tripId;
 }
 
-/** Behind you, so the trips list has to sort and the travel map has a country to fill. */
 async function buildPastTrip(you: string, crew: string[]): Promise<number> {
   const [callum, mei] = crew;
 

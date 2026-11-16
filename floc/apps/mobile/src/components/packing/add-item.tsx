@@ -17,10 +17,6 @@ const LISTS = [
 
 export type NewItem = { label: string; category: PackCategory; mine: boolean };
 
-/**
- * Why a quiet row that opens in place: the open form put four controls above the bag before a single item showed.
- * The name leads and Return adds, so a second item follows without lifting the thumb.
- */
 export function AddItem({
   busy,
   error,
@@ -28,7 +24,6 @@ export function AddItem({
 }: {
   busy: boolean;
   error: string | null;
-  /** `done` clears the name, so a second item can follow without reopening. */
   onAdd: (item: NewItem, done: () => void) => void;
 }) {
   const { c } = useTheme();

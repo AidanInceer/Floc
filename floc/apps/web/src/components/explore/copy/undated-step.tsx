@@ -1,7 +1,6 @@
 import { CheckIcon } from "@/components/system/icons";
 import { panelTitleClass } from "@/components/system/ui";
 
-/** Not yet (ADR-025): an undated copy brings the highlights page only, since a day cannot exist without a date. */
 export function UndatedStep({ highlights }: { highlights: string[] }) {
   return (
     <div className="grid gap-4">

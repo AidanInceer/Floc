@@ -1,15 +1,3 @@
-/**
- * Everything you do *to a trip*, behind one settings cog at the end of the tab row.
- *
- * The same complaint as ticket 125's roster rows, one level up: leaving lived
- * at the foot of Overview inside a "Trip settings" fold, while archive and
- * delete sat in a strip on the hero — three verbs used once a trip, in two
- * places, on one tab out of five. They live here now, beside the roster and the
- * tabs, so they're reachable from any tab and never in the way.
- *
- * Sharing is not here: the roster's own Share trip button is the one place to
- * hand out an invite, and a second copy would be two ways to do it.
- */
 import { ConfirmSubmit, Menu } from "@/components/system/client-ui";
 import { CogIcon } from "@/components/system/icons";
 import { menuDangerItemClass, menuItemClass } from "@/components/system/ui";
@@ -42,14 +30,10 @@ export function TripMenu({
       label="Trip settings"
       trigger={<CogIcon />}
     >
-      {/* The trip's colour and mark — any member, same as rename and tags
-          (ticket 213, #318). */}
       <TripColorPicker tripId={tripId} current={color} />
 
       <TripMarkPicker tripId={tripId} current={mark} tone={tripPastel(color, tripId)} />
 
-      {/* Leaving is not an admin power (rule 6), so every member sees it. The
-          confirm copy carries whichever consequence applies. */}
       <form action={leaveTrip}>
         <input type="hidden" name="tripId" value={tripId} />
         <ConfirmSubmit
@@ -62,7 +46,6 @@ export function TripMenu({
         </ConfirmSubmit>
       </form>
 
-      {/* Why: revoking cancels every copy already sent, so it is an admin power (#358). */}
       {isAdmin ? (
         <form action={resetInviteLink}>
           <input type="hidden" name="tripId" value={tripId} />
@@ -80,8 +63,6 @@ export function TripMenu({
 
       {isAdmin && !archived ? (
         <form action={archiveTrip}>
-          {/* One archive action for the whole app (ticket 117); where to land
-              afterwards is the caller's. */}
           <input type="hidden" name="tripId" value={tripId} />
           <input type="hidden" name="redirectTo" value="/trips/archived" />
           <ConfirmSubmit

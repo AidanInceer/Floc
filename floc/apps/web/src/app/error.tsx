@@ -1,15 +1,5 @@
 "use client";
 
-/**
- * The error boundary for every route below it (ticket 202). It says what
- * happened and offers the two things that actually help — retry the render,
- * or leave — and it apologises for nothing.
- *
- * `digest` is the only detail shown: Next.js strips server error messages in
- * production, and the digest is the handle that ties this screen to the server
- * log. The message itself is never printed — it can carry anything the query
- * was holding.
- */
 import { ButtonLink, Button, PageTitle } from "@/components/system/ui";
 
 export default function AppError({

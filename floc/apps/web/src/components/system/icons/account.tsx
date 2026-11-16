@@ -9,7 +9,6 @@ export function PersonIcon() {
   );
 }
 
-/** Groups: three people, so it reads apart from Friends' two at glyph size (#637). */
 export function GroupIcon() {
   return (
     <Line size={15}>
@@ -21,7 +20,6 @@ export function GroupIcon() {
   );
 }
 
-/** Bookings arrive as a forwarded confirmation email, so the mark is the envelope (#559, #637). */
 export function EnvelopeIcon() {
   return (
     <Line size={15}>
@@ -31,7 +29,6 @@ export function EnvelopeIcon() {
   );
 }
 
-/** Wish lists: a bookmark, filled while its page is open (#637). */
 export function BookmarkIcon({ filled = false }: { filled?: boolean }) {
   return (
     <Line size={15}>
@@ -58,7 +55,6 @@ export function SunIcon() {
   );
 }
 
-/** Auto follows the device, so it is drawn as one. */
 export function DeviceIcon() {
   return (
     <Line>

@@ -2,10 +2,8 @@ import type { PageCache } from "@floc/core/notes/live/live-session";
 import { Directory, File, Paths } from "expo-file-system";
 import * as Y from "yjs";
 
-// Why a file: edits made offline must outlive the app being closed (#394, #408).
 const folder = () => new Directory(Paths.document, "notes");
 
-// Why the swap: a live doc's name has colons, which not every file system takes.
 const fileFor = (documentName: string) => new File(folder(), `${documentName.replace(/:/g, "_")}.yjs`);
 
 export function readCachedNotes(documentName: string): Uint8Array | null {

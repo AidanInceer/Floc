@@ -1,8 +1,3 @@
-/**
- * Renewals, cancellations and refunds after the purchase. Either store retries
- * on anything but 2xx, so a body we cannot use is still acknowledged — only
- * "cannot check right now" asks for a retry.
- */
 import "server-only";
 
 import { readAppStoreNotification } from "./app-store";
@@ -18,7 +13,6 @@ export async function applyAppStoreNotification(body: unknown): Promise<number> 
   if (read === "refused") return 400;
   if (read === "ignored") return 200;
 
-  // Why: a purchase nobody has claimed has no account yet; the app's claim writes it.
   const owner = await ownerOfStoreTransaction(read.storeTransactionId);
   if (owner) await recordStoreSubscription({ userId: owner, source: "app_store", facts: read });
   return 200;

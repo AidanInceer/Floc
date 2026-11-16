@@ -1,9 +1,3 @@
-/**
- * Weather glyphs (ticket 148): one drawing per condition, drawn like
- * `travel-mode.tsx` / `reaction.tsx` (14×14, currentColor, no emoji —
- * see visual-language "Iconography"). No `"use client"` — paths only, so it
- * composes into server or client rows.
- */
 import type { WeatherCondition } from "@floc/core/itinerary/weather";
 
 const PATHS: Record<WeatherCondition, string[]> = {
@@ -26,7 +20,6 @@ const PATHS: Record<WeatherCondition, string[]> = {
   ],
 };
 
-/** The sun's strokes, for an icon drawn inside another frame (Explore's season order, #624). */
 export const SUN_PATHS = PATHS.sun;
 
 export function WeatherGlyph({

@@ -1,4 +1,3 @@
-/** Inline nodes (#408): a line break, and a trip link — a chip naming one thing on the trip. */
 import { Node } from "@tiptap/core";
 import { isLinkKind } from "@floc/core/notes/pages/trip-links";
 
@@ -30,7 +29,6 @@ export const TripLink = Node.create({
       parseHTML: (element: HTMLElement) => Number(element.dataset.id) || 0,
       renderHTML: (attrs: { id: number }) => ({ "data-id": attrs.id }),
     },
-    /** The last name this page saw — what it shows once the thing is gone. */
     label: { default: "", parseHTML: (element: HTMLElement) => element.textContent ?? "", renderHTML: () => ({}) },
   }),
   parseHTML: () => [{ tag: "span[data-trip-link]" }],

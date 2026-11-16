@@ -4,7 +4,6 @@ import { cx } from "@/components/system/ui";
 import { ArrowUpIcon } from "@/components/system/icons";
 import { voteLabel } from "@floc/core/trip/ideas";
 
-/** The vote on an idea: one look for a member's form and a guest's button (#442). */
 export function IdeaVoteButton({
   title,
   votes,

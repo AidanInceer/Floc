@@ -11,10 +11,8 @@ import { spinGlobe } from "./spin-globe";
 
 export type Globe = NonNullable<ReturnType<typeof spinGlobe>>;
 
-/** What the band does when the globe reports back. A ref, so the globe is not rebuilt when a handler changes. */
 export type GlobeEvents = { onSettle?: (index: number) => void; onWay?: (state: "open" | "shut") => void };
 
-/** Runs the globe on a canvas. `lit` is the place it is on, or passing while it spins. */
 export function useSpinGlobe(home: LatLng, places: LatLng[], events: RefObject<GlobeEvents>) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const globe = useRef<Globe | null>(null);
@@ -35,7 +33,6 @@ export function useSpinGlobe(home: LatLng, places: LatLng[], events: RefObject<G
     globe.current = g;
     let live = true;
     const stopWatch = watchFirstView(node, { onStart: ({ still }) => g.start(still) });
-    // Why: the land outline is 175 kB, so it loads only when the band is near the screen.
     const near = new IntersectionObserver(
       ([entry]) => {
         if (!entry?.isIntersecting) return;

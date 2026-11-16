@@ -1,13 +1,3 @@
-/**
- * The port the phone reads a trip through (ticket 287), against a real
- * database.
- *
- * The point of these is not that the queries work — `trips.test.ts` and the
- * rest already prove that. It is that the *same rules* survive the new door.
- * Rule 5 in particular: `requireTripAccess` keeps it by leaving through
- * `notFound()`, and the port cannot do that, so it has to keep it another way.
- * A rule with two enforcement paths needs a test on both.
- */
 import { parseTagNames } from "@floc/core/trip/tags";
 import { eq, sql } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
@@ -175,7 +165,6 @@ describe("the admin powers (rule 6)", () => {
     expect(readShareToken(minted)).not.toBe("token-ours");
     expect(await webPort.previewInvite(OURS_LINK)).toBeNull();
     expect((await webPort.previewInvite(minted))?.name).toBe("Ours");
-    // Re-locking the door does not put anybody outside it.
     expect(await webPort.loadTrip(world.member, world.ours.id)).not.toBeNull();
   });
 
@@ -204,7 +193,6 @@ describe("the admin powers (rule 6)", () => {
   it("lets any member leave, because leaving is not an admin power", async () => {
     await webPort.leaveTrip(world.member, world.ours.id);
     expect(await webPort.loadTrip(world.member, world.ours.id)).toBeNull();
-    // The trip itself is untouched — the admin is still on it.
     expect(await webPort.loadTrip(world.admin, world.ours.id)).not.toBeNull();
   });
 
@@ -212,8 +200,6 @@ describe("the admin powers (rule 6)", () => {
     await webPort.removeMember(world.admin, world.ours.id, world.admin);
 
     const trip = await webPort.loadTrip(world.member, world.ours.id);
-    // The sole remaining member inherits admin rather than the trip being left
-    // with nobody who can administer it.
     expect(trip?.members.find((m) => m.userId === world.member)?.role).toBe("admin");
   });
 });
@@ -275,7 +261,6 @@ describe("creating and patching a trip", () => {
     });
     const trip = await webPort.loadTrip(world.member, id);
     expect(trip?.role).toBe("admin");
-    // Why: a trip with no dates is a normal trip (rule 9).
     expect(trip?.startDate).toBeNull();
   });
 
@@ -360,7 +345,6 @@ describe("money", () => {
       }),
     ).rejects.toThrow();
 
-    // And the other trip's row is untouched.
     const after = await webPort.loadLedger(world.outsider, world.theirs.id);
     expect(after.expenses[0].description).toBe("Theirs");
   });
@@ -546,7 +530,6 @@ describe("packing through the port (#220's two lists)", () => {
     expect(ada.shared.map((l) => l.label)).toEqual(["Sun cream"]);
     expect(ada.mine.map((l) => l.label)).toEqual(["Ada's inhaler"]);
 
-    // Mo sees the group's line and nothing of Ada's bag.
     const mo = await webPort.loadPacking(world.member, world.ours.id);
     expect(mo.shared.map((l) => l.label)).toEqual(["Sun cream"]);
     expect(mo.mine).toEqual([]);
@@ -589,7 +572,6 @@ describe("packing through the port (#220's two lists)", () => {
     });
     const [line] = (await webPort.loadPacking(world.admin, world.ours.id)).shared;
 
-    // Anyone on the trip may drop a shared line — the list is the group's.
     await webPort.removePackingLine(world.member, world.ours.id, line.id);
 
     expect((await webPort.loadPacking(world.admin, world.ours.id)).shared).toEqual([]);
@@ -666,8 +648,6 @@ describe("packing setup through the port (#220, #229)", () => {
 
     const ours = await webPort.loadPacking(world.admin, world.ours.id);
     expect(ours.tier).toBe("light");
-    // The other member's own view of the same trip is their own choice, which
-    // they have not made — so it falls through to their profile default.
     const theirs = await webPort.loadPacking(world.member, world.ours.id);
     expect(theirs.tier).toBe("balanced");
   });
@@ -683,7 +663,6 @@ describe("packing setup through the port (#220, #229)", () => {
       webPort.removePackingLines(world.admin, world.ours.id, [shared[0].id, mosLine[0].id]),
     ).rejects.toThrow();
 
-    // Nothing went — not even the line Ada was allowed to remove.
     expect((await webPort.loadPacking(world.admin, world.ours.id)).shared).toHaveLength(1);
     expect((await webPort.loadPacking(world.member, world.ours.id)).mine).toHaveLength(1);
   });
@@ -696,7 +675,6 @@ describe("packing setup through the port (#220, #229)", () => {
 
     const ada = await webPort.loadPacking(world.admin, world.ours.id);
     expect(ada.kits).toEqual([expect.objectContaining({ name: "Camping", itemCount: 2 })]);
-    // A kit belongs to the account, not the trip — Mo sees none of it.
     expect((await webPort.loadPacking(world.member, world.ours.id)).kits).toEqual([]);
   });
 
@@ -705,8 +683,6 @@ describe("packing setup through the port (#220, #229)", () => {
     await webPort.savePackingKit(world.admin, world.ours.id, "Camping");
     const kitId = (await webPort.loadPacking(world.admin, world.ours.id)).kits[0].id;
 
-    // Resolved by owner inside, so this is a no-op rather than a refusal —
-    // the same answer Mo would get for an id that never existed (rule 5).
     await webPort.deletePackingKit(world.member, kitId);
 
     expect((await webPort.loadPacking(world.admin, world.ours.id)).kits).toHaveLength(1);
@@ -765,7 +741,6 @@ describe("the signed-in person (ticket 302)", () => {
   it("lets you rename yourself, and the display name wins over the signup name", async () => {
     await webPort.renameMe(world.admin, "Ada L");
     expect((await webPort.loadMe(world.admin)).name).toBe("Ada L");
-    // Mo is untouched — a rename is scoped to the caller, never taken on trust.
     expect((await webPort.loadMe(world.member)).name).toBe("Mo");
   });
 });

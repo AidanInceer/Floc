@@ -3,7 +3,6 @@ import { addDays, formatDateRange, type IsoDate } from "@floc/core/dates/dates";
 import { ToggleRow } from "@/components/auth/account-ui";
 import { panelTitleClass } from "@/components/system/ui";
 
-/** Step three (ADR-025): the dates as picked, then the two switches, both on by default. */
 export function ExtrasStep({ start, nights, onChange }: { start: IsoDate | null; nights: number; onChange: () => void }) {
   return (
     <div className="grid gap-4">

@@ -15,7 +15,6 @@ const chip = cx(
   "aria-pressed:border-pen aria-pressed:bg-pen-soft aria-pressed:text-pen-deep",
 );
 
-/** Step two (ADR-025): a best month starts on its 1st; the calendar takes any day still ahead. */
 export function WhenStep({ months, nights, start, month, onStart, onMonth }: {
   months: StartMonth[];
   nights: number;

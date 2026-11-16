@@ -1,16 +1,3 @@
-/**
- * Google's own sign-in button (#no-ticket; the web's is in `auth-form.tsx`).
- *
- * THE ONE PLACE A HEX LITERAL IS ALLOWED PAST THE TOKEN RULE (ticket 206). The
- * face, the rule around it, the text colour and the four-colour "G" are
- * prescribed by Google's branding guidelines and are not ours to repaint —
- * tokenising them would make the button wrong in both themes rather than right
- * in one. It stays white in dark mode for the same reason the web's does.
- *
- * It is the only button on the screen that is neither the house primary nor
- * the house quiet, which is the point: a provider button that looked like ours
- * would read as one more of our own controls in a stack of five.
- */
 import { ActivityIndicator, Pressable, Text } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
@@ -68,7 +55,6 @@ export function GoogleButton({
   );
 }
 
-/** Google's official four-colour "G", path for path as the web app draws it. */
 function GoogleG() {
   return (
     <Svg width={18} height={18} viewBox="0 0 18 18">
@@ -92,7 +78,6 @@ function GoogleG() {
   );
 }
 
-/** The same white button for the calendar import (#444): Google's Calendar mark on the left, the words after it. */
 export function GoogleCalendarButton({
   label,
   onPress,
@@ -128,7 +113,6 @@ export function GoogleCalendarButton({
   );
 }
 
-/** Google's Google Calendar mark, path for path as the web app draws it. */
 export function GoogleCalendarMark() {
   return (
     <Svg width={18} height={18} viewBox="0 0 200 200">

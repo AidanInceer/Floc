@@ -1,8 +1,3 @@
-/**
- * A notes page, editable by everyone on the trip at once (#408). The web app
- * renders it in the Notes card; the phone runs this same component inside an
- * Expo DOM component, with `touch` on.
- */
 "use client";
 
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -26,7 +21,6 @@ export type PageEditorProps = {
   doc: Y.Doc;
   awareness: Awareness | null;
   me: { id: string; name: string };
-  /** Where this person's folded headings are kept on the device. Null keeps none: they said no to remembering choices (#368). */
   foldKey: string | null;
   links: readonly TripLinkItem[];
   threads: readonly PageThread[];
@@ -35,7 +29,6 @@ export type PageEditorProps = {
   onReply: (threadId: number, body: string) => Promise<string | null>;
   onResolve: (threadId: number) => Promise<void>;
   touch?: boolean;
-  /** Lets the page's name move the caret into the page. */
   handle?: MutableRefObject<{ focusStart: () => void } | null>;
 };
 
@@ -71,7 +64,7 @@ export function PageEditor(props: PageEditorProps) {
       folded: foldKey ? readFolds(`floc-folds:${foldKey}`) : new Set<string>(),
       onFold: (folded) => {
         if (!foldKey) return;
-        try { localStorage.setItem(`floc-folds:${foldKey}`, JSON.stringify([...folded])); } catch { /* a full or blocked store only forgets folds */ }
+        try { localStorage.setItem(`floc-folds:${foldKey}`, JSON.stringify([...folded])); } catch {}
       },
       onFull: () => setFull(true),
       onOpenLink: (kind, id) => openLink.current(kind, id),

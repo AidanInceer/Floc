@@ -1,7 +1,3 @@
-/**
- * Every outside source of data or type that Floc uses, and whether its licence allows a paid product (#549).
- * The Legal page draws the credits from this list. `paidUse` other than "yes" is a gap with its fix beside it.
- */
 export type DataSource = {
   what: string;
   from: string;

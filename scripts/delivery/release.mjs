@@ -11,7 +11,6 @@ const FEAT = /^(?:\d+\.\d+\.\d+ )?#(?:\d+|no-ticket): feat:/;
 const parts = (version) => version.split(".").map(Number);
 const newer = (a, b) => { const [x, y] = [parts(a), parts(b)]; return x[0] - y[0] || x[1] - y[1] || x[2] - y[2]; };
 
-/** One version per release: minor when any change is a feat, else patch. A develop already bumped the old way wins. */
 export function nextVersion(live, developVersion, subjects) {
   const [major, minor, patch] = parts(live);
   const next = subjects.some((s) => FEAT.test(s)) ? `${major}.${minor + 1}.0` : `${major}.${minor}.${patch + 1}`;
@@ -26,7 +25,6 @@ export function releaseBody({ tickets, others, migrations }) {
   ].join("\n");
 }
 
-// Why plumbing: the release commit only changes the version line, so it needs no worktree, install or hooks.
 function versionCommit(root, base, version) {
   const pkg = git(root, "show", `${base}:${PACKAGE}`).replace(/"version": "[^"]+"/, `"version": "${version}"`);
   const blob = command("git", ["hash-object", "-w", "--stdin"], { cwd: root, input: `${pkg}\n` });

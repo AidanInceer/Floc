@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 
 import { AccountTabs } from "@/components/chrome/account-tabs";
 
-/** A Lists page under the account bar. Saved is wider, so a tile's figures and Start trip share one line (#467). */
 export function ListsPage({ current, userId, children, wide = current === "saved" }: { current: "saved" | "wish" | "packing"; userId: string; children: ReactNode; wide?: boolean }) {
   return (
     <>

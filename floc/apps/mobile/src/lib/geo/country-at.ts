@@ -1,4 +1,3 @@
-// Why: a place saved before ticket 95 has no country stored, so the outline says where it stands — as the web's `codesAt` does.
 import COUNTRY_SHAPES from "../countries-110m.json";
 
 type Ring = number[][];
@@ -24,7 +23,6 @@ function countryAt(point: [number, number]): string | null {
   return hit?.id === undefined ? null : String(hit.id);
 }
 
-/** The countries the points stand in, first seen first. */
 export function countriesAt(points: { lat: number; lng: number }[]): string[] {
   const codes: string[] = [];
   for (const p of points) {

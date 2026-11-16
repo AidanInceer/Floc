@@ -11,7 +11,6 @@ import { fonts, size, space } from "@/lib/theme";
 
 type Stop = Extract<StayRow, { kind: "stop" }>;
 
-/** Where to look for a stay in one stop, and where to file the booking once you have it. */
 export function StaySheet({ row, open, canUpload, onClose, onAdd }: { row: Stop; open: boolean; canUpload: boolean; onClose: () => void; onAdd: () => void }) {
   const { c } = useTheme();
   return (

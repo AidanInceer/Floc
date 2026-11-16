@@ -12,7 +12,6 @@ export function VotePill({
 }: {
   votes: number;
   mine: boolean;
-  /** Said aloud — carries the count and whether the vote is yours. */
   label: string;
   onPress: () => void;
 }) {

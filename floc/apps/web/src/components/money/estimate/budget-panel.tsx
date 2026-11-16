@@ -54,7 +54,6 @@ const BAR_CELL = "max-sm:col-span-2 max-sm:col-start-2 max-sm:row-start-2";
 const FIGURE_CELL = "grid justify-items-end gap-1 text-[13px] max-sm:col-span-2 max-sm:col-start-2 max-sm:row-start-3 max-sm:flex max-sm:items-center max-sm:justify-between";
 const linkTrigger = "text-[13px] text-pen hover:underline";
 
-/** Why: a no-break space keeps each "·" on the line of the part before it, so a wrapped line never starts with one. */
 function Detail({ text }: { text: string }) {
   return <small className="text-[13px] text-ink-faint">{text.split(" · ").join("\u00a0· ")}</small>;
 }
@@ -125,7 +124,6 @@ function Footer({ tripId, view }: { tripId: number; view: EstimateView }) {
   );
 }
 
-/** Your own cost estimate and budget (#574, B3d): one quiet row of figures, a thin bar, then each line against its plan. Only you see it. */
 export function BudgetPanel({ tripId, view }: { tripId: number; view: EstimateView }) {
   const { plan, currency } = view;
   return (

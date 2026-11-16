@@ -1,6 +1,5 @@
 import { spawnSync } from "node:child_process";
 
-// Why: Windows only shows toasts from a registered app id; PowerShell's own is always registered.
 const APP_ID = "{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\WindowsPowerShell\\v1.0\\powershell.exe";
 
 const SCRIPT = [

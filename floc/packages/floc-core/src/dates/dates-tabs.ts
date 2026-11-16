@@ -1,7 +1,3 @@
-/**
- * What each Dates tab says about itself before you open it: a value, a short form for a
- * phone's one row, and a note. `open` marks something still to do.
- */
 import { dayParts, formatDate, nightsBetween, type IsoDate } from "./dates";
 import { countWord } from "../text/count-word";
 
@@ -14,14 +10,12 @@ export function compactRange(start: IsoDate, end: IsoDate): string {
   return `${Number(start.slice(8, 10))}–${dayMonth(end)}`;
 }
 
-/** A span short enough for a stub: no year, and the month once when both ends share it. */
 export function spanLabel(start: IsoDate, end: IsoDate): string {
   if (start.slice(0, 7) !== end.slice(0, 7)) return `${formatDate(start)} – ${formatDate(end)}`;
   const a = dayParts(start);
   return `${a.weekday} ${a.day} – ${formatDate(end)}`;
 }
 
-/** `answered`: the viewer has saved an answer, even one with no free day (#572). */
 export function yourDaysTab(saved: IsoDate[], unsaved: number, answered = false): TabSummary {
   if (saved.length === 0 && unsaved === 0)
     return answered
@@ -35,10 +29,8 @@ export function yourDaysTab(saved: IsoDate[], unsaved: number, answered = false)
   return { value, short: value, note, open: unsaved > 0 };
 }
 
-/** One person the group is asked: a member or an invite-link guest (#442). */
 export type GroupAnswer = { id: string; name: string; answered: boolean };
 
-/** Counts and names come from the same list, so a guest who has not answered is never counted as answered. */
 export function groupTab(people: GroupAnswer[], viewerId?: string | null): TabSummary {
   const waitingOn = people.filter((p) => !p.answered).map((p) => (p.id === viewerId ? "you" : p.name));
   const answered = people.length - waitingOn.length;

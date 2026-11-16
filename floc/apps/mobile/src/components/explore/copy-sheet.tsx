@@ -1,7 +1,3 @@
-/**
- * "Start this trip" on the phone (ADR-025): the web's copy sheet, from the foot of the screen. Do you have dates
- * yet, then when, then what else comes across. The write is the caller's — this only gathers the answer.
- */
 import { monthOf, thisMonth } from "@floc/core/dates/availability";
 import { today, type IsoDate } from "@floc/core/dates/dates";
 import type { CopyChoice } from "@floc/core/trip/explore/copy/copy-choice";

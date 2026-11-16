@@ -1,7 +1,6 @@
 export const heroPlaces = ["Lisbon", "Sicily", "Croatia"] as const;
 export type HeroPlace = (typeof heroPlaces)[number];
 
-// Lisbon gets out in front, Croatia takes one, Sicily draws level, then takes it.
 export const heroVotes: readonly { who: string; place: HeroPlace }[] = [
   { who: "Priya", place: "Lisbon" },
   { who: "Jo", place: "Lisbon" },

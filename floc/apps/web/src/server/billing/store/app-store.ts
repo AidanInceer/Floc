@@ -1,7 +1,3 @@
-/**
- * Apple's side. A signed transaction is only believed once Apple's certificate
- * chain vouches for it. Rule 11: with no keys set, nothing sells and nothing crashes.
- */
 import "server-only";
 
 import { Environment, SignedDataVerifier } from "@apple/app-store-server-library";
@@ -15,7 +11,6 @@ function verifiers(): SignedDataVerifier[] | null {
   if (!bundleId || !appId || !certs) return null;
 
   const roots = certs.split(",").map((cert) => Buffer.from(cert.trim(), "base64"));
-  // Why: App Review and TestFlight buy in the sandbox, against the production server.
   return [Environment.PRODUCTION, Environment.SANDBOX].map(
     (environment) => new SignedDataVerifier(roots, true, environment, bundleId, appId),
   );

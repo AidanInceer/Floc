@@ -1,6 +1,3 @@
-// One renderer for both hands — the faces a person picks (#157) and the marks a
-// trip wears (#318). The geometry is shared with the phone app in @floc/core;
-// only this renderer is local.
 import type { IconArt } from "@floc/core/people/avatar-icon-art";
 
 export function IconArtMark({ art, size = 16 }: { art: IconArt; size?: number }) {

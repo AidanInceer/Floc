@@ -1,17 +1,8 @@
-/**
- * Floc's own price table for the cost estimate (#574, ADR-057). Static data, read by nobody but `guide.ts`.
- *
- * Why hand-kept: the free flight-price APIs closed (Amadeus self-service, 17 July 2026) and the rest come
- * through affiliate networks (ADR-013). Every figure is a rough band, GBP minor units (rule 1), drafted on
- * 14 Nov 2026 from public fares and costs and not yet reviewed — so the app labels it Floc's rough guide
- * with no "checked" date until Aidan has checked it.
- */
 import type { Cabin, Pace, StayStyle } from "../style";
 
 type Band = readonly [number, number];
 const gbp = (lo: number, hi: number): Band => [lo * 100, hi * 100];
 
-/** UK airports with a flight guide. `fare` scales the London bands for the extra a regional airport usually costs. */
 export const HOME_AIRPORTS = [
   { code: "LHR", name: "London Heathrow", fare: 1 },
   { code: "LGW", name: "London Gatwick", fare: 1 },
@@ -27,7 +18,6 @@ export const HOME_AIRPORTS = [
 
 export type Hub = { code: string; city: string; country: string; lat: number; lng: number; fare: Band };
 
-/** Return economy fares from London, low to high, to hubs spread over every continent. */
 export const HUBS: readonly Hub[] = [
   { code: "LIS", city: "Lisbon", country: "PT", lat: 38.77, lng: -9.13, fare: gbp(80, 200) },
   { code: "OPO", city: "Porto", country: "PT", lat: 41.24, lng: -8.68, fare: gbp(70, 180) },
@@ -103,19 +93,13 @@ export const HUBS: readonly Hub[] = [
   { code: "AKL", city: "Auckland", country: "NZ", lat: -37.01, lng: 174.79, fare: gbp(1100, 1900) },
 ];
 
-/** How much a cabin multiplies an economy fare. */
 export const CABIN_FARE: Record<Cabin, number> = { economy: 1, premium: 1.7, business: 3.5, first: 6 };
 
-/** Per person, at UK prices: a night's share of a place to stay, a day's food and drink, a day's activities, a day's getting around. */
 export const STAY_NIGHT: Record<StayStyle, Band> = { budget: gbp(25, 45), mid: gbp(55, 95), high: gbp(110, 200) };
 export const FOOD_DAY: Record<StayStyle, Band> = { budget: gbp(20, 35), mid: gbp(35, 60), high: gbp(65, 110) };
 export const ACTIVITY_DAY: Record<Pace, Band> = { easy: gbp(8, 20), balanced: gbp(20, 40), active: gbp(40, 75) };
 export const TRANSPORT_DAY: Band = gbp(7, 15);
 
-/**
- * How expensive each country is against the UK (UK = 1), from the World Bank price level index for
- * household spending (PA.NUS.PRVT.PLI, CC BY 4.0), rounded. A country not listed is taken as the UK.
- */
 export const PRICE_LEVEL: Readonly<Record<string, number>> = {
   GB: 1, IE: 1.15, PT: 0.72, ES: 0.8, FR: 0.97, BE: 1, NL: 1.03, LU: 1.1, DE: 0.95, AT: 1, CH: 1.45,
   IT: 0.88, MT: 0.8, GR: 0.75, CY: 0.85, TR: 0.45, HR: 0.7, SI: 0.75, ME: 0.55, AL: 0.5, CZ: 0.68,

@@ -1,10 +1,3 @@
-/**
- * /trips/archived — read-only for members; restore is admin-only (ticket 05,
- * ticket 17; reskinned 193). No dedicated "request restore" UI in v1 — a
- * member who wants a trip back just asks an admin, so this page names them
- * instead of building a request/notify flow for something that can be solved
- * by a WhatsApp message.
- */
 import { requireUser } from "@/server/access";
 import { ButtonLink, PageTitle, EmptyState } from "@/components/system/ui";
 import { ConfirmSubmit } from "@/components/system/client-ui";
@@ -17,11 +10,9 @@ export const metadata = { title: "Archived trips" };
 export default async function ArchivedTripsPage() {
   const viewer = await requireUser("/trips/archived");
 
-  // Same load-and-build as /trips, one predicate apart (ticket 117).
   const cards = (await loadTripCards(viewer.id, { archived: true })).map(
     ({ card, members }) => ({
       card,
-      // Who to ask, since restoring is admin-only.
       admins: members.filter((m) => m.role === "admin"),
       isAdmin: card.role === "admin",
     }),

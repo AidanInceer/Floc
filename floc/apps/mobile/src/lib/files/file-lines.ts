@@ -28,7 +28,6 @@ export function metaLine(
     .join(" · ");
 }
 
-/** Two lines, as the web draws below sm: the whole thing is too long for one row beside Restore, and neither half may be cut. */
 export function archivedMetaLines(
   file: { sizeBytes: number; uploadedBy: string; uploaderName: string; ownerId: string | null; archivedAt: string },
   viewerId: string | undefined,
@@ -38,7 +37,6 @@ export function archivedMetaLines(
   const who = file.uploadedBy === viewerId ? "You" : file.uploaderName;
   return [
     `${fileArchiveLeftLabel(new Date(file.archivedAt), now)} · ${file.ownerId ? "Yours" : "Shared"}`,
-    // Why no name on a private file: only its owner sees it, so "Yours" has already said who.
     file.ownerId ? size : `${who} · ${size}`,
   ];
 }

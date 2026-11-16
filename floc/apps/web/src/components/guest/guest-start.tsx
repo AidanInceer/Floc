@@ -7,7 +7,6 @@ import { guestStart } from "@/app/invite/[token]/actions";
 import { Button, ErrorText, Field, Input, busyMark } from "@/components/system/ui";
 import { TEXT_CAPS } from "@floc/core/text/text";
 
-/** A name and nothing else (#442, ADR-029); the account is the other way in, under it. */
 export function GuestStart({ token, children }: { token: string; children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -23,7 +22,6 @@ export function GuestStart({ token, children }: { token: string; children: React
           startTransition(async () => {
             const result = await guestStart(token, name);
             setError(result.error ?? null);
-            // Why: the guest cookie is set in this action's response; the page re-reads who is looking.
             if (!result.error) router.refresh();
           });
         }}

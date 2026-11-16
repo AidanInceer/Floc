@@ -69,8 +69,7 @@ whether deleting the file would remove complexity or only move it.
 
 What to look for:
 
-- **One idea in many files.** The same rule, constant or loop copied, often
-  with a comment like "the same as X" or "keep in step with Y".
+- **One idea in many files.** The same rule, constant or loop copied.
 - **Copies that already disagree.** The strongest signal: it is a bug, or a
   choice nobody wrote down.
 - **A file that only passes the call on.** Deleting it changes nothing.
@@ -85,7 +84,7 @@ Also list what is already good, so the report does not propose to redo it.
 
 **Check every claim before it goes in the report.** Open the files and grep
 for the copies. A sub-agent's report is a lead, not a fact. If two copies
-differ on purpose (a code comment or ADR says why), say so, or drop the card.
+differ on purpose (an ADR, test or ticket says why), say so, or drop the card.
 
 Each candidate must respect the invariants. If a change would break one,
 drop it. If it conflicts with an ADR, include it only when the cost is real,

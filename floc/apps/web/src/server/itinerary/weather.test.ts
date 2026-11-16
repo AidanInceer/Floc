@@ -25,7 +25,6 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-/** Gives the trip's seeded day a place with coordinates — an anchor to forecast. */
 async function anchorTrip(
   dayId: number,
   coords: { lat: number | null; lng: number | null } = { lat: 38.72, lng: -9.14 },
@@ -47,7 +46,7 @@ async function anchorTrip(
   return place.id;
 }
 
-const ACCRA = { lat: 5.6037, lng: -0.187 }; // Africa/Accra: UTC all year, so local hours equal MET's.
+const ACCRA = { lat: 5.6037, lng: -0.187 };
 
 type Entry = { time: string; data: Record<string, unknown> };
 
@@ -61,7 +60,6 @@ function entry(time: string, temp: number, block: "next_1_hours" | "next_6_hours
   };
 }
 
-/** A MET Norway response like the real one: hourly for two days, then six-hourly; rain on the 5th day. */
 function metBody(from: string, days = HORIZON_DAYS) {
   const series: Entry[] = [];
   for (let h = 0; h < 48; h++) {
@@ -85,7 +83,6 @@ function stubFetch(body: unknown) {
 
 describe("tripForecastAnchor", () => {
   it("returns null when no day points at a place with coordinates", async () => {
-    // The seeded day has no overnight place at all.
     expect(await tripForecastAnchor(world.ours.id)).toBeNull();
   });
 
@@ -105,8 +102,6 @@ describe("tripForecastAnchor", () => {
 });
 
 describe("getTripForecast", () => {
-  // Every case below is a Pro trip: the forecast is gated on the read itself
-  // (ticket 248), so an ungated trip never reaches the mapping at all.
   beforeEach(() => givePro(world.admin));
 
   it("refuses a free trip however it asks, without calling out", async () => {
@@ -130,7 +125,6 @@ describe("getTripForecast", () => {
     expect(calledUrl).toContain("api.met.no");
     expect(calledUrl).toContain("lat=5.6037");
     expect(calledUrl).toContain("lon=-0.1870");
-    // MET Norway refuses a request that does not say who is asking.
     expect(new Headers(init.headers).get("user-agent")).toContain("floc.live");
 
     expect(forecast!.placeName).toBe("Lisbon");
@@ -140,32 +134,28 @@ describe("getTripForecast", () => {
     expect(forecast!.days[0]).toMatchObject({ condition: "sun", hi: 23, lo: 18 });
     expect(forecast!.days[4].condition).toBe("rain");
 
-    // Hourly is thinned to every third hour; a point carries the rain until the next one.
     const firstDay = forecast!.hourly[from];
     expect(firstDay.map((p) => p.hour)).toEqual([
       "00:00", "03:00", "06:00", "09:00", "12:00", "15:00", "18:00", "21:00",
     ]);
     expect(firstDay[4]).toMatchObject({ hour: "12:00", rain: 0.5 });
-    // Past two days MET Norway gives six-hour steps, so a day has four points.
     expect(forecast!.hourly[addDays(from, 4)].map((p) => p.hour)).toEqual(["00:00", "06:00", "12:00", "18:00"]);
     expect(forecast!.hourly[addDays(from, 4)][0].rain).toBe(2);
   });
 
   it("shows hours in the place's own time, not MET Norway's UTC", async () => {
-    await anchorTrip(world.ours.dayId, { lat: 35.68, lng: 139.69 }); // Tokyo, UTC+9 all year
+    await anchorTrip(world.ours.dayId, { lat: 35.68, lng: 139.69 });
     const from = today();
     stubFetch(metBody(from));
 
     const forecast = await getTripForecast(world.ours.id);
 
-    // 15:00 UTC on the first day is midnight the next day in Tokyo.
     expect(forecast!.hourly[addDays(from, 1)][0].hour).toBe("00:00");
     expect(forecast!.hourly[from][0].hour).toBe("09:00");
   });
 
   it("does not treat an undated, unplaced trip as an error — returns null, no fetch", async () => {
     const fetchMock = stubFetch(metBody(today()));
-    // world.ours has no dates and no placed location.
     expect(await getTripForecast(world.ours.id)).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
   });

@@ -6,7 +6,6 @@ import type { ArchivedFile } from "@/server/documents/archive/archive";
 
 import { CategoryChip, KindChip } from "./document-row";
 
-/** Removed files, waiting out their week (ADR-048). Restore is the only verb: nothing here deletes. */
 export function ArchivedFiles({
   files,
   viewerId,
@@ -16,7 +15,6 @@ export function ArchivedFiles({
   files: ArchivedFile[];
   viewerId: string;
   now: Date;
-  /** `restoreDocument`, bound to the trip. */
   restore: (documentId: number) => Promise<{ error?: string }>;
 }) {
   if (files.length === 0) return null;
@@ -34,14 +32,11 @@ export function ArchivedFiles({
               className="flex min-h-14 flex-wrap items-center gap-x-2.5 px-3 py-2"
               errorClassName="basis-full pt-1"
             >
-              {/* Why hidden on a phone: the category chip needs its width, and the name keeps the extension. */}
               <span className="max-sm:hidden">
                 <KindChip mimeType={file.mimeType} />
               </span>
               <div className="flex min-w-0 flex-1 flex-col leading-snug">
-                {/* Why two lines on a phone: the row is not a link, so a cut name could be read nowhere else. */}
                 <span className="text-sm font-medium max-sm:line-clamp-2 sm:truncate">{file.name}</span>
-                {/* Why two halves: on a phone the line breaks between them, never after a dot. */}
                 <span className="nums flex flex-col gap-y-0.5 text-xs text-ink-soft sm:flex-row sm:gap-x-1.5">
                   <span className="whitespace-nowrap">
                     {fileArchiveLeftLabel(file.archivedAt, now)} &middot; {file.ownerId ? "Yours" : "Shared"}
@@ -67,7 +62,6 @@ export function ArchivedFiles({
   );
 }
 
-/** Why no name on a private file: only its owner sees it, so "Yours" has already said who. */
 function byline(file: ArchivedFile, viewerId: string): string {
   const size = formatBytes(file.sizeBytes);
   if (file.ownerId) return size;

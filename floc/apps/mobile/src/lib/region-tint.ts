@@ -1,15 +1,3 @@
-/**
- * One pastel family per region, named once (direction C).
- *
- * THE CHIP AND THE ROW MUST NOT DISAGREE. The filter chip is a promise about
- * what it will show you; if Europe is green while every European row is
- * periwinkle, the colour is decoration rather than a key. Both read this map,
- * so they cannot drift apart.
- *
- * The four families the design system already carries, plus the pen tint —
- * exhaustive by type, so a sixth region cannot be added without choosing its
- * colour here.
- */
 import type { Region } from "@floc/core/trip/explore/preset-trips";
 import type { TokenName } from "@floc/core/design/tokens";
 

@@ -10,11 +10,9 @@ export type DayContext = {
   tripEnd: string | null;
   now: IsoDate;
   isFree: (date: string) => boolean;
-  /** A new window is being picked on the trip tab. */
   picking: boolean;
   inPick: (date: string) => boolean;
   pending: (date: string) => boolean;
-  /** The day's high on the forecast tab; undefined elsewhere or past the horizon. */
   hiOf: (date: string) => { hi: number; label: string } | undefined;
   hourDay: IsoDate | null;
 };
@@ -30,7 +28,6 @@ export type DayLook = {
   label: string;
 };
 
-/** How one day draws on the open tab. Its colour does not depend on the tab, only the trip being picked. */
 export function dayLook(c: DayContext, date: string): DayLook {
   const tally = c.tallies[date] ?? 0;
   const inTrip = !!c.tripStart && !!c.tripEnd && date >= c.tripStart && date <= c.tripEnd;

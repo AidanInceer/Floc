@@ -1,4 +1,3 @@
-/** `short` is the word a phone shows, so the six links fit one line at 360px. */
 export const LEGAL_LINKS = [
   { href: "/privacy", label: "Privacy policy", short: "Privacy" },
   { href: "/cookies", label: "Cookie policy", short: "Cookies" },

@@ -1,11 +1,6 @@
-// The variant list every prototype shares: all options in one panel on the right, grouped by round, newest round first.
-// list: [{ key, name, code?, round?, tag? }]. tag marks one variant, e.g. "Experiment". code is what a person calls it ("H2", "I3a"); key is what the page renders.
-
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 const STORE = "wf-variants-open";
 
-// Why: the pick lives in the prototype's wf-status meta ("Shipped 0.157.0 as G2", "Chosen: C"), so the panel reads it rather than asking every page to repeat it.
-// "Exploring: A–G" and "Parked: D, …" name variants that were not picked, so they never mark one.
 function pickedCode() {
   const raw = document.querySelector('meta[name="wf-status"]')?.content || "";
   return raw.match(/(?:\bas|Chosen:|Liked:)\s*([A-Z][0-9]?[a-z]?)\b/)?.[1] || "";
@@ -22,7 +17,6 @@ function rounds(list) {
   return out.sort((a, b) => b.n - a.n);
 }
 
-// Why: in the phone viewer the page sits in a phone-sized frame; its panel goes in the viewer's corner, by Desktop/Phone, not inside the phone.
 function hostWindow() {
   try {
     if (window !== window.top && window.parent.location.pathname === "/_house/phone.html") return window.parent;
@@ -71,7 +65,6 @@ export function mountVariants(list, { current, onPick }) {
     count.textContent = `${index + 1}/${list.length}`;
     const item = scroll && panel.querySelector(`[data-i="${index}"]`);
     const body = panel.querySelector(".wf-vars-body");
-    // Why: scrollIntoView also scrolls the page under the panel, so a mockup opened part-way down.
     if (item && body) body.scrollTop += item.getBoundingClientRect().top - body.getBoundingClientRect().top - (body.clientHeight - item.offsetHeight) / 2;
     onPick(v.key);
   };

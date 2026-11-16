@@ -1,18 +1,3 @@
-/**
- * Who the dev sign-in door will let you in as (#no-ticket).
- *
- * WHY MORE THAN ONE. Half of what Floc does only exists between people —
- * somebody else claimed the suncream, somebody else paid for the chalet, an
- * invite you have not answered. From one seat none of it is visible, so the
- * door offers the whole seeded cast and you walk round the trip.
- *
- * THE PASSWORD IS SHARED AND HARDCODED, and that is fine exactly here: these
- * accounts only exist on a local file database, `db:seed` is the only thing
- * that makes them, and `devSignInEnabled` shuts the door outside development.
- * Nothing else may ever sign in this way — `passwordFor` returns null for any
- * address that is not the env account or a `.seed.floc.test` one, so a leaked
- * request naming a real user gets the same 404 as a shut door.
- */
 import { eq, like } from "drizzle-orm";
 
 import { db } from "@/db";
@@ -23,7 +8,6 @@ import { devSignInEnabled } from "./dev-sign-in";
 
 export type DevAccount = { email: string; name: string };
 
-/** The env account first — it is the one you are usually testing as. */
 export async function listDevAccounts(): Promise<DevAccount[]> {
   if (!devSignInEnabled()) return [];
 
@@ -39,14 +23,12 @@ export async function listDevAccounts(): Promise<DevAccount[]> {
   ];
 }
 
-/** The dev link names a person by id, so no address goes in a URL; `passwordFor` still decides who is allowed. */
 export async function devAccountEmail(userId: string): Promise<string | null> {
   if (!devSignInEnabled()) return null;
   const row = await db.select({ email: user.email }).from(user).where(eq(user.id, userId)).get();
   return row?.email ?? null;
 }
 
-/** Null for anybody the door does not know — the caller turns that into a 404. */
 export function passwordFor(email: string | null): string | null {
   if (!devSignInEnabled()) return null;
   if (!email || email === process.env.FLOC_DEV_USER_EMAIL) {

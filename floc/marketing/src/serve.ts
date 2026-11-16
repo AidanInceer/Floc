@@ -16,7 +16,6 @@ export const mimeOf = (file: string): string => MIME[extname(file)] ?? "applicat
 
 const declare = (tokens: Record<string, string>) => Object.entries(tokens).map(([k, v]) => `  --${k}: ${v};`).join("\n");
 
-// Why: the web's font tokens lead with next/font's generated family, which a static page never has.
 export const tokensCss = `:root {
   --font-display-face: "${fontStacks.display[0]}";
   --font-body-face: "${fontStacks.sans[0]}";

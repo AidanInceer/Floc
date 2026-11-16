@@ -1,4 +1,3 @@
-// Round 3: I the globe, J find the week, K the lens.
 import { ico, group, face, head, scene, reduced, clamp, ease } from "./kit.js";
 
 export const LEDE = `Keep the destination, dates, route and costs in one place. Plan on your own, or with everyone who&rsquo;s coming.`;
@@ -6,8 +5,6 @@ export const CTA = `<div class="cta"><a class="pill-btn big" href="#">Start a tr
 export const ok = (word) => `<em class="ok">${ico("check")} ${word}</em>`;
 export const token = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
-// ── I: the globe ───────────────────────────────────────────────────────────
-// The six Explore listings the landing page already shows, from @floc/core preset trips.
 export const HOME = { lat: 51.507, lng: -0.128 };
 export const TRIPS = [
   { country: "Japan", title: "Tokyo to Osaka", nights: 10, from: "£1,850", lat: 35.676, lng: 139.65, tone: "red" },
@@ -77,10 +74,8 @@ export function renderGlobe(stage) {
     ctx.beginPath(); ctx.arc(c, c, R, 0, Math.PI * 2); ctx.fillStyle = token("--pastel-blue"); ctx.fill();
     if (world) {
       ctx.fillStyle = token("--sheet"); ctx.strokeStyle = token("--pastel-blue-edge"); ctx.lineWidth = 0.8;
-      // Why: one path for every country lets overlapping rings cancel each other out at the globe's edge.
       for (const ring of world) {
         const pts = ring.map((pt) => project({ lng: pt[0], lat: pt[1] }, R, c));
-        // Why: a hidden point is kept only beside a visible one, pinned to the edge; a ring pinned all the way round would paint the whole disc.
         const seen = pts.filter((q, i) => q[2] >= 0 || pts[(i + 1) % pts.length][2] >= 0 || pts[(i + pts.length - 1) % pts.length][2] >= 0);
         if (seen.length < 3) continue;
         ctx.beginPath();
@@ -123,7 +118,6 @@ export function renderGlobe(stage) {
     <div class="g-pager"><button type="button" data-go="-1" aria-label="Previous trip">${ico("back")}</button><span class="nums">${at + 1} of ${TRIPS.length}</span><button type="button" data-go="1" aria-label="Next trip">${ico("arrow")}</button></div>`;
   }
 
-  // One clock: the globe turns to the place, the route from London draws as it arrives, then the tour moves on.
   const frame = () => {
     if (!live) return;
     const now = performance.now();
@@ -162,7 +156,6 @@ export function renderGlobe(stage) {
   return { stop() { live = false; s.clear(); } };
 }
 
-// ── J: find the week ───────────────────────────────────────────────────────
 const BUSY = { Priya: [[1, 4], [22, 26]], Sam: [[8, 10], [21, 23]], Jo: [[3, 7], [20, 21], [28, 30]], Alex: [[9, 11], [24, 27]], Maya: [[1, 2], [6, 8], [20, 24]], Kit: [[5, 6], [10, 11], [26, 30]] };
 export const DAY = ["Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "Mon"];
 export const NIGHTS = [["Palermo", 2], ["Cefalù", 1], ["Taormina", 2], ["Syracuse", 2]];
@@ -221,7 +214,6 @@ export function renderWeek(stage) {
   return { stop() { s.clear(); } };
 }
 
-// ── K: the lens ────────────────────────────────────────────────────────────
 const WALL = [
   ["Jo", "so where are we actually going", "yellow", "Where to", "Sicily", "All 6 voted"],
   ["Kit", "which weekend was it again??", "blue", "When", "12–19 Sep", "All 6 free"],
@@ -270,7 +262,6 @@ export function renderLens(stage) {
 
   const rest = () => move(wall.clientWidth * 0.5, wall.clientHeight * 0.5);
   rest();
-  // The lens wanders once across the wall, then waits where the pointer leaves it.
   if (!reduced) s.loop((t) => {
     if (!auto) return false;
     const u = clamp((t - 0.6) / 4.2);

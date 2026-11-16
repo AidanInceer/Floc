@@ -87,7 +87,6 @@ export function TripCopyCard({
   open: number[];
   onJump: (day: number) => void;
   signedIn: boolean;
-  /** The copy sheet opens on arrival: the landing page's "Start" sent you here. */
   startOpen?: boolean;
 }) {
   return (
@@ -116,10 +115,6 @@ export function TripCopyCard({
   );
 }
 
-/**
- * Phones only: the card sits below the days there, so the action stays in reach.
- * Why it floats clear of the edges: a phone's curved screen corners cut into a bar that runs edge to edge.
- */
 export function TripCopyBar({ trip, signedIn }: { trip: PresetTrip; signedIn: boolean }) {
   return (
     <div className="trip-copy-bar fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 flex items-center justify-between gap-3 rounded-md border border-rule-strong bg-sheet py-1 pl-4 pr-1 shadow-lifted lg:hidden">

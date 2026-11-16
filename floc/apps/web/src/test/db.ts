@@ -1,9 +1,3 @@
-/**
- * The database test harness (ticket 105): a real migrated database, real
- * queries, and a seeded shape that makes "a member of one trip cannot touch
- * another trip's rows" a one-line assertion. See ./setup.ts for the seam and
- * the Next.js stubs.
- */
 import { sql } from "drizzle-orm";
 import { migrate } from "drizzle-orm/libsql/migrator";
 import { expect } from "vitest";
@@ -13,7 +7,6 @@ import { NOT_FOUND, currentUser } from "./setup";
 
 let migrated = false;
 
-// Once per worker; cheap enough to call from every suite's beforeAll.
 export async function migrateTestDb(): Promise<void> {
   if (migrated) return;
   await db.run(sql`PRAGMA synchronous = OFF`);
@@ -21,8 +14,6 @@ export async function migrateTestDb(): Promise<void> {
   migrated = true;
 }
 
-// Children before parents, so a delete never trips an FK. Listed by hand so a
-// new table needing clearing is an obvious edit, not a silent gap.
 const TABLES = [
   schema.analyticsEvent,
   schema.termsAcceptance,
@@ -67,14 +58,12 @@ const TABLES = [
   schema.user,
 ] as const;
 
-// Call in beforeEach — suites share a worker's file.
 export async function resetDb(): Promise<void> {
   const [first, ...rest] = TABLES.map((table) => db.delete(table));
   await db.batch([first, ...rest]);
   currentUser.id = null;
 }
 
-// null for signed-out.
 export function signIn(userId: string | null): void {
   currentUser.id = userId;
 }
@@ -88,13 +77,6 @@ async function makeUser(id: string, name: string) {
 
 export type Scenario = Awaited<ReturnType<typeof seedScenario>>;
 
-/**
- * Why: one trip with an admin and a member, plus a second trip with a disjoint
- * member — the outsider is the point: rule 5 needs an attacker with a valid
- * session of their own, not just a non-member. Two events per day, not one:
- * a single-event day's reorder is a no-op regardless of the access check, so
- * it would make drag tests pass vacuously.
- */
 export async function seedScenario() {
   const admin = await makeUser("u-admin", "Ada");
   const member = await makeUser("u-member", "Mo");
@@ -113,7 +95,6 @@ export async function seedScenario() {
       .returning({ id: schema.day.id })
       .get();
 
-    // Distinct times so a drag that shouldn't have happened leaves evidence.
     const events = await db
       .insert(schema.dayEvent)
       .values([
@@ -139,7 +120,7 @@ export async function seedScenario() {
       id: row.id,
       dayId: dayRow.id,
       eventId: events[0].id,
-      lateEventId: events[1].id, // the 19:00 one
+      lateEventId: events[1].id,
     };
   }
 
@@ -155,11 +136,6 @@ export async function seedScenario() {
   return { admin, member, outsider, ours, theirs };
 }
 
-/**
- * Make an account Pro for the rest of the test (ticket 248). A trip is Pro if
- * any member holds a live subscription, so this is how a test says "this trip
- * has paid" without going near Stripe.
- */
 export async function givePro(userId: string): Promise<void> {
   await db.insert(schema.subscription).values({
     userId,
@@ -170,13 +146,10 @@ export async function givePro(userId: string): Promise<void> {
   });
 }
 
-/** Accepted friends, both ways round — what asking someone onto a trip by name needs. */
 export async function befriend(a: string, b: string): Promise<void> {
   await db.insert(schema.friendship).values({ userId: a, friendId: b, status: "accepted" });
 }
 
-// Rule 5: foreign and nonexistent ids get the same response, so "it threw
-// something" isn't good enough — assert this exact refusal.
 export async function expectNotFound(fn: () => Promise<unknown>): Promise<void> {
   await expect(fn()).rejects.toThrow(NOT_FOUND);
 }

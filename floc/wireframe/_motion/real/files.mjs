@@ -1,4 +1,3 @@
-// The live Files page, drawn by eye from app/trip/[id]/files and components/documents/.
 import { esc, glyph, button } from "./shared.mjs";
 
 export const CATS = { travel: "Travel", hotel: "Hotel", tickets: "Tickets", admin: "Admin", other: "Other" };
@@ -38,7 +37,6 @@ export function filesPage(data) {
     `<div class="files-grid">${card("Shared", "Everyone on the trip", data.shared)}${card("Yours", "Only you can see these", data.mine)}</div>`;
 }
 
-/** The menu panel each trigger opens, as on the live page. */
 export function menuPanel(kind, doc) {
   if (kind === "forward") {
     return `<div class="forward"><p>Forward a booking email to</p><p class="addr">${INBOX}</p><p class="hint">Its attachments land in Yours, and Floc reads the booking.</p>` +

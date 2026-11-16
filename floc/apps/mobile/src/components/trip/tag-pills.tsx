@@ -1,12 +1,3 @@
-/**
- * A trip's tags, drawn (tickets 71, 213).
- *
- * They wear the trip's one chosen pastel rather than a tone each — that was
- * ticket 213's whole point, and `tripPastel` is the shared rule so a card on a
- * phone and a card in a browser land on the same colour for the same trip.
- *
- * Lower case, as they are stored: a tag is the group's own word, not a title.
- */
 import { readTags } from "@floc/core/trip/tags";
 import { tripPastel, type TripColor } from "@floc/core/trip/trip-color";
 import { pastelOf } from "@floc/core/design/pastels";
@@ -20,7 +11,6 @@ export function TagPills({
   color,
   tripId,
 }: {
-  /** Straight off the row — JSON, so `readTags` guards it (rule 11). */
   tags: unknown;
   color: TripColor | null;
   tripId: number;

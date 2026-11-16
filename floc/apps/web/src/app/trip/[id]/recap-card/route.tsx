@@ -1,4 +1,3 @@
-// Why: a trip leaves Floc as a picture, never a link (ADR-045, #443). The default font needs no fetch (rule 11).
 import { notFound } from "next/navigation";
 import { ImageResponse } from "next/og";
 

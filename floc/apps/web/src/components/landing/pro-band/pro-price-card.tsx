@@ -8,7 +8,6 @@ import { cx, trackSegmentClass } from "@/components/system/ui";
 import type { BillingInterval } from "@floc/core/billing/plans";
 import type { ProPlan } from "@/lib/landing/pro-plans";
 
-/** Every period's price sits in one cell, so a tap fades between them and the card never changes height. */
 export function ProPriceCard({ plans, initial, href }: { plans: ProPlan[]; initial: BillingInterval | null; href: string }) {
   const [picked, setPicked] = useState(initial);
   return (

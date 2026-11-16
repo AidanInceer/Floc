@@ -1,4 +1,3 @@
-// Who's going, in one line: faces, a count and names. The faces open the full list.
 import { goingNames, goingNotes } from "@floc/core/trip/overview/going";
 import { INVITE_LINK_LIFE } from "@floc/core/trip/group/invite-link";
 import { AvatarRow, SheetFooter, Stack } from "@/components/system/ui";
@@ -20,7 +19,6 @@ type Props = {
   pendingInvitees: PendingInvitee[];
   declinedInvitees: PendingInvitee[];
   friends: Person[];
-  /** Still to add their free days, while the trip is undated. */
   needDates: Set<string>;
 };
 
@@ -85,7 +83,6 @@ function RosterSheet({ tripId, viewerId, members, isAdmin, inviteUrl, friendStat
   );
 }
 
-// Why: any member may invite, by name or by link (#312).
 function InviteSheet({ tripId, members, pendingInvitees, friends, inviteUrl }: Props) {
   return (
     <Sheet

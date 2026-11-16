@@ -1,9 +1,3 @@
-/**
- * Starts a Stripe Checkout session and hands back its URL (ticket 246).
- * A hosted Stripe page, not a payment link: a link cannot say which logged-in
- * account paid, so the webhook would have nothing to attach the subscription
- * to.
- */
 import { headers } from "next/headers";
 
 import { appUrl } from "@/lib/env";
@@ -44,15 +38,9 @@ export async function POST(request: Request): Promise<Response> {
     mode: "subscription",
     customer,
     line_items: [{ price, quantity: 1 }],
-    // The thread back to the account, read by `checkout.session.completed`.
     client_reference_id: session.user.id,
     subscription_data: { metadata: { userId: session.user.id, ...terms.metadata } },
     custom_text: { submit: { message: terms.submitMessage } },
-    /**
-     * Floc sells in GBP only, and both Prices are GBP, so Stripe already
-     * refuses any other currency. Collecting the billing address is what makes
-     * a non-GB customer visible; Checkout has no country allow-list of its own.
-     */
     billing_address_collection: "required",
     allow_promotion_codes: true,
     success_url: `${appUrl()}/settings?billing=done`,
@@ -74,7 +62,6 @@ async function readInterval(
   return BILLING_INTERVALS.find((i) => i === value) ?? null;
 }
 
-// Never echoes the reason into a page — the caller is our own fetch.
 function refuse(status: number, message: string): Response {
   return Response.json({ error: message }, { status });
 }

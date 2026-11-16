@@ -1,8 +1,3 @@
-/**
- * Table changes from the row and column handles (#408). Each is a small step
- * on the rows or cells it touches — never the whole table rewritten — so two
- * people editing one table both keep their words.
- */
 import type { Node } from "@tiptap/pm/model";
 import { TextSelection, type Command, type EditorState, type Transaction } from "@tiptap/pm/state";
 import { CellSelection, TableMap, addColumn, addRow, removeColumn, removeRow, selectedRect, type TableRect } from "@tiptap/pm/tables";
@@ -92,7 +87,6 @@ function moveCols(tr: Transaction, tablePos: number, from: number, to: number, g
   }
 }
 
-/** Moves rows or columns `from`..`to` to sit before line `gap` (a gap of the line count is the end). */
 export function moveLines(tablePos: number, kind: LineKind, from: number, to: number, gap: number): Command {
   return (state, dispatch) => {
     if (!tableAt(state.doc, tablePos) || (gap >= from && gap <= to + 1)) return false;
@@ -152,7 +146,6 @@ export function selectLines(tablePos: number, kind: LineKind, from: number, to: 
 
 export type CellsInfo = { tablePos: number; rect: CellRect; count: number; whole: LineKind | null };
 
-/** What a cell selection covers: how many cells, and whether they are whole rows or columns (which Delete removes). */
 export function selectionInfo(state: EditorState): CellsInfo | null {
   if (!(state.selection instanceof CellSelection)) return null;
   const { top, bottom, left, right, map, tableStart } = selectedRect(state);
@@ -165,7 +158,6 @@ export function selectionInfo(state: EditorState): CellsInfo | null {
   return { tablePos: tableStart - 1, rect: { top, bottom, left, right }, count: rows * cols, whole };
 }
 
-/** Enter in a cell goes down a row, adding one at the bottom, as a sheet does. */
 export const cellEnter: Command = (state, dispatch) => {
   const { $from } = state.selection;
   if ($from.parent.type.name !== "tableCell") return false;

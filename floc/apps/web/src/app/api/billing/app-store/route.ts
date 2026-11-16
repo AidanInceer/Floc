@@ -1,4 +1,3 @@
-/** Apple's App Store Server Notifications V2. The signature on the payload is the whole of the trust. */
 import { applyAppStoreNotification } from "@/server/billing/store/store-notifications";
 
 export const runtime = "nodejs";

@@ -34,7 +34,6 @@ function Control({ label, onPress, children }: { label: string; onPress: () => v
   );
 }
 
-/** Above the rows: Filters on the left and the order on the right, then what is set, each tapped away. */
 export function FinderBar({
   set,
   pills,

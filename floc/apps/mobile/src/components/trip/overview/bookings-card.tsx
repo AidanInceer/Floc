@@ -1,4 +1,3 @@
-// Why: the web's E2 Bookings card — one line a stop with an upload ring, and Whole trip as a grey footer band.
 import { formatShortRange } from "@floc/core/dates/dates";
 import type { DocCategory } from "@floc/core/documents/documents";
 import type { Leg, LegFile } from "@floc/core/trip/overview/legs";

@@ -1,4 +1,3 @@
-// The postcard's way back to the ideas, once the plan has a shape (ideasTucked).
 import { sortIdeas, type IdeaRow } from "@floc/core/trip/ideas";
 import { Sheet } from "@/components/system/client-ui";
 import { ChevronIcon } from "@/components/system/icons";

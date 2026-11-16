@@ -1,4 +1,3 @@
-/** Removed files, waiting out their week (ADR-048), as on the web: a line each and Restore, the only verb. Absent while empty. */
 import { fileArchiveNote } from "@floc/core/documents/archive";
 import { DOC_CATEGORY_TONES, type DocCategory } from "@floc/core/documents/documents";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -24,7 +23,6 @@ export function ArchivedFiles({
 }) {
   const { c } = useTheme();
   const queryClient = useQueryClient();
-  // Why here and not at the top of the screen: Restore sits at the foot of the scroll, and its refusal must be read beside it.
   const [problem, setProblem] = useState<string | null>(null);
   const archived = useQuery(trpc.files.archived.queryOptions({ tripId }));
   const restore = useMutation({

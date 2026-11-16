@@ -1,4 +1,3 @@
-/** Shared or Yours, as the web splits them: a head with its note, then one card of rows or the one sentence that says what goes here. */
 import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 

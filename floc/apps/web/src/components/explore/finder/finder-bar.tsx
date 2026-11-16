@@ -33,7 +33,6 @@ function Pill({ dark = false, onClick, children }: { dark?: boolean; onClick: ()
   );
 }
 
-/** Above the trips: how many, what is set (each removable), and the order. */
 export function FinderBar({
   shown,
   set,
@@ -41,9 +40,7 @@ export function FinderBar({
   onOpen,
 }: {
   shown: number;
-  /** How many filters and tags are set, for the button that opens them on a narrow screen. */
   set: number;
-  /** What is set, each removable. A dark pill is "more like" one listing. */
   pills: { id: string; label: string; dark?: boolean; onClear: () => void }[];
   onOpen: () => void;
 }) {

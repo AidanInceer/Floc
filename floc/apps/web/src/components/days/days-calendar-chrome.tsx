@@ -1,10 +1,5 @@
 "use client";
 
-/**
- * The Days calendar's chrome (ticket 243, split from `days-calendar`): the
- * toolbar, the all-day strip, the clock, the event modal and the add dialog. All drawing and
- * dispatch — no gesture logic lives here.
- */
 import {
   useState,
   type ComponentProps,
@@ -59,8 +54,6 @@ export function CalendarToolbar({
       <button type="button" onClick={nav.goNext} disabled={!nav.canNext} aria-label="Day after" title={nav.canNext ? "Day after" : "The trip ends here"} className={iconFrameClass()}>
         <ChevronIcon direction="right" />
       </button>
-      {/* Announced, not drawn: the focus head already says which day you are
-          on. Live so the arrows still report where they landed. */}
       <p className="sr-only" aria-live="polite">
         {rangeLabel}
       </p>
@@ -79,9 +72,6 @@ export function CalendarToolbar({
   );
 }
 
-// Things that happen *on* a day rather than at a time keep their own strip
-// above the clock, rather than inventing a time. Owns its own drag state — the
-// all-day drag is a day change (`moveEventToDay`), never a reschedule.
 export function AllDayStrip({
   slots,
   focusId,
@@ -97,7 +87,6 @@ export function AllDayStrip({
   rowStyle: CSSProperties;
   selected: number | null;
   onSelect: (id: number) => void;
-  /** All-day has no time to drop, so this is a change of day only. */
   onMove: (event: CalendarEvent, to: CalendarDay) => void;
 }) {
   const [dragId, setDragId] = useState<number | null>(null);
@@ -105,7 +94,6 @@ export function AllDayStrip({
 
   return (
     <div style={rowStyle} data-days-row className="border-b border-rule bg-sheet-2">
-      {/* Why not `.typed`: its wider tracking wraps "All day" to two lines in the gutter. */}
       <div className="flex items-center justify-end border-r border-rule bg-sheet-2 px-1 py-1.5 sm:px-1.5">
         <span className="whitespace-nowrap font-mono text-[11px] uppercase tracking-[0.02em] text-ink-faint">
           All day
@@ -155,7 +143,6 @@ export function AllDayStrip({
                   selected === event.id && "outline-2 outline-ink",
                 )}
               >
-                {/* Why: a neighbour on a phone is a 38px sliver; its chips keep their colour and drop the words. */}
                 <span className={cx(day.id !== focusId && "max-sm:hidden")}>
                   {event.title}
                   <EventMarkers hasNote={event.hasNote} hasFiles={event.hasFiles} />
@@ -168,9 +155,6 @@ export function AllDayStrip({
   );
 }
 
-// The clock: the hour gutter, a column per slot, and one layer over the
-// columns for the hour rules and the folded hours. An hour's label centres
-// *on* its line, so the row is inset by half a label.
 export function CalendarGrid({
   gridRef,
   rowStyle,
@@ -185,7 +169,6 @@ export function CalendarGrid({
   clock: ClockLayout;
   slots: CalendarDay[];
   focusId: number;
-  /** Everything a column needs besides its day: the parent's state and gestures. */
   column: (day: CalendarDay, variant: ColumnVariant) => ComponentProps<typeof DayColumn>;
   onToggleFold: () => void;
 }) {
@@ -197,8 +180,6 @@ export function CalendarGrid({
         {marks.map(({ y, minute }) => (
           <span
             key={minute}
-            // Not `.typed`: at 11px the clock was the smallest text on a page
-            // it's meant to be read off.
             className="nums absolute right-1.5 -translate-y-1/2 text-[11px] tracking-[0.02em] text-ink-soft sm:right-2 sm:text-[13px]"
             style={{ top: y }}
           >
@@ -241,10 +222,6 @@ export function CalendarGrid({
   );
 }
 
-/**
- * Each column keeps its own ground under a fold, so the open day stays white.
- * Why: a slot past the trip stays unpainted — restarting its stripes here would break them at the fold's edges.
- */
 function FoldGround({ slots, focusId }: { slots: CalendarDay[]; focusId: number }) {
   return (
     <span aria-hidden data-days-row className="absolute inset-0 grid grid-cols-[var(--days-tracks)]">
@@ -255,16 +232,9 @@ function FoldGround({ slots, focusId }: { slots: CalendarDay[]; focusId: number 
   );
 }
 
-// A centred sheet on a wide screen, a sheet from the bottom on a phone (wireframe/modal-forms B3).
 export const CALENDAR_DIALOG =
   "m-auto w-full max-w-lg overflow-y-auto rounded-md border border-rule bg-sheet p-0 text-ink shadow-lifted backdrop:bg-black/40 max-h-[calc(100dvh-48px)] max-sm:mb-0 max-sm:max-h-[92dvh] max-sm:max-w-full max-sm:rounded-b-none";
 
-/**
- * The event modal (ticket 321) — one sheet holding the event's facts and its comment
- * thread. The facts' own head carries the ✕; backdrop or Escape also close it.
- * Why the form is drawn here from the calendar's row: it opens on the click, not after
- * the server's round trip. `rest` (files, the thread, delete) follows from the server.
- */
 export function EventModal({
   event,
   dateLabel,
@@ -327,8 +297,6 @@ export function AddEventDialog({
   return (
     <Dialog open={adding !== null} onClose={onClose} title={`Add an event, ${day?.longLabel ?? ""}`} className={CALENDAR_DIALOG}>
       {adding ? (
-        // Submitting dismisses the dialog; the action revalidates the page
-        // underneath it. Same contract as `Sheet`.
         <div onSubmit={() => setTimeout(onClose, 0)}>
           <EventForm
             action={submitEvent}
@@ -337,8 +305,6 @@ export function AddEventDialog({
             defaults={{
               dayId: adding.dayId,
               time: adding.time,
-              // An hour long by default — the commonest answer, and the bottom
-              // edge is right there if it's wrong.
               endTime: adding.endTime ?? toHhmm(Math.min((toMinutes(adding.time) ?? 540) + 60, 24 * 60)),
             }}
           />

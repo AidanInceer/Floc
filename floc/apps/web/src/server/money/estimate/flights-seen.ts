@@ -8,7 +8,6 @@ import { LIMITS } from "@/server/limits";
 import { parseBookingDetails } from "@floc/core/documents/booking/booking-details";
 import type { FlightSeen } from "@floc/core/money/estimate/guide/home-airport";
 
-/** The flights Floc read from files this member uploaded themselves (#559), for suggesting their home airport (#574). */
 export async function flightsSeenBy(userId: string): Promise<FlightSeen[]> {
   const rows = await db
     .select({ tripId: document.tripId, details: document.bookingDetails })

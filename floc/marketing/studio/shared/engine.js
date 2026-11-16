@@ -1,4 +1,3 @@
-// Every frame is a pure function of time: run() exposes seek(t); render.mjs steps t by 1/FPS.
 const CTA_URL = "floc.app";
 const FPS = 30;
 
@@ -29,7 +28,6 @@ function caption(text, a, b, top = 290, size) {
   };
 }
 
-// End card shared by every version: wordmark, the line, the button, the address.
 function endCard(at) {
   const mark = add(stage, `<div class="abs" style="left:0;right:0;top:560px;display:flex;justify-content:center">${markHtml(190, 236, 182)}</div>`);
   const line = add(stage, '<div class="cap" style="top:840px;left:60px;right:60px;text-align:center">Group trip planning, sorted.</div>');

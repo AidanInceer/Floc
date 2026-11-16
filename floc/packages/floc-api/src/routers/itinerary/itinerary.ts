@@ -1,27 +1,16 @@
-/**
- * Why: day-first (rule 3, #287, #291). No `stop` procedure, ever: a stop is consecutive days sharing an
- * overnight place, derived by `@floc/core/stops` on each client, so neither invents its own idea of one.
- */
 import { isIsoDate } from "@floc/core/dates/dates";
 import { DAY_EVENT_TYPES, TRANSPORT_TYPES } from "@floc/core/vocabulary";
 import { z } from "zod";
 
 import { router, tripProcedure } from "../../trpc";
 
-/** `HH:MM`, local to the itinerary. Never an offset — the app has no timezones (rule 10). */
 const clockTime = z
   .string()
   .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use a 24-hour HH:MM time.")
   .nullable();
 
-/** `YYYY-MM-DD`, never a timestamp — the app has no timezones (rule 10). */
 const isoDate = z.string().refine(isIsoDate, "Use a YYYY-MM-DD date.");
 
-/**
- * Either a place the trip already points at, or a fresh pick. Null clears.
- * A typed name with no provider id is valid: the geocoder being down must
- * still leave a way to say where the group is sleeping (rule 11).
- */
 const overnightPlace = z
   .union([
     z.object({ placeId: z.number().int().positive() }),
@@ -46,7 +35,6 @@ const eventFields = z.object({
 });
 
 export const itineraryRouter = router({
-  /** Every day in date order with its events attached. One call renders the whole tab. */
   days: tripProcedure.query(({ ctx, input }) =>
     ctx.port.listDays(ctx.viewer.id, input.tripId),
   ),
@@ -75,10 +63,6 @@ export const itineraryRouter = router({
       await ctx.port.updateEvent(ctx.viewer.id, input.tripId, input.eventId, input.event);
     }),
 
-  /**
-   * Where the group sleeps, over a run of days. NOT a stop (rule 3) — this
-   * writes `overnight_place_id` on each day in the span and nothing else.
-   */
   setOvernight: tripProcedure
     .input(z.object({ startDate: isoDate, endDate: isoDate, place: overnightPlace }))
     .mutation(async ({ ctx, input }) => {

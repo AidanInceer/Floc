@@ -3,7 +3,6 @@ import type { Currency } from "@floc/core/money/currency";
 
 export type ShareTone = "lent" | "share" | "none";
 
-/** What one cost means for you, in the cost's own currency (rule 1: integer minor units only). */
 export function shareLine(
   expense: { paidBy: string; amountMinor: number; currency: Currency },
   me: string | undefined,

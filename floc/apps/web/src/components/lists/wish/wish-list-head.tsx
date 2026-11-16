@@ -15,10 +15,6 @@ import { PeopleChooser, type PeopleSources } from "./people-chooser";
 
 type Head = { id: number; name: string | null; title: string; members: Person[]; invited: Person[] };
 
-/**
- * The top of one wish list (#623): its name, who is on it and who is asked, Invite, and a menu to rename or leave.
- * Every member may do all of it (ADR-049); nobody can remove someone else.
- */
 export function WishListHead({ list, sources }: { list: Head; sources: PeopleSources }) {
   const router = useRouter();
   const [renaming, setRenaming] = useState(false);

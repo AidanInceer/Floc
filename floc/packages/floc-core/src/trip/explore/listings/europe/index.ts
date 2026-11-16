@@ -16,7 +16,6 @@ import { pragueToCeskyKrumlov } from "./prague-to-cesky-krumlov";
 import { connemaraAndAran } from "./connemara-and-aran";
 import { istanbulAndCappadocia } from "./istanbul-and-cappadocia";
 
-// Order is the order on Explore; the first few lead the map. `pnpm explore:new` adds a line here.
 export const EUROPE: PresetTrip[] = [
   icelandRingRoad,
   italyByRail,

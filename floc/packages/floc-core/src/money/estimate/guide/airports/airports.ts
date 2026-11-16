@@ -1,4 +1,3 @@
-/** Find a home airport by code, name or city (#574, ADR-057). The list loads on first use, so only the field that searches pays for it. */
 export type Airport = { code: string; name: string; city: string; country: string; large: boolean };
 
 const fold = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/\s+/g, " ").trim();
@@ -41,7 +40,6 @@ export function findAirport(airports: readonly Airport[], code: string | null): 
 
 export const airportLabel = (airport: Pick<Airport, "code" | "name">) => `${airport.name} (${airport.code})`;
 
-/** The line under an airport's name. Why: a no-break space keeps the country on its city's line when the row wraps. */
 export const airportPlace = (airport: Pick<Airport, "code" | "city" | "country">) =>
   `${airport.code} · ${airport.city ? `${airport.city}, ` : ""}${airport.country}`;
 
@@ -58,7 +56,6 @@ export function loadAirports(): Promise<Airport[]> {
   return loading;
 }
 
-/** A saved home airport as its field shows it. A code saved before the list (or since dropped from it) still shows. */
 export async function chosenAirport(code: string | null): Promise<{ code: string; label: string } | null> {
   if (!code) return null;
   const airport = findAirport(await loadAirports(), code);

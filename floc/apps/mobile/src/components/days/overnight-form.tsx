@@ -1,16 +1,3 @@
-/**
- * Where the group sleeps, from the phone (ticket 308).
- *
- * DAY-FIRST (rule 3). This writes a span of days, not a stop. The first and last
- * night are picked on the month calendar (wireframe/days-week F), with a line
- * saying what the stay takes from another one.
- *
- * THE TRIP'S OWN PLACES COME FIRST. Sending the id back keeps the pin the map
- * draws from; re-typing the name would mint a second, coordinate-less row.
- *
- * SEARCH MAY GIVE NOTHING (rule 11). The geocoder being down is not an error
- * state — the typed name is saved as it stands, and the map simply has no pin.
- */
 import type { IsoDate } from "@floc/core/dates/dates";
 import { stayNights, stayOpening, stayWrites, type Night, type StayWrite } from "@floc/core/itinerary/stay/overnight-pick";
 import { previewNight, tapNight, type NightPick } from "@floc/core/itinerary/stay/stay-calendar";
@@ -25,7 +12,6 @@ import { Body, Button, Card, Field, Label } from "../system/ui";
 import { trpc } from "@/lib/api";
 import { fonts, radius, size, space } from "@/lib/theme";
 
-/** What the API takes: an id the trip already uses, a fresh pick, or null to clear. */
 export type OvernightChoice =
   | { placeId: number }
   | {
@@ -37,12 +23,10 @@ export type OvernightChoice =
     };
 
 export type OvernightSpan = {
-  /** The stop's first and last day, and its place if it has one. */
   start: IsoDate;
   end: IsoDate;
   placeId: number | null;
   placeName: string | null;
-  /** Every day of the trip, in order; the last is check-out, not a night. */
   days: Night[];
 };
 
@@ -55,11 +39,9 @@ export function OvernightForm({
   onCancel,
 }: {
   span: OvernightSpan;
-  /** Places this trip's days already point at — an extend keeps the pin. */
   known: { id: number; name: string }[];
   busy: boolean;
   problem: string | null;
-  /** The writes in order: the stay first, then the old nights it gives back. Null clears. */
   onSave: (writes: StayWrite[], place: OvernightChoice | null) => void;
   onCancel: () => void;
 }) {
@@ -69,8 +51,6 @@ export function OvernightForm({
   const [choice, setChoice] = useState<OvernightChoice | null>(null);
   const [pick, setPick] = useState<NightPick>(() => ({ ...stayOpening(span, tripEnd), picking: false }));
 
-  // A keystroke is not a search. Nominatim allows one call a second and the
-  // trip is not waiting on the difference.
   useEffect(() => {
     const timer = setTimeout(() => setQuery(typed.trim()), 400);
     return () => clearTimeout(timer);
@@ -99,8 +79,6 @@ export function OvernightForm({
           autoFocus
         />
 
-        {/* Hits and the trip's own places are the same gesture, so they are the
-            same list — the trip's own on top, because they keep their pin. */}
         <View>
           {known.map((row) => (
             <Choice
@@ -141,8 +119,6 @@ export function OvernightForm({
         ) : null}
 
       </View>
-      {/* Silence is the answer when the provider is down (rule 11) — the typed
-          name still saves, so there is nothing to explain. */}
       {hits.isPending && query.length > 2 ? (
         <View style={{ paddingTop: space.sm }}>
           <Body tone="ink-3">Searching…</Body>
@@ -167,7 +143,6 @@ function StayNights({ span, pick, name, onTap }: { span: OvernightSpan; pick: Ni
       </View>
       <NightCalendar nights={nightDays.map((d) => d.date)} pick={pick} placeOf={placeOf} onTap={onTap} />
       <Text accessibilityLiveRegion="polite" style={[line, { fontFamily: fonts.type, marginTop: space.sm }]}>{nights.label}</Text>
-      {/* Why: a line held open, so the sheet does not move under the next tap. */}
       <View style={{ minHeight: 18, gap: space.xs }}>
         {nights.taken.map((taken) => (
           <Text key={taken} style={line}>{taken}</Text>
@@ -214,7 +189,6 @@ function Choice({
   );
 }
 
-/** Clearing the stop is a quiet red word, not a second big button under Save. */
 function NoOvernight({ onPress }: { onPress: () => void }) {
   const { c } = useTheme();
   return (

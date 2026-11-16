@@ -1,7 +1,3 @@
-/**
- * Creating a trip (#291). Why "When?" is three answers, not two date boxes: typing YYYY-MM-DD was
- * the screen's whole problem, and "ask the group" is a real answer — it opens Dates after (rule 9).
- */
 import { formatDateRange } from "@floc/core/dates/dates";
 import { peopleCount, toggleTripPeople, type TripPeopleSelection } from "@floc/core/people/group-ticks";
 import { TEXT_CAPS } from "@floc/core/text/text";
@@ -31,14 +27,12 @@ export default function NewTrip() {
   const router = useRouter();
   const { c } = useTheme();
   const queryClient = useQueryClient();
-  // Why: a want-to-go country on Lists starts a trip named after it (#467), as `/trips?new=` does on the web.
   const { name: asked, wish } = useLocalSearchParams<{ name?: string; wish?: string }>();
   const [name, setName] = useState((asked ?? "").trim().slice(0, TEXT_CAPS.tripName));
   const [when, setWhen] = useState<When>("pick");
   const [range, setRange] = useState<DateRange | null>(null);
   const [selection, setSelection] = useState<TripPeopleSelection>(() => ({ ticked: new Set(), groups: new Set() }));
   const { ticked } = selection;
-  // Why: Start trip on a wish list item comes with the list's people ticked (#623), as `?wish=` does on the web.
   const wishId = Number(wish);
   const along = useQuery({ ...trpc.wishes.peopleToAsk.queryOptions({ listId: wishId }), enabled: Number.isSafeInteger(wishId) && wishId > 0 });
   const [tickedAlong, setTickedAlong] = useState(false);

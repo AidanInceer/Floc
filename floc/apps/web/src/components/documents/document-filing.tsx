@@ -1,14 +1,5 @@
 "use client";
 
-/**
- * Re-filing one document (ticket 239). The category chip *is* the trigger —
- * clicking what a row says is the shortest route to changing it, and the row
- * has no room for a separate control.
- *
- * Each item is its own submit, so picking a heading is the whole interaction
- * and there is nothing left for a Save button (the shape `setTripPackTier`
- * uses on Packing).
- */
 import { setCategory } from "@/app/trip/[id]/files/actions";
 import { CategoryChip } from "@/components/documents/document-row";
 import { Menu } from "@/components/system/client-ui";

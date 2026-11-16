@@ -1,12 +1,3 @@
-/**
- * The two rules #206 established by hand, now enforced on every stylesheet
- * under src/ — globals.css and the feature files beside their components.
- *
- * 1. One hex per meaning — colour lives in the `:root` token blocks (light and
- *    dark) and nowhere else, or a palette change silently misses call sites.
- * 2. No class that nothing references — 0.46.0 deleted ~500 lines of CSS
- *    styling nothing, all of it invisible to tsc and eslint.
- */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,10 +6,6 @@ import { CSS_PATH, DARK, rootBlock } from "./tokens.mjs";
 
 const SRC = fileURLToPath(new URL("../src", import.meta.url));
 
-/**
- * Colours a mail client or a third party dictates, which `var()` cannot reach:
- * an email has no stylesheet, and Google prescribes its own button.
- */
 const HEX_ALLOWED = [/google/i];
 
 const stylesheets = [];
@@ -57,8 +44,6 @@ for (const path of stylesheets) {
 
   for (const line of css.slice(Math.max(light.end, 0)).split("\n")) {
     const trimmed = line.trim();
-    // Selector lines only — a rule opens with { or continues with a comma. This
-    // keeps file extensions in url() out of the class list.
     if (!trimmed.endsWith("{") && !trimmed.endsWith(",")) continue;
     for (const [, cls] of trimmed.matchAll(/[.]([a-z][A-Za-z0-9_-]*)/g)) {
       if (!declared.has(cls)) declared.set(cls, name);
@@ -67,8 +52,6 @@ for (const path of stylesheets) {
 }
 
 const source = scripts.map((f) => readFileSync(f, "utf8")).join("\n");
-// Every hyphenated word the source mentions, so `day-pill` never counts as a
-// use of `day-pill-lg`.
 const mentioned = new Set(source.split(/[^\w-]+/));
 for (const [cls, file] of declared) {
   if (!mentioned.has(cls)) failures.push(`${file} declares .${cls}, which nothing references`);

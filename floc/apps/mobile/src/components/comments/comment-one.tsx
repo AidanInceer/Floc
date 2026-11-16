@@ -1,8 +1,3 @@
-/**
- * One comment, as the web draws it (event comments D): face, name and time, the words, then
- * Reply, the heart and — on your own — the dots. Edit and Delete live behind the dots, so a
- * row has one visible action.
- */
 import type { Comment } from "@floc/api/port";
 import { commentTime, likes } from "@floc/core/notes/notes";
 import { whoTone, type WhoTone } from "@floc/core/people/who";
@@ -16,7 +11,6 @@ import { useTheme } from "../system/theme";
 import { Body, Button } from "../system/ui";
 import { fonts, radius, size, space } from "@/lib/theme";
 
-/** The trip colour the server sent, else the name's own, as `Face` would pick. */
 function toneOf(comment: Comment): WhoTone {
   const tone = comment.authorTone;
   return tone && /^who-[1-8]$/.test(tone)
@@ -116,7 +110,6 @@ function OwnActions({
   };
   return (
     <Sheet open={open} onClose={close}>
-      {/* Asks before it deletes, as the web does. */}
       <View style={{ paddingHorizontal: space.lg, gap: space.md }}>
         {asking ? (
           <>

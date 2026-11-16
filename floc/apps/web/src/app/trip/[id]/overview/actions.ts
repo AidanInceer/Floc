@@ -1,8 +1,5 @@
 "use server";
 
-// Overview tab's who-may-do-what (ticket 13); the SQL lives in server/trips/roster.ts,
-// server/trips/invites.ts and server/trips/trips.ts (ticket 242). Admin powers are
-// kick/promote/delete/re-lock (#312 took invite off the list, #358 added the fourth).
 import { redirect } from "next/navigation";
 
 import { NUDGE_TABS, type NudgeTab } from "@/db/schema";
@@ -31,7 +28,6 @@ import { refresh } from "@/server/freshness";
 export async function sendNudge(formData: FormData) {
   const tripId = Number(formData.get("tripId"));
   const toUserId = String(formData.get("toUserId"));
-  // Checked, not cast: a bad tab would deep-link the inbox to a 404 (ticket 144).
   const posted = String(formData.get("tab"));
   const tab = (NUDGE_TABS as readonly string[]).includes(posted)
     ? (posted as NudgeTab)
@@ -54,7 +50,6 @@ export async function sendNudge(formData: FormData) {
   refresh({ kind: "tripOverview", tripId: access.trip.id });
 }
 
-// Why: any member may invite (#312). In-app only, no mail (ticket 146).
 export async function inviteFriends(formData: FormData) {
   const tripId = Number(formData.get("tripId"));
   const friendIds = [
@@ -114,12 +109,6 @@ export async function promoteMember(formData: FormData) {
   refresh({ kind: "tripOverview", tripId: access.trip.id });
 }
 
-/**
- * The fourth admin power (#358). Admin-only although sharing the link is not
- * (#312): handing the link out is additive, revoking it cancels every copy the
- * group has already sent. No confirmation of who held the old link is possible,
- * so the deliberate choice is to keep the act rare rather than make it safe.
- */
 export async function resetInviteLink(formData: FormData) {
   const tripId = Number(formData.get("tripId"));
 
@@ -131,26 +120,17 @@ export async function resetInviteLink(formData: FormData) {
   refresh({ kind: "tripOverview", tripId: access.trip.id });
 }
 
-// Open to any member deliberately — not one of the admin powers (rule 6).
 export async function renameTrip(formData: FormData) {
-  // Checked before the trip is read: a bad name must not cost a lookup, and its message is the form's.
   const read = readTripName(formData.get("name"));
   if ("problem" in read) return { error: read.problem };
 
   await saveTrip(await requireTripAccess(Number(formData.get("tripId"))), { name: read.name });
 }
 
-// Trip tags (ticket 71), open to any member like renaming. `parseTagNames` owns
-// normalisation/caps. Empty clears to `[]`, never a half-state. Colour is the
-// trip's, not the tag's (ticket 213) — clearing a tag's name is how it's deleted.
 export async function setTripTags(formData: FormData) {
   await saveTrip(await requireTripAccess(Number(formData.get("tripId"))), { tags: formData.getAll("tag").map(String) });
 }
 
-// Leaving (ticket 65), open to every member incl. admin. Two side effects
-// decided here rather than a second dialog: last admin leaving passes admin to
-// the earliest-joined remaining member (succession, not a fifth power — rule
-// 6); last member out archives the trip (not a delete — rows survive).
 export async function leaveTrip(formData: FormData) {
   const tripId = Number(formData.get("tripId"));
 
@@ -171,8 +151,6 @@ export async function leaveTrip(formData: FormData) {
   redirect("/trips");
 }
 
-// Ideas — add, vote, remove. All three are open to every member: an idea is
-// the group's, and removing one is not an admin power (rule 6).
 export async function addIdea(formData: FormData) {
   const tripId = Number(formData.get("tripId"));
   const title = capText(formData.get("title"), "ideaTitle");
@@ -195,7 +173,6 @@ export async function voteIdea(formData: FormData) {
   const ideaId = Number(formData.get("ideaId"));
 
   const access = await requireTripAccess(tripId);
-  // Re-read inside the trip, so a crafted id can't vote on another trip's idea.
   const target = await findIdea(access.trip.id, ideaId);
   if (!target) return;
 

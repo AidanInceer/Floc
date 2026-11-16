@@ -1,25 +1,13 @@
-/**
- * Shared vocabulary for the Days calendar (ticket 243, split from
- * `days-calendar.tsx`): the row shapes and grid constants the calendar and its
- * pieces — the day column, the stop strip, the dialogs — all read.
- */
 import type { DayEventType, TransportType } from "@/db/schema";
 
-/** Pixels per hour. Tall enough that a 15-minute block is still a target. */
 export const HOUR_PX = 56;
 
-/** Two or more empty hours in a row draw as one bar this tall. */
 export const FOLD_PX = 30;
 
-/**
- * The gutter, the day before, the focus day, the day after (B5). The neighbours shrink to slivers on a phone.
- * `--days-tracks` holds the day tracks alone, so a step of one day can move them (ADR-051, use-column-trade).
- */
 export const FOCUS_COLUMNS =
   "[--days-gutter:56px] [--days-side:38px] sm:[--days-gutter:60px] sm:[--days-side:11rem] [--days-tracks:var(--days-side)_minmax(0,1fr)_var(--days-side)]";
 export const FOCUS_TEMPLATE = "var(--days-gutter) var(--days-tracks)";
 
-/** A slot with no trip day in it: before the first day or after the last. */
 export const OUTSIDE_DAY_CLASS =
   "bg-[repeating-linear-gradient(135deg,var(--color-sheet-2)_0_6px,var(--color-sheet)_6px_12px)]";
 
@@ -29,13 +17,9 @@ export type CalendarDay = {
   weekday: string;
   dayOfMonth: string;
   longLabel: string;
-  /** "Sat 4 Sep", where the long one won't fit. */
   shortLabel: string;
-  /** Null is a real answer: nobody has decided yet. */
   overnightPlaceName: string | null;
-  /** Sent back on extend, so a stay keeps its geocoded `place` row. */
   overnightPlaceId: number | null;
-  /** A cap beside the first or last day; no `day` row behind it. */
   outside: boolean;
   isToday: boolean;
 };
@@ -45,23 +29,18 @@ export type CalendarEvent = {
   dayId: number;
   type: DayEventType;
   transportType: TransportType | null;
-  /** Falls back to place name, then category word — never blank. */
   title: string;
-  /** The name as written, which the event form edits; null on rows from before names. */
   writtenTitle: string | null;
   placeName: string | null;
   time: string | null;
   endTime: string | null;
   allDay: boolean;
   hasNote: boolean;
-  /** The focus day prints the start of it on the block. */
   note: string | null;
-  /** Files parked on it (ticket 324) — the block wears a clip. */
   hasFiles: boolean;
   commentCount: number;
 };
 
-/** Where a drag currently says the event should land. */
 export type Landing = {
   eventId: number;
   dayId: number;
@@ -69,7 +48,6 @@ export type Landing = {
   endTime: string | null;
 };
 
-/** Structural, not imported from the action — avoids pulling `"use server"` into the client bundle. */
 export type OvernightPlace =
   | { placeId: number }
   | {
@@ -80,7 +58,6 @@ export type OvernightPlace =
       countryCode?: string | null;
     };
 
-/** "Monday 12 May", or both ends of a run. */
 export function describeSpan(
   days: CalendarDay[],
   span: { start: string; end: string },

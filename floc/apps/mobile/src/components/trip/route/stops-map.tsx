@@ -1,4 +1,3 @@
-// Why: the web Overview's map style on the phone — the trip's countries in its colour, an ink line patterned by how you travel, named stops, a tag a leg.
 import type { Pastel } from "@floc/core/design/pastels";
 import { nightsLabel } from "@floc/core/itinerary/stops";
 import type { OverviewRoute } from "@floc/core/trip/overview/route";
@@ -15,14 +14,10 @@ import { radius } from "@/lib/theme";
 import { shortPlace } from "@floc/core/itinerary/names/place-name";
 
 const HEIGHT = 260;
-/** Why: past this the 1:110m outlines turn to blocks, and there are no streets under them. */
 const MAX_ZOOM = 6;
-/** Room round the route for the names and tags drawn beside it. */
 const PADDING = { top: 40, right: 64, bottom: 40, left: 64 };
-/** How far a tag sits off its line, to the outside of the bend, as the web's `TAG.gap`. */
 const TAG_GAP = 18;
 
-/** Each way to travel as the web draws it (`lineFor`): dash lengths are in line widths here, as MapLibre counts them. */
 const LOOKS = {
   road: { width: 1.9, dash: null, cap: "round" },
   train: { width: 2.5, dash: [0.01, 1.6], cap: "round" },
@@ -41,7 +36,6 @@ function view(points: LngLat[]): InitialViewState {
   return { bounds: [west, south, east, north], padding: PADDING };
 }
 
-/** A name goes on the side away from the stop's neighbours, so the line does not run through it. */
 function sideOf(stops: OverviewRoute["stops"], k: number): "left" | "right" {
   const near = [k - 1, k + 1].filter((i) => i >= 0 && i < stops.length).map((i) => stops[i]!);
   const east = near.reduce((sum, s) => sum + (s.lng - stops[k]!.lng), 0);
@@ -68,7 +62,6 @@ export function StopsMap({ route, tone }: { route: OverviewRoute; tone: Pastel }
         <Camera initialViewState={view(points)} maxZoom={MAX_ZOOM} />
         <LandLayer tint={{ codes: [...route.countries, ...countriesAt(route.uncoded)], fill: c[tone] }} />
         <GeoJSONSource id="route-lines" data={features}>
-          {/* A white edge under every road, rail and boat so the line reads over any land; a flight crosses it bare. */}
           <Layer id="route-edge" type="line" filter={["!=", ["get", "look"], "flight"]} paint={{ "line-color": c.sheet, "line-width": 7 }} layout={{ "line-cap": "round", "line-join": "round" }} />
           {(Object.keys(LOOKS) as Look[]).map((look) => {
             const { width, dash, cap } = LOOKS[look];

@@ -1,5 +1,3 @@
-// Explore's finder: what must fit (where, when, how long, price) filters; what you like only ranks (finder-rank).
-// Group size is not here on purpose: it does not change where a group wants to go.
 import { convertMinor } from "../../../money/money";
 import type { Currency } from "../../../money/currency";
 import { REGIONS, type PresetTrip, type Region } from "../preset-trip-types";
@@ -12,11 +10,8 @@ export type PriceUnit = "trip" | "night";
 export type Finder = {
   q: string;
   regions: Region[];
-  /** 1–12. A listing fits when it is good in any of them. */
   months: number[];
-  /** Null is any length. At `NIGHTS_SCALE.max` there is no ceiling. */
   nights: { min: number; max: number } | null;
-  /** Whole pounds; null is no floor or no ceiling. */
   price: { unit: PriceUnit; min: number | null; max: number | null };
   likes: TripTag[];
 };
@@ -27,10 +22,8 @@ const PRICE_BINS = 20;
 
 export const EMPTY_FINDER: Finder = { q: "", regions: [], months: [], nights: null, price: { unit: "trip", min: null, max: null }, likes: [] };
 
-// Why: listings are illustrative and mix several currencies; a fixed rate keeps the filter steady when the rates provider is down.
 const TO_GBP: Partial<Record<Currency, number>> = { GBP: 1, EUR: 0.85, USD: 0.75, AUD: 0.49, CAD: 0.55, NZD: 0.45 };
 
-/** What a listing costs each, in whole pounds, as the finder counts it. A filter figure: never shown as money, never stored. */
 export function priceFigure(trip: PresetTrip, unit: PriceUnit): number {
   const pounds = convertMinor(trip.priceFromMinor, trip.currency, "GBP", TO_GBP[trip.currency] ?? 1) / 100;
   return Math.round(unit === "night" ? pounds / trip.nights : pounds);
@@ -52,24 +45,19 @@ const CHECKS: Record<MustFit, (trip: PresetTrip, f: Finder) => boolean> = {
   },
 };
 
-/** Whether a listing passes every must-have. `skip` leaves one out, so a facet can count what each of its own options gives. */
 export function fits(trip: PresetTrip, f: Finder, skip?: MustFit): boolean {
   return (Object.keys(CHECKS) as MustFit[]).every((key) => key === skip || CHECKS[key](trip, f));
 }
 
 export type FinderCounts = {
   regions: Record<Region, number>;
-  /** Index 0 is January. */
   months: number[];
-  /** One per night on `NIGHTS_SCALE`; the last holds everything longer. */
   nights: number[];
-  /** `PRICE_BINS` equal bands of the unit's scale; the last holds everything dearer. */
   price: number[];
 };
 
 const bin = (value: number, size: number) => Math.min(size - 1, Math.max(0, value));
 
-/** How many listings each option would give, with every other must-have kept. */
 export function finderCounts(trips: readonly PresetTrip[], f: Finder): FinderCounts {
   const regions = Object.fromEntries(REGIONS.map((r) => [r, 0])) as Record<Region, number>;
   const months = Array<number>(12).fill(0);

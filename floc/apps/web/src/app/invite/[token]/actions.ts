@@ -1,9 +1,5 @@
 "use server";
 
-/**
- * Join-by-link action (ticket 01 step 2, ticket 05). Anyone holding the
- * token can join — no per-invitee tracking, membership just gets created.
- */
 import { notFound, redirect } from "next/navigation";
 
 import { isIsoDate } from "@floc/core/dates/dates";
@@ -51,7 +47,6 @@ const asForm = async (work: () => Promise<void>): Promise<{ error?: string }> =>
   }
 };
 
-/** The name comes before any answer (#442, ADR-029); a returning guest keeps the one they gave. */
 export async function guestStart(token: string, name: unknown): Promise<{ error?: string }> {
   return asForm(async () => {
     const found = await tripFor(token);
@@ -64,7 +59,6 @@ export async function guestStart(token: string, name: unknown): Promise<{ error?
   });
 }
 
-/** A guest's answers: their own, on the trip the link names, under the trip's guest cap. */
 async function asGuest(token: string, write: (tripId: number, guestId: string) => Promise<void>) {
   return asForm(async () => {
     const found = await tripFor(token);

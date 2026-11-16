@@ -6,7 +6,6 @@ import { LegalBar } from "./legal-bar";
 import { LegalDocument } from "./legal-document";
 import "./legal-sheet.css";
 
-/** A legal page reached by its URL: the sheet at rest, not sliding over anything. */
 export function LegalPage({ href }: { href: LegalHref }) {
   return (
     <div className="legal-page">

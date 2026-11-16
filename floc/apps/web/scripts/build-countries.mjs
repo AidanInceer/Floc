@@ -1,17 +1,3 @@
-/**
- * Regenerates the travel map's two country files (ticket 95) from Natural
- * Earth admin-0 — public domain, no attribution required, no tile host.
- *
- * Not part of the build: it runs by hand when the world changes, which is
- * roughly never. Download the two sources next to this script first:
- *
- *   curl -sSLO https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson
- *   curl -sSLO https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson
- *
- * then `node scripts/build-countries.mjs` from apps/web. The GeoJSON and
- * `src/lib/countries.ts` are written together on purpose — a code with no
- * shape, or a shape with no name, is what breaks the map.
- */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,15 +6,10 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const app = path.join(here, "..");
 
 const SRC = path.join(here, "ne_110m_admin_0_countries.geojson");
-/** Only for the countries 1:110m is too coarse to contain at all — see below. */
 const SRC_FINE = path.join(here, "ne_50m_admin_0_countries.geojson");
 const OUT_GEO = path.join(app, "public/countries-110m.geojson");
 const OUT_TS = path.join(app, "src/lib/countries.ts");
 
-// Natural Earth codes these two as "-99" — no ISO code, because their status is
-// disputed. Folding each into the state it is internationally recognised as
-// part of keeps the map whole (a blank hole inside Cyprus reads as a bug) and
-// keeps Floc out of making a territorial claim in a UI fill.
 const FOLD = { CYN: "CY", SOL: "SO" };
 
 const round = (n) => Math.round(n * 100) / 100;
@@ -41,8 +22,6 @@ function thinRing(ring) {
     if (last && last[0] === p[0] && last[1] === p[1]) continue;
     out.push(p);
   }
-  // A ring needs 4 positions (first === last). Rounding can collapse a tiny
-  // island below that — drop it rather than emit invalid GeoJSON.
   if (out.length < 4) return null;
   const [fx, fy] = out[0];
   const [lx, ly] = out[out.length - 1];
@@ -77,15 +56,6 @@ for (const f of JSON.parse(fs.readFileSync(SRC, "utf8")).features) {
   if (!FOLD[p.ADM0_A3]) names.set(code, p.NAME_EN || p.NAME);
 }
 
-/*
- * 1:110m has no shape at all for the small states — Singapore, Malta, Monaco,
- * Bahrain and ~60 others simply aren't in the file, and Singapore is far too
- * common a destination to be unmarkable. Dropping to 1:50m for everything
- * costs 1.4MB for shapes nobody can see at world zoom, so those countries come
- * in as a **Point** instead, drawn as a small circle: an atlas does the same
- * with a city-state, and a dot you can click beats a country that isn't there.
- * `LABEL_X/Y` is Natural Earth's own hand-placed label anchor.
- */
 let dots = 0;
 for (const f of JSON.parse(fs.readFileSync(SRC_FINE, "utf8")).features) {
   const p = f.properties;

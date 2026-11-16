@@ -1,7 +1,3 @@
-/**
- * Notes pages through the port (#408), against a real database: the phone's
- * road to the same list, with the same trip boundary (rule 5).
- */
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { webPort } from "@/server/api-port/api-port";

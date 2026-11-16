@@ -6,7 +6,6 @@ import { git } from "./process.mjs";
 const UI = /^floc\/(?!wireframe\/).*\.(tsx|css)$/;
 const RULES = ".claude/rules/design.md";
 
-/** A review covers one exact UI diff plus the design card it was judged against. */
 export function reviewIdentity(root, base) {
   const changed = git(root, "diff", "--name-only", base, "--").split("\n")
     .concat(git(root, "ls-files", "--others", "--exclude-standard").split("\n"))
@@ -17,7 +16,6 @@ export function reviewIdentity(root, base) {
   return { required: true, fingerprint: digest([changedLines(diff), ...untracked, readFileSync(join(root, RULES), "utf8")].join("\n")) };
 }
 
-/** Why: merging develop moves line numbers and context, not the change reviewed, so only the +/- lines count. */
 export function changedLines(diff) {
   return diff.split("\n").filter((line) => /^(diff --git|[+-])/.test(line) && !/^(\+\+\+|---) /.test(line)).join("\n");
 }

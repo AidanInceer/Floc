@@ -1,4 +1,3 @@
-/** Your own range for the trip and how it sits against your budget (#574). Pro only, and only you see it. */
 import { fitWords, wholeRange } from "@floc/core/money/estimate/words";
 import { useQuery } from "@tanstack/react-query";
 import { Pressable, StyleSheet, Text, View } from "react-native";

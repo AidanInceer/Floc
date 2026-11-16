@@ -28,7 +28,6 @@ function Group({ children }: { children: string }) {
   );
 }
 
-/** The web's filter rail, as a sheet: what must fit, then what you like. Folds are cut: a phone scrolls. */
 export function FinderSheet({ open, onClose, onClear, ...facet }: Facet & { open: boolean; onClose: () => void; onClear: () => void }) {
   return (
     <Sheet open={open} onClose={onClose}>

@@ -1,7 +1,3 @@
-/**
- * Why: floc/FILES.md tells agents where a feature lives. A map that points at a
- * moved folder sends them searching the wrong place, so every path in it must exist.
- */
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";

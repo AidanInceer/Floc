@@ -1,6 +1,3 @@
-/**
- * Your name, in one sheet from the face card (C3b). The face is always initials, so there is no picture to pick.
- */
 import { useState } from "react";
 import { View } from "react-native";
 
@@ -15,7 +12,6 @@ export function FaceSheet({
   onClose,
   onSave,
 }: {
-  /** The starting values. Read once: the parent mounts this only while it is open. */
   name: string;
   busy: boolean;
   error: string | null;

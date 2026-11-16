@@ -1,13 +1,7 @@
-/**
- * The window-versus-days rule (ticket 140). These are the cases the grilling
- * session actually argued about, so they are written as the scenarios rather
- * than as coverage of the branches.
- */
 import { describe, expect, it } from "vitest";
 
 import { MAX_TRIP_DAYS, windowCost, windowCostLabel, windowCostNoun, windowProblem } from "./trip-window";
 
-/** 1–7 Sep, with events only on the 6th and 7th. */
 const week = [
   { date: "2026-09-01", events: 0 },
   { date: "2026-09-02", events: 0 },
@@ -34,7 +28,6 @@ describe("windowCost", () => {
   });
 
   it("counts only the days outside the new window", () => {
-    // 1–7 → 3–9: the 1st and 2nd go, the 8th and 9th arrive blank.
     expect(windowCost(week, "2026-09-03", "2026-09-09")).toEqual({
       days: 2,
       events: 0,
@@ -42,7 +35,6 @@ describe("windowCost", () => {
   });
 
   it("counts the events on the days it removes", () => {
-    // A shrink off the end takes the two days that hold everything.
     expect(windowCost(week, "2026-09-01", "2026-09-05")).toEqual({
       days: 2,
       events: 5,
@@ -50,8 +42,6 @@ describe("windowCost", () => {
   });
 
   it("costs the whole itinerary when the windows share no date", () => {
-    // The accepted consequence of addressing a day by its date and not by its
-    // position: a window that moves clear of the old one keeps nothing.
     expect(windowCost(week, "2026-09-08", "2026-09-14")).toEqual({
       days: 7,
       events: 5,
@@ -59,7 +49,6 @@ describe("windowCost", () => {
   });
 
   it("costs the whole itinerary when the window is emptied", () => {
-    // "Reset dates" — an empty window is not a special case here.
     expect(windowCost(week, null, null)).toEqual({ days: 7, events: 5 });
     expect(windowCost(week, "2026-09-01", null)).toEqual({ days: 7, events: 5 });
   });

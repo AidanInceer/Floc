@@ -1,8 +1,3 @@
-/**
- * What a trip's notes pages may be (#408): how many, how big, one level of
- * sub-pages, and the 7-day archive (ADR-017). Every refusal is a sentence the
- * control shows, never a throw.
- */
 import type { PageIcon } from "./page-icons";
 
 export const PAGE_LIMITS = { pages: 50, pageBytes: 1_000_000, tableColumns: 20, tableRows: 200, titleChars: 120 } as const;
@@ -39,7 +34,6 @@ export function pageNameRefusal(title: string): string | null {
   return title.length > PAGE_LIMITS.titleChars ? `A page name is at most ${PAGE_LIMITS.titleChars} characters.` : null;
 }
 
-/** Whole days until an archived page goes for good, rounded up so the last day reads "1". */
 export function archiveDaysLeft(archivedAt: Date, now: Date): number {
   const left = archivedAt.getTime() + ARCHIVE_DAYS * DAY_MS - now.getTime();
   return Math.max(0, Math.ceil(left / DAY_MS));
@@ -47,7 +41,6 @@ export function archiveDaysLeft(archivedAt: Date, now: Date): number {
 
 export const canHoldSubPages = (page: Pick<PageSummary, "parentId">): boolean => page.parentId === null;
 
-/** The page list's order: top-level pages by position, each followed by its sub-pages. */
 export function orderPages<P extends PageSummary>(pages: readonly P[]): (P & { depth: 0 | 1 })[] {
   const live = pages.filter((page) => page.archivedAt === null);
   const byPosition = (a: P, b: P) => a.position - b.position || a.id - b.id;

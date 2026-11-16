@@ -1,10 +1,3 @@
-/**
- * Named groups of people you travel with (#545). A group is its maker's private shortcut for
- * ticking people on a new trip: nobody in it is told, and nobody else can see it.
- *
- * Who can be in one is re-derived at every read (rule 4): your friends, plus people on a live trip
- * with you, never a guest (ADR-029). Someone who drops out of that set keeps their row and is hidden.
- */
 import "server-only";
 
 import { and, count, desc, eq, inArray, isNotNull, isNull, lt, ne, notInArray } from "drizzle-orm";
@@ -21,7 +14,6 @@ import { acceptedFriendIdsOf, peopleByIds, type Person } from "@/server/social/f
 const STRANGER = "You can only add friends and people on a trip with you.";
 const GONE = "That group is gone.";
 
-/** One self-join over the viewer's live trips — the people they could ask along without a friendship. */
 async function liveCoMemberIds(viewerId: string, candidates?: string[]): Promise<string[]> {
   const mine = alias(tripMembership, "mine");
   const rows = await db
@@ -46,7 +38,6 @@ async function liveCoMemberIds(viewerId: string, candidates?: string[]): Promise
   return rows.map((r) => r.userId);
 }
 
-/** Friends and live co-members, minus yourself and guests. The one gate for groups and for asking someone onto a trip. */
 export async function invitableIdsOf(viewerId: string, candidates?: string[]): Promise<Set<string>> {
   if (candidates?.length === 0) return new Set();
   const [friends, coMembers] = await Promise.all([acceptedFriendIdsOf(viewerId), liveCoMemberIds(viewerId, candidates)]);
@@ -65,7 +56,6 @@ export async function invitableIdsOf(viewerId: string, candidates?: string[]): P
 
 export type GroupInput = { name: string; memberIds: string[] };
 
-/** Validates at the door: a name, somebody in it, nobody you could not ask anyway, and the cap. */
 async function checked(ownerId: string, input: GroupInput): Promise<GroupInput> {
   const name = input.name.trim();
   if (!name) throw new Refusal("Give the group a name.", "invalid");
@@ -83,7 +73,6 @@ function ownedGroup(ownerId: string, groupId: number) {
   return and(eq(friendGroup.id, groupId), eq(friendGroup.ownerUserId, ownerId), isNull(friendGroup.deletedAt));
 }
 
-/** Someone else's group and a deleted one get the same answer, so ids cannot be probed (rule 5). */
 async function assertOwned(ownerId: string, groupId: number, reader: Pick<typeof db, "select"> = db): Promise<void> {
   const row = await reader.select({ id: friendGroup.id }).from(friendGroup).where(ownedGroup(ownerId, groupId)).get();
   if (!row) throw new Refusal(GONE, "missing");
@@ -139,7 +128,6 @@ async function liveMemberIds(groupId: number, reader: Pick<typeof db, "select">)
   return rows.map((r) => r.userId);
 }
 
-/** The friend row's "Add to group" tick: one person in or out, the rest left as they are. */
 export async function setGroupMember(ownerId: string, groupId: number, userId: string, on: boolean): Promise<void> {
   const allowed = !on || (await invitableIdsOf(ownerId, [userId])).has(userId);
   await db.transaction(async (tx) => {
@@ -172,7 +160,6 @@ export async function setGroupMember(ownerId: string, groupId: number, userId: s
   });
 }
 
-/** Soft delete (rule 8). The member rows stay; the group's `deleted_at` hides them all. */
 export async function deleteGroup(ownerId: string, groupId: number): Promise<void> {
   await assertOwned(ownerId, groupId);
   await db
@@ -194,7 +181,6 @@ export async function touchUsedGroups(ownerId: string, groupIds: number[], invit
   ));
 }
 
-/** The maker's live groups, last changed first, each with only the people who can still be asked. */
 export async function listGroupsFor(ownerId: string): Promise<Group[]> {
   const groups = await db
     .select({ id: friendGroup.id, name: friendGroup.name })
@@ -227,7 +213,6 @@ export async function listGroupsFor(ownerId: string): Promise<Group[]> {
 
 export type PastTrip = { id: number; name: string; startDate: string | null; endDate: string; people: Person[] };
 
-/** Trips you were on that have ended, newest first, with the people on them you can still ask. */
 export async function listPastTripsFor(viewerId: string, todayIso: string): Promise<PastTrip[]> {
   const trips = await db
     .select({ id: trip.id, name: trip.name, startDate: trip.startDate, endDate: trip.endDate })

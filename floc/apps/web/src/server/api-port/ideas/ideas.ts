@@ -1,8 +1,3 @@
-/**
- * The port's ideas half — the same `server/ideas/` modules the Overview page
- * reads, so an idea added on a phone and one typed in a browser are one row
- * under one set of rules.
- */
 import "server-only";
 
 import type { FlocPort, Idea } from "@floc/api/port";
@@ -38,7 +33,6 @@ export const ideasPort: IdeasPort = {
 
   async voteIdea(viewerId, tripId, ideaId) {
     const access = await scoped(viewerId, tripId);
-    // Re-read inside the trip, so a crafted id cannot reach another trip's idea.
     const target = await findIdea(access.trip.id, ideaId);
     if (!target) return;
 

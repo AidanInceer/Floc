@@ -1,11 +1,5 @@
 "use client";
 
-/**
- * Why: no Save button, a change is the write, as on the phone. Posts through
- * `startTransition`, not a form action: React resets a form after its action,
- * so the switch you just moved would jump back. "Saved" sits on the row's
- * header line, so the body does not move.
- */
 import { createContext, startTransition, useActionState, useCallback, useContext, useEffect, useRef, type ReactNode } from "react";
 
 import { CheckIcon } from "@/components/system/icons";
@@ -52,7 +46,6 @@ export function AutoSaveForm({
   );
 }
 
-/** For a control that is not a form input (a chip): saves once its new value has rendered into the hidden inputs. */
 export function useSaveWhenChanged(value: unknown) {
   const save = useContext(SaveContext);
   const last = useRef(value);

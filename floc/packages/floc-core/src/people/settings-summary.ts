@@ -1,7 +1,3 @@
-/**
- * The one line under each closed Settings row, the same on web and phone.
- * It answers the row, so a closed row tells you what is set without opening it.
- */
 import { consentSummary, type ConsentChoice } from "../consent/consent";
 import { ringTicks, type Visibility } from "./visibility";
 

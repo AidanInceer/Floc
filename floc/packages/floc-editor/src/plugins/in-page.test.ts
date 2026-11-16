@@ -1,9 +1,4 @@
 // @vitest-environment happy-dom
-/**
- * The page in a real editor (#408): the keys that mark words, a tick and a
- * fold pressed on the page, and a typed shortcut. Runs the whole kit — live
- * doc included — the way the web and the phone mount it.
- */
 import { Editor } from "@tiptap/core";
 import * as Y from "yjs";
 import { describe, expect, it, vi } from "vitest";

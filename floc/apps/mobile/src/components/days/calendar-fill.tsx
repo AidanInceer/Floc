@@ -1,8 +1,3 @@
-/**
- * Fill your days from Google Calendar on the phone (#444, ADR-031) — the web's choice, drawn
- * tighter: Google's own button, and "by hand" as words, since the grid is already its control.
- * The consent opens in the system browser and comes back through the app's scheme.
- */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { View } from "react-native";
@@ -25,7 +20,6 @@ const LABEL = "Fill from Google Calendar";
 
 type AllDay = { on: boolean; failed: boolean; set: (on: boolean) => void };
 
-/** The remembered choice (ADR-031): only all-day events close a day. The switch is the write. */
 function AllDayToggle({ allDay }: { allDay: AllDay }) {
   return (
     <View>
@@ -35,7 +29,6 @@ function AllDayToggle({ allDay }: { allDay: AllDay }) {
   );
 }
 
-/** What happened, in words: filled N, or why nothing was. */
 export function CalendarResult({ note }: { note: CalendarNote }) {
   const { c } = useTheme();
   if (!note) return null;
@@ -52,7 +45,6 @@ export function CalendarResult({ note }: { note: CalendarNote }) {
   );
 }
 
-/** With no days marked: Google's button, then by hand as plain words. */
 export function CalendarChoice({ busy, note, onFill, allDay }: { busy: boolean; note: CalendarNote; onFill: () => void; allDay: AllDay }) {
   const { c } = useTheme();
   return (
@@ -73,15 +65,10 @@ export function CalendarChoice({ busy, note, onFill, allDay }: { busy: boolean; 
   );
 }
 
-/** Once there are marks, the import is a quiet button under the grid. */
 export function CalendarAgain({ busy, onFill }: { busy: boolean; onFill: () => void }) {
   return <Button label={busy ? "Reading your calendar…" : LABEL} variant="quiet" busy={busy} onPress={onFill} />;
 }
 
-/**
- * One read on the tap. First time Google has no access: the consent opens in the system browser,
- * and once the person is back it reads again. Offered only when the server has a Google key (rule 11).
- */
 export function useCalendarFill(tripId: number) {
   const queryClient = useQueryClient();
   const access = useQuery(trpc.availability.calendar.queryOptions());
@@ -120,13 +107,11 @@ export function useCalendarFill(tripId: number) {
 
 type Calendar = ReturnType<typeof useCalendarFill>;
 
-/** Above the grid while you have no days: Google's button, and by hand as words. Rule 11: nothing with no Google key. */
 export function CalendarTop({ cal, show, month }: { cal: Calendar; show: boolean; month: string }) {
   if (!show || !cal.enabled) return null;
   return <CalendarChoice busy={cal.busy} note={cal.note} onFill={() => cal.fill(month)} allDay={cal.allDay} />;
 }
 
-/** Once there are days: a quiet button under the grid, and the line saying what happened. */
 export function CalendarBelow({ cal, show, empty, month }: { cal: Calendar; show: boolean; empty: boolean; month: string }) {
   if (!show || !cal.enabled) return null;
   if (empty) return cal.note?.kind === "done" ? <CalendarResult note={cal.note} /> : null;

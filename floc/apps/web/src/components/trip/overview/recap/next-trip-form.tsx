@@ -5,7 +5,6 @@ import { Field, FieldGroup, Input } from "@/components/system/ui";
 import { FriendPicker } from "@/components/social/friend-picker";
 import { planNextTrip } from "@/app/trip/[id]/overview/next-trip-actions";
 
-/** A new undated trip with the same group ticked; each ticked person gets an inbox invite (#443). Nothing is copied. */
 export function NextTripForm({ tripId, others }: { tripId: number; others: { id: string; name: string }[] }) {
   return (
     <ActionForm action={planNextTrip} keepAnswers className="flex flex-col gap-4">

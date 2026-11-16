@@ -6,14 +6,12 @@ import { useTheme } from "../system/theme";
 import { trpc } from "@/lib/api";
 import { radius } from "@/lib/theme";
 
-/** Your saved Explore trips, read once and shared by every heart on screen (#467). */
 export function useSavedTrips() {
   const queryClient = useQueryClient();
   const key = trpc.explore.saves.queryKey();
   const saves = useQuery(trpc.explore.saves.queryOptions());
   const set = useMutation({
     ...trpc.explore.setSaved.mutationOptions(),
-    // Why: the heart answers under the finger; the server's list replaces it, right or wrong, when the write settles.
     onMutate: async ({ presetId, saved }) => {
       await queryClient.cancelQueries({ queryKey: key });
       queryClient.setQueryData<string[]>(key, (ids = []) =>
@@ -32,7 +30,6 @@ export function useSavedTrips() {
   };
 }
 
-/** Save to list (ADR-042): outline when not saved, filled red when saved; the label says which. */
 export function HeartButton({ saved, label, onPress }: { saved: boolean; label: string; onPress: () => void }) {
   const { c } = useTheme();
   return (
@@ -59,7 +56,6 @@ export function HeartButton({ saved, label, onPress }: { saved: boolean; label: 
   );
 }
 
-/** The heart for one Explore trip. */
 export function SaveHeart({ presetId, title }: { presetId: string; title: string }) {
   const { ids, toggle } = useSavedTrips();
   const saved = ids.includes(presetId);

@@ -1,7 +1,3 @@
-/**
- * One day's hours as a temperature line over rain bars — the web's
- * `HourlyChart`, same geometry, so the shape of a day reads the same on both.
- */
 import type { WeatherCondition } from "@floc/core/itinerary/weather";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -18,7 +14,6 @@ const PAD = 26;
 const TOP = 34;
 const BASE = 96;
 const RAIN_Y = H - 18;
-// 5 mm or more until the next point draws the full bar.
 const rainBar = (mm: number) => (Math.min(mm, 5) / 5) * 15;
 
 function Key({ word, ground, bar }: { word: string; ground: string; bar: boolean }) {

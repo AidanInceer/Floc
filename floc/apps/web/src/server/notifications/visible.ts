@@ -1,7 +1,3 @@
-/**
- * The one query both the inbox and push read notifications through, so a
- * notification hidden from the bell is never pushed either.
- */
 import "server-only";
 
 import { and, count, desc, eq, gte, inArray, isNotNull, isNull, ne, notInArray, or, type SQL } from "drizzle-orm";
@@ -49,7 +45,6 @@ export function notificationRows(where: SQL | undefined, limit: number) {
     .all();
 }
 
-/** How many rows `notificationRows` would return, up to `cap`, counted in the database. */
 export async function countNotifications(where: SQL | undefined, cap: number): Promise<number> {
   const visible = withSubjects(db.select({ id: notification.id }).from(notification).$dynamic())
     .where(where)
@@ -59,7 +54,6 @@ export async function countNotifications(where: SQL | undefined, cap: number): P
   return row?.n ?? 0;
 }
 
-/** The joins `stillVisible` reads: the activity, its trip, the reader's membership and the thing it is about. */
 function withSubjects<T extends SQLiteSelect>(query: T) {
   return query
     .innerJoin(activity, eq(activity.id, notification.activityId))

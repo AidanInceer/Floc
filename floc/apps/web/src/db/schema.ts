@@ -1,11 +1,3 @@
-/**
- * The schema of record — SQLite/libSQL via Drizzle. Mirrors docs/engineering/data-model.html.
- *
- * Every application table carries id, created_at, deleted_at (soft-delete) and last_modified_at.
- * `last_modified_at` is debugging only — no optimistic locking (#12). Better Auth's `user`,
- * `session`, `account` and `verification` are declared here for FKs and joins but are Better
- * Auth's shape: never hand-edit them, our columns live on `user_profile` (#06).
- */
 import { sql } from "drizzle-orm";
 import {
   COUNTRY_MARK_STATES,
@@ -57,7 +49,6 @@ export const user = sqliteTable("user", {
     .notNull()
     .default(false),
   image: text("image"),
-  /** A guest on an invite link (#442, ADR-029): votes with a name, is never a member, and is deleted a week after they start unless they make an account. */
   isAnonymous: integer("is_anonymous", { mode: "boolean" }).notNull().default(false),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(now),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(now),
@@ -122,13 +113,9 @@ export const verification = sqliteTable(
   (t) => [index("verification_identifier_idx").on(t.identifier)],
 );
 
-// Re-exported from @floc/core/money/currency (ticket 115) so `@/db/schema` importers are unaffected.
 export { CURRENCIES } from "@floc/core/money/currency";
 export type { Currency } from "@floc/core/money/currency";
 
-// The closed sets the domain rules branch on live in @floc/core (#286); the
-// columns below still spell themselves from these, and readers still find the
-// whole vocabulary on the schema.
 export {
   COUNTRY_MARK_STATES,
   DAY_EVENT_TYPES,
@@ -146,7 +133,6 @@ export type {
 
 export { SIGNUP_CHANNELS, type SignupChannel } from "@floc/core/vocabulary";
 
-/** Nested visibility rings (ticket 46): `private` ⊂ `friends` ⊂ `trip_members`. Widest-last; compared in `server/auth/visibility.ts`. */
 export const VISIBILITIES = ["private", "friends", "trip_members"] as const;
 export type Visibility = (typeof VISIBILITIES)[number];
 
@@ -157,17 +143,13 @@ export const userProfile = sqliteTable("user_profile", {
   userId: text("user_id")
     .primaryKey()
     .references(() => user.id, { onDelete: "cascade" }),
-  // Editable copies, deliberately not mirrored live from the provider.
   displayName: text("display_name"),
-  /** One of `AVATAR_ICONS` (#157); null is initials, the default not a fallback. */
   avatarIcon: text("avatar_icon", { enum: AVATAR_ICONS }),
   homeCurrency: text("home_currency", { enum: CURRENCIES })
     .notNull()
     .default("GBP"),
-  /** Fixed set from `VIBE_TAGS` (@floc/core/trip/vibe-tags) — was free text, fragmented matching (ticket 46). */
   vibeTags: text("vibe_tags", { mode: "json" }).$type<string[] | null>(),
   signupChannel: text("signup_channel", { enum: SIGNUP_CHANNELS }),
-  /** Profile-wide switch: hides every display attribute, falls back to the name. */
   isPrivate: integer("is_private", { mode: "boolean" }).notNull().default(false),
   visibilityVibeTags: text("visibility_vibe_tags", { enum: VISIBILITIES })
     .notNull()
@@ -175,56 +157,37 @@ export const userProfile = sqliteTable("user_profile", {
   visibilityTravelMap: text("visibility_travel_map", { enum: VISIBILITIES })
     .notNull()
     .default("trip_members"),
-  /** Defaults to `friends`, one ring tighter than other attributes — names third parties (ticket 145). */
   visibilityFriends: text("visibility_friends", { enum: VISIBILITIES })
     .notNull()
     .default("friends"),
-  /** Saved trips start private (ADR-045, #544); want-to-go countries follow `visibility_travel_map`. */
   visibilitySaved: text("visibility_saved", { enum: VISIBILITIES })
     .notNull()
     .default("private"),
-  /** Rides `is_private`, not its own ring (ticket 46) — only truncates the list. */
   pastTripsShow: text("past_trips_show", { enum: PAST_TRIPS_SHOW })
     .notNull()
     .default("all"),
-  /** Default packing style, used by any trip where you haven't chosen one (ticket 220). */
   packTier: text("pack_tier", { enum: PACK_TIERS }).notNull().default("balanced"),
-  /**
-   * Whether opening a trip's Packing tab fills your personal list for you, or
-   * waits to be asked. Read here, acted on by the generator in slice 3.
-   */
   packAutoGenerate: integer("pack_auto_generate", { mode: "boolean" })
     .notNull()
     .default(true),
-  /** First set when the tour is finished or skipped, never cleared — once per person, not per trip (#314). */
   tourSeenAt: integer("tour_seen_at", { mode: "timestamp" }),
-  // No theme column: the choice lives in localStorage (AGENTS.md, UI and UX).
-  /** The three switches #346 left: push, email, and date reminders. */
   notifyPush: integer("notify_push", { mode: "boolean" }).notNull().default(true),
   notifyEmail: integer("notify_email", { mode: "boolean" }).notNull().default(true),
   notifyReminders: integer("notify_reminders", { mode: "boolean" }).notNull().default(true),
-  /** The "next trip?" prompt after a quiet spell has its own switch (#626, ADR-056). */
   notifyNextTrip: integer("notify_next_trip", { mode: "boolean" }).notNull().default(true),
-  /** When the person agreed to advertising email; null means no consent. The time is the record UK law asks for. */
   marketingEmailConsentAt: integer("marketing_email_consent_at", { mode: "timestamp" }),
-  /** Explore's last quiz answers, read through `readAnswers` — a bad shape reads as none. */
   exploreAnswers: text("explore_answers", { mode: "json" }).$type<unknown>(),
-  /** Your flight and stay sites, read through `readBookingSites`; null or a bad shape reads as the default (wireframe/booking-sites J). */
   bookingSites: text("booking_sites", { mode: "json" }).$type<unknown>(),
   friendCode: text("friend_code").unique(),
   friendTag: text("friend_tag").unique(),
-  /** IATA code your flights start from, for your own cost estimate (#574). Null: Floc may suggest one from your flight files. */
   homeAirport: text("home_airport"),
-  /** Your travel style for cost estimates (#574, ADR-057). Null is the default: Economy, Mid-range, Balanced. */
   travelCabin: text("travel_cabin", { enum: CABINS }),
   travelStay: text("travel_stay", { enum: STAY_STYLES }),
   travelPace: text("travel_pace", { enum: PACES }),
-  /** Your Google Calendar import counts only all-day events as busy (ADR-031); off counts every event. */
   calendarAllDayOnly: integer("calendar_all_day_only", { mode: "boolean" }).notNull().default(false),
   ...audit,
 });
 
-/** An Explore listing a person saved. `presetId` is static data in `@floc/core`, so no FK. */
 export const exploreSave = sqliteTable(
   "explore_save",
   {
@@ -237,11 +200,6 @@ export const exploreSave = sqliteTable(
   (t) => [primaryKey({ columns: [t.userId, t.presetId] })],
 );
 
-/**
- * Hand-painted countries only (ticket 95) — trip marks are derived on read
- * (@floc/core/itinerary/travel-map), never stored; a row here always wins. Hard-deleted,
- * not soft: a tombstone would be indistinguishable from `none`.
- */
 export const userCountryMark = sqliteTable(
   "user_country_mark",
   {
@@ -264,7 +222,6 @@ export type FriendshipStatus = (typeof FRIENDSHIP_STATUSES)[number];
 export const FRIENDSHIP_ORIGINS = ["co_trip", "request", "code"] as const;
 export type FriendshipOrigin = (typeof FRIENDSHIP_ORIGINS)[number];
 
-// One row per requested direction (ticket 04).
 export const friendship = sqliteTable(
   "friendship",
   {
@@ -289,11 +246,6 @@ export const friendship = sqliteTable(
   ],
 );
 
-/**
- * A named group of people to start a trip with (#545). Private to its owner: members are never
- * told. Who may still be in it is worked out at read time (rule 4), so a member who drops out
- * keeps their row and is filtered, not deleted.
- */
 export const friendGroup = sqliteTable(
   "friend_group",
   {
@@ -307,7 +259,6 @@ export const friendGroup = sqliteTable(
   (t) => [index("friend_group_owner_idx").on(t.ownerUserId)],
 );
 
-// Why unique with no `deleted_at` in it: re-adding someone revives their row, as trip invites do.
 export const friendGroupMember = sqliteTable(
   "friend_group_member",
   {
@@ -323,18 +274,12 @@ export const friendGroupMember = sqliteTable(
   (t) => [uniqueIndex("friend_group_member_pair_idx").on(t.groupId, t.userId)],
 );
 
-/**
- * A wish list (#623, ADR-049): trips, countries, ideas and links a few people keep before any trip exists.
- * No owner column — every member is equal, and the list goes when the last one leaves. A null name means
- * "named after its people", worked out on read.
- */
 export const wishList = sqliteTable("wish_list", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name"),
   ...audit,
 });
 
-// Why unique with no `deleted_at` in it: a new invite after leaving revives the row, as trip invites do.
 export const wishListMember = sqliteTable(
   "wish_list_member",
   {
@@ -355,7 +300,6 @@ export const wishListMember = sqliteTable(
   ],
 );
 
-/** One thing on a wish list. `kind` says which of the nullable columns holds it; `preset_id` is static data, so no FK. */
 export const wishListItem = sqliteTable(
   "wish_list_item",
   {
@@ -385,16 +329,11 @@ export const trip = sqliteTable(
     createdBy: text("created_by")
       .notNull()
       .references(() => user.id),
-    /** Unguessable share token — never the trip id (ticket 05). */
     inviteToken: text("invite_token").notNull().unique(),
-    /** A chosen mark from a fixed set (#318); null = the pastel alone. Never a URL — a cover image on a host we do not control carried the risk #157 took off a face. */
     mark: text("mark"),
-    /** Free-text, not a fixed set (ticket 71) — per-group private joke, normalised by @floc/core/trip/tags. */
     tags: text("tags", { mode: "json" }).$type<string[] | null>(),
-    /** Chosen pastel (ticket 213); null = the id-rotation default. Tags inherit it, so per-tag tones went. */
     colorKey: text("color_key"),
     archivedAt: integer("archived_at", { mode: "timestamp" }),
-    // No lifecycle flag — trip state is derived from what data exists (ticket 126).
     ...audit,
   },
   (t) => [index("trip_created_by_idx").on(t.createdBy)],
@@ -413,43 +352,16 @@ export const tripMembership = sqliteTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     role: text("role", { enum: TRIP_ROLES }).notNull().default("member"),
-    /**
-     * Set on removal (leaving/kicked), not on trip delete/archive (ticket 95):
-     * parks the "keep this trip's countries on your map?" question. Cleared
-     * once answered. No snapshot needed — trip/days/row all still exist.
-     */
     mapPromptAt: integer("map_prompt_at", { mode: "timestamp" }),
-    /**
-     * How much you're packing for *this* trip (ticket 220). Nullable on
-     * purpose: null is "never chosen here" and falls through to
-     * `user_profile.pack_tier`, so a choice on one trip is not a new default.
-     */
     packTier: text("pack_tier", { enum: PACK_TIERS }),
-    /**
-     * When the generator last filled this bag (ticket 221). The guard against
-     * auto-filling a bag somebody deliberately emptied: "the list is empty" and
-     * "the list has never been made" are different states, and only this column
-     * tells them apart.
-     */
     packGeneratedAt: integer("pack_generated_at", { mode: "timestamp" }),
-    /** Your own star on your trip list. Per person: one member's star is nobody else's. */
     starredAt: integer("starred_at", { mode: "timestamp" }),
-    /** Your own mute (#346): no push or email from this trip, the inbox still fills. */
     mutedAt: integer("muted_at", { mode: "timestamp" }),
-    /**
-     * Signed into this member's calendar feed link (#334). Raised by "Reset link", so a link that leaked stops
-     * working while the member stays on the trip; the feed answers only the current number.
-     */
     calendarFeedEpoch: integer("calendar_feed_epoch").notNull().default(0),
-    /**
-     * Your own cost estimate on this trip (#574, ADR-057): a travel style for this trip only (null falls through
-     * to the profile, as `pack_tier` does), nights for a trip with no days, and your budget. Private to you.
-     */
     estCabin: text("est_cabin", { enum: CABINS }),
     estStay: text("est_stay", { enum: STAY_STYLES }),
     estPace: text("est_pace", { enum: PACES }),
     estNights: integer("est_nights"),
-    /** Integer minor units (rule 1), in `budget_currency`. Never an expense, never in a balance (rule 2). */
     budgetMinor: integer("budget_minor"),
     budgetCurrency: text("budget_currency", { enum: CURRENCIES }),
     ...audit,
@@ -460,14 +372,6 @@ export const tripMembership = sqliteTable(
   ],
 );
 
-/**
- * A named invite: one person asked one friend onto one trip (#146).
- *
- * Why: not a `trip_membership` row with a status — teaching ~40 reads to say "member, but only
- * accepted" is how rule 5's enumeration-proofing leaks. Accepting writes the membership, and that
- * is the only access change. Unique on (trip, invitee) with no `deleted_at`, so declining leaves
- * the row for a re-invite to reuse.
- */
 export const TRIP_INVITE_STATUSES = ["pending", "accepted", "declined"] as const;
 export type TripInviteStatus = (typeof TRIP_INVITE_STATUSES)[number];
 
@@ -495,19 +399,6 @@ export const tripInvite = sqliteTable(
   ],
 );
 
-/* -------------------------------------------------------------------------- */
-/* Availability, the Notes doc                                                */
-/* -------------------------------------------------------------------------- */
-
-/**
- * A notes page (#408, ADR-014): the trip's Notes is a list of these, one level
- * of sub-pages deep. `yjs_state` is the live doc; `body` is its copy in our own
- * block format (`@floc/core/notes/pages/page-blocks`) for every other reader.
- *
- * Why `archived_at` and a hard delete: an archived page is restorable for 7
- * days, then it, its sub-pages and their comments go for good — the one
- * exception to rule 8 (ADR-017), done by `purgeArchivedPages` alone.
- */
 export const tripPage = sqliteTable(
   "trip_page",
   {
@@ -515,17 +406,13 @@ export const tripPage = sqliteTable(
     tripId: integer("trip_id")
       .notNull()
       .references(() => trip.id, { onDelete: "cascade" }),
-    /** Null for a top-level page. Never a sub-page's id: one level deep. */
     parentId: integer("parent_id").references((): AnySQLiteColumn => tripPage.id),
     title: text("title").notNull().default(""),
     icon: text("icon", { enum: PAGE_ICONS }),
-    /** Order among its siblings; rewritten for the whole list on a move. */
     position: integer("position").notNull().default(0),
     archivedAt: integer("archived_at", { mode: "timestamp" }),
     body: text("body").notNull(),
-    /** The live Yjs doc. Null = seed it from `body` on next open. */
     yjsState: blob("yjs_state", { mode: "buffer" }),
-    /** Whoever changed it last — the page is the group's, so there is no author. */
     updatedBy: text("updated_by")
       .notNull()
       .references(() => user.id),
@@ -534,11 +421,6 @@ export const tripPage = sqliteTable(
   (t) => [index("trip_page_trip_idx").on(t.tripId, t.parentId)],
 );
 
-/**
- * An idea for the trip, before the trip has a shape — a destination, a way of
- * going. Any member may add one, vote for one, or remove one; there is no
- * thread, so no `parent_id` and no scope.
- */
 export const idea = sqliteTable(
   "idea",
   {
@@ -569,18 +451,10 @@ export const ideaVote = sqliteTable(
   },
   (t) => [
     index("idea_vote_idea_idx").on(t.ideaId),
-    /** Unique without `deleted_at`, like `note_reaction_one_idx`: un-voting soft-deletes, so voting again must land on the same row rather than count twice. */
     uniqueIndex("idea_vote_one_idx").on(t.ideaId, t.userId),
   ],
 );
 
-/**
- * A thing to pack (#219, #220). One table, two lists: a null `owner_id` is the trip's shared gear,
- * a set one is that person's own bag and is never read for anybody else.
- *
- * Why: `packed_at` is the personal tick and means nothing on a shared line — that one is packed
- * when every `packing_claim` on it is. A personal line has no claimers to ask, so it carries its own.
- */
 export const packingLine = sqliteTable(
   "packing_line",
   {
@@ -591,29 +465,14 @@ export const packingLine = sqliteTable(
     createdBy: text("created_by")
       .notNull()
       .references(() => user.id),
-    /**
-     * Null = the shared list. Set = one member's personal list. No cascade, to
-     * match `created_by`: deleting an account leaves content behind rather than
-     * rewriting history, and an orphaned bag is unreadable anyway.
-     */
     ownerId: text("owner_id").references(() => user.id),
     label: text("label").notNull(),
-    /** Which heading it files under (ticket 229). `other` is the bucket for anything typed by hand. */
     category: text("category", { enum: PACK_CATEGORIES })
       .notNull()
       .default("other"),
-    /** How many, never below 1 — the row says "5 — t-shirt" rather than repeating itself. */
     quantity: integer("quantity").notNull().default(1),
-    /**
-     * The saved list this row was copied from, by name (ticket 230). The name,
-     * not a foreign key: the copy is a snapshot, so renaming or deleting the
-     * kit must not rewrite or orphan a bag you have already packed. Null is an
-     * ordinary row, filed under its category.
-     */
     kitName: text("kit_name"),
-    /** `suggested` = auto packing added it, so "Remove suggested" may take it back (#469). Null = typed or copied from a saved list. */
     origin: text("origin", { enum: PACK_ORIGINS }),
-    /** Personal lines only — see the note above. */
     packedAt: integer("packed_at", { mode: "timestamp" }),
     ...audit,
   },
@@ -623,11 +482,6 @@ export const packingLine = sqliteTable(
   ],
 );
 
-/**
- * "I'll bring that." Many people may claim one line, and only the claimer
- * ticks their own `packed_at` — which is why packed is a column here and not
- * a flag on the line: the line is packed when every live claim on it is.
- */
 export const packingClaim = sqliteTable(
   "packing_claim",
   {
@@ -646,14 +500,6 @@ export const packingClaim = sqliteTable(
   ],
 );
 
-/**
- * A file parked against a trip (ticket 239) — a booking, a ticket, a visa scan.
- *
- * Mirrors `packing_line`'s split: `owner_id` null = shared with the whole trip,
- * set = one member's private file, never read for anyone else. The bytes live
- * on disk under `storage_key`; this row is the only thing that knows which
- * trip they belong to, so every read of them goes through the access check.
- */
 export const document = sqliteTable(
   "document",
   {
@@ -664,32 +510,18 @@ export const document = sqliteTable(
     uploadedBy: text("uploaded_by")
       .notNull()
       .references(() => user.id),
-    /** Null = shared. Set = private to that member — see the note above. */
     ownerId: text("owner_id").references(() => user.id),
-    /** What it is called on screen. The file's own name, cleaned, never a path. */
     name: text("name").notNull(),
-    /**
-     * Opaque on-disk filename. Generated, never derived from `name`: a key the
-     * uploader can choose is a key the uploader can aim at another trip's file.
-     */
     storageKey: text("storage_key").notNull(),
-    /** From the allow-list in `@floc/core/documents/documents`; echoed by the serve route. */
     mimeType: text("mime_type").notNull(),
     sizeBytes: integer("size_bytes").notNull(),
-    /** Which heading it files under. Changeable after upload — filing is a habit, not a fact. */
     category: text("category", { enum: DOC_CATEGORIES })
       .notNull()
       .default("other"),
-    /**
-     * Where in the itinerary it sits. Either, neither, or (rarely) both set:
-     * a ticket on the ferry day, or on the ferry event. `set null` — deleting
-     * the day or event only unattaches the file, never bins it.
-     */
     dayId: integer("day_id").references(() => day.id, { onDelete: "set null" }),
     dayEventId: integer("day_event_id").references(() => dayEvent.id, {
       onDelete: "set null",
     }),
-    /** What Floc read from the booking (#559), as JSON. Read only through `parseBookingDetails`, which checks every field. */
     bookingDetails: text("booking_details"),
     ...audit,
   },
@@ -701,11 +533,6 @@ export const document = sqliteTable(
   ],
 );
 
-/**
- * A file waiting for its member to choose a trip (#559): a forwarded booking Floc could not place, or an upload.
- * No `trip_id`, which is why it is not a `document` yet. `deleted_at` = it left the list: placed, or removed by
- * its member. `placed_at` = its bytes now belong to a trip's `document`, so the sweep never touches them.
- */
 export const bookingInbox = sqliteTable(
   "booking_inbox",
   {
@@ -727,10 +554,6 @@ export const bookingInbox = sqliteTable(
   (t) => [index("booking_inbox_user_idx").on(t.userId, t.createdAt)],
 );
 
-/**
- * One received mail (#559). Resend's id is the key, so a webhook delivered twice is processed once, and the rows
- * per sender are the rate limit. Holds no address, subject or body.
- */
 export const inboundMail = sqliteTable(
   "inbound_mail",
   {
@@ -741,11 +564,6 @@ export const inboundMail = sqliteTable(
   (t) => [index("inbound_mail_user_idx").on(t.userId, t.createdAt)],
 );
 
-/**
- * A saved packing list of your own (#230). No `trip_id`: it is copied into a bag rather than linked
- * to one, so editing the kit later never rewrites a bag you have already tidied. Called a kit here
- * because "packing list" already means the trip's list; the UI says "saved list".
- */
 export const packingKit = sqliteTable(
   "packing_kit",
   {
@@ -759,7 +577,6 @@ export const packingKit = sqliteTable(
   (t) => [index("packing_kit_owner_idx").on(t.ownerId)],
 );
 
-// Why: the same three fields a real packing row carries, so applying a kit is a straight copy.
 export const packingKitItem = sqliteTable(
   "packing_kit_item",
   {
@@ -796,11 +613,6 @@ export const availability = sqliteTable(
   ],
 );
 
-/* -------------------------------------------------------------------------- */
-/* Itinerary — day-first. A "stop" is derived, never stored.                   */
-/* -------------------------------------------------------------------------- */
-
-/** Geocoded places. Nominatim (moved from Mapbox, v0.2 ticket 15 — its free tier forbade storing results). */
 export const place = sqliteTable(
   "place",
   {
@@ -809,11 +621,6 @@ export const place = sqliteTable(
     name: text("name").notNull(),
     lat: real("lat"),
     lng: real("lng"),
-    /**
-     * ISO 3166-1 alpha-2, upper case (ticket 95), read by the travel map instead
-     * of inferring from coordinates. Nullable, not backfilled — pre-ticket rows
-     * and outage-typed places have none and just don't reach the map (rule 11).
-     */
     countryCode: text("country_code"),
     ...audit,
   },
@@ -828,10 +635,7 @@ export const day = sqliteTable(
       .notNull()
       .references(() => trip.id, { onDelete: "cascade" }),
     date: text("date").notNull(),
-    /** Consecutive days sharing this are rendered as one "stop". */
     overnightPlaceId: integer("overnight_place_id").references(() => place.id),
-    // No day-level notes column — the thing worth annotating is an event;
-    // notes live on `day_event.note` and the `note` table scoped to it.
     ...audit,
   },
   (t) => [uniqueIndex("day_trip_date_idx").on(t.tripId, t.date)],
@@ -846,24 +650,17 @@ export const dayEvent = sqliteTable(
       .references(() => day.id, { onDelete: "cascade" }),
     orderIndex: integer("order_index").notNull().default(0),
     type: text("type", { enum: DAY_EVENT_TYPES }).notNull(),
-    /** Required by the form; nullable because rows predating ticket 74 only had a place + note. */
     title: text("title"),
     placeId: integer("place_id").references(() => place.id),
     transportType: text("transport_type", { enum: TRANSPORT_TYPES }),
-    /** HH:MM, relative to the itinerary's location. Nullable — that's what all-day means. */
     time: text("time"),
     endTime: text("end_time"),
-    /** No start time — a festival pass, an unfixed check-out deadline. */
     allDay: integer("all_day", { mode: "boolean" }).notNull().default(false),
     note: text("note"),
     ...audit,
   },
   (t) => [index("day_event_day_idx").on(t.dayId, t.orderIndex)],
 );
-
-/* -------------------------------------------------------------------------- */
-/* Money — integer minor units, never a float                                 */
-/* -------------------------------------------------------------------------- */
 
 export const expense = sqliteTable(
   "expense",
@@ -883,7 +680,6 @@ export const expense = sqliteTable(
     amountMinor: integer("amount_minor").notNull(),
     currency: text("currency", { enum: CURRENCIES }).notNull(),
     splitType: text("split_type", { enum: SPLIT_TYPES }).notNull(),
-    /** Fixed set from `EXPENSE_CATEGORIES` (@floc/core/money/expense-category) — filing only; the icon derives from it. */
     category: text("category", { enum: EXPENSE_CATEGORIES })
       .notNull()
       .default(DEFAULT_CATEGORY),
@@ -893,11 +689,6 @@ export const expense = sqliteTable(
   (t) => [index("expense_trip_idx").on(t.tripId)],
 );
 
-/**
- * Snapshotted at creation, never recalculated, so it survives a member leaving
- * (ticket 04). Must sum to `expense.amount_minor` exactly — enforced in
- * @floc/core/money/money, not the schema.
- */
 export const expenseSplit = sqliteTable(
   "expense_split",
   {
@@ -914,12 +705,6 @@ export const expenseSplit = sqliteTable(
   (t) => [index("expense_split_expense_idx").on(t.expenseId)],
 );
 
-/**
- * Why: one real-world payment between members, recorded after money moved off-app. Its own table,
- * not a flag on a split — settle-up is one transfer netted across many bills and never maps to one
- * owed row. An immutable fact, reverted only by soft-delete, so the balance recomputes as if it
- * never happened. Balances stay derived at read time: expenses − settlements, per currency.
- */
 export const settlement = sqliteTable(
   "settlement",
   {
@@ -935,18 +720,9 @@ export const settlement = sqliteTable(
       .references(() => user.id),
     amountMinor: integer("amount_minor").notNull(),
     currency: text("currency", { enum: CURRENCIES }).notNull(),
-    /**
-     * Cross-currency settle-up (ticket 253): money handed over in `currency`
-     * clearing a debt held in `clears_currency`. Null on a same-currency
-     * settlement, which behaves exactly as before. The rate is a *snapshot of
-     * this payment* — same shape as `expense_split`, and never read back to
-     * convert anything else.
-     */
     clearsAmountMinor: integer("clears_amount_minor"),
     clearsCurrency: text("clears_currency", { enum: CURRENCIES }),
-    /** Units of `clears_currency` per 1 `currency`, as published on `fx_rate_date`. */
     fxRate: real("fx_rate"),
-    /** `YYYY-MM-DD` of the quote used — no timezone, rule 10. */
     fxRateDate: text("fx_rate_date"),
     createdBy: text("created_by")
       .notNull()
@@ -956,22 +732,13 @@ export const settlement = sqliteTable(
   (t) => [index("settlement_trip_idx").on(t.tripId)],
 );
 
-/**
- * Cached daily reference rates from frankfurter.app (ticket 253). A record of
- * a published public fact, not a statement about what anyone owes — so it has
- * no `deleted_at` and sits outside rule 8, and no balance is ever derived from
- * it: it only backs the display toggle and pre-fills a cross-currency
- * settle-up, which snapshots its own rate on the settlement row.
- */
 export const fxRate = sqliteTable(
   "fx_rate",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    /** `YYYY-MM-DD` as the provider published it, rule 10. */
     date: text("date").notNull(),
     base: text("base", { enum: CURRENCIES }).notNull(),
     currency: text("currency", { enum: CURRENCIES }).notNull(),
-    /** Units of `currency` per 1 `base`. A rate, not money — a float is correct here. */
     rate: real("rate").notNull(),
     createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(now),
   },
@@ -981,10 +748,6 @@ export const fxRate = sqliteTable(
   ],
 );
 
-/**
- * One member's own figure or budget for one line of their cost estimate (#574, ADR-057). Private to that
- * member; never an expense, never in a balance (rule 2). Unique per line, so a cleared line is revived, not duplicated.
- */
 export const estimateOverride = sqliteTable(
   "estimate_override",
   {
@@ -1004,16 +767,6 @@ export const estimateOverride = sqliteTable(
   (t) => [uniqueIndex("estimate_override_line_idx").on(t.tripId, t.userId, t.line)],
 );
 
-/* -------------------------------------------------------------------------- */
-/* Polymorphic notes — the discussion threads on days, events and expenses    */
-/* -------------------------------------------------------------------------- */
-
-/**
- * A link the group has parked against the trip (ticket 103). Own table rather
- * than a `note` with a URL — a note is said and ordered by conversation, a
- * link is a kept reference that would get buried in a thread. Trip-scoped
- * only; a link about one event belongs in that event's own notes.
- */
 export const tripLink = sqliteTable(
   "trip_link",
   {
@@ -1024,9 +777,7 @@ export const tripLink = sqliteTable(
     createdBy: text("created_by")
       .notNull()
       .references(() => user.id),
-    /** `http`/`https` only, enforced at the door. */
     url: text("url").notNull(),
-    /** Falls back to the host when nobody typed one. */
     label: text("label"),
     ...audit,
   },
@@ -1053,23 +804,10 @@ export const note = sqliteTable(
       .notNull()
       .references(() => user.id),
     scope: text("scope", { enum: NOTE_SCOPES }).notNull(),
-    /** Not a real FK — polymorphic, app-enforced. */
     scopeId: integer("scope_id"),
-    /**
-     * Null for a top-level comment. **Exactly one level deep** (v0.2 ticket
-     * 06) — `addNote` walks up to the root before inserting a reply-to-a-reply,
-     * since a thread renders in a narrow panel.
-     */
     parentId: integer("parent_id"),
     body: text("body").notNull(),
-    /**
-     * Set on the author's first self-edit, shown as "edited" (v0.2 ticket 06).
-     * Exists for honesty, not concurrency: a silently rewritten comment makes
-     * replies below it read as nonsense. `last_modified_at` can't serve this —
-     * it's debugging-only and moves for reasons the author never chose.
-     */
     editedAt: integer("edited_at", { mode: "timestamp" }),
-    /** A page comment (#408) someone marked done. Any member may; its thread leaves the page. */
     resolvedAt: integer("resolved_at", { mode: "timestamp" }),
     ...audit,
   },
@@ -1094,20 +832,9 @@ export const noteReaction = sqliteTable(
   },
   (t) => [
     index("note_reaction_note_idx").on(t.noteId),
-    /**
-     * Unique, deliberately without `deleted_at` (ticket 115): un-reacting
-     * soft-deletes the row, so re-reacting must land on it rather than insert a
-     * second. Without this a toggle was read-modify-write with nothing behind
-     * it, and concurrent taps double-counted. Same shape as
-     * `friendship_pair_idx`, same reason.
-     */
     uniqueIndex("note_reaction_one_idx").on(t.noteId, t.userId, t.kind),
   ],
 );
-
-/* -------------------------------------------------------------------------- */
-/* Nudges — peer-to-peer, no automation (ticket 01 step 6)                     */
-/* -------------------------------------------------------------------------- */
 
 export const NUDGE_TABS = ["notes", "dates", "days", "money"] as const;
 export type NudgeTab = (typeof NUDGE_TABS)[number];
@@ -1125,7 +852,6 @@ export const nudge = sqliteTable(
     toUserId: text("to_user_id")
       .notNull()
       .references(() => user.id),
-    /** Which tab the nudge email deep-links to (ticket 05). */
     tab: text("tab", { enum: NUDGE_TABS }).notNull(),
     message: text("message"),
     ...audit,
@@ -1137,16 +863,13 @@ export const activity = sqliteTable(
   "activity",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    /** Null for friend requests, which belong to no trip. */
     tripId: integer("trip_id").references(() => trip.id, { onDelete: "cascade" }),
     actorId: text("actor_id")
       .notNull()
       .references(() => user.id),
     kind: text("kind", { enum: ACTIVITY_KINDS }).notNull(),
-    /** Not a real FK — polymorphic by `kind`, like `note.scope_id`. */
     subjectId: integer("subject_id"),
     href: text("href").notNull(),
-    /** Words a reminder carries that no row holds, like "Sam £40.00" (#346). */
     detail: text("detail"),
     ...audit,
   },
@@ -1164,13 +887,10 @@ export const notification = sqliteTable(
       .notNull()
       .references(() => user.id),
     loud: integer("loud", { mode: "boolean" }).notNull(),
-    /** Why: the bell counts unseen, the list marks unread — landing on the inbox answers the first, not the second (#403). */
     seenAt: integer("seen_at", { mode: "timestamp" }),
     readAt: integer("read_at", { mode: "timestamp" }),
-    /** Why: a lease, so a second instance skips it and a crashed send is retried once the lease runs out (#345). */
     pushClaimedAt: integer("push_claimed_at", { mode: "timestamp" }),
     pushedAt: integer("pushed_at", { mode: "timestamp" }),
-    /** Same lease as push, for the email fallback (#346). */
     emailClaimedAt: integer("email_claimed_at", { mode: "timestamp" }),
     emailedAt: integer("emailed_at", { mode: "timestamp" }),
     ...audit,
@@ -1183,7 +903,6 @@ export const notification = sqliteTable(
   ],
 );
 
-/** Why: the unique key is what makes a reminder send once per person per trip, even when two cron runs overlap (#346). */
 export const reminder = sqliteTable(
   "reminder",
   {
@@ -1200,7 +919,6 @@ export const reminder = sqliteTable(
   (t) => [uniqueIndex("reminder_once_idx").on(t.kind, t.tripId, t.userId)],
 );
 
-/** One row per phone that allowed push (#345). */
 export const pushToken = sqliteTable(
   "push_token",
   {
@@ -1209,21 +927,12 @@ export const pushToken = sqliteTable(
       .notNull()
       .references(() => user.id),
     token: text("token").notNull(),
-    /** Why: only notifications after this reach the phone, so a new install is not handed a month of backlog. */
     registeredAt: integer("registered_at", { mode: "timestamp" }).notNull().default(now),
     ...audit,
   },
   (t) => [uniqueIndex("push_token_token_idx").on(t.token), index("push_token_user_idx").on(t.userId)],
 );
 
-/* -------------------------------------------------------------------------- */
-/* Billing — the local record of who is Pro (ticket 246)                       */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Stripe's own vocabulary, stored verbatim so the webhook never has to
- * interpret. Only `active` and `trialing` are live — see LIVE_STATUSES.
- */
 export const SUBSCRIPTION_STATUSES = [
   "active",
   "trialing",
@@ -1236,16 +945,9 @@ export const SUBSCRIPTION_STATUSES = [
 ] as const;
 export type SubscriptionStatus = (typeof SUBSCRIPTION_STATUSES)[number];
 
-/** How the row came to exist. The gate never reads this (ticket 246). */
 export const SUBSCRIPTION_SOURCES = ["stripe", "comp", "app_store", "play"] as const;
 export type SubscriptionSource = (typeof SUBSCRIPTION_SOURCES)[number];
 
-/**
- * One row per Stripe subscription, and one per comped tester. Written by the
- * webhook, never by a page. A plain `isPro` boolean was rejected: it cannot
- * say "cancelled, but paid up until the 14th", which is exactly what
- * cancelling does.
- */
 export const subscription = sqliteTable(
   "subscription",
   {
@@ -1260,10 +962,8 @@ export const subscription = sqliteTable(
       .default("stripe"),
     stripeCustomerId: text("stripe_customer_id"),
     stripeSubscriptionId: text("stripe_subscription_id"),
-    /** Apple's original transaction id, or Google's purchase token. */
     storeTransactionId: text("store_transaction_id"),
     storeProductId: text("store_product_id"),
-    /** Paid up to here. Null means no end — a comp, which never lapses. */
     currentPeriodEnd: integer("current_period_end", { mode: "timestamp" }),
     cancelAtPeriodEnd: integer("cancel_at_period_end", { mode: "boolean" })
       .notNull()
@@ -1272,29 +972,17 @@ export const subscription = sqliteTable(
   },
   (t) => [
     index("subscription_user_idx").on(t.userId),
-    /**
-     * Makes a repeated webhook an upsert rather than a second row (ticket
-     * 246). Stripe retries on any non-2xx, so duplicate delivery is normal
-     * traffic, not an edge case. Deliberately without `deleted_at`, same
-     * reason as `note_reaction_one_idx`.
-     */
     uniqueIndex("subscription_stripe_idx").on(t.stripeSubscriptionId),
-    /** Same job for store notifications, and one purchase can back one account only. */
     uniqueIndex("subscription_store_idx").on(t.storeTransactionId),
   ],
 );
 
-/**
- * What Floc counts about its own use (#368). No user, address or device column, on purpose: a row cannot be tied to
- * anyone. Not trip-owned, so no `deleted_at`; rows are deleted for good after a year (`purgeOldAnalytics`).
- */
 export const analyticsEvent = sqliteTable(
   "analytics_event",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
     name: text("name", { enum: ANALYTICS_EVENTS }).notNull(),
     surface: text("surface", { enum: ANALYTICS_SURFACES }).notNull(),
-    /** A route with its ids masked (`/trip/[id]/money`), never the path a person opened. */
     route: text("route").notNull(),
     props: text("props", { mode: "json" }).$type<Record<string, string | number | boolean> | null>(),
     createdAt: integer("created_at", { mode: "timestamp" }).notNull().$defaultFn(() => new Date()),
@@ -1302,10 +990,6 @@ export const analyticsEvent = sqliteTable(
   (t) => [index("analytics_event_name_at_idx").on(t.name, t.createdAt)],
 );
 
-/**
- * Which version of the Terms of use an account agreed to, and when (#549). One row for each version, kept when
- * the terms change, so the record always names the text that account saw. Not trip-owned: no `deleted_at`.
- */
 export const termsAcceptance = sqliteTable(
   "terms_acceptance",
   {
@@ -1313,7 +997,6 @@ export const termsAcceptance = sqliteTable(
     userId: text("user_id")
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
-    /** `TERMS_VERSION` from @floc/core/legal/terms: the day that wording took effect. */
     version: text("version").notNull(),
     acceptedAt: integer("accepted_at", { mode: "timestamp" }).notNull(),
   },

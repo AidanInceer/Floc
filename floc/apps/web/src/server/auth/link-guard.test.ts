@@ -1,7 +1,3 @@
-/**
- * Account pre-hijack: somebody signs up with an address they do not own, then
- * the owner signs in with Google and is linked onto that account.
- */
 import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

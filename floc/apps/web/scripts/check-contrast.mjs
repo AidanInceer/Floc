@@ -1,18 +1,9 @@
-/**
- * Every ink/surface pair the app actually paints, asserted against WCAG AA in
- * both themes.
- *
- * The pale palette's failure mode is a *design* bug no compiler can see:
- * `--ink-3` sat at 2.75:1 through an entire redesign (#204). This is the only
- * check in the repo that catches one.
- */
 import { resolveColours } from "@floc/core/design/tokens";
 
 import { contrast } from "./tokens.mjs";
 
 const AA_TEXT = 4.5;
 
-// [ink, surface, floor, what it is]
 const PAIRS = [
   ["ink", "paper", AA_TEXT, "body text on the canvas"],
   ["ink", "sheet", AA_TEXT, "body text on a surface"],
@@ -37,8 +28,6 @@ const PAIRS = [
   ["pen-deep", "pastel-green", AA_TEXT, "blue text on green"],
   ["pen-deep", "pastel-yellow", AA_TEXT, "blue text on yellow"],
   ["pen-deep", "pastel-red", AA_TEXT, "blue text on red"],
-  // Pro's own ground — it flips ground per theme, so it is checked
-  // like any other surface rather than trusted for being deliberate.
   ["pro-ink", "pro", AA_TEXT, "text on the Pro ground"],
   ["pro-ink-2", "pro", AA_TEXT, "secondary text on the Pro ground"],
   ["pro-mark", "pro", AA_TEXT, "the Pro mark on the Pro ground"],
@@ -46,8 +35,6 @@ const PAIRS = [
   ["pro-ink-2", "pro-2", AA_TEXT, "secondary text on a Pro card"],
   ["pro-mark", "pro-2", AA_TEXT, "the Pro mark on a Pro card"],
   ["pro", "pro-mark", AA_TEXT, "text on the Pro button"],
-  // Hairlines are decorative separation, not a control boundary, so AA's 3:1
-  // does not apply — but a hairline nobody can see is still a bug.
   ["rule", "sheet", 1.05, "a hairline on a surface"],
   ["rule-2", "sheet", 1.3, "a stronger hairline on a surface"],
   ["pastel-blue-edge", "pastel-blue", 1.1, "a pastel's own edge"],
@@ -57,11 +44,6 @@ const PAIRS = [
   ["pro-edge", "pro-2", 1.1, "a hairline on a Pro card"],
 ];
 
-/**
- * Every ink/surface pair, in every theme (ticket 240). A dark palette that
- * nothing checks is the same design bug as #204, just at the other end of the
- * ramp — the floors do not move because the ground did.
- */
 const failures = [];
 let checked = 0;
 
@@ -69,7 +51,6 @@ for (const theme of ["light", "dark"]) {
   const tokens = new Map(Object.entries(resolveColours(theme)));
   const pairs = [...PAIRS];
 
-  // Every `--who-N` / `--who-N-ink` pair, however many there turn out to be.
   for (const name of tokens.keys()) {
     const n = name.match(/^who-(\d+)$/);
     if (n) pairs.push([`who-${n[1]}-ink`, name, AA_TEXT, `ink on ${name}`]);

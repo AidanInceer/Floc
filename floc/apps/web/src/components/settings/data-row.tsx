@@ -7,7 +7,6 @@ import { Button, panelTitleClass } from "@/components/system/ui";
 import type { ConsentChoice } from "@floc/core/consent/consent";
 import { dataSummary } from "@floc/core/people/settings-summary";
 
-/** Your data: the cookie choice for this browser, and consent to advertising email for the account. */
 export function DataRow({
   id,
   open,

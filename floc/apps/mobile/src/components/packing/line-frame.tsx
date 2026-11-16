@@ -5,7 +5,6 @@ import { TickGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
 import { fonts, radius, size, space } from "@/lib/theme";
 
-/** Why: one box for tick, pick and read-only, so every label starts in the same column. */
 export function CheckBox({
   on,
   label,
@@ -48,7 +47,6 @@ export function CheckBox({
   );
 }
 
-/** A glyph with no box. `remove` is the one trailing cross: 44 wide, 44 tall with its slop, so every row ends on the same edge. */
 export function GhostIcon({
   label,
   disabled,
@@ -88,7 +86,6 @@ export function GhostIcon({
   );
 }
 
-/** A small text press with a full-height target. */
 export function TextAction({
   label,
   tone = "ink-2",
@@ -118,7 +115,6 @@ export function TextAction({
   );
 }
 
-/** The shell of one line: leading slot, text, trailing controls. Rules between lines belong to the section. */
 export function LineFrame({
   lead,
   children,

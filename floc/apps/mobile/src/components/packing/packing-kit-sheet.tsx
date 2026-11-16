@@ -1,22 +1,3 @@
-/**
- * Your saved kits: make one from this bag, apply one, throw one away (ticket 230).
- *
- * THE BAG IS THE EDITOR. The web builds a kit on its own screen, item by item.
- * The phone does not need that screen, because the bag already on the trip is
- * the same list — so a kit is made by naming what is in front of you. That is
- * one field and one press, not a second list-builder.
- *
- * SO THE PRESS IS NEVER DEAD. It used to be greyed with "saved kits are made on
- * the website" underneath, which is a control explaining why it is not one.
- * With no kits, this sheet is still the place you make your first.
- *
- * APPLYING IS ADDITIVE AND IDEMPOTENT. A label already in the bag is left alone,
- * so pressing twice never doubles a row you had tuned. That rule lives on the
- * host; nothing here restates it.
- *
- * DELETING A KIT IS NOT DELETING A BAG. Bags already filled from it keep their
- * rows — a kit is a stencil, not a source.
- */
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 
@@ -37,7 +18,6 @@ export function PackingKitSheet({
   onDelete,
 }: {
   kits: PackingKit[];
-  /** What naming this bag would capture. Nought means there is nothing to save. */
   bagSize: number;
   busy: boolean;
   error: string | null;
@@ -63,7 +43,6 @@ export function PackingKitSheet({
             setName("");
           }}
         />
-        {/* An empty bag is why the press does nothing, and no drawing says it (#126). */}
         {bagSize === 0 ? <Body tone="ink-3">Your bag is empty, so there is nothing to save.</Body> : null}
       </View>
 
@@ -81,7 +60,6 @@ export function PackingKitSheet({
               style={{ flex: 1, gap: space.xs, opacity: busy ? 0.5 : 1 }}
             >
               <Body bold>{kit.name}</Body>
-              {/* The count is the whole reason to pick one kit over another. */}
               <Label>{kit.itemCount === 1 ? "1 thing" : `${kit.itemCount} things`}</Label>
             </Pressable>
             <Pressable

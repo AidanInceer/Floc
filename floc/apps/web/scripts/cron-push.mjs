@@ -1,8 +1,3 @@
-/**
- * The Railway cron service's command, every 5 minutes (#345):
- * `node floc/apps/web/scripts/cron-push.mjs`. It only knocks; the web service
- * does the work, so the cron needs no database access.
- */
 const url = process.env.BETTER_AUTH_URL;
 const secret = process.env.CRON_SECRET;
 if (!url || !secret) {

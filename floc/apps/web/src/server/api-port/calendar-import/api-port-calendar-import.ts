@@ -1,7 +1,3 @@
-/**
- * The port's calendar half (#444, ADR-031): the same read and the same writes the Dates page and
- * Settings call, so the phone has one behaviour with the web, not a second copy of it.
- */
 import "server-only";
 
 import type { FlocPort } from "@floc/api/port";

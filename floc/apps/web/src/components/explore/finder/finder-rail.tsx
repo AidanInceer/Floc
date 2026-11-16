@@ -24,7 +24,6 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 
 const group = "typed mb-0.5 mt-4 border-t border-ink pt-3 text-ink";
 
-/** The filters, top to bottom: what must fit, then what you like. Beside the trips on a wide screen, in a sheet on a narrow one. */
 export function FinderRail({
   finder,
   counts,
@@ -38,7 +37,6 @@ export function FinderRail({
   shown: number;
   onChange: (next: Finder) => void;
   onClear: () => void;
-  /** Set when the rail is a sheet. */
   onClose?: () => void;
 }) {
   const facet = { finder, counts, shown, onChange };

@@ -10,7 +10,6 @@ import { ExternalButtonLink, cx, iconFrameClass } from "@/components/system/ui";
 const SITE_MENU_PANEL =
   "w-max min-w-[15rem] max-w-[min(20rem,calc(100vw-2rem))] rounded-md border border-rule-strong bg-sheet p-1 text-left shadow-raised";
 
-/** Your sites as buttons, and every other site behind the chevron (wireframe/booking-sites J). */
 export function SitePicker({
   kind,
   links,
@@ -23,14 +22,10 @@ export function SitePicker({
 }: {
   kind: SiteKind;
   links: BookingLink[];
-  /** What the links are for, said to a screen reader on the chevron: "Find a stay in Dover". */
   label: string;
-  /** Which stay or flight the menu is for, as the mockup's head line: "Lisbon · 15–18 Dec". */
   head?: string;
   align?: "left" | "right";
-  /** Up near the foot of a dialog, which would otherwise clip it. */
   drop?: "down" | "up";
-  /** Below sm, in a wrapping row: the links take their own line and the chevron stays on the caller's first line. */
   split?: boolean;
   className?: string;
 }) {
@@ -54,7 +49,6 @@ export function SitePicker({
   );
 }
 
-/** Your sites, then More sites; the tick on each line keeps or drops it, in place. */
 function SiteMenuList({ kind, links, head }: { kind: SiteKind; links: BookingLink[]; head?: string }) {
   const { sites } = useBookingSites();
   const { mine, more } = splitBySites(links, sites[kind]);
@@ -78,7 +72,6 @@ function SiteLine({ kind, link, use }: { kind: SiteKind; link: BookingLink; use?
   const { sites, toggle } = useBookingSites();
   const on = (sites[kind] as string[]).includes(link.site);
   const can = canToggleSite(sites, kind, link.site);
-  // Why: a greyed tick says nothing on its own, so its name says why it is held.
   const why = can ? "" : on ? " (keep at least one)" : ` (up to ${MAX_SITES})`;
   return (
     <div className="flex items-center gap-1">
@@ -103,7 +96,6 @@ function SiteLine({ kind, link, use }: { kind: SiteKind; link: BookingLink; use?
         disabled={!can}
         onClick={() => toggle(kind, link.site)}
         className={cx(
-          // Why: the after: box gives a phone a ~42px press target without drawing a bigger tick.
           "relative mr-0.5 grid size-[26px] shrink-0 place-items-center rounded-sm border transition-colors after:absolute after:-inset-x-2 after:-inset-y-1 after:content-[''] disabled:cursor-default disabled:opacity-40",
           on ? "border-pen bg-pen text-sheet" : "border-rule-strong bg-sheet text-transparent enabled:hover:border-pen enabled:hover:text-pen-edge",
         )}

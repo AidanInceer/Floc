@@ -2,39 +2,18 @@ import type { NextConfig } from "next";
 
 import { contentSecurityPolicy } from "./src/lib/http/csp";
 
-// Why: the policy for answers the middleware does not see (files, API). A page gets the nonce policy from
-// `middleware.ts`, which replaces this one.
 const CSP = contentSecurityPolicy({ nonce: null, host: null, dev: process.env.NODE_ENV !== "production" });
 
 const config: NextConfig = {
   reactStrictMode: true,
-  // `pnpm verify` builds into `.next-verify` so it never writes over the
-  // `.next` a running `next dev` owns — the dev servers can stay up.
   distDir: process.env.FLOC_NEXT_DIST_DIR ?? ".next",
-  // Why: verify runs `eslint .` before the build and `tsc` on the fresh route
-  // types after it, so Next's own pass over the same configs is a repeat.
   eslint: { ignoreDuringBuilds: process.env.FLOC_VERIFY_BUILD === "1" },
   typescript: { ignoreBuildErrors: process.env.FLOC_VERIFY_BUILD === "1" },
-  // The phone app reads this dev server over the LAN, so its requests arrive
-  // from a different origin than localhost (ticket 289). The host is per
-  // machine, so it comes from the environment rather than the repo.
   allowedDevOrigins: process.env.FLOC_LAN_HOST ? [process.env.FLOC_LAN_HOST] : [],
-  // @floc/core, @floc/editor and @floc/globe ship TypeScript source, not a build (#286) —
-  // a workspace package with no build step is one less thing to be stale in dev.
   transpilePackages: ["@floc/core", "@floc/editor", "@floc/globe"],
-  // Better Auth + the libSQL driver both want the Node runtime, not Edge.
-  // Why (#613): the custom server loads yjs for live notes; bundling a second copy into Next logs "Yjs was already imported" and breaks constructor checks.
-  // Why (#559): the barcode reader loads its .wasm from the installed package, which bundling would lose.
   serverExternalPackages: ["@libsql/client", "better-auth", "yjs", "zxing-wasm", "unpdf"],
   experimental: {
-    // Why: a trip or tab opened in the last 30 s reopens from the client cache. Own edits still refresh at once
-    // (a Server Action's revalidatePath clears it), and another member's edit clears it through the trip signal
-    // (#577), so it stays for fast tab switches. A tab loaded in full on hover counts as static, so `static` holds
-    // it the same 30 s rather than the default 5 minutes.
     staleTimes: { dynamic: 30, static: 30 },
-    // Next caps Server Action bodies at 1 MB, so a 2 MB upload threw before
-    // `rejectUpload` saw it (ticket 239). Headroom over the 8 MB cap keeps
-    // the refusal ours.
     serverActions: { bodySizeLimit: "10mb" },
   },
   async headers() {

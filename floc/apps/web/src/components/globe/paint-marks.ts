@@ -7,10 +7,8 @@ type Brush = {
   at: (view: LatLng, p: LatLng) => { x: number; y: number; z: number };
 };
 
-/** The small marks drawn over the globe: a trip with no tile, the pulse of a pin, a route between stops. */
 export function globeMarks({ ctx, ink, at }: Brush) {
   return {
-    /** Draws through `draw` at `alpha`, for marks that leave as a map goes in. */
     faded(alpha: number, draw: () => void) {
       ctx.save();
       ctx.globalAlpha = alpha;
@@ -28,7 +26,6 @@ export function globeMarks({ ctx, ink, at }: Brush) {
       ctx.strokeStyle = ink.pen;
       ctx.stroke();
     },
-    /** A ring that leaves a pin of radius `r` and fades; `beat` runs 0 to 1. */
     pulse(view: LatLng, p: LatLng, r: number, beat: number) {
       const q = at(view, p);
       if (q.z < 0.05) return;
@@ -41,7 +38,6 @@ export function globeMarks({ ctx, ink, at }: Brush) {
       ctx.stroke();
       ctx.restore();
     },
-    /** A solid line along `path` as far as its point `upTo`. */
     line(view: LatLng, path: LatLng[], upTo: number, width: number, tone: keyof Ink, alpha: number) {
       ctx.save();
       ctx.globalAlpha = alpha;

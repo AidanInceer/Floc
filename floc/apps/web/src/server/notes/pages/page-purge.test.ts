@@ -1,4 +1,3 @@
-/** The 7-day archive (#408, ADR-017): what goes, and everything that must stay. */
 import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

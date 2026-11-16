@@ -1,4 +1,3 @@
-// Why: the closed drawer shows its answer, so most visits open nothing.
 import { useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -9,7 +8,6 @@ import { fonts, radius, size, space } from "@/lib/theme";
 
 const TURN = { down: "0deg", up: "180deg" } as const;
 
-// Why: the glyph is wider than tall, so a turned one shifts unless every row gives it the same square.
 export function DrawerChevron({ color, point }: { color: string; point: keyof typeof TURN }) {
   return (
     <View style={{ width: 20, height: 20, alignItems: "center", justifyContent: "center" }}>
@@ -105,7 +103,6 @@ export function Drawer({
   title: string;
   summary?: string;
   danger?: boolean;
-  /** The top row in a group draws no rule above itself. */
   first?: boolean;
   defaultOpen?: boolean;
   children: ReactNode;
@@ -144,7 +141,6 @@ export function DrawerLink({
   title: string;
   summary?: string;
   first?: boolean;
-  /** Ends something rather than opening it, so it draws no chevron. */
   quiet?: boolean;
   onPress: () => void;
 }) {

@@ -1,7 +1,3 @@
-/**
- * The quiet way in for a booking mail (#559): one shared address, behind one word. It replaces the per-trip
- * address card, which a member had to find for the right trip.
- */
 import { CopyLink, Menu } from "@/components/system/client-ui";
 import { buttonClass } from "@/components/system/ui";
 import { bookingForwardTitle, bookingPrivateWords } from "@floc/core/documents/booking/booking-inbox";

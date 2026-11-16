@@ -7,7 +7,6 @@ import { VIBE_TAG_GROUPS } from "@floc/core/trip/vibe-tags";
 import { useSaveWhenChanged } from "./auto-save-form";
 import { PickChip, pickLineClass } from "./pick-chip";
 
-/** The vibe tags as a travel style, sorted into pace, places and things to do. Posts one hidden `vibeTag` per pick. */
 export function TravelStyle({ selected }: { selected: string[] }) {
   const [picked, setPicked] = useState(selected);
   useSaveWhenChanged(picked);

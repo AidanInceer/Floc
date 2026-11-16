@@ -1,4 +1,3 @@
-// #637 the account side: B4e, the chosen variant (picked 2026-11-13). Settings joins Profile in the build. State in memory.
 import { variants } from "/_house/switcher.js";
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
@@ -88,7 +87,6 @@ const state = {
 
 const narrow = () => matchMedia("(max-width: 640px)").matches;
 
-/* ——— Top bar ——— */
 function navBead(items, current) {
   return `<nav class="bead nav" aria-label="Main">${items
     .map(([key, label, icon, badge]) => `<button class="nav-i" data-go="${key}" ${current === key ? 'aria-current="page"' : ""}>
@@ -114,7 +112,6 @@ function topbar({ nav, current, right }) {
   </div></header>`;
 }
 
-/* ——— Shared page parts ——— */
 const sr = (t) => `<h1 class="sr-only">${esc(t)}</h1>`;
 function globe(size = 260) {
   const dots = [[92, 74], [104, 82], [118, 70], [86, 96], [110, 104], [180, 120], [196, 132]];
@@ -211,13 +208,11 @@ function bellPop() {
 }
 const MAIN_NAV = [["explore", "Explore", "explore"], ["trips", "Trips", "trips", 1]];
 
-/* ——— Top bar: logo, Explore + Trips, the bell, and your name, a link to Profile (no menu) ——— */
 function accountTop() {
   const you = `<button class="bead pill" data-go="profile" aria-label="Your profile">${face(ME, 30)}<span class="pill-l">Priya</span></button>`;
   return topbar({ nav: MAIN_NAV, current: "", right: bellBead() + bellPop() + you });
 }
 
-/* ——— Pages ——— */
 const friendsOnly = () => `<div class="card"><div class="card-h">Requests <span class="count nums">${REQUESTS.length}</span></div>${requestRows()}<div class="ruled pad">${addFriend()}</div>
   <div class="card-h ruled">Friends <span class="count nums">${FRIENDS.length}</span></div>${friendRows()}</div>`;
 const groupsBody = () => `<div class="card">${groupRows()}<div class="ruled pad"><button class="btn">${g("plus")}New group</button></div></div>`;
@@ -231,7 +226,6 @@ const CLUSTERS = [
 ];
 const COUNT = { profile: 7, friends: FRIENDS.length, groups: GROUPS.length, wish: WISH.length, saved: SAVED.length, packing: PACKING.length, bookings: BOOKINGS.length };
 
-/* B4e · one bar, eight pages, three clusters split by hairlines */
 function B4() {
   const p = pageKey(state.page);
   const bar = `<div class="abar"><nav class="abar-in flat7" aria-label="Your account">${CLUSTERS.map((items, i) => `${i ? '<span class="abar-sep" aria-hidden="true"></span>' : ""}${items
@@ -240,7 +234,6 @@ function B4() {
   return `${accountTop()}${bar}<main class="wrap">${sr(NAME[p]) + (p === "settings" ? settingsBody() + `<div class="card"><div class="pop-foot">${themeSwitch()}${signOut()}</div></div>` : PAGES[p]())}</main>`;
 }
 
-/* Chosen: B4e. Packing takes the Trips suitcase; Bookings is the envelope of the confirmation email. */
 G.ticket = '<rect x="1.6" y="3" width="10.8" height="8" rx="1.2"/><path d="M1.9 3.6 7 7.6l5.1-4"/>';
 G.packing = G.trips;
 

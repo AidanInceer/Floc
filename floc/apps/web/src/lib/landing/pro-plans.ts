@@ -23,7 +23,6 @@ function savingMinor(price: PlanPrice, monthly: PlanPrice | undefined): number {
   return monthly.amountMinor * WORDS[price.interval].months - price.amountMinor;
 }
 
-/** The periods Stripe has, month first. A saving is exact against paying monthly (design card: money is exact). */
 export function proPlans(prices: PlanPrice[]): { plans: ProPlan[]; initial: BillingInterval | null } {
   const byInterval = new Map(prices.map((p) => [p.interval, p]));
   const monthly = byInterval.get("monthly");

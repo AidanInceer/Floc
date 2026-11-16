@@ -1,8 +1,3 @@
-/**
- * Email for whoever push cannot reach (#346): no phone, or push switched off.
- * The reach rule is the exact opposite of push's, so one notification is never
- * both pushed and emailed — and only to an address its owner has confirmed.
- */
 import "server-only";
 
 import { and, inArray, not, or } from "drizzle-orm";

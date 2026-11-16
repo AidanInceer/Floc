@@ -1,8 +1,3 @@
-/**
- * The editor, assembled (#408): the page schema, live editing through Yjs with
- * named cursors and per-person undo, the keys the prototype settled, typed
- * shortcuts, and the outline, table and size plugins.
- */
 import { Extension, InputRule, type AnyExtension, type Editor } from "@tiptap/core";
 import Collaboration from "@tiptap/extension-collaboration";
 import CollaborationCaret from "@tiptap/extension-collaboration-caret";
@@ -36,7 +31,6 @@ export type KitOptions = {
 
 const run = (editor: Editor, command: Command) => command(editor.state, editor.view.dispatch, editor.view);
 
-/** Tab at the last cell adds a row, as a sheet does. */
 function tabCell(editor: Editor, dir: 1 | -1): boolean {
   if (run(editor, goToNextCell(dir))) return true;
   if (dir === -1) return false;

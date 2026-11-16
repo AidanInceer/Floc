@@ -10,7 +10,6 @@ export type Face = { userId: string; name: string; tone: string };
 
 const SHOWN = 5;
 
-/** Overlapping faces, the web card's avatar row. Past five, a count says how many more. */
 export function FaceStack({ faces, diameter = 26, label }: { faces: Face[]; diameter?: number; label?: string }) {
   const { c } = useTheme();
   if (faces.length === 0) return null;

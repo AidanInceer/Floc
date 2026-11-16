@@ -13,12 +13,10 @@ import { ChevronIcon } from "@/components/system/icons";
 import { ButtonLink, cx } from "@/components/system/ui";
 import { startTripHref } from "@/lib/landing/start-trip";
 
-// Twelve tiles, your own first, fill four rows of three or six of two.
 const TILE_LIMIT = 11;
 
 const hit = "inline-flex items-center gap-1 rounded-full border border-rule-strong px-2 py-px text-[11px]";
 
-/** The tags a tile shows: yours it has, then yours it lacks; with nothing liked, the first few it carries. */
 function TileTags({ row, likes }: { row: Ranked; likes: TripTag[] }) {
   if (row.shared) return <Tags on={row.shared.slice(0, 4)} />;
   if (!likes.length) return <Tags plain={tagsOf(row.trip).slice(0, 3)} />;
@@ -48,7 +46,6 @@ function Tags({ on = [], off = [], plain = [] }: { on?: TripTag[]; off?: TripTag
   );
 }
 
-/** A blank trip; from a want-to-go country on Lists it starts named after that country (#467). */
 function OwnTile({ signedIn, name }: { signedIn: boolean; name: string | null }) {
   return (
     <li className="flex min-h-56 flex-col items-center justify-center text-center gap-1.5 rounded-md border-[1.5px] border-dashed border-rule-strong p-4">
@@ -63,10 +60,6 @@ function OwnTile({ signedIn, name }: { signedIn: boolean; name: string | null })
 
 const grid = "grid grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3";
 
-/**
- * The trips, best first, as tiles. With tags liked and the best-match order, the ones with none of them
- * drop below a line: still there, never hidden.
- */
 export function FinderResults({
   rows,
   likes,
@@ -81,7 +74,6 @@ export function FinderResults({
   split: boolean;
   signedIn: boolean;
   blankName: string | null;
-  /** This season's top picks and the words their mark carries (#624). */
   season: { picks: ReadonlySet<string>; label: string };
   onLike: (presetId: string) => void;
 }) {

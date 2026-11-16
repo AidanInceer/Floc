@@ -7,7 +7,6 @@ import { respondToWishInviteAction } from "@/app/lists/wish/actions";
 import { Avatar, Button, busyMark } from "@/components/system/ui";
 import type { WishInvite } from "@/server/wish-lists/wish-lists";
 
-/** Invites waiting on you (#623): the list stays shut until you accept (ADR-049). Drawn like a trip invite on My trips. */
 export function WishInvites({ invites }: { invites: WishInvite[] }) {
   return (
     <ul className="mb-6 grid gap-3" aria-label="Invites">

@@ -86,7 +86,6 @@ export function PlanScreen() {
   );
 }
 
-// Each person's sixth of £1,200, less what they paid; Priya paid most, so the rest owe her.
 const OTHERS = [
   { who: jo, amount: "£62.00" },
   { who: sam, amount: "£98.00" },

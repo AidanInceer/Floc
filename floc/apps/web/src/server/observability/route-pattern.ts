@@ -17,7 +17,6 @@ function maskSegment(segment: string, previous: string | undefined): string {
   return segment;
 }
 
-/** A request path as its route, with no query and no ids or tokens (#613: logs hold no personal data). */
 export function routePattern(url: string | undefined): string {
   const segments = (url ?? "/").split(/[?#]/)[0]!.split("/");
   const masked = segments.map((segment, i) => maskSegment(segment, segments[i - 1]));

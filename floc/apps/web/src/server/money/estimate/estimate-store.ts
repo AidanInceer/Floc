@@ -1,8 +1,3 @@
-/**
- * A member's own cost-estimate choices (#574, ADR-057): their travel style and home airport on the profile,
- * and per trip their style, nights, budget and own line figures. Every read and write is keyed by the member,
- * so nothing here can reach another member's figures.
- */
 import "server-only";
 
 import { and, eq, isNull } from "drizzle-orm";
@@ -55,7 +50,6 @@ export async function readEstimateChoices(tripId: number, userId: string): Promi
   };
 }
 
-/** Null clears every choice on this trip, so the profile applies again. */
 export async function setTripStyle(tripId: number, userId: string, choice: StyleChoice | null): Promise<void> {
   const set = choice === null
     ? { estCabin: null, estStay: null, estPace: null }
@@ -78,7 +72,6 @@ export async function setBudget(tripId: number, userId: string, budget: Money | 
     .where(liveMembership(tripId, userId));
 }
 
-// Why: unique per line, so a line left with neither figure nor budget is soft-deleted and revived by the next write.
 export async function setOwnLine(
   tripId: number,
   userId: string,

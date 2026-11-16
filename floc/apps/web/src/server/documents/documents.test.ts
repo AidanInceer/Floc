@@ -1,10 +1,3 @@
-/**
- * A document can belong to a day or an event (ticket 320).
- *
- * The event join is the sharp edge: a member's private file must not leak to
- * another member through it, and soft-deleting the event must unattach the
- * file rather than bin it — `set null` on the column, `isNull` on the join.
- */
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
@@ -27,7 +20,6 @@ const base = {
   category: "other" as const,
 };
 
-/** What the event modal shows one viewer. */
 async function filesOn(eventId: number, viewerId: string) {
   const all = await listDocuments(world.ours.id, viewerId);
   return all.filter((doc) => doc.dayEventId === eventId);

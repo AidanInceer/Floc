@@ -1,8 +1,3 @@
-/**
- * The ways into an account (ticket 108, 118). Better Auth owns `account`; the
- * rule that the last way in cannot be removed is ours, and lives here once for
- * the settings page and the phone.
- */
 import "server-only";
 
 import { eq } from "drizzle-orm";
@@ -18,7 +13,6 @@ export async function listSignInMethods(userId: string): Promise<{ id: string; p
     .all();
 }
 
-/** Null when removed; otherwise the sentence that says why not. */
 export async function unlinkSignIn(userId: string, accountId: string): Promise<string | null> {
   const linked = await listSignInMethods(userId);
   if (linked.length <= 1) return "You can't unlink your last sign-in method.";

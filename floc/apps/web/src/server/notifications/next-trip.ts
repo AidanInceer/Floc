@@ -1,8 +1,3 @@
-/**
- * The "next trip?" prompt (#626, ADR-056): 2 and 6 months after a person's
- * last finished trip, while nothing is planned. Dates and trips decide it;
- * nothing the person did in the app is read.
- */
 import "server-only";
 
 import { and, eq, gte, inArray, isNull, lt, max, or } from "drizzle-orm";
@@ -17,7 +12,6 @@ import { remind } from "@/server/notifications/remind";
 const live = (userId: string) =>
   and(eq(tripMembership.userId, userId), isNull(tripMembership.deletedAt), isNull(trip.deletedAt));
 
-/** Each person on a live trip that ended exactly 60 or 180 days ago, with that trip as the once-only key. */
 async function candidates(day: IsoDate) {
   const ends = Object.values(NEXT_TRIP_AFTER_DAYS).map((days) => addDays(day, -days));
   const rows = await db
@@ -45,7 +39,6 @@ async function lastFinishedEnd(userId: string, day: IsoDate): Promise<IsoDate | 
   return row?.end ?? null;
 }
 
-/** A live trip that has not finished yet, or has no dates: something is planned. */
 async function hasTripAhead(userId: string, day: IsoDate): Promise<boolean> {
   const row = await db
     .select({ id: trip.id })

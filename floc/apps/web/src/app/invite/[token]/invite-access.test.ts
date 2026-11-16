@@ -1,10 +1,3 @@
-/**
- * Who a share link is answering (#330).
- *
- * The four states decide what the page shows and, for a member, whether it
- * shows anything at all — so each one is worth failing on. `inviteTrip` is the
- * door itself: it must open for a live token and for nothing else.
- */
 import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

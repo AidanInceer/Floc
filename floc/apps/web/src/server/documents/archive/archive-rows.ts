@@ -1,7 +1,3 @@
-/**
- * Why: `deleted_at` is the moment a file was archived. A row is in the archive for a week after it (ADR-048); the
- * row itself stays for good (rule 8), only its bytes go.
- */
 import "server-only";
 
 import { and, desc, eq, gt, isNotNull, isNull, lte, or } from "drizzle-orm";
@@ -18,12 +14,10 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const inArchive = (now: Date) => and(isNotNull(document.deletedAt), gt(document.deletedAt, fileArchiveCutoff(now)));
 
 type Scope = {
-  /** Shared files and this member's own. Absent reads every member's, for the trip's totals only. */
   viewerId?: string;
   documentId?: number;
 };
 
-/** Newest first. Somebody else's private file is never in a viewer's result. */
 export async function archivedRows(tripId: number, now: Date, { viewerId, documentId }: Scope = {}) {
   const rows = await db
     .select({
@@ -66,10 +60,6 @@ export async function unarchiveDocument(documentId: number): Promise<void> {
     .run();
 }
 
-/**
- * Why a window and no "purged" mark: a mark needs a column. Deleting bytes that are already gone is harmless, so
- * each file past its week is swept on every run for one more week, which also covers a cron that was down.
- */
 export async function keysPastTheWeek(now: Date): Promise<string[]> {
   const cutoff = fileArchiveCutoff(now);
   const rows = await db
@@ -82,7 +72,6 @@ export async function keysPastTheWeek(now: Date): Promise<string[]> {
   return rows.map((row) => row.storageKey);
 }
 
-/** A member's own archived files on every trip, for erasing their account. */
 export async function archivedKeysOwnedBy(userId: string, now: Date): Promise<string[]> {
   const rows = await db
     .select({ storageKey: document.storageKey })

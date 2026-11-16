@@ -1,7 +1,3 @@
-/**
- * Why: a shorter window or cleared dates delete the days outside it, with
- * their events, for good. The web asks first; the phone must too.
- */
 import { windowCost, windowCostLabel, windowCostNoun } from "@floc/core/trip/trip-window";
 
 type Day = { date: string; events: readonly unknown[] };

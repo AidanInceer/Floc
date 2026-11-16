@@ -5,7 +5,6 @@ import { AvatarRow } from "@/components/system/ui";
 import type { WishListRow } from "@/server/wish-lists/wish-lists";
 import { countWord } from "@floc/core/text/count-word";
 
-/** Your wish lists as rows on one surface (#623): name, the faces on it, and how much it holds. A row opens anywhere. */
 export function WishListRows({ lists }: { lists: WishListRow[] }) {
   return (
     <ul className="divide-y divide-rule overflow-hidden rounded-md bg-sheet shadow-[var(--shadow)]">

@@ -1,10 +1,3 @@
-/**
- * Which theme is on, and where the choice is kept (ticket 240).
- *
- * Light, dark, or auto — auto follows the browser's own setting and is what
- * nothing stored means. There is no `theme` column — the choice belongs to the
- * device, not the account, and a server round-trip would put a light flash back.
- */
 export const THEME_CHOICES = ["light", "dark", "system"] as const;
 
 export type ThemeChoice = (typeof THEME_CHOICES)[number];
@@ -27,15 +20,9 @@ export function storeChoice(choice: ThemeChoice) {
     if (choice === "system") localStorage.removeItem(THEME_STORAGE_KEY);
     else localStorage.setItem(THEME_STORAGE_KEY, choice);
   } catch {
-    // Storage can be denied outright (private mode, blocked cookies). The
-    // theme still applies for this page; it just won't survive a reload.
   }
 }
 
-/**
- * Why: a tile or wash that eases its colour would fade from one theme to the other; `data-theme-swap` holds
- * every transition off (globals.css) until two frames have painted the new theme.
- */
 export function applyTheme(
   root: { dataset: DOMStringMap },
   choice: ThemeChoice,
@@ -48,11 +35,6 @@ export function applyTheme(
   nextFrame(() => nextFrame(() => delete root.dataset.themeSwap));
 }
 
-/**
- * Why: runs before any bundle so a dark reload never flashes light, and lights
- * the switch before hydration. Signed out there is no switch, so the front door is
- * always light, whatever is stored or the device prefers.
- */
 export function themeBootstrap(signedIn: boolean): string {
   const read = signedIn ? `localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)})` : JSON.stringify("light");
   return `(function(){var r=document.documentElement;try{var c=${read};if(c!=="light"&&c!=="dark"){c="system"}r.dataset.themeChoice=c;r.dataset.theme=c==="system"?(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):c}catch(e){r.dataset.themeChoice="system";r.dataset.theme="light"}})()`;

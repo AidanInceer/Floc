@@ -11,7 +11,6 @@ import { useScene } from "../use-scene";
 import { Swap } from "./swap";
 import "./hero-ticket.css";
 
-// Why: below 360px the weekdays and nights go, so a value never runs into the faces beside them.
 const Roomy = ({ children }: { children: ReactNode }) => <span className="max-[359px]:hidden">{children}</span>;
 
 const FIELDS: Record<(typeof TICKET_FIELDS)[number], { label: string; value: ReactNode }> = {
@@ -21,7 +20,6 @@ const FIELDS: Record<(typeof TICKET_FIELDS)[number], { label: string; value: Rea
   each: { label: "Each", value: <span className="font-mono text-sm">£200.00</span> },
 };
 
-/** The phone hero's middle: the Sicily trip between two tear lines, each field filling in turn, then stamped. Hidden above 900px, where the deck plays. */
 export function HeroTicket() {
   const { ref, step } = useScene<HTMLDivElement>(TICKET_BEATS);
   return (

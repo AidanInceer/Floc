@@ -12,10 +12,6 @@ import { NewTripForm } from "@/components/trip/new-trip-form";
 import type { Person } from "@/server/social/friends";
 import type { Group } from "@/server/social/groups";
 
-/**
- * The top of My trips: name the trip here, then New trip opens the Start a trip sheet with that name in.
- * The button stays quiet until a name is typed (wireframe trips-head C2).
- */
 export function NewTripField({
   action,
   friends,
@@ -27,7 +23,6 @@ export function NewTripField({
   friends: Person[];
   groups: Group[];
   asked: string | null;
-  /** People who come ticked: a wish list's members (#623). */
   along?: Person[];
 }) {
   const [name, setName] = useState(asked ?? "");
@@ -64,7 +59,6 @@ export function NewTripField({
             </>
           }
           triggerVariant={ready ? "primary" : "secondary"}
-          // Why: the button is half of one joined control, so it changes colour on hover and never lifts away from the field.
           triggerClassName={cx(
             "h-11 shrink-0 whitespace-nowrap rounded-l-none border-l-0 hover:transform-none max-sm:rounded-r-none sm:h-[2.375rem]",
             ready && "hover:shadow-none",
@@ -76,7 +70,6 @@ export function NewTripField({
           <NewTripForm action={action} friends={friends} groups={groups} name={name.trim()} along={along} />
         </Sheet>
       </div>
-      {/* Why: on a phone Archived took a row of its own above the field; it joins the control as its last part. */}
       <div className="flex sm:hidden">
         <Menu
           label="More on My trips"

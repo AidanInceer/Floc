@@ -1,15 +1,3 @@
-/**
- * Setting the new password (#no-ticket; the web's `/reset-password`).
- *
- * REACHED BY DEEP LINK, NOT BY NAVIGATION. Better Auth answers the link in the
- * mail with a redirect to `floc://reset-password?token=…`, so the token
- * arrives as a route param and there is no other way onto this screen. An
- * expired or spent link comes back with `?error=` instead, which is why the
- * missing-token branch and the bad-token branch say one thing.
- *
- * IT WORKS SIGNED OUT. That is the whole point — the person cannot sign in.
- * The root layout leaves this route alone for the same reason.
- */
 import { passwordWeakness } from "@floc/core/text/credentials";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";

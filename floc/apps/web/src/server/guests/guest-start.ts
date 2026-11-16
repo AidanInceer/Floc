@@ -1,9 +1,3 @@
-/**
- * Starting a guest (#442, ADR-029): the one way in, since the plugin's own
- * endpoint is disabled. The guest is made first and counted after, from the
- * address Better Auth stamped on the session; one over the limit is deleted
- * again before it can answer anything.
- */
 import "server-only";
 
 import { and, eq } from "drizzle-orm";

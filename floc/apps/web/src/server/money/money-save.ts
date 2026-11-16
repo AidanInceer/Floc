@@ -1,8 +1,3 @@
-/**
- * Writing money, from the web form or the phone: access is already resolved by
- * the door, and everything after it happens here once. Each write returns
- * the refusal that says why not, or null once it has written and refreshed.
- */
 import "server-only";
 
 import {
@@ -41,12 +36,10 @@ export type ExpenseSave = {
   splits: SplitRow[];
 };
 
-/** Add or edit: an edit rewrites the expense and its whole split set in one transaction (rule 2). */
 export async function saveExpense(access: Access, input: ExpenseSave): Promise<Refusal | null> {
   const { expenseId, splits, ...fields } = input;
   const shape = expenseFieldsProblem(fields);
   if (shape) return new Refusal(shape);
-  // Why together: the write's own reads don't depend on the check, so both cost one round trip, not two.
   const [problem, room] = await Promise.all([
     expenseRefusal({
       tripId: access.trip.id,
@@ -69,7 +62,6 @@ export async function removeExpense(access: Access, expenseId: number): Promise<
   refresh({ kind: "money", tripId: access.trip.id });
 }
 
-/** Any member on either side may record a settlement; all transfers in one transaction (#345). */
 export async function recordTransfers(access: Access, transfers: Transfer[]): Promise<Refusal | null> {
   const people = new Set(access.members.map((m) => m.userId));
   for (const t of transfers) {

@@ -1,4 +1,3 @@
-/** Feedback from the phone (#271). The web sends the same message through its own Server Action. */
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { z } from "zod";
 

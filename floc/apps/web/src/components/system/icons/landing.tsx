@@ -2,9 +2,6 @@ import type { ReactNode } from "react";
 
 import { FLIGHT_PATH } from "@/components/system/icons/travel-mode";
 
-// ── icons ────────────────────────────────────────────────────────────────
-// Line-art in the app's own hand (CLAUDE.md: no emoji, no icon fonts). 14×14
-// viewBox, fill none, currentColor, hairline stroke.
 export type GlyphName =
   | "dates"
   | "money"

@@ -1,6 +1,3 @@
-/**
- * Why: five screens drew their own face; this is the phone's one renderer, and each `look` keeps its screen's size and edge.
- */
 import { initials } from "@floc/core/people/initials";
 import { whoTone, type WhoTone } from "@floc/core/people/who";
 import { StyleSheet, Text, View } from "react-native";
@@ -34,7 +31,6 @@ export function Face({ name, tone = whoTone(name), look = "row", size }: {
 }) {
   const { c } = useTheme();
   const box = size ?? BOX[look];
-  // Why: a stack's faces overlap, so each wears a ring of the sheet to stay apart; a row's edge matches its fill.
   const edge =
     look === "stack"
       ? { borderWidth: 1.5, borderColor: c.sheet }

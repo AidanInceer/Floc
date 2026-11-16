@@ -1,8 +1,6 @@
-/** Who gets a push or an email this run, and what it says (#345, #346). Held items stay pending and fold into a later send. */
 export const PUSH_WAIT_MS = 2 * 60_000;
 export const PUSH_TRIP_GAP_MS = 15 * 60_000;
 export const PUSH_DAY_CAP = 6;
-/** Why: longer than push, so something already seen in the app is read before its email goes. */
 export const EMAIL_WAIT_MS = 10 * 60_000;
 const DAY_MS = 86_400_000;
 
@@ -17,7 +15,6 @@ export type PendingPush = {
   tripName: string | null;
   text: string;
   href: string;
-  /** Reminders: sent past the limits and never counted against them. */
   exempt?: boolean;
 };
 
@@ -30,7 +27,6 @@ export type PlannedPush = {
   body: string;
   href: string;
   notificationIds: number[];
-  /** Each item's own words, in `notificationIds` order — an email lists them. */
   lines: string[];
   exempt?: boolean;
 };

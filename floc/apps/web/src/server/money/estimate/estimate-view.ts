@@ -1,4 +1,3 @@
-/** One member's cost estimate for one trip, all in their home currency (#574, ADR-057). Read for that member only. */
 import "server-only";
 
 import { homeCurrenciesFor } from "@/server/auth/profile";
@@ -24,7 +23,6 @@ export type { EstimateView } from "@floc/core/money/estimate/view";
 type TripDates = { id: number; startDate: string | null; endDate: string | null };
 type Ledger = { expenses: Awaited<ReturnType<typeof listExpenses>>; splits: Awaited<ReturnType<typeof listSplits>>; days: Awaited<ReturnType<typeof listRouteDays>> };
 
-/** `known` is the ledger and days a page already read, so the Overview does not read them twice. */
 export async function readEstimate(trip: TripDates, viewerId: string, known?: Ledger): Promise<EstimateView> {
   const [profile, choices, days, homes, expenses, splits] = await Promise.all([
     readTravelProfile(viewerId),

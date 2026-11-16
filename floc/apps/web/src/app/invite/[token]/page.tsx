@@ -1,10 +1,3 @@
-/**
- * What somebody holding a trip's share link sees (#330, #442): the ideas to vote
- * on and a calendar for their own days, behind a name. Nothing else — no days,
- * no files, no roster, no money. Those belong to the people in the trip, and a
- * share link is forwardable. The reads are the projections in
- * `server/trips/guest-view.ts`, which have no field to leak.
- */
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
@@ -20,11 +13,6 @@ import { guestAsk } from "@floc/core/people/guests";
 import { JoinControls } from "@/components/guest/join-controls";
 import { inviteAuthHrefs, inviteTrip, inviteViewer } from "./invite-access";
 
-/**
- * The link names the trip (ticket 147). The URL stays opaque — putting the name
- * in the path would leak it to every proxy and history the link passes through
- * — so the page carries it instead, in the tab title and link preview.
- */
 export async function generateMetadata({
   params,
 }: {
@@ -43,7 +31,7 @@ export async function generateMetadata({
     title,
     description,
     openGraph: { title, description },
-    robots: { index: false, follow: false }, // for the group, not a search index
+    robots: { index: false, follow: false },
   };
 }
 
@@ -61,7 +49,6 @@ export default async function InvitePage({
   if (!trip) return <DeadLink />;
 
   const viewer = await inviteViewer(trip.id);
-  // Already in: nothing here is worth showing them a read-only copy of.
   if (viewer.kind === "member") redirect(`/trip/${trip.id}/overview`);
 
   const guestId = viewer.kind === "guest" ? viewer.id : null;

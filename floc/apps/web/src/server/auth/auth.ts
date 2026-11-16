@@ -1,11 +1,3 @@
-/**
- * Better Auth (ticket 03) — user rows live in our own libSQL database so they
- * can carry FKs to trips, profiles and consent.
- *
- * Ticket 06: Google + email/password at launch, Facebook is a fast-follow.
- * Long rolling sessions, no re-authentication anywhere in v1. Deleting an
- * account is ours, not Better Auth's: `server/auth/erase-account.ts`.
- */
 import "server-only";
 
 import { expo } from "@better-auth/expo";
@@ -23,35 +15,18 @@ import { accountMail } from "@/server/auth/mail/mail-cap";
 const googleConfigured =
   !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET;
 
-/** Exposed so the auth pages can hide a provider button that cannot work. */
 export const enabledProviders = {
   google: googleConfigured,
-  /** Facebook is deliberately not wired in v1 (ticket 06). */
   facebook: false,
 } as const;
 
-/**
- * The phone app's deep-link scheme (ticket 289). Better Auth only redirects a
- * social sign-in back to an origin it has been told about, so an unset value
- * here shows up as Google refusing to return to the app.
- */
 const MOBILE_SCHEME = process.env.FLOC_MOBILE_SCHEME ?? "floc";
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
-  /**
-   * The phone has no cookie jar, so it signs in against this same instance and
-   * the same user table, and carries its session as a bearer token instead
-   * (ticket 289). Two plugins, one identity: `bearer` accepts that token on
-   * the API, `expo` handles the native redirect back out of the browser sheet.
-   *
-   * Nothing about the browser's session changes — it still uses the cookie it
-   * always did, and signing out on a phone leaves it alone.
-   */
   plugins: [
     bearer(),
     expo(),
-    // Guests on an invite link (#442, ADR-029). Their answers move to the account before the plugin deletes the guest row.
     anonymous({
       emailDomainName: "guest.floc.invalid",
       async onLinkAccount({ anonymousUser, newUser }) {
@@ -59,21 +34,13 @@ export const auth = betterAuth({
         await adoptGuest(anonymousUser.user.id, newUser.user.id);
       },
     }),
-    // Why last: it sets the cookie when a Server Action starts a guest session, and must see every other plugin's headers.
     nextCookies(),
   ],
-  // A guest starts only through the invite page's action, which checks the trip's cap and the caller's address first.
   disabledPaths: ["/sign-in/anonymous"],
-  // A phone reaches a dev server by LAN address, never `localhost`, so that
-  // origin has to be trusted too or sign-in hangs (ticket 289). Unset in
-  // production, where `baseURL` is already the real origin.
   trustedOrigins: [
     `${MOBILE_SCHEME}://`,
     ...(process.env.FLOC_LAN_ORIGIN ? [process.env.FLOC_LAN_ORIGIN] : []),
   ],
-  // Ticket 112: fatal in production if unset. A session secret has no degraded
-  // mode — a deploy signing cookies with a value from the repo is an auth
-  // bypass, not a reduced feature set.
   secret: requireInProduction("BETTER_AUTH_SECRET", "dev-only-secret-change-me"),
   database: drizzleAdapter(db, {
     provider: "sqlite",
@@ -86,13 +53,8 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    // Sign-in is not blocked on verification (#149). A confirmed address only
-    // keeps the password when Google later links on — see `link-guard.ts`.
     requireEmailVerification: false,
-    // A reset proves the inbox; sessions opened with the old password must end.
     revokeSessionsOnPasswordReset: true,
-    // Single-use by construction (Better Auth consumes the token) and short,
-    // since it is a bearer credential for the account.
     resetPasswordTokenExpiresIn: 60 * 60,
     async sendResetPassword({ user, url }) {
       if (!accountMail.allow("reset", user.email)) return;
@@ -101,11 +63,7 @@ export const auth = betterAuth({
     },
   },
   emailVerification: {
-    // Ticket 149: the mail goes out at signup. A Google sign-up never reaches
-    // here — Google reports the address already verified.
     sendOnSignUp: true,
-    // Single-use by construction (Better Auth consumes the token on success)
-    // and time-boxed so a leaked link stops working. 1 hour.
     expiresIn: 60 * 60,
     async sendVerificationEmail({ user, url }) {
       if (!accountMail.allow("verify", user.email)) return;
@@ -122,21 +80,14 @@ export const auth = betterAuth({
       }
     : {},
   account: {
-    // Google's access and refresh tokens are kept but never used, so at rest they are ciphertext.
     encryptOAuthTokens: true,
     accountLinking: {
       enabled: true,
-      // Safe only because Google reports verified emails; an unverified-email
-      // collision is refused and the user is told to sign in as they first did.
       trustedProviders: ["google"],
-      // Defaults to true, which locked people out when no mail provider could
-      // confirm the address (#149). Instead an unconfirmed password is dropped
-      // when Google links on (`databaseHooks` below), which stops pre-hijack.
       requireLocalEmailVerified: false,
     },
   },
   databaseHooks: {
-    // Why not a guest (#549): a guest on an invite link has agreed to nothing; the account they later make is recorded here.
     user: {
       create: {
         after: async (created) => {
@@ -154,8 +105,6 @@ export const auth = betterAuth({
       },
     },
   },
-  // Why: Better Auth's own rule is 3 sign-ups per 10 s, which still lets one address test about 26,000 emails a
-  // day for an account, and 3 mails a minute to strangers (#582). Counted per caller, on in production only.
   rateLimit: {
     customRules: {
       "/sign-up/email": { window: 60 * 60, max: 10 },
@@ -164,16 +113,11 @@ export const auth = betterAuth({
     },
   },
   advanced: {
-    // Why: Railway's edge sets `X-Real-IP` to the caller and a client can pad `X-Forwarded-For`, so Better Auth
-    // read no address at all and rate-limited every sign-in in one shared bucket. Dev has no edge and falls back to localhost.
     ipAddress: { ipAddressHeaders: ["x-real-ip"] },
   },
   session: {
-    expiresIn: 60 * 60 * 24 * 60, // 60 days
-    updateAge: 60 * 60 * 24, // rolling: refreshed at most once a day
-    // Why: a signed-cookie cache skips the session lookup. Revocation lags up to `maxAge`, but membership is read
-    // fresh on every request (`requireTripAccess`), so a removed member loses access at once. Pages cannot set
-    // cookies, so an open tab renews the cache before it lapses (`components/chrome/session-renewal.tsx`).
+    expiresIn: 60 * 60 * 24 * 60,
+    updateAge: 60 * 60 * 24,
     cookieCache: {
       enabled: true,
       maxAge: 5 * 60,

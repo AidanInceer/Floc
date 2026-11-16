@@ -1,8 +1,5 @@
 "use server";
 
-// An expense write always rewrites expense + the whole expense_split set in
-// one transaction (writeExpense, server/money/money.ts) — last-write-wins, never a
-// partial-row merge (ticket 12). Any member may add/edit/delete (ticket 01).
 import type { Currency } from "@/db/schema";
 import { capRequiredText, capText } from "@floc/core/text/text";
 import { CURRENCIES, minorPerMajor } from "@floc/core/money/currency";
@@ -28,8 +25,6 @@ import { refresh } from "@/server/freshness";
 
 export type ActionState = { error?: string };
 
-// Form posts shares + optional pin per participant (ticket 85), already
-// resolved for the mode. Excluded people simply aren't in `participant`.
 function readSplitBoxes(formData: FormData): SplitBox[] {
   return formData.getAll("participant").map(String).filter(Boolean).map((userId) => {
     const rawShares = String(formData.get(`shares_${userId}`) ?? "1").trim();
@@ -55,7 +50,6 @@ function readExpenseFields(formData: FormData) {
   return { description, currency, paidBy, dayId, notes, category };
 }
 
-// One path for add and edit: an edit replaces the split set whole, never merges (ticket 12).
 async function submitExpense(formData: FormData, expenseId?: number): Promise<ActionState> {
   const access = await requireTripAccess(Number(formData.get("tripId")));
   const { description, currency, paidBy, dayId, notes, category } =
@@ -105,13 +99,6 @@ export async function deleteExpense(formData: FormData): Promise<void> {
   await removeExpense(access, expenseId);
 }
 
-/**
- * The paid side of a cross-currency settlement. The rate is fetched here, not
- * accepted from the form — a client-posted rate would be a client-posted
- * balance. When no rate can be had at all the payer types the amount they
- * actually handed over and the implied rate is recorded with no date, because
- * there is no publication to point at (ticket 253).
- */
 async function readCrossPayment(
   clearsCurrency: Currency,
   payCurrency: Currency,
@@ -145,7 +132,6 @@ async function readCrossPayment(
 
 type Access = Awaited<ReturnType<typeof requireTripAccess>>;
 
-// The record rules, shared by record and edit (#361).
 async function readTransfer(access: Access, formData: FormData): Promise<Transfer | { error: string }> {
   const fromUserId = String(formData.get("fromUserId") ?? "");
   const toUserId = String(formData.get("toUserId") ?? "");
@@ -168,9 +154,6 @@ async function readTransfer(access: Access, formData: FormData): Promise<Transfe
   }
   if (amountMinor <= 0) return { error: NO_AMOUNT };
 
-  // Paying in a different currency from the debt (ticket 253). The debt side
-  // is what moves the balance; the paid side and the rate are a snapshot of
-  // this one payment, never read back to convert anything else.
   const payCurrency = String(formData.get("payCurrency") ?? currency) as Currency;
   if (!CURRENCIES.includes(payCurrency)) return { error: "Pick a currency." };
 
@@ -191,8 +174,6 @@ async function readTransfer(access: Access, formData: FormData): Promise<Transfe
   };
 }
 
-// Records a settlement pre-filled from a simplified transfer, amount/person
-// editable. Either party to it may record it (money overhaul).
 export async function recordSettlement(
   _prev: ActionState,
   formData: FormData,
@@ -205,7 +186,6 @@ export async function recordSettlement(
   return refusal ? { error: refusal.message } : {};
 }
 
-// A party to the recorded payment may correct it; last write wins (#361).
 export async function editSettlement(
   _prev: ActionState,
   formData: FormData,
@@ -229,8 +209,6 @@ export async function editSettlement(
   return {};
 }
 
-// Reverts a settlement — soft-delete, so the balance recomputes as if the
-// money never moved. Anyone on the trip may delete any row (money overhaul).
 export async function deleteSettlement(formData: FormData): Promise<void> {
   const tripId = Number(formData.get("tripId"));
   const settlementId = Number(formData.get("settlementId"));
@@ -244,8 +222,6 @@ export async function deleteSettlement(formData: FormData): Promise<void> {
   refresh({ kind: "money", tripId: access.trip.id });
 }
 
-// One payment clears everything between the viewer and one person (#461, #463). The rows are recomputed here,
-// never read from the form, so the figure the payer confirmed is the one the ledger says now.
 export async function settlePair(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const access = await requireTripAccess(Number(formData.get("tripId")));
   const refusal = await settleWithFor(access, String(formData.get("otherUserId") ?? ""));

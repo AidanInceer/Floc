@@ -35,9 +35,14 @@ test("a dynamic path in a function that reads no untrusted input passes", async 
   assert.ok(!issues.some((issue) => issue.ruleId === FS));
 });
 
-test("a reviewed path passes with a Why: comment on the line above", async (t) => {
-  const issues = await lintOne(t, "example.ts", fromArgv + "// Why: checked against the root above.\nexport const text = readFileSync(path);\n");
+test("a reviewed path passes with NOSONAR on the same line, as in SonarCloud", async (t) => {
+  const issues = await lintOne(t, "example.ts", fromArgv + "export const text = readFileSync(path); // NOSONAR\n");
   assert.deepEqual(issues, []);
+});
+
+test("a Why: comment on the line above no longer hides a finding", async (t) => {
+  const issues = await lintOne(t, "example.ts", fromArgv + "// Why: checked against the root above.\nexport const text = readFileSync(path);\n");
+  assert.ok(issues.some((issue) => issue.ruleId === FS));
 });
 
 test("an eslint-disable comment does not hide a finding", async (t) => {

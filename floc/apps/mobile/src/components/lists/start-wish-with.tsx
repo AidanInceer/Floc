@@ -1,4 +1,3 @@
-/** On a friend's Saved part (#623): a wish list with them, filled with what you both saved. They get an invite. */
 import { firstName } from "@floc/core/people/group-ticks";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";

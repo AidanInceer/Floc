@@ -1,13 +1,3 @@
-/**
- * Generic no-access response (ticket 05, extended to profiles by 46;
- * redesigned 202): identical wording whether the id is real but not yours, or
- * fake, so ids can't be enumerated by the response text.
- *
- * The copy names no *kind* of thing for the same reason — a trip and a profile
- * a stranger can't reach have to answer identically, or the wording itself
- * says which one exists. That is why there is no "back to the trip" here, only
- * ways back into the product at large.
- */
 import { ButtonLink, PageTitle } from "@/components/system/ui";
 
 export default function NotFound() {

@@ -1,6 +1,5 @@
 import { LineIcon } from "@/components/system/icons";
 
-/** Auto packing's mark (#469): ideas and the lines taken from them. Always beside a word, never alone. */
 export function SparkIcon({ size = 13, className }: { size?: number; className?: string }) {
   return (
     <LineIcon size={size} className={className}>
@@ -9,7 +8,6 @@ export function SparkIcon({ size = 13, className }: { size?: number; className?:
   );
 }
 
-/** Only you can see it: always beside the words "Only you". */
 export function LockIcon({ size = 13, className }: { size?: number; className?: string }) {
   return (
     <LineIcon size={size} className={className}>
@@ -19,7 +17,6 @@ export function LockIcon({ size = 13, className }: { size?: number; className?: 
   );
 }
 
-/** A saved list. */
 export function ListIcon({ size = 13, className }: { size?: number; className?: string }) {
   return (
     <LineIcon size={size} className={className}>

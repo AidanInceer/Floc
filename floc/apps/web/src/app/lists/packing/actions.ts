@@ -1,9 +1,5 @@
 "use server";
 
-// Saved packing lists (ticket 230). Not a trip surface, so there is no
-// `requireTripAccess` here — `requireUser` plus owner-scoped writes is the
-// whole of the access rule, and every write in `server/packing-kits` carries
-// the owner rather than trusting a resolved id.
 import { redirect } from "next/navigation";
 
 import {
@@ -31,8 +27,6 @@ export async function createPackingKit(formData: FormData) {
   const id = await insertPackingKit(viewer.id, name);
 
   refresh({ kind: "packingKits" });
-  // Straight into the new list, because a list with no things in it is not
-  // what you came to make.
   if (id !== null) redirect(`/lists/packing#kit-${id}`);
 }
 

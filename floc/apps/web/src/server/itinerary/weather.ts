@@ -1,13 +1,3 @@
-/**
- * The trip forecast (ticket 148): one MET Norway call per trip → the Overview
- * register and the Dates hourly curves. #549 moved it off Open-Meteo, whose free
- * API is for non-commercial use; MET Norway's data is CC BY 4.0, free for a paid app.
- *
- * MET Norway needs no key, only a User-Agent that names the caller, so the degrade
- * path is "provider unreachable", not "no credentials" — same shape as the geocoder
- * (server/itinerary/places.ts), rule 11. Nothing is persisted (no timezone/forecast
- * column, no ERD change); the fetch is cached instead.
- */
 import "server-only";
 
 import tzLookup from "@photostructure/tz-lookup";
@@ -28,7 +18,6 @@ import {
 import { canUseFeature } from "@/server/billing/entitlements";
 
 const MET_NORWAY = "https://api.met.no/weatherapi/locationforecast/2.0/compact";
-// MET Norway's terms: name the app and a way to reach it, or be blocked.
 const USER_AGENT = "Floc https://floc.live";
 
 export type DailyForecast = {
@@ -39,29 +28,23 @@ export type DailyForecast = {
   lo: number;
 };
 
-// Every third hour while MET Norway gives hours, then every six.
 export type HourlyPoint = {
-  hour: string; // local "HH:MM", displayed never stored (rule 10)
+  hour: string;
   condition: WeatherCondition;
   temp: number;
-  rain: number; // mm expected until the next point
+  rain: number;
 };
 
 export type TripForecast = {
   placeName: string;
-  from: IsoDate; // horizon measured from here (today at fetch)
-  horizonEnd: IsoDate; // last day with data, `from + HORIZON_DAYS - 1`
+  from: IsoDate;
+  horizonEnd: IsoDate;
   days: DailyForecast[];
   hourly: Record<IsoDate, HourlyPoint[]>;
 };
 
 type Anchor = { lat: number; lng: number; placeName: string };
 
-/**
- * Earliest live day whose overnight place has coordinates. One location per trip
- * for v1; per-stop weather is a later item. Null covers every undated trip,
- * since the itinerary begins when the dates do.
- */
 export async function tripForecastAnchor(tripId: number): Promise<Anchor | null> {
   const row = await db
     .select({ lat: place.lat, lng: place.lng, placeName: place.name })
@@ -94,21 +77,15 @@ type MetEntry = {
 };
 type MetResponse = { properties?: { timeseries?: MetEntry[] } };
 
-/** One forecast step in the place's own time: its reading, and the weather until the next step. */
 type Step = { date: IsoDate; time: string; hour: number; hours: number; temp: number; condition: WeatherCondition; rain: number };
 
-// Any failure — no anchor, unreachable, non-OK, malformed — is a quiet null.
 export async function getTripForecast(tripId: number): Promise<TripForecast | null> {
-  // The gate lives on the read, not only on the tab (ticket 248): hiding a tab
-  // is presentation, and a free trip must not obtain a forecast however it
-  // asks. The page asks `canUseFeature` separately, to say *why* it is empty.
   if (!(await canUseFeature("dates.weather", tripId))) return null;
 
   const anchor = await tripForecastAnchor(tripId);
   if (!anchor) return null;
 
   const url = new URL(MET_NORWAY);
-  // MET Norway allows four decimals at most; fixed precision also keeps the cache key stable.
   url.searchParams.set("lat", anchor.lat.toFixed(4));
   url.searchParams.set("lon", anchor.lng.toFixed(4));
 
@@ -118,7 +95,7 @@ export async function getTripForecast(tripId: number): Promise<TripForecast | nu
     zone = tzLookup(anchor.lat, anchor.lng);
     const res = await fetch(url.toString(), {
       headers: { "User-Agent": USER_AGENT },
-      next: { revalidate: 10_800 }, // 3h — one provider call per place, not per render
+      next: { revalidate: 10_800 },
       signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) {
@@ -140,10 +117,6 @@ export async function getTripForecast(tripId: number): Promise<TripForecast | nu
   return { placeName: anchor.placeName, from, horizonEnd, days, hourly: mapHourly(steps) };
 }
 
-/**
- * Why: MET Norway answers in UTC and a trip's hours read in the place's own time.
- * The zone comes from the coordinates and is used only to display (rule 10).
- */
 function localClock(zone: string) {
   const format = new Intl.DateTimeFormat("en-GB", {
     timeZone: zone,
@@ -160,8 +133,6 @@ function localClock(zone: string) {
   };
 }
 
-// Each entry's own block covers exactly the gap to the next entry: one hour while
-// MET Norway gives hours, six after that.
 function toSteps(series: MetEntry[], zone: string): Step[] {
   const clock = localClock(zone);
   const out: Step[] = [];
@@ -204,8 +175,6 @@ function mapDaily(steps: Step[]): DailyForecast[] {
   }));
 }
 
-// Thinned to every third hour — eight points draw a day's shape without a reading
-// per hour (prototype C2 grain). A dropped hour's rain joins the point before it.
 function mapHourly(steps: Step[]): Record<IsoDate, HourlyPoint[]> {
   const out: Record<IsoDate, HourlyPoint[]> = {};
   let open: HourlyPoint | null = null;

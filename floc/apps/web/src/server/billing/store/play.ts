@@ -1,7 +1,3 @@
-/**
- * Google's side. A purchase token is only believed once the Play Developer API
- * says what it is. Rule 11: with no service account set, nothing sells.
- */
 import "server-only";
 
 import { GoogleAuth, OAuth2Client } from "google-auth-library";
@@ -12,7 +8,6 @@ import { playFacts, type PlaySubscription, type StoreFacts } from "./store-facts
 
 const PUBLISHER = "https://androidpublisher.googleapis.com/androidpublisher/v3/applications";
 
-// Why: Google answers these for a token it never issued or has retired.
 const REFUSED = new Set([400, 404, 410]);
 
 export async function readPlaySubscription(
@@ -44,7 +39,6 @@ export async function readPlaySubscription(
   return facts ? { facts, replaces: sub.linkedPurchaseToken ?? null } : "refused";
 }
 
-/** Pub/Sub signs each push with a Google ID token; nothing else may reach the Play webhook. */
 export async function isPubSubPush(authorization: string | null): Promise<boolean> {
   const audience = process.env.GOOGLE_PLAY_RTDN_AUDIENCE;
   const pushAccount = process.env.GOOGLE_PLAY_RTDN_SERVICE_ACCOUNT;

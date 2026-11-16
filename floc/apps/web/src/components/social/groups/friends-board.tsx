@@ -17,7 +17,6 @@ import { GroupSheet, type GroupSheetMode } from "./group-sheet";
 const headClass = "flex items-center gap-2 text-sm font-medium";
 const countClass = "nums font-mono text-xs text-ink-faint";
 
-/** Why: Friends and Groups draw one shape, full or empty — a head with its count and any action, then ruled rows or the empty card. */
 function PeopleSection({ title, count, action, empty, children }: {
   title: string;
   count: number;
@@ -36,7 +35,6 @@ function PeopleSection({ title, count, action, empty, children }: {
   );
 }
 
-/** Friends and Groups are two pages on the account bar (#637); both open the same group sheet. */
 export function FriendsBoard({ show, friends, groups, pastTrips }: {
   show: "friends" | "groups";
   friends: { person: Person; metOn: string | null }[];

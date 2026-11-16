@@ -1,23 +1,7 @@
-/**
- * What an auth failure is called on screen (#no-ticket).
- *
- * Shared by all four doors — sign in, sign up, forgotten password, new
- * password — because they fail the same two ways and must not disagree about
- * the wording of either.
- *
- * NOTHING HERE NAMES AN ACCOUNT. Which of the address or the password was
- * wrong, and whether an address is registered at all, are the same question;
- * answering it would turn the sign-in screen into an account-enumerator.
- */
 import { API_BASE_URL } from "./config";
 
 export const OFFLINE = `Can't reach ${API_BASE_URL}. Check the server is running and the phone can see it.`;
 
-/**
- * A request that never arrived carries no status, so Better Auth reports it the
- * same shape as a refusal. Telling the two apart matters most in development,
- * where a firewalled dev server otherwise reads as a wrong password.
- */
 export function unreachable(error: { status?: number }): boolean {
   return !error.status;
 }

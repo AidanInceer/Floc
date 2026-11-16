@@ -1,20 +1,8 @@
-/**
- * The phone's line-art glyphs (tickets 291, 299). A seat, a person's face, is `face.tsx`.
- *
- * NO EMOJI (#148). The web app draws line-art in a 14×14 `viewBox` at ~13px,
- * `fill="none"`, `strokeWidth` 1.15–1.25, `stroke="currentColor"`.
- *
- * The tab glyphs that lived here went with the tab bar (#299) — the section
- * sheet is a list of words, and a word needs no icon beside it.
-*/
 import type { WeatherCondition } from "@floc/core/itinerary/weather";
 import Svg, { Circle, G, Path } from "react-native-svg";
 
-/* Real SVG now that `react-native-svg` is here (#302) — same weights as the web. */
-
 const STROKE = 1.2;
 
-/** A tick. Packed, done, claimed. */
 export function TickGlyph({ color }: { color: string }) {
   return (
     <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
@@ -29,7 +17,6 @@ export function TickGlyph({ color }: { color: string }) {
   );
 }
 
-/** A cross. Remove, drop, undo a claim. */
 export function CrossGlyph({ color }: { color: string }) {
   return (
     <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
@@ -48,7 +35,6 @@ export function SearchGlyph({ color }: { color: string }) {
   );
 }
 
-/** A plus. One more of something. */
 export function PlusGlyph({ color }: { color: string }) {
   return (
     <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
@@ -58,7 +44,6 @@ export function PlusGlyph({ color }: { color: string }) {
   );
 }
 
-/** A minus. One fewer. */
 export function MinusGlyph({ color }: { color: string }) {
   return (
     <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
@@ -67,7 +52,6 @@ export function MinusGlyph({ color }: { color: string }) {
   );
 }
 
-/** A chevron pointing down: "this opens". */
 export function SortGlyph({ color }: { color: string }) {
   return (
     <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
@@ -92,11 +76,6 @@ export function ChevronGlyph({ color, open }: { color: string; open?: boolean })
   );
 }
 
-/**
- * A pen. "This is a control, not a caption" — it sits beside the trip name in
- * the header, which opens the trip's name, colour and tags. Without it the
- * title read as a heading and nobody tapped it.
- */
 export function PenGlyph({ color, size = 16 }: { color: string; size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 14 14" fill="none">
@@ -105,10 +84,6 @@ export function PenGlyph({ color, size = 16 }: { color: string; size?: number })
   );
 }
 
-/**
- * Three dots: "there is more to this than the line shows". The web trip card
- * wears the same mark, so the phone borrows it rather than inventing a word.
- */
 export function MoreGlyph({ color }: { color: string }) {
   return (
     <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
@@ -119,14 +94,7 @@ export function MoreGlyph({ color }: { color: string }) {
   );
 }
 
-/**
- * Share: a box with an arrow leaving it. Not a chain link — a link is the
- * thing being handed over, and drawing the thing rather than the act read as
- * "attachment" in testing.
- */
 export function ShareGlyph({ color }: { color: string }) {
-  // The web's share mark (`overview-group.tsx`): three nodes on two lines. Same
-  // drawing on both, so "share" is one picture, not two.
   return (
     <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
       <Circle cx={10.5} cy={2.9} r={1.75} stroke={color} strokeWidth={1.2} />
@@ -142,7 +110,6 @@ export function ShareGlyph({ color }: { color: string }) {
   );
 }
 
-/** Invite: the web's add-person mark (`overview-group.tsx`). */
 export function AddPersonGlyph({ color }: { color: string }) {
   return (
     <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
@@ -152,7 +119,6 @@ export function AddPersonGlyph({ color }: { color: string }) {
   );
 }
 
-/** An event carries a note: lines of writing, never the pencil, which means edit. */
 export function NoteGlyph({ color }: { color: string }) {
   return (
     <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
@@ -161,7 +127,6 @@ export function NoteGlyph({ color }: { color: string }) {
   );
 }
 
-/** The group: the web's Friends nav mark. */
 export function GroupGlyph({ color }: { color: string }) {
   return (
     <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
@@ -172,7 +137,6 @@ export function GroupGlyph({ color }: { color: string }) {
   );
 }
 
-/** A calendar page: the web's Dates nav mark. */
 export function CalendarGlyph({ color }: { color: string }) {
   return (
     <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
@@ -181,7 +145,6 @@ export function CalendarGlyph({ color }: { color: string }) {
   );
 }
 
-/** Later, not yet — the web's `ClockIcon`. */
 export function ClockGlyph({ color }: { color: string }) {
   return (
     <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
@@ -191,7 +154,6 @@ export function ClockGlyph({ color }: { color: string }) {
   );
 }
 
-/** The bookmark that hangs from a stop with a hotel booking: 16 wide, 30 tall, notched at the foot. */
 export function RibbonGlyph({ color }: { color: string }) {
   return (
     <Svg width={16} height={30} viewBox="0 0 16 30">
@@ -199,8 +161,6 @@ export function RibbonGlyph({ color }: { color: string }) {
     </Svg>
   );
 }
-
-/** Stays — the web's Overview booking tile. */
 
 export function BedGlyph({ color }: { color: string }) {
   return (
@@ -217,7 +177,6 @@ export function BedGlyph({ color }: { color: string }) {
   );
 }
 
-/** Leaves Floc for another site — the web's booking-link arrow. */
 export function OutGlyph({ color }: { color: string }) {
   return (
     <Svg width={12} height={12} viewBox="0 0 14 14" fill="none">
@@ -232,10 +191,6 @@ export function OutGlyph({ color }: { color: string }) {
   );
 }
 
-/**
- * A paperclip: this block has files on it (ticket 324). The same path the web
- * draws, so a clipped event is one picture across both apps.
- */
 export function ClipGlyph({ color }: { color: string }) {
   return (
     <Svg width={11} height={11} viewBox="0 0 14 14" fill="none">
@@ -250,7 +205,6 @@ export function ClipGlyph({ color }: { color: string }) {
   );
 }
 
-/** Light theme. The web switch's sun, same path. */
 export function SunGlyph({ color }: { color: string }) {
   return (
     <Svg width={13} height={13} viewBox="0 0 14 14" fill="none">
@@ -265,7 +219,6 @@ export function SunGlyph({ color }: { color: string }) {
   );
 }
 
-/** Dark theme. The web switch's moon, same path. */
 export function MoonGlyph({ color }: { color: string }) {
   return (
     <Svg width={13} height={13} viewBox="0 0 14 14" fill="none">
@@ -279,7 +232,6 @@ export function MoonGlyph({ color }: { color: string }) {
   );
 }
 
-/** Notifications (#344). The web bar's bell, same paths. */
 export function BellGlyph({ color }: { color: string }) {
   return (
     <Svg width={15} height={15} viewBox="0 0 14 14" fill="none">
@@ -294,7 +246,6 @@ export function BellGlyph({ color }: { color: string }) {
   );
 }
 
-/** A trip you starred. Same drawing as Pro's mark; `on` fills it. */
 export function StarGlyph({ color, on }: { color: string; on: boolean }) {
   return (
     <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
@@ -328,7 +279,6 @@ const WEATHER_PATHS: Record<WeatherCondition, string[]> = {
   ],
 };
 
-/** The web's `system/icons/weather.tsx`, same paths, so a sunny day is one picture on both. */
 export function WeatherGlyph({
   condition,
   color,
@@ -354,12 +304,6 @@ const THUMB = [
   "M1.3 6.1h2.4V12H1.3Z",
 ];
 
-/**
- * Heart, thumbs up, thumbs down — the same paths the web's `ReactionGlyph`
- * draws (ticket 36), so one reaction is one picture on both surfaces. Yours
- * fills in; the count beside it is what carries the state, never the fill
- * alone (#204).
- */
 export function ReactionGlyph({
   kind,
   mine,
@@ -372,7 +316,6 @@ export function ReactionGlyph({
   const paths = kind === "heart" ? [HEART] : THUMB;
   return (
     <Svg width={13} height={13} viewBox="0 0 14 14">
-      {/* Thumbs down is thumbs up, turned over. */}
       <G transform={kind === "down" ? "rotate(180 7 7)" : undefined}>
         {paths.map((d) => (
           <Path
@@ -389,10 +332,6 @@ export function ReactionGlyph({
   );
 }
 
-/**
- * The first-trip walkthrough's marks (#315): the Ideas bulb, a pin for where, people for the
- * invite, and the tabs' own calendar, days list and bed. The web's `icons/walkthrough.tsx`.
- */
 const STEP_PATHS: Record<string, string[]> = {
   ideas: ["M5.2 10.2h3.6M5.6 12h2.8M7 1.8a3.6 3.6 0 0 0-2.2 6.4c.4.3.5.7.5 1.1v.9h3.4v-.9c0-.4.1-.8.5-1.1A3.6 3.6 0 0 0 7 1.8Z"],
   where: ["M7 12.4s3.8-3.6 3.8-6.6a3.8 3.8 0 0 0-7.6 0c0 3 3.8 6.6 3.8 6.6Z"],
@@ -446,7 +385,6 @@ export function FileGlyph({ color }: { color: string }) {
   );
 }
 
-/** The Ideas bulb. */
 export function BulbGlyph({ color }: { color: string }) {
   return (
     <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
@@ -461,7 +399,6 @@ export function BulbGlyph({ color }: { color: string }) {
   );
 }
 
-/** Wish lists (#623): a list with the save heart on its first line, the web's account-bar mark. */
 export function WishListGlyph({ color }: { color: string }) {
   return (
     <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">

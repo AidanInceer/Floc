@@ -1,22 +1,3 @@
-/**
- * The house design system, drawn natively (ticket 289).
- *
- * Deliberately NOT shared with the web app's `components/ui.tsx`. The two UIs
- * are separate on purpose — a native screen should feel native — and a
- * cross-platform component library is the abstraction the plan says not to
- * build before there is evidence it helps. What IS shared is the thing that
- * actually keeps them one product: the token values, via `useTheme`.
- *
- * The rules from `docs/design/visual-language.html` hold here unchanged:
- *   - Colour comes from tokens. There is no hex literal in this file.
- *   - No emoji. Icons are line-art, drawn as strokes.
- *   - Status always carries a word, never colour alone.
- *   - If the drawing is clear, say nothing.
- *
- * Its twin is `floc/apps/web/src/components/ui.tsx`. Separate files, one
- * product: a control added or restyled there needs the same move here, or a
- * reason it does not apply on a phone.
- */
 import { useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
@@ -36,7 +17,6 @@ import { ChevronGlyph, SearchGlyph } from "./glyphs";
 import { Sheet } from "./sheet";
 import { useTheme } from "./theme";
 
-/** Every tone is a token name. `pastel-yellow-ink` is here so text on a yellow ground keeps its contrast (#204). */
 type TextTone = "ink" | "ink-2" | "ink-3" | "pen" | "red" | "green" | "pastel-yellow-ink" | "pastel-blue-ink";
 
 export function Body({
@@ -77,7 +57,6 @@ export function Heading({ children }: { children: ReactNode }) {
   );
 }
 
-/** The 11px uppercase label. `--ink-3` was darkened until it clears AA at this size (#204). */
 export function Label({ children }: { children: ReactNode }) {
   const { c } = useTheme();
   return (
@@ -95,10 +74,6 @@ export function Label({ children }: { children: ReactNode }) {
   );
 }
 
-/**
- * The name of a section, in sentence case. The design card bars a tiny all-caps kicker above a
- * section; `Label` stays for the mono word that names a value — a field, a count, a date.
- */
 export function SectionTitle({ children }: { children: ReactNode }) {
   const { c } = useTheme();
   return (
@@ -108,7 +83,6 @@ export function SectionTitle({ children }: { children: ReactNode }) {
   );
 }
 
-/** Every figure, date, time and amount. Tabular, so columns of money line up. */
 export function Figure({ children, tone = "ink" }: { children: ReactNode; tone?: TextTone }) {
   const { c } = useTheme();
   return (
@@ -151,11 +125,6 @@ export function Divider() {
   return <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: c.rule }} />;
 }
 
-/**
- * A rule with a word sitting in it — "or" between two ways of doing the same
- * thing (#no-ticket). A plain gap between the password button and the provider
- * button reads as two unrelated stacks; the rule says they are alternatives.
- */
 export function OrRule({ label }: { label: string }) {
   const { c } = useTheme();
   const line = { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: c.rule };
@@ -189,10 +158,8 @@ export function Button({
 }: {
   label: string;
   onPress: () => void;
-  /** Drawn before the label, in the label's own colour. Line-art only, no emoji. */
   icon?: (ink: string) => ReactNode;
   variant?: "primary" | "quiet" | "danger";
-  /** Why: `small` shrinks to its words for controls that share a line — a rare job at full width is the loudest thing on the card. */
   fit?: "full" | "small";
   busy?: boolean;
   disabled?: boolean;
@@ -200,9 +167,6 @@ export function Button({
   const { c } = useTheme();
   const ground = { primary: c.pen, quiet: c.sheet, danger: c["red-2"] }[variant];
   const ink = { primary: c.sheet, quiet: c["ink-2"], danger: c.red }[variant];
-  // The web's secondary button is an outline on the sheet, not a grey slab
-  // (`ui.tsx`, `variants.secondary`). A filled quiet button carried the same
-  // weight as the primary next to it, so the pair read as two primaries.
   const edge = { primary: c.pen, quiet: c["rule-2"], danger: c["red-2"] }[variant];
   const off = disabled || busy;
   const small = fit === "small";
@@ -214,7 +178,6 @@ export function Button({
       accessibilityState={{ disabled: !!off, busy: !!busy }}
       onPress={onPress}
       disabled={off}
-      // Why: a small button draws about 36 tall; the press area still reaches the full 44.
       hitSlop={small ? 4 : undefined}
       style={({ pressed }) => ({
         backgroundColor: ground,
@@ -292,7 +255,6 @@ export function SearchField({
   );
 }
 
-/** A text field named for the screen reader only, where the row around it already says what it is for. */
 export function TextBox({ label, ...props }: TextInputProps & { label: string }) {
   return <TextInputBox accessibilityLabel={label} {...props} />;
 }
@@ -317,10 +279,6 @@ function TextInputBox(props: TextInputProps) {
   );
 }
 
-/**
- * A status pill. `word` is not optional and never will be: colour alone tells
- * nobody anything who cannot see it (#204).
- */
 export function Pill({
   word,
   tone = "pastel-blue",
@@ -328,7 +286,6 @@ export function Pill({
 }: {
   word: string;
   tone?: "pastel-blue" | "pastel-green" | "pastel-yellow" | "pastel-red" | "neutral";
-  /** Sentence case, for a status that reads as words: the cost estimate's (#574), as on the web. */
   sentence?: boolean;
 }) {
   const { c } = useTheme();
@@ -362,13 +319,6 @@ export function Pill({
   );
 }
 
-/**
- * One row of choices, one of them on (ticket 297).
- *
- * A view switch, not a filter and not a setting — which is why the chosen one
- * is filled rather than ticked, and why there is no "all". Each option is its
- * own word: the fill is a second signal, never the only one (#204).
- */
 export function Segmented<T extends string>({
   options,
   value,
@@ -429,10 +379,6 @@ export function Segmented<T extends string>({
   );
 }
 
-/**
- * What is missing, said plainly. One of the two things text is still for when
- * the drawing is clear — the other being status.
- */
 export function Empty({ children }: { children: ReactNode }) {
   return (
     <View style={{ paddingVertical: space.xxl, alignItems: "center", gap: space.sm }}>
@@ -450,7 +396,6 @@ export function Loading() {
   );
 }
 
-/** A failed read says what failed and offers the retry — never a bare spinner that never ends. */
 export function Failed({ onRetry }: { onRetry: () => void }) {
   return (
     <View style={{ paddingVertical: space.xxl, alignItems: "center", gap: space.md }}>
@@ -469,19 +414,6 @@ export function Screen({ children }: { children: ReactNode }) {
   );
 }
 
-/**
- * A square tap target holding one glyph (#302 follow-up).
- *
- * WHY THIS EXISTS. Packing drew a stack of full-width `Button`s per line —
- * three bars of the same weight as "Save", for actions that are neither
- * primary nor rare. That is a web page's row of buttons dropped onto a phone:
- * it makes a five-item list four screens long and gives "Remove" the same
- * shout as "I've packed it".
- *
- * A glyph alone is allowed here and only here: the row's *status* is still a
- * word beside it (#204), and every one of these carries `accessibilityLabel`,
- * so nothing is said by drawing alone.
- */
 export function IconButton({
   label,
   on,
@@ -491,11 +423,8 @@ export function IconButton({
   children,
   onPress,
 }: {
-  /** Said aloud, and the only place the action is named. Never optional. */
   label: string;
-  /** Filled rather than outlined — the state is on. */
   on?: boolean;
-  /** The pastel an "on" button wears. */
   onColor?: "pastel-green" | "pastel-blue" | "pastel-yellow" | "pastel-red";
   tone?: "quiet" | "danger";
   disabled?: boolean;
@@ -537,7 +466,6 @@ export function IconButton({
   );
 }
 
-/** Why: the switch is the write — no Save button; `hint` is only ever a consequence the drawing cannot say. */
 export function Toggle({
   label,
   hint,
@@ -578,7 +506,6 @@ export function Toggle({
   );
 }
 
-/** A list line: what it is on the left, what you can do to it on the right. */
 export function Row({ children }: { children: ReactNode }) {
   const { c } = useTheme();
   return (
@@ -600,15 +527,6 @@ export function Row({ children }: { children: ReactNode }) {
   );
 }
 
-/**
- * Pick one of a list, from a sheet.
- *
- * A phone has no `<select>`, and the two obvious substitutes both failed here:
- * a `Segmented` lays eight equal cells across the width and breaks a word
- * across two lines, and a scrolling pill strip drawn directly above the
- * packing filter made two different questions look like one control (#302).
- * A closed line showing the answer is neither.
- */
 export function Dropdown<T extends string>({
   label,
   options,
@@ -652,7 +570,6 @@ export function Dropdown<T extends string>({
   );
 }
 
-/** One choice from a short list, in a sheet; picking closes it. */
 export function ChoiceSheet<T extends string>({
   title,
   open,
@@ -692,7 +609,6 @@ export function ChoiceSheet<T extends string>({
             backgroundColor: pressed ? c["sheet-2"] : "transparent",
           })}
         >
-          {/* The chosen one says so in words — a tint alone is not a state (#204). */}
           <Body tone={option.value === value ? "ink" : "ink-2"}>
             {option.value === value ? `${option.label} · chosen` : option.label}
           </Body>

@@ -1,12 +1,3 @@
-/**
- * Money tab (ticket 16; re-modelled by the money overhaul). Splitwise-shaped:
- * balances are derived at read time from expenses − settlements (rule 04,
- * `ledgerBalances`), the page shows only the *simplified* transfers that
- * square everyone up, and a merged activity feed of expenses and settlements
- * that any member can delete to revert. The top of the page is the group's
- * fewest payments across currencies, in the viewer's home currency (#463): the
- * viewer's own first and large, everyone else's small under them.
- */
 import type { Currency, ExpenseSplit } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
 import { formatDate } from "@floc/core/dates/dates";
@@ -70,8 +61,6 @@ export default async function MoneyPage({
   const rateFor = (currency: Currency): number | null =>
     rates ? rates.toHome[currency] || null : null;
 
-  // A participant may have since left the trip, so names need a direct lookup,
-  // not just the current member list (ticket 04).
   const knownIds = new Set(access.members.map((m) => m.userId));
   const extraIds = new Set<string>();
   for (const s of splits) if (!knownIds.has(s.userId)) extraIds.add(s.userId);
@@ -175,7 +164,6 @@ export default async function MoneyPage({
   );
 }
 
-/** Your own estimate and budget (#574, ADR-057): read only for you, and only once Pro is yours. */
 async function BudgetPage({ access }: { access: TripAccess }) {
   const pro = await canUseFeature("money.estimate", access.viewer.id);
   const view = pro ? await readEstimate(access.trip, access.viewer.id) : null;
@@ -232,10 +220,6 @@ function SettledBanner() {
   );
 }
 
-/**
- * The group's payments (#463): yours first and large, money out on the left and in on the right; then, small, the
- * payments between other people. Only the two people in a payment can mark it paid, so theirs have no button.
- */
 function SettleUpPanel({
   tripId,
   viewerId,
@@ -326,10 +310,6 @@ function SettleUpPanel({
   );
 }
 
-/**
- * One payment as a receipt (#461): the figure in your currency, each debt it clears, what the payer hands over in
- * theirs, then the rate (#253 keeps it beside the number).
- */
 function PairSummary({ row, viewerId, rateDate, label }: { row: SettleRow; viewerId: string; rateDate: string | null; label: (userId: string) => string }) {
   const youPay = row.payer === viewerId;
   const other = label(youPay ? row.payee : row.payer);

@@ -1,6 +1,5 @@
 import { formatBytes } from "@floc/core/documents/documents";
 
-/** Space the trip's files take against its quota (#285). The words carry it; the bar only shows the share. */
 export function StorageMeter({ usedBytes, quotaBytes }: { usedBytes: number; quotaBytes: number }) {
   const share = Math.min(100, (usedBytes / quotaBytes) * 100);
   return (

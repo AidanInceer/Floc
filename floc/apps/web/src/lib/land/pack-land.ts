@@ -1,10 +1,7 @@
 type Feature = { properties: Record<string, unknown>; geometry: { type: string; coordinates: unknown } };
-/** Each country's rings as whole hundredths of a degree: the first point, then the step to each next one. */
 export type Packed = Record<string, number[][]>;
 
-// Same folds as build-countries.mjs, so a code means the same shape in both files.
 const FOLD: Record<string, string> = { CYN: "CY", SOL: "SO" };
-// 0.01° is about 1 km: under a pixel at Explore's closest zoom.
 const TOLERANCE = 0.01;
 const SMALLEST_RING = 4;
 
@@ -13,7 +10,6 @@ function codeOf(p: Record<string, unknown>): string | null {
   return typeof code === "string" && code.length === 2 ? code : null;
 }
 
-/** Douglas-Peucker: the fewest points that keep the line within `tolerance` degrees of where it was. */
 export function simplify(points: number[][], tolerance: number): number[][] {
   if (points.length < 5) return points;
   const keep = new Uint8Array(points.length);
@@ -50,7 +46,6 @@ function packRing(ring: number[][]): number[] | null {
   return flat.length >= SMALLEST_RING * 2 ? flat : null;
 }
 
-/** Natural Earth countries as `landFromPacked` reads them: each country's outer rings, thinned and packed. */
 export function packLand(geo: { features: Feature[] }): Packed {
   const land: Packed = {};
   for (const { properties, geometry } of geo.features) {

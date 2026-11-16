@@ -1,9 +1,5 @@
 "use client";
 
-/**
- * Asks which trip each waiting booking is for, once a visit (#559). Dismissing it keeps the files: they stay
- * in Bookings. Why session storage: the answer "not now" is about this visit, not a fact about the account.
- */
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
@@ -23,7 +19,6 @@ export function WhichTripPrompt({ files, trips }: { files: WaitingFile[]; trips:
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog || dialog.open || onBookings || files.length === 0) return;
-    // Why the newest id: a file that arrives later in the visit asks again; the same files do not.
     if (Number(window.sessionStorage.getItem(ASKED) ?? 0) >= newest) return;
     dialog.showModal();
   }, [files.length, newest, onBookings]);
@@ -38,7 +33,6 @@ export function WhichTripPrompt({ files, trips }: { files: WaitingFile[]; trips:
   };
 
   if (files.length === 0) return null;
-  // Why nothing is clipped for a short list: a row's trip list opens past the dialog's edge. A long list must scroll, so it clips.
   const many = files.length > 5;
   const clip = many ? "overflow-hidden" : "overflow-visible";
   return (

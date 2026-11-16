@@ -1,7 +1,3 @@
-/**
- * One wish list on the phone (#623, ADR-049): who is on it, one field to add an idea, a place or a link, and the
- * items as Saved rows. Start trip asks the list's people along; any member may add, remove, rename, invite or leave.
- */
 import { linkShown, readWishLink, WISH_CAPS } from "@floc/core/lists/wish-list";
 import { countryName } from "@floc/core/people/countries";
 import { peopleCount, toggleTripPeople, type TripPeopleSelection } from "@floc/core/people/group-ticks";

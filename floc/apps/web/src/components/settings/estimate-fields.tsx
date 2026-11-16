@@ -1,4 +1,3 @@
-/** Where you fly from and how you travel, for your own cost estimates (#574, ADR-057). Pro; a change on a trip stays on that trip. */
 import Link from "next/link";
 
 import { saveHomeAirportForm, saveTravelStyleForm } from "@/app/trip/[id]/money/estimate-actions";

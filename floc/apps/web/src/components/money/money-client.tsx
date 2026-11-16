@@ -1,6 +1,5 @@
 "use client";
 
-// The money tab's display-only currency convert toggle (money overhaul).
 import { useState } from "react";
 
 import type { Currency } from "@/db/schema";
@@ -27,12 +26,6 @@ function SwapGlyph() {
   );
 }
 
-/**
- * Shows an amount in its ledger currency; if the viewer's home currency
- * differs and a rate is available, a swap glyph flips the display to home
- * (money overhaul). Display only — the stored amount never changes. Absent a
- * rate, the glyph doesn't render and only the real amount shows (rule 11).
- */
 export function ConvertAmount({
   amountMinor,
   currency,
@@ -43,7 +36,6 @@ export function ConvertAmount({
   amountMinor: number;
   currency: Currency;
   home: Currency;
-  /** Home-per-unit multiplier, or null when unavailable. */
   rate: number | null;
   className?: string;
 }) {

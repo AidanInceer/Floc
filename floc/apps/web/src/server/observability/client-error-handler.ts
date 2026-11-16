@@ -4,7 +4,6 @@ import { MAX_CLIENT_ERROR_BYTES, readClientError, reportClientError } from "./cl
 
 const empty = (status: number) => new Response(null, { status });
 
-/** The body as text, or null once it passes the cap: a chunked body has no length to check first. */
 async function cappedText(req: Request): Promise<string | null> {
   if (!req.body) return "";
   const reader = req.body.getReader();
@@ -23,10 +22,6 @@ async function cappedText(req: Request): Promise<string | null> {
   return Buffer.concat(chunks, length).toString("utf8");
 }
 
-/**
- * Why (#613): the beacon needs no sign-in, so anyone can call it. A small per-caller bucket, on top of the write
- * limiter, keeps one tab in an error loop, or a script, from filling the logs.
- */
 export function clientErrorHandler({ capacity = 10, perSecond = 0.1 } = {}) {
   const callers = writeLimiter({ capacity, perSecond, maxKeys: 5_000 });
   return async (req: Request): Promise<Response> => {

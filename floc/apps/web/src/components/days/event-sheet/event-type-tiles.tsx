@@ -7,7 +7,6 @@ import { DAY_EVENT_TYPES, TRANSPORT_TYPES, type DayEventType, type TransportType
 import { EventGlyph } from "@/components/system/icons/days";
 import { cx } from "@/components/system/ui";
 
-// The chosen tile's edge, so it reads as chosen on its own wash.
 const EDGE: Record<DayEventType, string> = {
   activity: "border-pastel-blue-edge",
   transport: "border-pastel-red-edge",
@@ -23,11 +22,6 @@ export const HOW_LABELS: Record<TransportType, string> = {
   other: "Other",
 };
 
-/**
- * The event's type as four tiles, each in its own colour (Other is grey). Picking
- * Transport opens How inside its tile rather than below it (wireframe/modal-forms B3).
- * The hidden fields carry both answers; switching away from Transport drops How.
- */
 export function EventTypeTiles({
   type,
   how,

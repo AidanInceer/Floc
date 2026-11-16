@@ -1,18 +1,3 @@
-/**
- * Somebody else's profile (ticket 46) — the phone's half of `/profile/[userId]`.
- *
- * IT RENDERS WHAT IT IS HANDED AND RE-DERIVES NOTHING. Every ring is applied on
- * the server; a hidden attribute arrives as null rather than as a value with a
- * flag beside it, so this screen cannot leak what it was never sent.
- *
- * NULL IS "NOT YOURS TO SEE", AND SO IS A BAD ID. The two answer identically on
- * purpose, so this cannot be used to find out whether an account exists — which
- * means the empty state says nothing about which of the two it was.
- *
- * NO WAY INTO A PAST TRIP. The names are text, not links: opening somebody
- * else's trip is its own piece of work, and its roster would show third parties
- * who never agreed to appear here.
- */
 import { formatDateRange } from "@floc/core/dates/dates";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams } from "expo-router";
@@ -56,8 +41,6 @@ export default function PersonProfile() {
     <>
       <Stack.Screen options={{ title: p.name }} />
       <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
-        {/* The floor: a face and a name, which anyone inside a ring always
-            sees — a fully private profile still shows exactly these two. */}
         <Card>
           <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
             <Face name={p.name} size={64} />
@@ -78,8 +61,6 @@ export default function PersonProfile() {
           ) : null}
         </Card>
 
-        {/* One button, and it says which of the four states you are in — a
-            request already sent is not the same as never having asked. */}
         {p.friendState === "none" ? (
           <Button
             label="Ask to be friends"

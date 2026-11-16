@@ -1,9 +1,3 @@
-/**
- * Why: catches only the doc drift a machine can see — a table missing from the
- * ERD, a procedure missing from the API map, a link or anchor that points nowhere,
- * a page the sidebar cannot reach. Stale prose is still on the person changing
- * the code (CLAUDE.md, Workflow). Layout rules: docs/process/editing-docs.html.
- */
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,10 +7,8 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DOCS = join(ROOT, "docs");
 const read = (path) => readFileSync(join(ROOT, path), "utf8");
 
-// Why: Better Auth's own tables; the ERD draws only the `user` anchor.
 const AUTH_TABLES = new Set(["session", "account", "verification"]);
 
-// Why: the docs live in the private floc-docs repo, so CI has none. Locally every checkout links to them.
 if (!existsSync(join(DOCS, "index.html"))) {
   if (process.env.CI) {
     console.log("Docs: not in CI (they live in the private floc-docs repo); skipped.");
@@ -110,7 +102,6 @@ function checkLinks() {
     }
   }
 
-  // Why: a skill names doc pages from the repo root, so a deleted or moved page must fail here, not mislead a session later.
   for (const path of markdownFiles(join(ROOT, "plugins/floc"))) {
     const label = relative(ROOT, path).split(sep).join("/");
     for (const href of docLinks(readFileSync(path, "utf8"))) checkTarget(join(ROOT, "AGENTS.md"), href, label);
@@ -118,7 +109,6 @@ function checkLinks() {
   return pages.length;
 }
 
-// Why: these folders are working space, deliberately kept out of the sidebar.
 const UNINDEXED = ["private/", "mockups/", "design/prototypes/", "input/", "samples/"];
 
 function checkTree() {

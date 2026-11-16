@@ -3,17 +3,12 @@ import type { TransportType } from "../../vocabulary";
 export type Point = { x: number; y: number };
 type Mode = TransportType | null;
 
-/** How far off the straight line a crossing bows at its middle, as a share of its length. */
 const ARC: Partial<Record<TransportType, number>> = { flight: 0.3, ferry: 0.2 };
 const RAD = Math.PI / 180;
-/** The turn of a road or rail line at a stop with no road or rail beyond it. */
 const TURN = 15 * RAD;
 const HUG = 0.32;
-// Why: a leg between two others would run near straight; a small lean outwards keeps the line flowing. The stop's dot hides the join.
 const LEAN = 10 * RAD;
-/** Below this share of its length, a leg is taken to run through the middle of the trip: it keeps the bend of the leg before. */
 const THROUGH = 0.06;
-/** A bow that passes closer than this share of its length to another stop bends the other way, if that side is clearer. */
 const CLEAR = 0.15;
 
 const sub = (a: Point, b: Point): Point => ({ x: a.x - b.x, y: a.y - b.y });
@@ -34,10 +29,6 @@ function cubic(p0: Point, c1: Point, c2: Point, p1: Point, n: number): Point[] {
   });
 }
 
-/**
- * Why: a centripetal Catmull-Rom handle. The plain one overshoots where a long leg meets a short one or the route turns hard
- * (a ring road balloons out to sea); this one stays tight to the stops and never loops.
- */
 function handle(p0: Point, p1: Point, p2: Point): Point {
   const d1 = Math.sqrt(len(sub(p1, p0))) || 1e-6;
   const d2 = Math.sqrt(len(sub(p2, p1))) || 1e-6;
@@ -46,7 +37,6 @@ function handle(p0: Point, p1: Point, p2: Point): Point {
   return { x: (d1 * d1 * p2.x - d2 * d2 * p0.x + w * p1.x) / k, y: (d1 * d1 * p2.y - d2 * d2 * p0.y + w * p1.y) / k };
 }
 
-/** Which way each leg bends: away from the middle of the trip. */
 function sidesOf(stops: readonly Point[], legs: number): number[] {
   const mid = middle(stops);
   let side = 1;
@@ -59,11 +49,6 @@ function sidesOf(stops: readonly Point[], legs: number): number[] {
   });
 }
 
-/**
- * The line from each stop to the next. A drive or a train flows through each stop with no corner,
- * a flight or a boat is an arc of its own, and every bend leans away from the middle of the trip,
- * unless that would run it over another stop. A road or rail run flips as one, so it stays smooth through its stops.
- */
 export function legCurves(stops: readonly Point[], modes: readonly Mode[], n: number): Point[][] {
   const sides = sidesOf(stops, modes.length);
   const curves = modes.map((_, i) => legCurve(stops, modes, i, sides[i], n));
@@ -77,7 +62,6 @@ export function legCurves(stops: readonly Point[], modes: readonly Mode[], n: nu
   return curves;
 }
 
-/** Legs drawn as one line: each flight or boat alone, and each unbroken stretch of road or rail. */
 function runsOf(modes: readonly Mode[]): number[][] {
   const runs: number[][] = [];
   modes.forEach((mode, i) => {
@@ -88,7 +72,6 @@ function runsOf(modes: readonly Mode[]): number[][] {
   return runs;
 }
 
-/** How near a run's legs come to the stops they do not join, as a share of the room each leg should keep; under 1 is too near. */
 function worst(stops: readonly Point[], run: readonly number[], curve: (i: number) => Point[]): number {
   return Math.min(
     ...run.map((i) => {
@@ -123,7 +106,6 @@ function legCurve(stops: readonly Point[], modes: readonly Mode[], i: number, si
   return cubic(a, c1, c2, b, n);
 }
 
-/** A day out: straight out from the stop the way it is sent, `size` px, and back the same way. The tip is the middle point. */
 export function spurCurve(at: Point, away: Point, size: number, n: number): Point[] {
   const tip = add(at, mul(unit(away), size));
   return Array.from({ length: n + 1 }, (_, i) => {

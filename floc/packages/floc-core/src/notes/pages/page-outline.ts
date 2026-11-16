@@ -1,8 +1,3 @@
-/**
- * What a page's lines show besides their text (#408): list numbers by depth
- * (1, a, i), bullet shapes, and which lines a folded heading hides. The
- * editor draws these; they are never stored.
- */
 export type OutlineLine = { type: string; indent: number; level?: number; id?: string };
 
 const roman = (n: number) => {
@@ -23,7 +18,6 @@ export function numberLabel(n: number, depth: number): string {
   return String(n);
 }
 
-/** The number each numbered line shows, or null. A deeper line keeps the count above it running. */
 export function listNumbers(lines: readonly OutlineLine[]): (string | null)[] {
   const counters: number[] = [];
   return lines.map((line) => {
@@ -43,7 +37,6 @@ export const bulletShape = (indent: number): BulletShape => (["dot", "ring", "sq
 
 const headingLevel = (line: OutlineLine) => (line.type === "heading" ? (line.level ?? 3) : null);
 
-/** The index after a heading's section: the next heading of the same or a higher level. */
 export function sectionEnd(lines: readonly OutlineLine[], at: number): number {
   const level = headingLevel(lines[at]);
   if (level === null) return at + 1;
@@ -56,7 +49,6 @@ export function sectionEnd(lines: readonly OutlineLine[], at: number): number {
   return end;
 }
 
-/** True for each line a folded heading above it hides. */
 export function hiddenLines(lines: readonly OutlineLine[], folded: ReadonlySet<string>): boolean[] {
   const hidden = lines.map(() => false);
   let at = 0;
@@ -71,6 +63,5 @@ export function hiddenLines(lines: readonly OutlineLine[], folded: ReadonlySet<s
   return hidden;
 }
 
-/** A heading shows its fold control only when there is something under it to hide. */
 export const canFold = (lines: readonly OutlineLine[], at: number): boolean =>
   lines[at].type === "heading" && sectionEnd(lines, at) > at + 1;

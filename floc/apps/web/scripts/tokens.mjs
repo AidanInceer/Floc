@@ -1,8 +1,3 @@
-/**
- * Shared reader for the token blocks in src/app/globals.css — light, and
- * dark's overlay on top of it (ticket 240).
- * Aliases (`--red: var(--pastel-red-ink)`) resolve to the hex they point at.
- */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
@@ -23,7 +18,6 @@ export function rootBlock(css, selector = LIGHT) {
   return { start, end, text: css.slice(start, end) };
 }
 
-/** WCAG 2.1 relative luminance / contrast ratio. */
 export function contrast(a, b) {
   const lum = (hex) => {
     const channel = (n) => {

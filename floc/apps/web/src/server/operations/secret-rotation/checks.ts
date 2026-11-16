@@ -16,7 +16,6 @@ export function checkWebhookFormat(secret: string) {
   if (!/^whsec_\S+$/.test(secret)) throw new Error("The Stripe webhook secret must start with whsec_.");
 }
 
-// Why: production once held a signing secret with no endpoint behind it, so Stripe sent floc.live nothing.
 export async function checkWebhookEndpoint(key: string, fetcher: typeof fetch = fetch) {
   const { data } = await requestJson<{ data?: { url: string; status: string }[] }>(fetcher,
     "https://api.stripe.com/v1/webhook_endpoints?limit=100", { headers: { Authorization: `Bearer ${key}` } });
@@ -25,7 +24,6 @@ export async function checkWebhookEndpoint(key: string, fetcher: typeof fetch = 
   }
 }
 
-// Why: a dummy code tells the two apart — Google answers invalid_grant for a good secret, invalid_client for a bad one.
 export async function checkGoogleSecret(clientId: string, secret: string, fetcher: typeof fetch = fetch) {
   const response = await fetcher("https://oauth2.googleapis.com/token", {
     method: "POST", redirect: "error", signal: AbortSignal.timeout(30_000),
@@ -43,7 +41,6 @@ export async function checkApplication(fetcher: typeof fetch = fetch) {
   if (response.status !== 200) throw new Error("floc.live/login did not answer 200 after the deploy.");
 }
 
-// Why: an event type the route ignores proves the deployed signing secret without touching any subscription.
 export async function checkWebhook(secret: string, fetcher: typeof fetch = fetch) {
   const timestamp = Math.floor(Date.now() / 1000);
   const body = JSON.stringify({ id: `evt_floc_rotation_${timestamp}`, object: "event", type: "floc.rotation.probe", data: { object: {} } });

@@ -2,7 +2,6 @@ import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 
 import { countryNames } from "@/components/explore/outline/country";
 
-/** The tilted stamp in a postcard's corner: where, and how many nights. */
 export function PostcardStamp({ trip }: { trip: PresetTrip }) {
   return (
     <div className="flex w-[84px] shrink-0 rotate-3 flex-col rounded-md border-[1.5px] border-dashed border-rule-strong bg-sheet px-1.5 py-2 text-center font-mono text-[11px] uppercase tracking-[0.08em] text-ink-soft">

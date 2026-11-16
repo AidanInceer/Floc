@@ -1,7 +1,3 @@
-/**
- * "Start a wish list with <friend>" on their Saved part (#623). It starts from what you both saved, and reads
- * their side through the same visibility check as their profile, so nothing they keep private is copied (ADR-042).
- */
 import "server-only";
 
 import { wantToGoCountries } from "@floc/core/itinerary/travel-map";
@@ -14,7 +10,6 @@ import { travelMapFor } from "@/server/itinerary/travel-map";
 
 import { createWishList } from "./wish-list-writes";
 
-/** What you and they both saved, as items. Empty while their Saved part is hidden from you. */
 async function bothSaved(viewerId: string, friendId: string): Promise<WishItemInput[]> {
   const [profile, yourTrips, yourMap] = await Promise.all([
     requireProfileView(friendId, viewerId),

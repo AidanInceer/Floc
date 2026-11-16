@@ -9,7 +9,6 @@ import { listWishListsFor } from "@/server/wish-lists/wish-lists";
 
 export const metadata = { title: "Wish lists" };
 
-/** Wish lists (#623, ADR-049): the lists you keep with other people before any trip exists, and invites to more. */
 export default async function WishListsPage() {
   const viewer = await requireUser("/lists/wish");
   const [{ lists, invites }, sources] = await Promise.all([listWishListsFor(viewer.id), peopleSourcesFor(viewer.id)]);

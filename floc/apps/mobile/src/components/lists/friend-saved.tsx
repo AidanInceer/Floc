@@ -1,8 +1,3 @@
-/**
- * A friend's Saved part on their profile (#544, ADR-045): the Explore trips they saved, then the countries they want to go to.
- * Absent when they do not share it with you or saved nothing; countries come only through their Countries ring.
- * You both marks what you saved too.
- */
 import { wantToGoCountries, type MapState } from "@floc/core/itinerary/travel-map";
 import { friendSavedPart } from "@floc/core/people/shared-saves";
 import { listingPrice } from "@floc/core/trip/explore/listing-price";

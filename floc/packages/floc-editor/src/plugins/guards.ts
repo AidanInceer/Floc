@@ -1,8 +1,3 @@
-/**
- * Quiet upkeep (#408): every heading gets an id (folds are kept by it), a
- * cell selection gets one outline round the whole group, and a page stops
- * growing at 1 MB. Changes that arrive from another person are never refused.
- */
 import type { Node } from "@tiptap/pm/model";
 import { Plugin, type Transaction } from "@tiptap/pm/state";
 import { CellSelection, selectedRect } from "@tiptap/pm/tables";
@@ -24,7 +19,6 @@ export function headingIds(makeId: () => string = newId) {
   });
 }
 
-/** One outline round a group of selected cells: each edge cell draws only its outer side. */
 export function cellEdges() {
   return new Plugin({
     props: {
@@ -52,8 +46,6 @@ const fromSomeoneElse = (tr: Transaction) => {
   return sync?.isChangeOrigin === true;
 };
 
-// Why a character count first: serialising every keystroke of a big page is slow, and a page
-// far under the limit cannot be over it.
 const CHEAP_CHECK = PAGE_LIMITS.pageBytes / 4;
 
 export const pageBytes = (doc: Node) => new TextEncoder().encode(JSON.stringify(doc.toJSON())).length;

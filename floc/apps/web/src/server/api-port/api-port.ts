@@ -1,17 +1,3 @@
-/**
- * The web app's implementation of the API's port (ticket 287).
- *
- * This is the whole seam. `@floc/api` declares what the API *is*; this says
- * how it reaches data — and it does so through exactly the same `server/`
- * modules the pages and Server Actions already use. Nothing is reimplemented
- * for the phone, which is the point: a rule with two implementations is a rule
- * with two behaviours, and the phone would be the one to quietly drift.
- *
- * ACCESS IS RESOLVED ON EVERY CALL, never taken from the caller's word for it.
- * `scoped()` runs `findTripAccess`, which is `requireTripAccess` without the
- * redirect — non-member and nonexistent answer identically (rule 5). Admin
- * powers go through the same `assertAdmin` the actions use (rule 6).
- */
 import "server-only";
 
 import type {
@@ -37,8 +23,6 @@ import { saveTrip, startTrip } from "@/server/trips/trip-save";
 import { assertAdmin, findTripAccess, type TripAccess } from "@/server/access";
 import { listTripCards } from "@/server/trips/trip-cards";
 import { scoped } from "@/server/api-port/api-port-scope";
-// The account, map and saved-list halves live in their own files — this one is
-// the trip half, and a file whose name needs "and" is two files.
 import { billingPort } from "@/server/api-port/api-port-billing";
 import { estimatePort } from "@/server/api-port/estimate/api-port-estimate";
 import { commentsPort } from "@/server/api-port/api-port-comments";
@@ -158,8 +142,6 @@ export const webPort: FlocPort = {
     const { lines: shared, claims, mine, kits, tier, plan, packingPro: canAutoFill, ideas } =
       await readPackingBoard(access.trip, viewerId);
 
-    // Claims come back flat for one query rather than one per line; grouping
-    // here keeps the wire shape the screen actually draws.
     const byLine = new Map<number, PackingBoard["shared"][number]["claims"]>();
     for (const claim of claims) {
       const list = byLine.get(claim.packingLineId) ?? [];
@@ -182,9 +164,6 @@ export const webPort: FlocPort = {
         packed: line.packedAt !== null,
         suggested: line.origin === "suggested",
       })),
-      // Resolved here rather than on the wire: the per-trip choice wins and the
-      // profile fills in, and a client that had to know that rule would be a
-      // second place it could be got wrong (ticket 220).
       tier,
       kits: kits.map((kit) => ({ id: kit.id, name: kit.name, itemCount: kit.itemCount })),
       canAutoFill,
@@ -251,10 +230,7 @@ export const webPort: FlocPort = {
     await scoped(viewerId, tripId);
     const lines = await listPersonalPackingLines(tripId, viewerId);
     const kitId = await insertPackingKit(viewerId, name);
-    // Null is the ceiling, not a failure — the caller says so and nothing throws.
     if (kitId === null) return false;
-    // One at a time because the item insert re-reads the kit to check its own
-    // cap; a bag past `LIMITS.packingKitItems` fills the kit and stops there.
     for (const line of lines) {
       await insertPackingKitItem(kitId, viewerId, line.label, line.category, line.quantity);
     }
@@ -263,7 +239,6 @@ export const webPort: FlocPort = {
   },
 
   async deletePackingKit(viewerId, kitId) {
-    // No trip scope: a kit is the viewer's own row, resolved by owner inside.
     await softDeletePackingKit(kitId, viewerId);
   },
 
@@ -273,8 +248,6 @@ export const webPort: FlocPort = {
 
     return {
       vibeTags: readVibeTags(profile.vibeTags),
-      // Codes and states only — both clients hold `@floc/core/countries`, so
-      // sending the names would be sending what the reader already has.
       map: Object.entries(map.states).map(([code, state]) => ({ code, state })),
       been: map.visited,
       wantToGo: map.wantToGo,
@@ -282,16 +255,12 @@ export const webPort: FlocPort = {
   },
 
   async loadMe(viewerId): Promise<Me> {
-    // The lazy profile row first, so a person who has never opened settings
-    // still reads back a profile rather than a hole.
     await ensureProfile(viewerId);
     const [identity, map, trips] = await Promise.all([
       loadIdentity(viewerId),
       travelMapFor(viewerId),
       listTripsFor(viewerId, { archived: false }),
     ]);
-    // The session proved this id a moment ago; a missing row here is the
-    // account being deleted mid-request, not an ordinary state.
     if (!identity) throw new Error("No such account.");
 
     return {
@@ -306,8 +275,6 @@ export const webPort: FlocPort = {
   async renameMe(viewerId, displayName) {
     await ensureProfile(viewerId);
     await updateProfileFields(viewerId, { displayName });
-    // The name rides on every roster and every expense line, so every page
-    // showing this person is now stale.
     refresh({ kind: "tripList" });
   },
 
@@ -383,16 +350,12 @@ export const webPort: FlocPort = {
 
   async setAvailability(viewerId, tripId, dates, available) {
     await scoped(viewerId, tripId);
-    // The viewer id goes straight down as the row's owner, so there is no path
-    // by which this writes somebody else's answer (rule 6).
     await setAvailability(tripId, viewerId, dates, available);
     refresh({ kind: "tripDates", tripId });
   },
 
   async listFiles(viewerId, tripId): Promise<TripFile[]> {
     await scoped(viewerId, tripId);
-    // The viewer goes down to the query, which drops a private file that is
-    // somebody else's rather than returning it flagged.
     const [rows, reads] = await Promise.all([listDocuments(tripId, viewerId), canUseFeature("bookings.autoFile", viewerId)]);
     return rows.map((d) => ({
       booking: reads ? d.booking : null,
@@ -417,8 +380,6 @@ export const webPort: FlocPort = {
     return listTripPlaces(tripId);
   },
 
-  // No trip to scope to: the picker searches before one is chosen. Signed in
-  // is the whole gate, and the procedure has already insisted on that.
   searchPlaces(viewerId, query): Promise<PlaceHit[]> {
     return geocode(query, viewerId);
   },
@@ -475,8 +436,6 @@ export const webPort: FlocPort = {
 
   async removeMember(viewerId, tripId, userId) {
     assertAdmin(await scoped(viewerId, tripId));
-    // Kicking yourself is leaving, which is not an admin power — route it there
-    // so succession and the last-member archive still run (rule 6).
     if (userId === viewerId) return webPort.leaveTrip(viewerId, tripId);
     await removeMembership(tripId, userId, viewerId);
     refresh({ kind: "tripHeader", tripId });

@@ -8,7 +8,6 @@ type Split = { expenseId: number; userId: string; owedAmountMinor: number };
 
 export type Spent = { byLine: Record<SpendLine, number>; total: number; unconverted: boolean };
 
-/** One member's share of the group's expenses, in their home currency, by estimate line (#574). A balance is never touched (rule 2). */
 export function spentByLine(args: {
   expenses: Expense[];
   splits: Split[];

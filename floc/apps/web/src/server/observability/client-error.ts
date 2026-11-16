@@ -9,7 +9,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-/** A browser error beacon, or null. Only the three known strings are kept; anything else the page sends is dropped. */
 export function readClientError(text: string): ClientError | null {
   if (text.length > MAX_CLIENT_ERROR_BYTES) return null;
   let parsed: unknown;

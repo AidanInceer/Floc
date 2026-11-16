@@ -1,12 +1,3 @@
-/**
- * Metro, taught where the monorepo is (ticket 289).
- *
- * Out of the box Metro looks only in the app's own `node_modules`, so
- * `@floc/core` and `@floc/api` — workspace links a level up — resolve to
- * nothing and the app dies at its first import. Both settings below answer
- * that: watch the repo root so a change in a package triggers a reload, and
- * search the root's `node_modules` for what pnpm put there.
- */
 const { getDefaultConfig } = require("expo/metro-config");
 const path = require("node:path");
 const os = require("node:os");
@@ -25,32 +16,20 @@ config.resolver.nodeModulesPaths = [
   rootModules,
 ];
 
-// A package hoisted to the repo root has no `node_modules` directory above it
-// inside the repo, so Metro's walk up the tree finds nothing and bare imports
-// from expo-router fail. Point the shared singletons at the one copy the
-// hoisted layout keeps at the root.
 config.resolver.extraNodeModules = {
   react: path.join(rootModules, "react"),
   "react-dom": path.join(rootModules, "react-dom"),
   "react-native": path.join(rootModules, "react-native"),
 };
 
-// The hoisted layout keeps exactly one copy of every package in the two roots
-// above, so walking the tree up from a hoisted module finds nothing new and on
-// Windows resolves past the repo. Search only the roots.
 config.resolver.disableHierarchicalLookup = true;
 
-// Watching the repo root means watching build and coverage folders too. One
-// deleted while Metro runs kills Metro with ENOENT.
 config.resolver.blockList = [
   ...[].concat(config.resolver.blockList ?? []),
   /[\\/]floc[\\/]apps[\\/](web[\\/](\.next(-verify)?|\.e2e|coverage)|mobile[\\/](dist|coverage))([\\/].*)?$/,
   /[\\/]floc[\\/]packages[\\/][^\\/]+[\\/]coverage([\\/].*)?$/,
 ];
 
-// Why: the default cache in %TEMP% is shared by every checkout, and an Expo DOM
-// entry cached by one worktree imports that worktree's path, so the others fail
-// to bundle. One cache per checkout.
 const checkout = createHash("sha1").update(workspaceRoot).digest("hex").slice(0, 12);
 config.cacheStores = [new FileStore({ root: path.join(os.tmpdir(), `metro-cache-${checkout}`) })];
 

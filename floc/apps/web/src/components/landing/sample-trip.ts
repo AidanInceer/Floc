@@ -1,7 +1,5 @@
 import type { OverviewRoute } from "@floc/core/trip/overview/route";
 
-// Illustrative sample, not a live query — one settled Sicily trip that every
-// landing section draws, so the page tells one story.
 export type SamplePerson = { name: string; tone: string };
 
 export const priya: SamplePerson = { name: "Priya", tone: "who-1" };

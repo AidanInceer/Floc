@@ -1,15 +1,3 @@
-/**
- * Saved packing lists (ticket 230) — yours, not a trip's.
- *
- * NOT A TRIP SURFACE, SO NOT A `tripProcedure`. A kit belongs to a person, and
- * every write is owner-scoped on the host rather than resolved through a trip
- * the caller happens to name. `packing.saveKit` and `packing.applyKit` are the
- * trip-side moves and stay where they are; this is the editor.
- *
- * A KIT IS A STENCIL. Copying one into a bag is one direction only — editing
- * the bag afterwards never writes back here, and deleting a kit leaves every
- * bag already filled from it alone.
- */
 import { MAX_PACK_QUANTITY, MIN_PACK_QUANTITY, PACK_CATEGORIES } from "@floc/core/packing/packing";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { z } from "zod";
@@ -26,10 +14,8 @@ const kitName = z
   .max(TEXT_CAPS.packingKitName, "That name is too long.");
 
 export const kitsRouter = router({
-  /** Every list with its things — the screen draws them all, so asking per kit is 1 + N reads. */
   list: protectedProcedure.query(({ ctx }) => ctx.port.listMyKits(ctx.viewer.id)),
 
-  /** Null at the ceiling rather than a throw — the same shape every capped list here uses. */
   create: protectedProcedure
     .input(z.object({ name: kitName }))
     .mutation(({ ctx, input }) => ctx.port.createKit(ctx.viewer.id, input.name)),
@@ -73,7 +59,6 @@ export const kitsRouter = router({
       await ctx.port.removeKitItem(ctx.viewer.id, input.itemId);
     }),
 
-  /** A delta, so two quick taps are two additions rather than one stale total. */
   stepItem: protectedProcedure
     .input(z.object({ itemId, delta: z.union([z.literal(1), z.literal(-1)]) }))
     .mutation(async ({ ctx, input }) => {

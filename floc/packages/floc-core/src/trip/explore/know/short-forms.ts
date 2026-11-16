@@ -1,10 +1,7 @@
-/** Short forms Good to know allows. A reader may not know any other, so a tip spells it out or avoids it. */
 const ALLOWED = new Set(["UK", "US", "USA", "EU", "UNESCO"]);
 
-/** Genuine proper names and brands. Not train names or terms a reader must decode. */
 export const PROPER_NAMES = new Set<string>(["AEON", "EasyCard", "RegioJet", "SafeTravel", "TP"]);
 
-/** A short form passes only when its words are in the same tip. */
 const EXPANSIONS: Record<string, RegExp> = {
   ETA: /electronic travel authori[sz]ation/i,
   eTA: /electronic travel authori[sz]ation/i,
@@ -17,7 +14,6 @@ const EXPANSIONS: Record<string, RegExp> = {
   "4x4": /four-wheel drive/i,
 };
 
-/** A short form that is always wrong, with what to write instead. */
 const BANNED: Record<string, string> = {
   ATM: "cash machine",
   ID: "photo identity",
@@ -26,7 +22,6 @@ const BANNED: Record<string, string> = {
   QR: "QR code",
 };
 
-/** Phrases whose short form is fine when written whole. */
 const PHRASES = /\b(?:QR codes?|SIM cards?|digital SIMs?)\b/g;
 
 const TOKEN = /[A-Za-z0-9][A-Za-z0-9-]*/g;
@@ -57,7 +52,6 @@ function tokenProblem(token: string, all: string): string | null {
   return isShort(token) ? `uses ${token}, spell it out` : null;
 }
 
-/** What is wrong with the short forms in a tip's words, each as "uses X ...". */
 export function shortFormProblems(all: string): string[] {
   const bare = all.replace(PHRASES, " ");
   const problems: string[] = [];

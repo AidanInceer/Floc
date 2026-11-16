@@ -28,7 +28,6 @@ describe("requireInProduction", () => {
   });
 
   it("throws in production when set to the empty string", () => {
-    // A misspelled name in a deployment UI often lands as "" rather than unset.
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv(NAME, "");
     expect(() => requireInProduction(NAME, "fallback")).toThrow(NAME);

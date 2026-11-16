@@ -10,7 +10,6 @@ import type { TravelStyle } from "../style";
 export type GuideStop = { countryCode: string | null; lat: number | null; lng: number | null; name: string | null; nights: number };
 export type GuideInput = { home: string | null; style: TravelStyle; nights: number; stops: GuideStop[] };
 
-/** Why a line has no figure: no home airport yet, no flight guide from there, no place on the trip, or no exchange rate today. */
 export type Missing = "home" | "flight-guide" | "place" | "rate";
 export type FlightRoute = { from: string; out: string; back: string };
 export type GuideLine = { line: EstimateLine; range: Range | null; missing?: Missing; route?: FlightRoute };
@@ -20,7 +19,6 @@ const toPound = (minor: number) => Math.round(minor / 100) * 100;
 const scale = (band: Range, by: number): Range => [toPound(band[0] * by), toPound(band[1] * by)];
 const placed = (s: GuideStop) => s.countryCode != null || (s.lat != null && s.lng != null);
 
-/** Great-circle distance is overkill for picking the nearest hub; a flattened one picks the same airport. */
 function nearestHub(lat: number, lng: number): Hub {
   const k = Math.cos((lat * Math.PI) / 180);
   let best = HUBS[0], bestD = Infinity;
@@ -36,7 +34,6 @@ function hubFor(stop: GuideStop): Hub | null {
   return HUBS.find((h) => h.country === stop.countryCode) ?? null;
 }
 
-/** Why: a place typed during a geocoder outage has a position but no country, so its nearest hub's country stands in. */
 function priceLevel(stop: GuideStop): number {
   const country = stop.countryCode ?? hubFor(stop)?.country ?? "";
   return PRICE_LEVEL[country] ?? 1;
@@ -55,7 +52,6 @@ function flights(input: GuideInput, stops: GuideStop[]): GuideLine {
   return { line: "flights", range, route: { from: home, out: out.city, back: back.city } };
 }
 
-/** Floc's rough guide for one person's trip, in GBP minor units (#574). Each band is scaled by how pricey the stops are. */
 export function guideFor(input: GuideInput): Guide {
   const stops = input.stops.filter(placed);
   if (stops.length === 0) return { lines: ESTIMATE_LINES.map((line) => ({ line, range: null, missing: "place" as const })) };
@@ -77,7 +73,6 @@ export function guideFor(input: GuideInput): Guide {
   };
 }
 
-/** A guide range in the member's home currency, rounded to whole units; nothing without a rate. */
 export function guideIn(range: Range, currency: Currency, rate: number | null): Range | null {
   if (currency === "GBP") return range;
   if (!rate) return null;

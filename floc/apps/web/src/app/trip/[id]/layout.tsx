@@ -1,11 +1,3 @@
-/**
- * The persistent trip bar (ticket 05; flattened 209). Overview is both the
- * default tab and the trip's landing — there is no separate dashboard route.
- *
- * ONE row: the tabs centred, the trip's settings cog last in the row.
- * The trip's name, dates and badges are not here — they are the Overview
- * hero's, and printing them twice a hand's width apart was ticket 89.
- */
 import type { Metadata } from "next";
 import { TripTabs } from "@/components/chrome/trip-tabs";
 import { TripMenu } from "@/components/trip/trip-menu";
@@ -38,7 +30,6 @@ export default async function TripLayout({
   const access = await requireTripAccess(id, `/trip/${id}/overview`);
   const { trip, members, isAdmin, viewer } = access;
 
-  // Only the leave sentence, not the whole trip state — see `leaveCostFor`.
   const { warning: leaveWarning } = leaveCostFor({
     trip,
     members,
@@ -48,10 +39,7 @@ export default async function TripLayout({
 
   return (
     <div>
-      {/* ONE ROW, not three (ticket 209). */}
       <div className="bg-paper">
-        {/* Same width as `Page wide` and the header bar — see the note in
-            `components/ui.tsx`. The trip's settings cog ends the tab row. */}
         <div className="mx-auto flex w-full max-w-[84rem] items-center px-4 py-2 sm:px-6">
           <TripTabs tripId={trip.id} tabs={TABS}>
             <TripMenu

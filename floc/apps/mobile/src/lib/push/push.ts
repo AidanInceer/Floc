@@ -1,7 +1,3 @@
-/**
- * Phone push (#345). Asked for once, when you first make or join a trip —
- * never at launch — after one line saying why.
- */
 import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
@@ -25,12 +21,10 @@ async function currentToken(): Promise<string | null> {
   try {
     return (await Notifications.getExpoPushTokenAsync({ projectId })).data;
   } catch {
-    // Why: Android has no token until the Firebase config is in the build (#345), and an emulator without Play services has none at all.
     return null;
   }
 }
 
-/** Re-sent on every start: a token can change, and the server only pushes to ones it knows. */
 export async function registerThisPhone(): Promise<void> {
   const { granted } = await Notifications.getPermissionsAsync();
   if (!granted) return;

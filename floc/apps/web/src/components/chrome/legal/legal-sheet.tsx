@@ -12,7 +12,6 @@ import "./legal-sheet.css";
 
 const SLIDE_MS = 480;
 
-// Why: the sheet starts exactly over the footer's row and returns there, so it reads as the footer rising.
 function measure(sheet: HTMLElement) {
   const panel = sheet.querySelector<HTMLElement>(".legal-sheet-panel")!;
   const barTop = document.querySelector(".site-footer .legal-bar")?.getBoundingClientRect().top ?? null;
@@ -20,7 +19,6 @@ function measure(sheet: HTMLElement) {
   sheet.style.setProperty("--rise", `${riseFrom({ barTop, sheetTop, viewport: innerHeight })}px`);
 }
 
-// Why: html keeps its scrollbar gutter when locked (scrollbar-gutter: stable), so the page and the sheet share one width.
 function lockScroll() {
   const root = document.documentElement.style;
   const before = root.overflow;
@@ -28,7 +26,6 @@ function lockScroll() {
   return () => { root.overflow = before; };
 }
 
-/** The legal pages over whatever page opened them. Closing slides back into the footer, then steps back in history. */
 export function LegalSheet({ children }: { children: ReactNode }) {
   const router = useRouter();
   const link = legalLinkFor(usePathname());
@@ -42,7 +39,6 @@ export function LegalSheet({ children }: { children: ReactNode }) {
     measure(sheet);
     sheet.showModal();
     sheet.querySelector<HTMLElement>(".legal-sheet-bar [aria-current]")?.focus({ preventScroll: true });
-    // Why: a forced layout commits the start position, so setting the flag next runs the slide.
     sheet.getBoundingClientRect();
     sheet.dataset.open = "";
     return () => {

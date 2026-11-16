@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { stayNights, stayOpening, stayWrites, type Night } from "./overnight-pick";
 
-// Porto to Lisbon, May 2027: Évora on the 6th, Lisbon the 7th and 8th, the 9th undecided.
 const NIGHTS: Night[] = [
   { date: "2027-05-06", placeId: 3, placeName: "Évora" },
   { date: "2027-05-07", placeId: 4, placeName: "Lisbon" },

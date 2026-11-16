@@ -1,13 +1,3 @@
-/**
- * Which files to show (#325 feedback) — the web's filter bar, cut to a phone.
- *
- * IT SCROLLS RATHER THAN WRAPS: five buckets do not fit across a phone.
- *
- * A BUCKET NOTHING IS FILED UNDER IS NOT DRAWN. It is a control that does
- * nothing until something lands there — except the one you are looking at,
- * which has to stay so you can leave it. The page hides the whole row until
- * there is more than one bucket to choose between.
- */
 import { DOC_CATEGORIES, DOC_CATEGORY_LABELS, type DocCategory } from "@floc/core/documents/documents";
 import { Pressable, ScrollView, Text, View } from "react-native";
 

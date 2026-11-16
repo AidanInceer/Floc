@@ -1,4 +1,3 @@
-/** Groups (#545), a page of its own on the account bar (#637): the named sets of friends you invite together. */
 import { today } from "@floc/core/dates/dates";
 import { requireUser } from "@/server/access";
 import { listFriendsFor } from "@/server/social/friends";

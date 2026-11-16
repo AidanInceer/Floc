@@ -1,6 +1,5 @@
 "use client";
 
-// Why: each change posts the whole list — `setTripTags` owns normalising and the cap.
 import { useState } from "react";
 
 import { MAX_TAGS, MAX_TAG_LENGTH } from "@floc/core/trip/tags";
@@ -15,7 +14,6 @@ export function TagChips({
 }: {
   tripId: number;
   tags: string[];
-  /** The trip's pastel — tags wear the trip's one colour (ticket 213). */
   skin: string;
 }) {
   const [adding, setAdding] = useState(false);

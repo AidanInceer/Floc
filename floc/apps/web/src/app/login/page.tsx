@@ -1,6 +1,3 @@
-/**
- * /login — public (ticket 05, 19; redesigned 200).
- */
 import Link from "next/link";
 
 import { AuthForm } from "@/components/auth/auth-form";

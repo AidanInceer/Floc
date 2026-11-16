@@ -1,18 +1,3 @@
-/**
- * One line of packing, drawn (#302).
- *
- * A row knows how to draw itself and nothing about where the data came from —
- * it takes what it shows and calls back, so `packing.tsx` keeps the queries.
- *
- * COUNTS ARE YOUR BAG'S ALONE. A shared line has no number, because "three
- * tents" on the group's list is three lines three people claim separately.
- *
- * SELECT MODE REPLACES THE ACTIONS, IT DOES NOT JOIN THEM (#229). While you
- * are picking rows the whole line is one target and the per-row controls go.
- *
- * STATUS IS THE TICK AND THE QUIETER INK, AND IT IS SAID ALOUD (#204). The
- * word "Packed" lives in the accessibility label, not beside every item.
- */
 import {
   MAX_PACK_QUANTITY,
   MIN_PACK_QUANTITY,
@@ -41,7 +26,6 @@ export type MineLine = {
   category: PackCategory;
   quantity: number;
   packed: boolean;
-  /** Added by auto packing (#469). */
   suggested?: boolean;
 };
 
@@ -183,7 +167,6 @@ export function MineRow({
   selecting: boolean;
   selected: boolean;
   onToggleSelected: () => void;
-  /** A delta, never a total — see `stepPackingQuantity` on the port for why. */
   onStep: (delta: 1 | -1) => void;
   onPacked: (packed: boolean) => void;
   onRemove: () => void;

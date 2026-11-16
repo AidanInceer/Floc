@@ -1,10 +1,5 @@
 "use client";
 
-/**
- * The heads over the clock's three slots (B5): the focus day says which day of
- * the trip it is, where you sleep and how much is planned; a neighbour is one
- * press away; a slot past either end of the trip is a hatched cap.
- */
 import type { CSSProperties, ReactNode } from "react";
 
 import { Menu } from "@/components/system/client-ui";
@@ -16,7 +11,6 @@ import { countWord } from "@floc/core/text/count-word";
 
 export type FocusFacts = {
   day: CalendarDay;
-  /** 1-based. */
   dayNumber: number;
   tripLength: number;
   stay: { placeName: string; night: number | null; nights: number } | null;

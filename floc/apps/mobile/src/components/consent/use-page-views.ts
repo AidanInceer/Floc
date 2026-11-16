@@ -1,4 +1,3 @@
-/** Counts a screen view, only with a yes to analytics (#368). A failed count is dropped: it must never show. */
 import { usePathname } from "expo-router";
 import { useEffect } from "react";
 import { Platform } from "react-native";

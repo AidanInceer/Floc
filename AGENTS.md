@@ -2,7 +2,7 @@
 
 Floc is group trip planning, simplified: where, when, in what order, and who owes who. Pre-MVP. One pnpm + Turborepo monorepo, one product — add no other unasked. Narrow slices, one ticket at a time; confirm scope before a big build. Write `Floc` in prose, `floc` where a machine reads it. Pitfalls: [`learnings.md`](learnings.md).
 
-**Mission first.** Before you plan, grill, ticket or build, read [mission](docs/foundation/mission.html) and the [decision log](docs/foundation/decisions.html). Name the value or ADR a recommendation rests on. Silent or conflicting → ask Aidan. A new product decision gets an ADR. Code cites the invariants, ADR-001 to ADR-011, as `rule n`.
+**Mission first.** Before you plan, grill, ticket or build, read [mission](docs/foundation/mission.html) and the [decision log](docs/foundation/decisions.html). Name the value or ADR a recommendation rests on. Silent or conflicting → ask Aidan. A new product decision gets an ADR. Commits, PRs and test names cite the invariants, ADR-001 to ADR-011, as `rule n`.
 
 ## Structure
 
@@ -25,7 +25,7 @@ pnpm --filter floc-web db:query "<select>"   # read local.db
 
 ## Comments
 
-None by default. Write one only for a *why* the code cannot show — a non-obvious constraint, an upstream bug, a choice that looks wrong until explained. Never restate *what*. Add a ticket number when it carries the why (`#212`). A hook flags noise; a longer comment passes with a ticket number or a leading `Why:`.
+**Never add a comment to code.** No line, block, JSDoc or JSX comment, in any `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs` or `.cjs` file, wireframes and scripts included. Say it in a name, a test, the commit message, the PR or an ADR. The only exceptions are tool directives the code cannot work without: `eslint-disable`, `@ts-expect-error`, `/// <reference`, `// NOSONAR` and the like (`DIRECTIVE` in `scripts/check-comments.mjs`), with no prose after them. `scripts/check-comments.mjs` enforces this on every edit (Claude hook), every commit (pre-commit) and every PR (`repository` check, `--all`). Never widen `DIRECTIVE` to let prose through.
 
 ## UI and UX
 

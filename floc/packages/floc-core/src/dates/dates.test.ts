@@ -22,7 +22,6 @@ import {
 
 describe("date-only arithmetic", () => {
   it("adds days without drifting across a DST boundary", () => {
-    // 2025-03-30 is the UK DST switch; UTC-midnight parsing must ignore it.
     expect(addDays("2025-03-29", 1)).toBe("2025-03-30");
     expect(addDays("2025-03-30", 1)).toBe("2025-03-31");
     expect(addDays("2025-10-25", 1)).toBe("2025-10-26");
@@ -69,19 +68,13 @@ describe("labels", () => {
   });
 });
 
-/**
- * Ticket 113. Until these existed nothing checked a date at the door, so
- * `setTripDates` would happily store "soon" and every derivation downstream
- * quietly produced nonsense a long way from the typo.
- */
 describe("isIsoDate", () => {
   it("accepts a real date-only string", () => {
     expect(isIsoDate("2026-09-01")).toBe(true);
-    expect(isIsoDate("2024-02-29")).toBe(true); // a genuine leap day
+    expect(isIsoDate("2024-02-29")).toBe(true);
   });
 
   it("rejects a well-shaped day that does not exist", () => {
-    // JavaScript rolls an impossible date forward, which the round trip catches.
     expect(isIsoDate("2026-02-29")).toBe(false);
     expect(isIsoDate("2026-02-31")).toBe(false);
     expect(isIsoDate("2026-13-01")).toBe(false);
@@ -124,8 +117,6 @@ describe("readOptionalIsoDate", () => {
 
 describe("the awkward halves of the date helpers", () => {
   it("shows an em dash for no date, and drops the weekday on request", () => {
-    // Month abbreviations come from ICU, which spells September "Sep" or
-    // "Sept" depending on the runtime — match the shape, not the spelling.
     expect(formatDate(null)).toBe("—");
     expect(formatDate("2026-09-01")).toMatch(/^Tue 1 Sept?$/);
     expect(formatDate("2026-09-01", { weekday: false })).toMatch(/^1 Sept?$/);

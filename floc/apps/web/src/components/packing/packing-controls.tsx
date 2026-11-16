@@ -9,13 +9,6 @@ import {
 } from "@floc/core/packing/packing";
 import type { PackCategory } from "@floc/core/packing/packing";
 
-/**
- * Clearing, in two steps rather than one (ticket 229). The tick boxes used to
- * sit on every row all the time with two verbs under them, and nothing said the
- * two were connected. Now the list reads clean until you press "Pick rows",
- * which is also what puts the boxes on screen — the mode and the thing it does
- * arrive together.
- */
 export function PackingBulkBar({
   formId,
   selecting,
@@ -26,7 +19,6 @@ export function PackingBulkBar({
   resetMessage,
 }: {
   formId: string;
-  /** Whether the tick boxes are on screen — the URL says so, not client state. */
   selecting: boolean;
   selectHref: string;
   doneHref: string;
@@ -81,7 +73,6 @@ export function PackingBulkBar({
 const bulkVerb =
   "rounded-sm px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.06em] hover:bg-sheet";
 
-/** The category picker beside an add box — the one place a hand-typed row gets filed. */
 export function CategorySelect({ defaultValue }: { defaultValue?: PackCategory }) {
   return (
     <label className="shrink-0">
@@ -101,11 +92,6 @@ export function CategorySelect({ defaultValue }: { defaultValue?: PackCategory }
   );
 }
 
-/**
- * Your bag's other verbs behind one … beside Fill your bag (E2,
- * wireframe/packing-bag-top): one visible action in the head. "Remove
- * suggested" (#469) is free, so a member whose Pro lapsed can still undo it.
- */
 export function PackingBagMore({
   reset,
   suggested,

@@ -1,8 +1,3 @@
-/**
- * What the privacy policy says Floc holds, who receives it and how long it is kept (#549). Kept as data so a test
- * can hold the list of companies to the services the code calls.
- */
-
 export const DATA_HELD = [
   { what: "Account details: name, email address, and a one-way hash of your password or Google account identifier", why: "To provide and secure your account", ground: "Performance of a contract" },
   { what: "Sign-in records: the IP address and browser used for each sign-in", why: "To protect your account and prevent abuse", ground: "Legitimate interests" },

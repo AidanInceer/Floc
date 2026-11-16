@@ -1,4 +1,3 @@
-// Why a grey band of blocks under the month: the web's right-hand panel, laid under the calendar on a narrow screen.
 import { tripCoverage } from "@floc/core/dates/availability";
 import { formatDate, nightsBetween, type IsoDate } from "@floc/core/dates/dates";
 import { spanLabel } from "@floc/core/dates/dates-tabs";
@@ -113,10 +112,8 @@ export function WhoAnswered({ people }: { people: Person[] }) {
   );
 }
 
-/** `days` is null until the person answers; only "no" is 0 (#572). */
 type Person = { id: string; name: string; days: number | null; guest: boolean };
 
-/** What sits under the month for the open view, as the web's right-hand panel. */
 export function DatesPanel(p: {
   view: DatesView;
   trip: { start: IsoDate | null; end: IsoDate | null };

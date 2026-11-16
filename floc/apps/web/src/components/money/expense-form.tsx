@@ -1,9 +1,5 @@
 "use client";
 
-// Add/edit expense form (ticket 16, re-modelled by ticket 85). One model:
-// everyone holds shares of the cost, anyone can be pinned to a fixed amount
-// instead, the rest spread over remaining shares. Excluding someone removes
-// them as a participant entirely (direction A) rather than pinning to zero.
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 
 import type { ActionState } from "@/app/trip/[id]/money/actions";
@@ -79,14 +75,9 @@ export function ExpenseForm({
 }) {
   const [state, formAction] = useActionState<ActionState, FormData>(action, {});
   const submitted = useRef(false);
-  // Sheet stays open on submit so a refused split is still readable; this form
-  // closes it once the save lands.
   const sheetClose = useSheetClose();
   const done = onDone ?? sheetClose ?? undefined;
 
-  // Keyed on state identity not contents: onDone is a fresh closure every
-  // render, so a contents-only check re-fired this mid-submission and closed
-  // the sheet before the error came back.
   const seen = useRef(state);
   useEffect(() => {
     if (state === seen.current) return;
@@ -244,8 +235,6 @@ export function ExpenseForm({
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <FieldGroup label="Amount" className="sm:col-span-2">
-            {/* Currency rides inside the amount as a compact ticker, not a
-                second full-width control (mockup). */}
             <div className="flex items-stretch overflow-hidden rounded-sm border border-rule-strong bg-sheet focus-within:border-pen">
               <div className="relative flex items-center border-r border-rule bg-sheet-2 pl-2.5 pr-1 font-mono text-sm text-ink-soft">
                 {currency}
@@ -327,8 +316,6 @@ export function ExpenseForm({
                 return (
                   <div
                     key={m.userId}
-                    // Fixed height so switching mode (stepper vs input vs text,
-                    // each a different height) doesn't resize the modal.
                     className="flex h-11 items-center gap-2.5 border-b border-rule last:border-b-0"
                   >
                     <label className="flex h-full min-w-0 flex-1 cursor-pointer items-center gap-2.5">
@@ -413,8 +400,6 @@ export function ExpenseForm({
                           />
                         ) : (
                           <span
-                            // Box mirrors the exact-mode Input (border, px-2.5,
-                            // py-1.5) so the digits don't shift between modes.
                             className="nums w-20 border border-transparent px-2.5 py-1.5 text-right text-sm text-ink-soft"
                           >
                             {formatMoney(preview.amounts[m.userId] ?? 0, currency)}
@@ -441,7 +426,6 @@ export function ExpenseForm({
           </Stack>
         </FieldGroup>
 
-        {/* The action still refuses; this only stops a submit that is sure to fail. */}
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-rule pt-3 text-sm text-ink-soft">
           <span>
             {participants.length === 0
@@ -468,7 +452,6 @@ export function ExpenseForm({
           />
         </Field>
 
-        {/* Why: the form is taller than a short window; the actions and any refusal stay in reach while the fields scroll. */}
         <div className="sticky bottom-0 -mx-4 -mb-4 flex flex-wrap items-center justify-end gap-2 border-t border-rule bg-sheet-2 px-4 py-3 sm:rounded-b-md">
           {unbalanced ? (
             <span className="mr-auto text-xs text-ink-soft">Split must add up to the amount</span>

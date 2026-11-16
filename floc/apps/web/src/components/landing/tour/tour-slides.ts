@@ -9,16 +9,13 @@ export type TourSlide = {
   tab: string;
   icon: GlyphName;
   tone: SlideTone;
-  /** The trip tab the drawn page sits on. */
   page: TabState["key"];
   title: string;
   line: string;
-  /** The group-chat line this slide replaces. */
   before: string;
   proExtra?: string;
 };
 
-// In trip order: picking a place, then the week, the days, the bills, the bags, the notes and the passes.
 export const TOUR_SLIDES: TourSlide[] = [
   {
     key: "where",
@@ -94,7 +91,6 @@ export const TOUR_SLIDES: TourSlide[] = [
   },
 ];
 
-/** With every feature free there is no Pro to point at, so the asides go. */
 export function tourSlides(sellingPro: boolean): TourSlide[] {
   return sellingPro ? TOUR_SLIDES : TOUR_SLIDES.map((s) => ({ ...s, proExtra: undefined }));
 }

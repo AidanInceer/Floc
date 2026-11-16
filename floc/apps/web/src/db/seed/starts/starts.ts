@@ -1,8 +1,3 @@
-/**
- * Why: some moments only happen once or only between people — a first trip, a guest link,
- * being removed — so the dev account can never see them again. Each start puts the seeded
- * database into the moment just before one, and says who to be and where to land.
- */
 import { randomUUID } from "node:crypto";
 
 import { eq } from "drizzle-orm";
@@ -18,7 +13,6 @@ import { mintShareToken } from "@/server/trips/invite-link";
 export const STARTS = ["new-user", "walkthrough", "join-link", "guest-account", "dead-link"] as const;
 export type StartName = (typeof STARTS)[number];
 
-/** `as` is a user id, or null to land signed out. */
 export type Start = { as: string | null; to: string };
 
 const startEmail = (handle: string) => `${handle}@start.${SEED_DOMAIN}`;
@@ -47,7 +41,6 @@ async function walkthrough(): Promise<Start> {
   return { as: newcomer, to: `/trip/${tripId}/overview` };
 }
 
-/** Portugal has no ideas in seed A; a link page with nothing to vote on tests nothing. */
 async function portugalWithIdeas() {
   const portugal = await tripNamed("Portugal, late summer");
   const ideas = await db
@@ -91,7 +84,6 @@ const BUILDERS: Record<StartName, () => Promise<Start>> = {
   "dead-link": deadLink,
 };
 
-/** Assumes seeds A and B are in; `index.ts` wipes and seeds first. */
 export function buildStart(name: StartName): Promise<Start> {
   return BUILDERS[name]();
 }
@@ -100,7 +92,6 @@ export function isStartName(name: string): name is StartName {
   return (STARTS as readonly string[]).includes(name);
 }
 
-/** The dev link that signs you in as `as` (or out) and lands you on `to`. */
 export function enterPath(start: Start): string {
   const query = new URLSearchParams({ to: start.to, ...(start.as ? { as: start.as } : {}) });
   return `/api/dev/enter?${query}`;

@@ -1,11 +1,9 @@
 import { command, git } from "./process.mjs";
 
-// Why: only files a tool regenerates are safe to settle without reading both sides.
 const REGENERATED = new Set(["pnpm-lock.yaml"]);
 
 export const mechanical = (files) => files.length > 0 && files.every((file) => REGENERATED.has(file));
 
-/** Merges origin/<target> into the task branch. A merge, never a rebase, so a published branch needs no force push. */
 export function mergeTarget(root, target) {
   git(root, "fetch", "--quiet", "origin", target);
   const upstream = `origin/${target}`;

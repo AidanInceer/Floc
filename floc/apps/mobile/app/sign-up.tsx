@@ -1,22 +1,3 @@
-/**
- * Creating an account on the phone (#no-ticket).
- *
- * THE SAME DOOR THE WEBSITE USES. One Better Auth instance, one user table —
- * this screen calls `signUp.email` against the very server `/signup` posts to,
- * so an account made here is the same row, and the same verification mail goes
- * out on the way (`emailVerification.sendOnSignUp`).
- *
- * NO SIGNUP CHANNEL. The web writes `signup_channel` from a `?via=` on the
- * link that brought somebody in. A phone install has no such link, so there is
- * nothing truthful to record and the column keeps its default.
- *
- * IT IS DRAWN LIKE SIGN-IN, because it is the same screen with one more field
- * — one filled primary, an "or" rule, then Google's own button.
- *
- * VERIFICATION IS NOT A WALL HERE. Sign-in is not gated on it (#149); the
- * account works from the first screen, and the unconfirmed state is said on
- * You, where it can be resent.
- */
 import { isValidEmail, passwordWeakness } from "@floc/core/text/credentials";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -64,8 +45,6 @@ export default function SignUp() {
   async function withGoogle() {
     setBusy(true);
     setProblem(null);
-    // Google reports the address already verified, so a Google account never
-    // meets the confirm-your-email card.
     const { error } = await signIn.social({ provider: "google", callbackURL: "/trips" });
     setBusy(false);
     if (error) setProblem(explainGoogle(error));
@@ -109,7 +88,6 @@ export default function SignUp() {
               secureTextEntry
               autoComplete="new-password"
             />
-            {/* Why: the rule is invisible until it is broken, so it is said once rather than only as a rejection. */}
             <Body tone="ink-3">At least 8 characters, with a letter and a number.</Body>
 
             {problem ? <Body tone="red">{problem}</Body> : null}

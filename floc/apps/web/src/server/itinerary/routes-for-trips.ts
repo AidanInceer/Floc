@@ -1,7 +1,3 @@
-/**
- * Every listed trip's route, for the map on each bar of My trips: two queries for the whole list, never one per trip.
- * Split by trip in @floc/core, the same way the Overview builds one trip's route.
- */
 import "server-only";
 
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
@@ -43,7 +39,6 @@ export async function routesForTrips(tripIds: number[]): Promise<Map<number, Ove
       .all(),
   ]);
 
-  // The first transport event of a day says how that leg travels, as on the Overview.
   const firstHop = new Map<number, TripHop>();
   for (const e of events) if (e.mode && !firstHop.has(e.dayId)) firstHop.set(e.dayId, { ...e, mode: e.mode });
   return routesByTrip(days, [...firstHop.values()]);

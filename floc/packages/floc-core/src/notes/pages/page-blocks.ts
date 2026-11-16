@@ -1,8 +1,3 @@
-/**
- * A notes page's own block format (#408, ADR-014): what `trip_page.body` holds
- * and what every reader outside the editor sees. Flat blocks with an indent,
- * not nested lists, so a line keeps its place when it moves in or out.
- */
 import { isLinkKind, type LinkKind } from "./trip-links";
 import { safeHref } from "../../text/safe-href";
 
@@ -20,7 +15,6 @@ export type Mark =
   | { type: "highlight"; tone: Tone }
   | { type: "comment"; id: number };
 
-/** A "\n" in `text` is a line break inside the block. */
 export type TextRun = { type: "text"; text: string; marks?: Mark[] };
 export type LinkRun = { type: "tripLink"; kind: LinkKind; id: number; label: string };
 export type Inline = TextRun | LinkRun;
@@ -122,7 +116,6 @@ function readBlock(raw: unknown): PageBlock | null {
   }
 }
 
-/** A stored body, read without trusting it. Anything unreadable is an empty page, never a throw. */
 export function parsePageBody(raw: unknown): PageBlock[] {
   let parsed: unknown = raw;
   if (typeof raw === "string") {
@@ -144,7 +137,6 @@ export function inlineText(content: readonly Inline[]): string {
   return content.map((run) => (run.type === "text" ? run.text : run.label)).join("");
 }
 
-/** A page's words, line by line, table cells included. */
 export function pageText(blocks: readonly PageBlock[]): string {
   return blocks
     .map((block) => {
@@ -155,7 +147,6 @@ export function pageText(blocks: readonly PageBlock[]): string {
     .join("\n");
 }
 
-/** A page of bullets, one per line — a preset trip's highlights. None is an empty page. */
 export function bulletPage(lines: readonly string[]): PageBlock[] {
   return lines.length ? lines.map((text) => ({ type: "bullet", indent: 0, content: [{ type: "text", text }] })) : EMPTY_PAGE;
 }

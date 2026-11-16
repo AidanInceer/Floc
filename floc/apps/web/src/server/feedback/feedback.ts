@@ -1,7 +1,3 @@
-/**
- * Feedback from a signed-in member to Floc's own mailbox (#271). Nothing is stored: the mail is the record.
- * The message is never logged (ADR-046).
- */
 import "server-only";
 
 import { feedbackPage, type FeedbackResult, type FeedbackSurface } from "@floc/core/feedback/feedback";
@@ -16,12 +12,10 @@ import { log } from "@/server/observability/log";
 type Sender = { id: string; name: string; email: string };
 type Words = { message: unknown; page: unknown; surface: FeedbackSurface; appVersion: unknown };
 
-/** Why (rule 11): with no mail provider a send only reaches the server log, so in production the form hides. */
 export function feedbackOpen(): boolean {
   return emailConfigured() || process.env.NODE_ENV !== "production";
 }
 
-// Why: five at once, then one every twelve minutes for each person, so the mailbox cannot be flooded from one account.
 const processState = globalThis as typeof globalThis & { flocFeedbackSenders?: ReturnType<typeof writeLimiter> };
 const senders = (processState.flocFeedbackSenders ??= writeLimiter({ capacity: 5, perSecond: 1 / 720 }));
 
