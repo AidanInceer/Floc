@@ -1,19 +1,22 @@
 import Link from "next/link";
 
-import { formatDateRange, formatShortRange, nightsBetween } from "@floc/core/dates/dates";
+import { formatDateRange, nightsBetween } from "@floc/core/dates/dates";
 import type { BookingPlan, StayRow } from "@floc/core/trip/booking/booking-links";
 import type { BookingSites } from "@floc/core/trip/booking/booking-sites";
 import { BookedPill } from "@/components/booking/booked-pill";
+import { BookingSitesDialog } from "@/components/booking/booking-sites-dialog";
 import { HotelUpload } from "@/components/booking/hotel-upload";
 import { BookingSitesProvider } from "@/components/booking/booking-sites";
 import { OFFSITE_NOTE } from "@/components/booking/site-links";
-import { SitePicker } from "@/components/booking/site-picker";
+import { SiteButtons } from "@/components/booking/site-buttons";
+import { Menu } from "@/components/system/client-ui";
 import { BedIcon, EventGlyph } from "@/components/system/icons/days";
+import { cx, menuItemClass, panelBandClass } from "@/components/system/ui";
 import { countWord } from "@floc/core/text/count-word";
 
-const headClass = "font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint";
-const panelClass = "rounded-sm border border-rule bg-sheet-2 px-3 py-2.5 max-sm:px-2.5";
-const panelHeadClass = "flex items-center gap-2 text-sm font-medium";
+const partHeadClass = "flex items-center gap-2 text-sm font-medium";
+
+type Stop = Extract<StayRow, { kind: "stop" }>;
 
 function nightsLabel(row: StayRow) {
   const nights = nightsBetween(row.checkIn, row.checkOut);
@@ -24,63 +27,74 @@ export function BookingCard({ tripId, plan, files, sites }: { tripId: number; pl
   const daysHref = `/trip/${tripId}/days`;
   return (
     <BookingSitesProvider initial={sites}>
-    <section id="booking" className="scroll-mt-24 rounded-md border border-rule bg-sheet p-4 shadow-card max-sm:p-3">
-      <h2 className={headClass}>Get booking</h2>
+      <section id="booking" className="scroll-mt-24 rounded-md border border-rule bg-sheet shadow-card">
+        <div className="flex items-center justify-between gap-3 px-5 pb-3 pt-4 max-sm:px-4">
+          <h2 className="font-display text-lg">Get booking</h2>
+          <BookingSitesDialog />
+        </div>
 
-      <div className={`mt-3 flex flex-wrap items-center justify-between gap-2 ${panelClass}`}>
-        <h3 className={panelHeadClass}>
-          <EventGlyph type="transport" transportType="flight" className="text-ink-soft" />
-          Flights
-        </h3>
-        <SitePicker kind="flights" links={plan.flights} label="Search flights" split className="sm:justify-end" />
-      </div>
+        <div className={cx(panelBandClass, "flex flex-wrap items-center justify-between gap-x-3 gap-y-2 py-3")}>
+          <h3 className={partHeadClass}>
+            <EventGlyph type="transport" transportType="flight" className="text-ink-soft" />
+            Flights
+          </h3>
+          <SiteButtons kind="flights" links={plan.flights} />
+        </div>
 
-      <div className={`mt-3 ${panelClass}`}>
-        <h3 className={panelHeadClass}>
-          <BedIcon className="text-ink-soft" />
-          Stays
-        </h3>
-        {plan.stays === "unset" ? (
-          <Link href={daysHref} className="mt-1 inline-block text-sm text-pen hover:text-pen-deep">
-            Set where you sleep on Days to find a stay →
-          </Link>
-        ) : (
-          <ul className="mt-1 divide-y divide-rule">
-            {plan.stays.map((row) => (
-              <li key={row.checkIn} className="flex flex-wrap items-center justify-between gap-2 py-2 max-sm:gap-y-1">
-                {row.kind === "stop" ? (
-                  <>
-                    <div className="max-sm:contents">
-                      <p className="text-sm max-sm:flex-1">{row.placeName}</p>
-                      <p className="nums font-mono text-[11px] text-ink-faint max-sm:order-1 max-sm:basis-full">{nightsLabel(row)}</p>
+        <div className={cx(panelBandClass, "pb-1 pt-3")}>
+          <h3 className={partHeadClass}>
+            <BedIcon className="text-ink-soft" />
+            Stays
+          </h3>
+          {plan.stays === "unset" ? (
+            <Link href={daysHref} className="mb-3 mt-1 inline-block text-sm text-pen hover:text-pen-deep">
+              Set where you sleep on Days to find a stay →
+            </Link>
+          ) : (
+            <ul className="mt-1 divide-y divide-rule">
+              {plan.stays.map((row) => (
+                <li key={row.checkIn} className="py-2.5">
+                  {row.kind === "stop" ? (
+                    <StopRow tripId={tripId} row={row} files={files} daysHref={daysHref} />
+                  ) : (
+                    <div className="rounded-sm border border-dashed border-rule bg-sheet-2 px-3 py-2">
+                      <p className="text-sm text-ink-soft">No stop yet · {formatDateRange(row.checkIn, row.checkOut)}</p>
+                      <Link href={daysHref} className="text-sm text-pen hover:text-pen-deep">
+                        Set where you sleep on Days →
+                      </Link>
                     </div>
-                    <div className="min-w-0 max-sm:contents sm:ml-auto">
-                      {row.hotel ? <span className="flex min-w-0 max-sm:order-1 max-sm:basis-full"><BookedPill tripId={tripId} hotel={row.hotel} /></span> : <SitePicker kind="stays" links={row.links} label={`Find a stay in ${row.placeName}`} head={`${row.placeName} · ${formatShortRange(row.checkIn, row.checkOut)}`} split className="sm:justify-end" />}
-                    </div>
-                    {files ? (
-                      <div>
-                        <HotelUpload tripId={tripId} dayId={row.dayId} place={row.placeName} />
-                      </div>
-                    ) : null}
-                  </>
-                ) : (
-                  <div className="w-full rounded-md border border-dashed border-rule bg-sheet-2 px-3 py-2">
-                    <p className="text-sm text-ink-soft">
-                      No stop yet · {formatDateRange(row.checkIn, row.checkOut)}
-                    </p>
-                    <Link href={daysHref} className="text-sm text-pen hover:text-pen-deep">
-                      Set where you sleep on Days →
-                    </Link>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
-      <p className="mt-3 text-[11px] text-ink-faint">{OFFSITE_NOTE}</p>
-    </section>
+        <p className="px-5 pb-4 text-xs text-ink-faint max-sm:px-4">{OFFSITE_NOTE}</p>
+      </section>
     </BookingSitesProvider>
+  );
+}
+
+function StopRow({ tripId, row, files, daysHref }: { tripId: number; row: Stop; files: boolean; daysHref: string }) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+      <div className="min-w-0 flex-1">
+        <p className="text-sm">{row.placeName}</p>
+        <p className="nums font-mono text-xs text-ink-faint">{nightsLabel(row)}</p>
+      </div>
+      <div className="flex min-w-0 items-center max-sm:order-1 max-sm:basis-full">
+        {row.hotel ? <BookedPill tripId={tripId} hotel={row.hotel} /> : <SiteButtons kind="stays" links={row.links} />}
+      </div>
+      <Menu label={`More for ${row.placeName}`}>
+        {files ? <HotelUpload tripId={tripId} dayId={row.dayId} place={row.placeName} /> : null}
+        <Link href={daysHref} role="menuitem" className={menuItemClass}>
+          <span className="flex items-center gap-2">
+            <BedIcon size={12} />
+            Change where you sleep
+          </span>
+        </Link>
+      </Menu>
+    </div>
   );
 }
