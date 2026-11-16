@@ -4,6 +4,7 @@ import {
   type PackingLineGroup,
   type PackCategory,
 } from "@floc/core/packing/packing";
+import { suggestedNote } from "@floc/core/packing/packing-words";
 import { useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -12,6 +13,7 @@ import { Sheet } from "../system/sheet";
 import { useTheme } from "../system/theme";
 import { Card, SectionTitle } from "../system/ui";
 import { FigureText } from "./figure-text";
+import { SuggestedNote } from "./suggested-mark";
 import { TextAction } from "./line-frame";
 import { groupCount, sectionCount } from "@/lib/packing/row-words";
 import { fonts, radius, size, space } from "@/lib/theme";
@@ -55,13 +57,13 @@ function ListMenu({
   );
 }
 
-function GroupBand({ heading, count, first }: { heading: string; count: { text: string; full: boolean }; first: boolean }) {
+function GroupBand({ heading, count, note, first }: { heading: string; count: { text: string; full: boolean }; note: string | null; first: boolean }) {
   const { c } = useTheme();
   return (
     <View
       style={{
         flexDirection: "row",
-        alignItems: "baseline",
+        alignItems: "center",
         justifyContent: "space-between",
         gap: space.md,
         paddingHorizontal: space.md,
@@ -71,9 +73,12 @@ function GroupBand({ heading, count, first }: { heading: string; count: { text: 
         borderTopColor: c.rule,
       }}
     >
-      <Text numberOfLines={1} style={{ flex: 1, color: c.ink, fontFamily: fonts.sansBold, fontSize: size.small }}>
-        {heading}
-      </Text>
+      <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: space.sm }}>
+        <Text numberOfLines={1} style={{ flexShrink: 1, color: c.ink, fontFamily: fonts.sansBold, fontSize: size.small }}>
+          {heading}
+        </Text>
+        {note ? <SuggestedNote text={note} /> : null}
+      </View>
       {count.text ? (
         <FigureText
           text={count.text}
@@ -85,7 +90,7 @@ function GroupBand({ heading, count, first }: { heading: string; count: { text: 
 }
 
 export function PackingSection<
-  T extends { id: number; label: string; category: PackCategory; quantity?: number },
+  T extends { id: number; label: string; category: PackCategory; quantity?: number; suggested?: boolean },
   I extends { category: PackCategory } = { category: PackCategory },
 >({
   heading,
@@ -180,7 +185,14 @@ export function PackingSection<
           ];
           return (
             <View key={group.key}>
-              {group.heading ? <GroupBand heading={group.heading} count={count} first={g === 0} /> : null}
+              {group.heading ? (
+                <GroupBand
+                  heading={group.heading}
+                  count={count}
+                  note={suggestedNote(group.lines.map((line) => ({ suggested: line.suggested === true })))}
+                  first={g === 0}
+                />
+              ) : null}
               {rows.map((row, i) => (
                 <View
                   key={i}
