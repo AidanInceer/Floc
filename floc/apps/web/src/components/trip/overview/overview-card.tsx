@@ -46,11 +46,13 @@ export type OverviewTrip = {
 export function OverviewCard({
   trip,
   position,
+  estimate,
   ideas,
   recap,
 }: {
   trip: OverviewTrip;
   position: Position | null;
+  estimate?: ReactNode;
   ideas?: ReactNode;
   recap?: ReactNode;
 }) {
@@ -116,6 +118,7 @@ export function OverviewCard({
         <Link href={`/trip/${trip.id}/money`} className="flex items-baseline gap-2.5 border-b border-rule py-3 text-sm text-ink-soft hover:text-ink">
           <PositionLine position={position} />
         </Link>
+        {estimate}
         {ideas}
         {recap}
       </div>
