@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { HEADLINE_WORDS, START_DELAY_MS, frameAt, typingScript } from "./typed-headline";
+import { HEADLINE_WORDS, START_DELAY_MS, frameAt, stillScript, typingScript } from "./typed-headline";
 
 const END_MS = 13_500;
 const script = typingScript(HEADLINE_WORDS, START_DELAY_MS, END_MS);
@@ -57,5 +57,19 @@ describe("typed headline", () => {
     const later = typingScript(HEADLINE_WORDS, START_DELAY_MS, END_MS * 2);
     const firstKey = (s: typeof script) => s.strokes[1]!.at - START_DELAY_MS;
     expect(firstKey(later) / firstKey(script)).toBeCloseTo((END_MS * 2 - START_DELAY_MS) / (END_MS - START_DELAY_MS));
+  });
+});
+
+describe("still headline", () => {
+  const still = stillScript("sorted.", 4_200);
+
+  it("shows the word at once, with no caret, and never types", () => {
+    for (const t of [0, 1_000, 4_199, still.doneAt]) expect(frameAt(still, t)).toMatchObject({ text: "sorted.", caret: false });
+  });
+
+  it("sweeps the mark only from its start, and finishes it", () => {
+    expect(frameAt(still, 4_199).sweep).toBe(0);
+    expect(frameAt(still, still.doneAt).sweep).toBe(1);
+    expect(still.doneAt).toBeGreaterThan(4_200);
   });
 });
