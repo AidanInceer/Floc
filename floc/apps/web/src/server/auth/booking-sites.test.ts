@@ -20,9 +20,10 @@ describe("your booking sites", () => {
   });
 
   it("keep a site you add, for you only", async () => {
+    await toggleBookingSite(world.member, "stays", "Trip.com");
     const after = await toggleBookingSite(world.member, "stays", "Airbnb");
-    expect(after.stays).toEqual(["Booking.com", "Trip.com", "Airbnb"]);
-    expect((await bookingSitesOf(world.member)).stays).toEqual(["Booking.com", "Trip.com", "Airbnb"]);
+    expect(after.stays).toEqual(["Booking.com", "Airbnb"]);
+    expect((await bookingSitesOf(world.member)).stays).toEqual(["Booking.com", "Airbnb"]);
     expect(await bookingSitesOf(world.admin)).toEqual(DEFAULT_BOOKING_SITES);
   });
 
@@ -37,8 +38,13 @@ describe("your booking sites", () => {
     expect(after.flights).toEqual(["Skyscanner"]);
   });
 
+  it("refuse a third site of a kind", async () => {
+    const after = await toggleBookingSite(world.member, "stays", "Airbnb");
+    expect(after.stays).toEqual(["Booking.com", "Trip.com"]);
+  });
+
   it("read a bad stored value as the default", async () => {
-    await toggleBookingSite(world.member, "stays", "Airbnb");
+    await toggleBookingSite(world.member, "stays", "Trip.com");
     await db.update(schema.userProfile).set({ bookingSites: "not a list" }).where(eq(schema.userProfile.userId, world.member));
     expect(await bookingSitesOf(world.member)).toEqual(DEFAULT_BOOKING_SITES);
   });
