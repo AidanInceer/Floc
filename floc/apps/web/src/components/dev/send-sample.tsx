@@ -4,7 +4,7 @@ import { useActionState } from "react";
 
 import { SubmitButton } from "@/components/system/client-ui";
 
-import { sendSampleToMe, type SendResult } from "./actions";
+import { sendSampleToMe, type SendResult } from "@/app/dev/emails/actions";
 
 export function SendSample({ sampleKey }: { sampleKey: string }) {
   const [result, action] = useActionState(sendSampleToMe, null as SendResult);

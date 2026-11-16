@@ -7,8 +7,8 @@ import { emailPreviewOpen } from "@/server/email/dev-preview";
 import { renderEmail } from "@/server/email/render";
 import { EMAIL_SAMPLES } from "@/server/email/samples";
 
-import { EmailFrame } from "./email-frame";
-import { SendSample } from "./send-sample";
+import { EmailFrame } from "@/components/dev/email-frame";
+import { SendSample } from "@/components/dev/send-sample";
 
 export const metadata: Metadata = { title: "Emails" };
 
