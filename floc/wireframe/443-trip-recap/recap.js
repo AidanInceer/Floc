@@ -1,4 +1,3 @@
-// #443 post-trip recap: where it sits and what it holds. Six structurally different answers, A–F.
 import { variants } from "/_house/switcher.js";
 import { tripFrame, ico, esc, openSheet, closeSheet, sheetHead, toast } from "/_house/kit/trip-frame.mjs";
 
@@ -17,7 +16,6 @@ const PEOPLE = [ME,
   { id: "ma", name: "Maya", initial: "Ma", tone: 6 },
   { id: "ki", name: "Kit", initial: "Ki", tone: 7 },
 ];
-// Minor units (rule 1). Total 243720 / 6 = 40620 each.
 
 const state = { next: null, today: new URLSearchParams(location.search).get("today") || "2026-09-29", side: null };
 
@@ -29,7 +27,6 @@ const SHARE = glyph('<circle cx="10.5" cy="2.9" r="1.75"/><circle cx="3.5" cy="7
 const NEXT = glyph('<path d="M7 2.4v9.2M2.4 7h9.2"/>');
 const MOON = glyph('<path d="M11.2 8.8A4.8 4.8 0 0 1 5.2 2.8a4.8 4.8 0 1 0 6 6Z"/>');
 
-// Rough Sicily, lon/lat, drawn as a plain sheet of land.
 const COAST = [[12.43, 37.8], [12.5, 38.02], [12.62, 38.12], [12.9, 38.08], [13.08, 38.2], [13.36, 38.22], [13.55, 38.1], [13.75, 37.98], [14.05, 38.05], [14.4, 38.02], [14.75, 38.15], [15.1, 38.15], [15.42, 38.24], [15.65, 38.27], [15.55, 38.02], [15.32, 37.85], [15.18, 37.6], [15.1, 37.42], [15.22, 37.25], [15.32, 37.02], [15.14, 36.8], [15.1, 36.66], [14.82, 36.72], [14.48, 36.78], [14.25, 37.02], [13.95, 37.1], [13.55, 37.25], [13.18, 37.47], [12.9, 37.57], [12.6, 37.64]];
 const px = (lon) => (lon - 12.3) * 100;
 const py = (lat) => (38.38 - lat) * 127;
@@ -46,7 +43,6 @@ function routeMap({ numbers = true, cls = "" } = {}) {
 }
 
 
-// The share card: name, route, places, nights, month. No money, no names, no head count.
 function shareCard(size = "") {
   return `<figure class="card ${size}" aria-label="Share card for ${TRIP.name}">` +
     `<div class="card-top"><span class="card-mark">floc<i>.</i></span><span class="nums">${TRIP.month}</span></div>` +
@@ -65,9 +61,7 @@ const stopsGhost = () =>
   `<section class="ghost ov-stops" aria-hidden="true">${STOPS.map((s, i) => `<div class="ov-stop"><b class="nums">${i + 1}</b><span>${s.place}</span><small class="nums">${s.nights} nights</small></div>`).join("")}</section>`;
 const ghostLabel = (t) => `<p class="ghost-label">${t}</p>`;
 
-// Round 2: three takes on B. Each shows the recap only once the end date has passed (rule 4: from the data, no status).
 const ended = () => state.today > TRIP.end;
-// The postcard while the trip is on, as it is today.
 function frontCard() {
   return `<div class="pc"><p class="pc-dates nums">${TRIP.range} · ${TRIP.nights} nights</p><h2 class="pc-name">${TRIP.name}</h2>` +
     `<p class="pc-tags"><span>Beaches</span><span>Food</span><span>Old towns</span></p><p class="pc-stage nums">${state.today === TRIP.end ? "Last day" : "Underway"}</p></div>`;
@@ -79,7 +73,6 @@ const heroWith = (map, card, cls) =>
   `<section class="ov-hero ${cls}"><div class="ov-map">${map}</div><div class="ov-card">${card}</div>` +
   `<div class="ov-group">${faces()}<span class="ov-files">${ico("files")}12 files</span></div></section>` + ghostLabel("Below: stops — unchanged") + stopsGhost();
 
-// B3 — the postcard stays; the recap is a ruled foot under it: one line of figures, then two quiet actions.
 function viewB3() {
   if (!ended()) return during();
   const card = `<div class="pc"><p class="pc-dates nums">${TRIP.range} · ${TRIP.nights} nights</p><h2 class="pc-name">${TRIP.name}</h2>` +
@@ -110,7 +103,6 @@ function render(key = current) {
   page.innerHTML = VIEWS[key]();
 }
 
-// Share and next trip: what each button opens.
 function shareSheet() {
   const d = openSheet(sheetHead("Share Sicily") + `<div class="sheet-body share-body">${shareCard()}` +
     `<p class="hint">The card holds the route, places, nights and month. No money and no names leave the trip.</p>` +

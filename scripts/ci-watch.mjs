@@ -3,7 +3,6 @@ import { gh, json, repository, requiredChecks, viewPull } from "./delivery/githu
 import { requiredStatus } from "./delivery/status.mjs";
 import { prStep } from "./delivery/ci.mjs";
 
-// Why: cancelled and timed-out runs are not green; only success, skipped and neutral are.
 const GREEN = new Set(["success", "skipped", "neutral"]);
 const EVERY = 20_000;
 
@@ -18,7 +17,6 @@ function commit(sha) {
   return { sha, state, failed, pending };
 }
 
-/** Why a time limit: one Bash call stops at 10 minutes, so the agent calls this again while it says pending. */
 async function pull(number, seconds) {
   const until = Date.now() + seconds * 1000;
   let broken = 0;
@@ -27,7 +25,6 @@ async function pull(number, seconds) {
     const checks = requiredStatus(pr.statusCheckRollup ?? [], requiredChecks[pr.baseRefName] ?? requiredChecks.develop);
     const runs = checks.state === "pending" && pr.state === "OPEN"
       ? json(process.cwd(), "run", "list", "--commit", pr.headRefOid, "--json", "workflowName,status,conclusion,url") : [];
-    // Why: the check rollup can lag a finished run by a moment; a broken run counts only when two looks in a row agree.
     let step = prStep({ pr, checks, runs });
     broken = step.state === "broken" ? broken + 1 : 0;
     if (step.state === "broken" && broken < 2) step = { do: "wait" };

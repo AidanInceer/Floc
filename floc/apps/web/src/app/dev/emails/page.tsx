@@ -12,7 +12,6 @@ import { SendSample } from "@/components/dev/send-sample";
 
 export const metadata: Metadata = { title: "Emails" };
 
-/** Every email Floc sends, light and dark, with seeded content (#653). Development only. */
 export default async function EmailPreviewPage() {
   if (!emailPreviewOpen()) notFound();
   const me = await requireUser("/dev/emails");

@@ -1,10 +1,3 @@
-/**
- * The text of the barcodes on a boarding pass file (#559): a PNG or JPEG, or the pictures inside a PDF.
- *
- * Why the limits: the file is from a forwarded mail. Only a few pages and pictures are looked at, nothing runs
- * for longer than the time limit, and any failure reads as no barcode. The decoder's WebAssembly is loaded from
- * the installed package, never from the network. A barcode a PDF draws as lines, not as a picture, is not read.
- */
 import "server-only";
 
 import { readFile } from "node:fs/promises";
@@ -19,7 +12,6 @@ const FORMATS = ["Aztec", "PDF417", "QRCode", "DataMatrix"] as const;
 type Pixels = { data: Uint8ClampedArray; width: number; height: number };
 type Picture = { data: Uint8Array; width: number; height: number };
 
-/** A PDF's picture as the decoder takes it. Null for one too small or too large to be a boarding pass barcode. */
 function toRgba({ width, height, data }: Picture): Pixels | null {
   if (width > MAX_SIDE || height > MAX_SIDE || width < 20 || height < 20) return null;
   if (data.length < width * height * 4) return null;
@@ -31,7 +23,6 @@ let reader: Promise<typeof import("zxing-wasm/reader")> | null = null;
 function loadReader() {
   reader ??= (async () => {
     const zxing = await import("zxing-wasm/reader");
-    // Why the name is joined at run time: a literal path makes webpack try to bundle the .wasm, which fails the whole build.
     const wasmName = ["zxing-wasm", "reader", "zxing_reader.wasm"].join("/");
     const wasm = createRequire(import.meta.url).resolve(wasmName);
     const bytes = await readFile(wasm);
@@ -44,7 +35,6 @@ function loadReader() {
 const u16 = (bytes: Uint8Array, at: number) => (bytes[at] << 8) | bytes[at + 1];
 const u32 = (bytes: Uint8Array, at: number) => bytes[at] * 0x1000000 + ((bytes[at + 1] << 16) | (bytes[at + 2] << 8) | bytes[at + 3]);
 
-/** A JPEG's size, off its first frame header. Null when there is none in the first 64 KB. */
 function jpegSize(bytes: Uint8Array): { width: number; height: number } | null {
   let at = 2;
   for (let markers = 0; markers < 200 && at + 9 < bytes.length && at < 65_536; markers += 1) {
@@ -57,10 +47,6 @@ function jpegSize(bytes: Uint8Array): { width: number; height: number } | null {
   return null;
 }
 
-/**
- * Why the size is read off the header first: a 100 KB PNG can declare 30000 × 30000 pixels, and decoding it
- * holds the server for seconds and takes a gigabyte. The decoder is synchronous, so no timer can stop it.
- */
 export function pictureFits(mimeType: string, bytes: Uint8Array): boolean {
   const png = mimeType === "image/png" && bytes.length > 24 && u32(bytes, 0) === 0x89504e47;
   const size = png ? { width: u32(bytes, 16), height: u32(bytes, 20) } : mimeType === "image/jpeg" ? jpegSize(bytes) : null;
@@ -75,7 +61,6 @@ async function textsIn(zxing: Reader, picture: Uint8Array | Pixels): Promise<str
   return found.flatMap((barcode) => (barcode.text ? [barcode.text] : []));
 }
 
-/** Why one picture at a time: holding every picture of a page at once is what makes a hostile PDF cost memory. */
 async function pdfTexts(zxing: Reader, bytes: Uint8Array): Promise<string[]> {
   const { extractImages, getDocumentProxy } = await import("unpdf");
   const pdf = await getDocumentProxy(new Uint8Array(bytes));
@@ -98,7 +83,6 @@ async function decode(file: { mimeType: string; bytes: Uint8Array }): Promise<st
   return textsIn(await loadReader(), file.bytes);
 }
 
-/** Every barcode text found, or none. Never throws. */
 export async function barcodeTexts(file: { mimeType: string; bytes: Uint8Array }): Promise<string[]> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<string[]>((resolve) => {

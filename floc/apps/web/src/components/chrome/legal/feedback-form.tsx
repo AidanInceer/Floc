@@ -11,7 +11,6 @@ import { SubmitButton } from "@/components/system/client-ui";
 import { ErrorText, Textarea } from "@/components/system/ui";
 import { lastPage } from "@/lib/chrome/page-trail";
 
-/** Why the words are state (#271): React empties a form after its action, and a failed send must keep what was typed. */
 export function FeedbackForm() {
   const pathname = usePathname();
   const [message, setMessage] = useState("");

@@ -9,7 +9,6 @@ export function kindOf({ path, branch }, main) {
   return isScratch(branch) ? "scratch" : "task";
 }
 
-/** The one-line state a person needs: where the work is and what it waits on. */
 export function stateOf(row) {
   if (row.kind === "main") return [row.dirty && `${row.dirty} changed files`, row.behind && `${row.behind} commits behind develop`].filter(Boolean).join("; ") || "current with develop";
   if (row.pr?.state === "OPEN") return `PR #${row.pr.number} open`;
@@ -37,7 +36,7 @@ function pullRequests(main) {
 }
 
 export function rows(main) {
-  try { git(main, "fetch", "--quiet", "origin", "develop"); } catch { /* Why: offline still lists what is local. */ }
+  try { git(main, "fetch", "--quiet", "origin", "develop"); } catch {}
   const prs = pullRequests(main);
   return listWorktrees(main).map((w) => {
     const safe = (...args) => { try { return git(w.path, ...args); } catch { return ""; } };

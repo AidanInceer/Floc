@@ -1,9 +1,3 @@
-/**
- * The trip card's own actions, behind one triple-dot where the role label used
- * to sit (ticket 213). Colour, mark and rename are open to any member; archive and
- * delete stay admin-only (rule 6). Mute is the bell beside the star; leaving lives
- * on the trip header's menu, next to the roster.
- */
 import { ConfirmSubmit, Menu, Sheet, SubmitButton } from "@/components/system/client-ui";
 import { Field, Input, Stack, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
 import { TripColorPicker } from "@/components/trip/trip-color-picker";

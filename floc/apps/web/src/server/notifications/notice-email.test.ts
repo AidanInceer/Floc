@@ -1,6 +1,3 @@
-/**
- * #653: a notice that reaches email is a letter about its trip (ADR-062), and links to the setting that stops it.
- */
 import { describe, expect, it } from "vitest";
 
 import { formatDateRange } from "@floc/core/dates/dates";

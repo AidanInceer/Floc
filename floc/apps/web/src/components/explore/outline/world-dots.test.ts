@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import type { Piece } from "./land";
 import { worldDots } from "./world-dots";
 
-// A square of land around Africa's middle, and nothing else.
 const ring = [[0, -20], [40, -20], [40, 20], [0, 20], [0, -20]];
 const LAND: Piece[] = [{ code: "XX", ring, box: { west: 0, south: -20, east: 40, north: 20 } }];
 

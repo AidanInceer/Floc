@@ -1,7 +1,3 @@
-/**
- * Your Bookings area (#559, ADR-050): forwarded or uploaded files that wait for you to choose their trip.
- * Yours alone; a file reaches a trip only as one of your private files there.
- */
 import { removeBooking } from "./actions";
 import { requireUser } from "@/server/access";
 import { canUseFeature } from "@/server/billing/entitlements";

@@ -1,7 +1,3 @@
-/**
- * Named groups of people you travel with (#545). Only the maker sees a group; nobody in it is told.
- * Who may be in one is decided by the host (`createGroup` and friends re-check it), never here.
- */
 import { z } from "zod";
 import { GROUP_CAP, GROUP_NAME_CAP } from "@floc/core/people/group-ticks";
 

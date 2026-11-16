@@ -1,7 +1,3 @@
-/**
- * Draws one email as HTML and plain text (#653, ADR-062): a card for account and booking mail, a letter for
- * trip mail. Pure apart from the base URL, so the preview page and the snapshot tests draw what is sent.
- */
 import type { Theme } from "@floc/core/design/tokens";
 
 import { appUrl } from "@/lib/env";
@@ -11,17 +7,13 @@ import type { OutboundEmail } from "./model";
 import { fontFaces, painter } from "./palette";
 import { renderText } from "./text";
 
-/** No `theme` follows the reader's mail; a `theme` pins one, for the preview page. */
 type Options = { now: Date; theme?: Theme; base?: string };
 
-/** Why: in UK time, as the received time in a booking reply is (ADR-058), so one card never shows two days. */
 const SENT_ON = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "Europe/London" });
 
-/** Drawn tighter on a phone: the card runs edge to edge, as the chosen mock-up has it. */
 const PHONE =
   "@media (max-width:480px){.m-ground{padding:12px 0 20px !important}.m-card{border-radius:0 !important;border-left-width:0 !important;border-right-width:0 !important}.m-pad{padding:24px 20px !important}.m-foot{padding:16px 20px 0 !important}.m-letter{padding:0 20px !important}}";
 
-/** Why: Outlook on Windows draws with Word, which ignores max-width, so it gets a fixed-width table. */
 const OUTLOOK_OPEN = '<!--[if mso]><table role="presentation" width="560" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->';
 const OUTLOOK_CLOSE = "<!--[if mso]></td></tr></table><![endif]-->";
 

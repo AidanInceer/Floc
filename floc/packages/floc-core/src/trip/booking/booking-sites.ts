@@ -1,8 +1,3 @@
-/**
- * Why: your sites show as buttons and the rest wait in a menu (wireframe/booking-sites J).
- * At least one and at most three a kind, so a row never empties or runs long.
- */
-
 export const FLIGHT_SITES = ["Google Flights", "Skyscanner", "Kayak", "Kiwi.com"] as const;
 export const STAY_SITES = ["Booking.com", "Trip.com", "Airbnb", "Hotels.com", "Hostelworld"] as const;
 
@@ -11,7 +6,6 @@ export type StaySite = (typeof STAY_SITES)[number];
 export type BookingSite = FlightSite | StaySite;
 export type SiteKind = "flights" | "stays";
 
-/** What each site is for, said once beside it in the More sites list. */
 export const SITE_USE: Record<BookingSite, string> = {
   "Google Flights": "Compare fares",
   Skyscanner: "Compare fares",
@@ -45,7 +39,6 @@ function readKind<K extends SiteKind>(kind: K, raw: unknown): BookingSites[K] {
   return (picked.length ? picked : DEFAULT_BOOKING_SITES[kind]) as BookingSites[K];
 }
 
-/** A stored choice, read safely: a bad shape or an empty kind reads as the default. */
 export function readBookingSites(raw: unknown): BookingSites {
   const obj = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
   return { flights: readKind("flights", obj.flights), stays: readKind("stays", obj.stays) };
@@ -59,7 +52,6 @@ export function canToggleSite(sites: BookingSites, kind: SiteKind, site: Booking
   return list.includes(site) ? list.length > 1 : list.length < MAX_SITES;
 }
 
-/** Adds a site at the end of your list, or drops it. A move the rules refuse returns the same object. */
 export function toggleSite(sites: BookingSites, kind: SiteKind, site: BookingSite): BookingSites {
   if (!canToggleSite(sites, kind, site)) return sites;
   const list = sites[kind] as string[];
@@ -67,7 +59,6 @@ export function toggleSite(sites: BookingSites, kind: SiteKind, site: BookingSit
   return { ...sites, [kind]: next };
 }
 
-/** Your sites first, in the order you chose them; the rest after, in catalogue order. */
 export function splitBySites<L extends { site: string }>(links: L[], preferred: readonly string[]): { mine: L[]; more: L[] } {
   const mine = preferred.map((s) => links.find((l) => l.site === s)).filter((l): l is L => Boolean(l));
   return { mine, more: links.filter((l) => !preferred.includes(l.site)) };

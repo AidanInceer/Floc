@@ -1,7 +1,3 @@
-/**
- * The SQL of a member's Bookings area (#559). Every read and write names the member, so somebody else's
- * waiting file is not expressible here.
- */
 import "server-only";
 
 import { and, asc, count, desc, eq, gt, gte, isNull, lte, or, sum } from "drizzle-orm";
@@ -40,7 +36,6 @@ export async function waitingRows(userId: string, now: Date, id?: number) {
     .all();
 }
 
-/** What the list holds against its space: only files still on it. */
 export async function waitingUsage(userId: string, now: Date): Promise<{ files: number; bytes: number }> {
   const row = await db
     .select({ files: count(), bytes: sum(bookingInbox.sizeBytes).mapWith(Number) })
@@ -63,11 +58,6 @@ export async function insertWaiting(input: {
   return row.id;
 }
 
-/**
- * Takes a file off the list, and says whether this call was the one that did. `placed` keeps the bytes, which
- * now belong to a trip's file. Why the answer matters: placing and removing at once must not both win, or the
- * sweep would delete the bytes of a file that is on a trip.
- */
 export async function closeWaiting(userId: string, id: number, placed: boolean): Promise<boolean> {
   const at = new Date();
   const rows = await db
@@ -79,7 +69,6 @@ export async function closeWaiting(userId: string, id: number, placed: boolean):
   return rows.length === 1;
 }
 
-/** Puts a file back on the list, when the trip file it was claimed for could not be saved. */
 export async function reopenWaiting(userId: string, id: number): Promise<void> {
   await db
     .update(bookingInbox)
@@ -91,7 +80,6 @@ export async function reopenWaiting(userId: string, id: number): Promise<void> {
 const PAGE = 500;
 const MAX_PAGES = 40;
 
-/** Every key a query gives, a page at a time in id order, so none past the first page is missed. */
 async function everyKey(where: ReturnType<typeof and>): Promise<string[]> {
   const keys: string[] = [];
   for (let page = 0; page < MAX_PAGES; page += 1) {
@@ -109,24 +97,15 @@ async function everyKey(where: ReturnType<typeof and>): Promise<string[]> {
   return keys;
 }
 
-/**
- * Why a window and no "purged" mark: deleting bytes that are already gone is harmless, so each unplaced file
- * past its month is swept on every run for one more week, which also covers a cron that was down (as ADR-048).
- */
 export async function keysPastTheMonth(now: Date): Promise<string[]> {
   const cutoff = bookingInboxDeleteCutoff(now);
   return everyKey(and(isNull(bookingInbox.placedAt), lte(bookingInbox.createdAt, cutoff), gt(bookingInbox.createdAt, new Date(cutoff.getTime() - WEEK_MS))));
 }
 
-/** A member's unplaced files that may still have bytes, for erasing their account. */
 export async function waitingKeysOwnedBy(userId: string, now: Date): Promise<string[]> {
   return everyKey(and(eq(bookingInbox.userId, userId), isNull(bookingInbox.placedAt), gt(bookingInbox.createdAt, bookingInboxDeleteCutoff(now))));
 }
 
-/**
- * The only trips a booking of a member's can go to: ones they are on now, not deleted, not archived and not
- * over. A trip with no dates yet counts, since it is still being planned (rule 9). Soonest first.
- */
 export async function tripsToPlaceIn(userId: string, today: IsoDate = todayIso()): Promise<(DatedTrip & { name: string })[]> {
   return db
     .select({ id: trip.id, name: trip.name, startDate: trip.startDate, endDate: trip.endDate })

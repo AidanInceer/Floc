@@ -1,14 +1,3 @@
-/**
- * The full-height shell an event opens in (ticket 325) — title, a way out, and
- * one scroll.
- *
- * NOT `Sheet`. That caps at 60% for a list of options; this holds a form, and
- * the composer inside it has to clear the keyboard.
- *
- * TWO CALLERS, SO IT IS A COMPONENT. Adding an event and opening one wear the
- * same shell, and the second was not going to copy the first's header, its
- * keyboard handling and its way out.
- */
 import type { ReactNode } from "react";
 import { KeyboardAvoidingView, Modal, Platform, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -34,8 +23,6 @@ export function EventSheet({
 }) {
   const { c } = useTheme();
   const reducedMotion = useReducedMotion();
-  // A `Modal` sits outside the screen's safe area, so the title lands under
-  // the clock unless it is inset itself.
   const insets = useSafeAreaInsets();
 
   return (

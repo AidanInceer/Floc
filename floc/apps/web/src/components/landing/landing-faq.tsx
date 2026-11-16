@@ -3,7 +3,6 @@ import type { FaqItem, FaqKey } from "@/lib/landing/faq";
 import { Glyph, type GlyphName } from "@/components/system/icons/landing";
 import "./landing-faq.css";
 
-/** Each question's tile: the pastel of the part of Floc it is about. */
 const TILE: Record<FaqKey, { tone: string; glyph: GlyphName }> = {
   free: { tone: "yellow", glyph: "check" },
   account: { tone: "blue", glyph: "people" },
@@ -12,7 +11,6 @@ const TILE: Record<FaqKey, { tone: string; glyph: GlyphName }> = {
   pro: { tone: "pro", glyph: "weather" },
 };
 
-/** The question first (ADR-024). One answer open at a time; `name` makes the details an exclusive group, no script. */
 export function LandingFaq({ items }: { items: FaqItem[] }) {
   if (!items.length) return null;
 

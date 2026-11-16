@@ -1,7 +1,3 @@
-/**
- * The parts both email layouts are built from (#653). Tables and inline styles, because Outlook on Windows
- * draws mail with Word and ignores most of CSS; it shows square corners, and that is accepted.
- */
 import { initials } from "@floc/core/people/initials";
 import { whoTone } from "@floc/core/people/who";
 import { pastelOf } from "@floc/core/design/pastels";
@@ -15,17 +11,12 @@ export function esc(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 }
 
-/**
- * Why (#113): escaping alone would not stop `href="javascript:…"`. Every CTA URL is app-made today, but the
- * scheme is allow-listed so one caller passing an outside URL degrades to the home page (rule 11).
- */
 function safeUrl(url: string): string {
   if (url.startsWith("/")) return url;
   try {
     const parsed = new URL(url);
     if (parsed.protocol === "http:" || parsed.protocol === "https:") return url;
   } catch {
-    // not a URL at all
   }
   return "/";
 }
@@ -35,7 +26,6 @@ const MONO = `font-family:${FACE.mono}`;
 const DISPLAY = `font-family:${FACE.display};font-weight:800`;
 export const STYLE = { sans: SANS, mono: MONO, display: DISPLAY };
 
-/** Escaped prose with every money figure in the mono face, as the design card asks even inside a sentence. */
 function prose(text: string): string {
   return esc(text).replace(/[£€$]\d[\d,.]*/g, (m) => {
     const figure = m.replace(/[.,]$/, "");
@@ -51,7 +41,6 @@ export function wordmark(paint: Paint, size = 18): string {
   return `<span${paint("fg-ink", `${DISPLAY};font-size:${size}px;line-height:1;letter-spacing:-0.02em`)}>floc<span${paint("fg-pen")}>.</span></span>`;
 }
 
-/** Why: the last two words are tied, so a line of text never ends on one word alone. */
 function tied(text: string): string {
   return text.replace(/ (\S+)$/, "\u00a0$1");
 }
@@ -60,7 +49,6 @@ export function heading(paint: Paint, text: string): string {
   return `<h1${paint("fg-ink", `${DISPLAY};font-size:25px;line-height:1.2;margin:0 0 16px`)}>${prose(tied(text))}</h1>`;
 }
 
-/** A letter's first line, larger, its last two words tied like a heading's. */
 export function lede(paint: Paint, text: string): string {
   return `<p${paint("fg-ink", `${SANS};font-size:17px;line-height:1.5;margin:0 0 12px`)}>${prose(tied(text))}</p>`;
 }
@@ -91,13 +79,11 @@ function factRows(paint: Paint, facts: [string, string][], inset: string): strin
     .join("");
 }
 
-/** Facts in a quiet sheet-2 stub. */
 export function stub(paint: Paint, facts: [string, string][] | undefined): string {
   if (!facts?.length) return "";
   return table(` width="100%"${paint("bg-sheet-2", "border-radius:8px;margin:0 0 20px")}`, factRows(paint, facts, "16px"));
 }
 
-/** Facts in an outlined box with no fill, headed by a title and a status word (D3). */
 export function box(paint: Paint, head: NonNullable<OutboundEmail["box"]>, facts: [string, string][]): string {
   const top = `<tr><td colspan="2"${paint("bd-rule", "border-bottom:1px solid;padding:10px 16px")}>${table(` width="100%"`, `<tr><td${paint("fg-ink", `${MONO};font-size:14px;font-weight:500`)}>${esc(head.title)}</td><td align="right"${paint("fg-pastel-red-ink", `${LABEL};white-space:nowrap;padding-left:8px`)}>${esc(head.status)}</td></tr>`)}</td></tr>`;
   return table(` width="100%"${paint("bd-rule-2", "border:1px solid;border-radius:8px;margin:0 0 20px")}`, top + factRows(paint, facts, "16px"));

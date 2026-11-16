@@ -1,7 +1,3 @@
-/**
- * A booking forwarded to the shared address (#559, ADR-050). The sender is the only proof of who it is from,
- * and nothing in the mail may reach past the sender's own files and trips.
- */
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";

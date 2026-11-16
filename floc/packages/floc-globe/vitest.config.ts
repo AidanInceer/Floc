@@ -6,7 +6,6 @@ export default defineConfig({
     environment: "node",
     pool: "threads",
     include: ["src/**/*.test.ts"],
-    // The maths — where a place lands, which country a tap hits, how the dome sits — is tested here; the canvas and the React view are walked in the browser.
     coverage: {
       provider: "v8",
       reporter: ["text-summary", "html", "lcov"],

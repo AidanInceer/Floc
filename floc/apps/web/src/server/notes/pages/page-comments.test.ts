@@ -1,4 +1,3 @@
-/** Comments on a notes page (#408). */
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";

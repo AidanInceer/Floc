@@ -1,8 +1,3 @@
-/**
- * Who sees one part of a profile. The rings nest — travelled with includes
- * friends — so settings draw a ring as two ticks, and a tick on the wider
- * column brings the narrower one with it.
- */
 export type Visibility = "private" | "friends" | "trip_members";
 
 export type RingColumn = "friends" | "trip_members";

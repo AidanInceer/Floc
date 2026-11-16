@@ -1,7 +1,3 @@
-/**
- * What the table handles open (#408): a row or column menu, the table's own
- * menu, and the bar over a group of selected cells.
- */
 "use client";
 
 import { useEditorState, type Editor } from "@tiptap/react";
@@ -89,7 +85,6 @@ function DeleteLines({ editor, info, whole }: { editor: Editor; info: CellsInfo;
   );
 }
 
-/** Over a group of selected cells: how many, a colour, clear the words, and delete when they are whole rows or columns. */
 export function CellBar({ editor }: { editor: Editor }) {
   const info = useEditorState({ editor, selector: ({ editor: e }) => selectionInfo(e.state), equalityFn: (a, b) => JSON.stringify(a) === JSON.stringify(b) });
   const place = info ? barPlace(editor, info) : null;

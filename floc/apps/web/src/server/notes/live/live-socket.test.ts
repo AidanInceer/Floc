@@ -1,7 +1,3 @@
-/**
- * The socket end to end (#391): a real HTTP server, a real provider, two
- * people in one trip's Notes.
- */
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 
@@ -41,7 +37,6 @@ beforeEach(async () => {
       return userId && !revokedSessions.has(userId) ? userId : null;
     },
     debounce: 0,
-    // Every message re-checks here, so a revocation shows at once; in use it shows within a minute.
     recheckMs: 0,
   });
   server = createServer((_req, res) => res.end());
@@ -82,7 +77,6 @@ const until = (check: () => boolean) =>
     tick();
   });
 
-// A plain map, not the page fragment: this proves the pipe, not the page's shape.
 const write = (doc: Y.Doc, text: string) => doc.getMap("probe").set(text, true);
 const read = (doc: Y.Doc) => [...doc.getMap("probe").keys()].sort().join(",");
 

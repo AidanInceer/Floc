@@ -1,10 +1,3 @@
-/**
- * Trip dates are date-only strings (YYYY-MM-DD) across a group that may span
- * timezones — nothing is stored with an offset, and no timezone is persisted
- * anywhere (ticket 06). Formatting uses the browser/server locale at render
- * time only.
- */
-
 import { asText } from "../text/text";
 
 export type IsoDate = string;
@@ -21,33 +14,20 @@ function pad(n: number) {
   return String(n).padStart(2, "0");
 }
 
-/** Parsed as UTC midnight so arithmetic never drifts across DST. */
 export function fromIsoDate(date: IsoDate): Date {
   return new Date(`${date}T00:00:00Z`);
 }
 
-/**
- * Whether a string really is a date-only `YYYY-MM-DD` (ticket 113). The shape
- * check alone isn't enough — `2026-02-31` matches and isn't a day — so the
- * value is round-tripped through `Date` and compared back; JS rolls an
- * impossible date forward, so only a real one survives the round trip.
- */
 export function isIsoDate(value: unknown): value is IsoDate {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
   const parsed = new Date(`${value}T00:00:00Z`);
   return !Number.isNaN(parsed.getTime()) && toIsoDate(parsed) === value;
 }
 
-/** The date if it is one, else null — the form-friendly half of `isIsoDate`. */
 export function readIsoDate(value: unknown): IsoDate | null {
   return isIsoDate(value) ? value : null;
 }
 
-/**
- * An empty box is not an error — a trip with no dates is normal (rule 9).
- * `undefined` means "something was there and it wasn't a date"; the caller
- * must tell that apart from `null`.
- */
 export function readOptionalIsoDate(value: unknown): IsoDate | null | undefined {
   const raw = asText(value).trim();
   if (!raw) return null;
@@ -60,7 +40,6 @@ export function addDays(date: IsoDate, days: number): IsoDate {
   return toIsoDate(d);
 }
 
-/** Inclusive range. Returns [] if either end is missing or reversed. */
 export function dateRange(
   start: IsoDate | null,
   end: IsoDate | null,
@@ -86,8 +65,6 @@ export function formatDate(
 ) {
   if (!date) return "—";
   return fromIsoDate(date).toLocaleDateString("en-GB", {
-    // Dropping the weekday also drops the comma the locale inserts after it,
-    // which is why a range's two ends must agree on this.
     weekday: opts?.weekday === false ? undefined : "short",
     day: "numeric",
     month: "short",
@@ -96,7 +73,6 @@ export function formatDate(
   });
 }
 
-/** A day as a small calendar tile reads it: "Fri" over 23. */
 export function dayParts(date: IsoDate): { weekday: string; day: number } {
   const weekday = fromIsoDate(date).toLocaleDateString("en-GB", { weekday: "short", timeZone: "UTC" });
   return { weekday, day: Number(date.slice(8, 10)) };
@@ -120,24 +96,14 @@ export function formatShortRange(start: IsoDate, end: IsoDate): string {
   return `${from} – ${to}`;
 }
 
-/**
- * A trip is "ended" once its end date has passed — a label, not a lock. It
- * stays fully editable (ticket 01 step 8).
- */
 export function hasEnded(endDate: IsoDate | null): boolean {
   return !!endDate && endDate < today();
 }
 
-/** From its first day to its last, both included. A trip without both dates is never under way (rule 9). */
 export function underway(trip: { startDate: IsoDate | null; endDate: IsoDate | null }, day: IsoDate): boolean {
   return trip.startDate !== null && trip.endDate !== null && trip.startDate <= day && day <= trip.endDate;
 }
 
-/**
- * Live trips first, finished ones apart — the trip lists fold the ended half
- * away rather than scrolling past it. Relative order is kept, so the caller
- * sorts once and splits after.
- */
 export function splitEnded<T extends { endDate: IsoDate | null }>(
   items: readonly T[],
 ): { live: T[]; ended: T[] } {

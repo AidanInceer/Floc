@@ -1,4 +1,3 @@
-// Why one row of four: the web's narrow Dates card — each view says where it stands before you open it.
 import type { TabSummary } from "@floc/core/dates/dates-tabs";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";

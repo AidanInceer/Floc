@@ -1,9 +1,3 @@
-/**
- * The 7-day archive (#408, ADR-017): an archived notes page, its sub-pages and
- * their comments are deleted for good once their week is up. The one hard
- * delete of member data in Floc, and it reaches only archived notes pages —
- * never trips, people, money or files. Run by the Railway cron.
- */
 import "server-only";
 import { and, eq, inArray, isNotNull, isNull, lte } from "drizzle-orm";
 
@@ -24,7 +18,6 @@ export async function purgeArchivedPages(now = new Date()): Promise<number> {
   const ids = [...new Set([...dueIds, ...children.map((row) => row.id)])];
 
   await db.transaction(async (tx) => {
-    // Why: a page someone restored on its own keeps living; it just loses its archived parent.
     await tx.update(tripPage).set({ parentId: null }).where(and(inArray(tripPage.parentId, dueIds), isNull(tripPage.archivedAt)));
     const comments = tx.select({ id: note.id }).from(note).where(and(eq(note.scope, "page"), inArray(note.scopeId, ids)));
     await tx.delete(noteReaction).where(inArray(noteReaction.noteId, comments));

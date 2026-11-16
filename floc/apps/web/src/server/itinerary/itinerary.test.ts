@@ -1,10 +1,3 @@
-/**
- * The itinerary aggregate's reads and day writes. Pins two things: the
- * soft-delete filters ticket 115 added to writes (rule 8 used to say "every
- * read", letting a stale id resurrect a deleted row into a half-state), and
- * the batched writes of ticket 114 — asserted on outcome, since "did it land
- * correctly" is the property that breaks if parallelism is wrong.
- */
 import { and, eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -69,7 +62,6 @@ describe("reading the itinerary", () => {
 
 describe("ensureDays", () => {
   it("is idempotent, including over a soft-deleted date", async () => {
-    // Soft-deleted row still occupies the (trip, date) unique index; skipping it keeps a re-run from throwing.
     await softDeleteDay(world.ours.dayId, world.admin);
     await ensureDays(world.ours.id, ["2026-09-01"]);
     await ensureDays(world.ours.id, ["2026-09-01"]);
@@ -112,7 +104,6 @@ describe("listDayLoads", () => {
 
 describe("setTripWindow", () => {
   it("creates a day per date and keeps what the old window shared", async () => {
-    // 1 Sep → 1-3 Sep: a day is addressed by its date, so the seeded day/events stay put.
     await setTripWindow(world.ours.id, "2026-09-01", "2026-09-03", world.admin);
 
     expect((await listDays(world.ours.id)).map((d) => d.date)).toEqual([
@@ -137,7 +128,6 @@ describe("setTripWindow", () => {
 
     const days = await listDays(world.ours.id);
     expect(days).toHaveLength(6);
-    // Blank: the plan doesn't come back with the date (ticket 83).
     expect((await eventRow(world.ours.eventId))?.deletedAt).not.toBeNull();
     expect((await listDayLoads(world.ours.id)).every((d) => d.events === 0)).toBe(true);
   });
@@ -172,7 +162,7 @@ describe("setTripWindow", () => {
     await setTripWindow(world.ours.id, null, null, world.admin);
 
     expect(await listDays(world.ours.id)).toEqual([]);
-    expect(await listDayIds(world.theirs.id)).toEqual([world.theirs.dayId]); // other trip's day untouched
+    expect(await listDayIds(world.theirs.id)).toEqual([world.theirs.dayId]);
   });
 });
 
@@ -192,7 +182,7 @@ describe("the overnight place", () => {
     expect((await dayRow(world.theirs.dayId))?.overnightPlaceId).toBeNull();
   });
 
-  it("will not resurrect a deleted day from a stale id", async () => { // ticket 115: writes filter soft-deletes too
+  it("will not resurrect a deleted day from a stale id", async () => {
     const placeId = await makePlace();
     await softDeleteDay(world.ours.dayId, world.admin);
 

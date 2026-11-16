@@ -1,8 +1,3 @@
-/**
- * The bar over selected words (#408): bold, italic, underline, strike, link,
- * four highlights, Comment, and clear formatting. Link and Comment turn the
- * bar into a one-line form.
- */
 "use client";
 
 import { useEditorState, type Editor } from "@tiptap/react";

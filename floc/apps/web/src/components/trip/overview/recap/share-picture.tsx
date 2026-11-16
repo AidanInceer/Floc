@@ -8,10 +8,8 @@ import { ShareIcon } from "@/components/system/icons";
 type Status = "idle" | "copied" | "failed";
 type Look = "light" | "dark";
 
-// Why: the picture starts in the theme the page is in (#443); the person can send the other.
 const pageLook = (): Look => (typeof document !== "undefined" && document.documentElement.dataset.theme === "dark" ? "dark" : "light");
 
-/** The trip as a picture, never a link (ADR-045): the device's share sheet where it can take a file, else copy and download. */
 export function SharePicture({ tripId, tripName }: { tripId: number; tripName: string }) {
   const [look, setLook] = useState<Look>(pageLook);
   const src = `/trip/${tripId}/recap-card?theme=${look}`;

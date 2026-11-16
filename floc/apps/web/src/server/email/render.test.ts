@@ -1,6 +1,3 @@
-/**
- * #653: one email model, drawn as an HTML card or letter and as plain text, every colour from the tokens.
- */
 import { describe, expect, it } from "vitest";
 
 import { resolveTokens } from "@floc/core/design/tokens";
@@ -32,7 +29,6 @@ const letter: OutboundEmail = {
 };
 
 const html = (e: OutboundEmail) => renderEmail(e, { now: NOW }).html;
-/** The same HTML with tied words untied, for tests about the words rather than the wrapping. */
 const words = (e: OutboundEmail) => html(e).replace(/\u00a0/g, " ");
 const text = (e: OutboundEmail) => renderEmail(e, { now: NOW }).text;
 const hexes = (s: string) => new Set((s.match(/#[0-9a-f]{6}\b/gi) ?? []).map((h) => h.toLowerCase()));

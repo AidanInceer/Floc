@@ -1,18 +1,3 @@
-/**
- * What a trip's packing is set up with: how much it packs and auto packing's
- * presses (tickets 220, 221, 230, 469). The kit sheet opens from the bag's
- * heading, not from here.
- *
- * IT IS NOT A GATE (rule 4). Every control here is optional; a trip packs fine
- * with none of them touched, and the lists below never wait on it.
- *
- * AUTO PACKING IS PAID, THE LIST IS NOT (#248). Without the entitlement the
- * ideas and the tier go and one line says what Pro adds; what auto packing
- * already wrote stays, and Remove suggested still works (#469).
- *
- * QUIET ON PURPOSE. Words and text presses on the page's ground, no card: the
- * lists are what the tab is for.
- */
 import { PACK_TIERS, PACK_TIER_LABELS, type PackTier } from "@floc/core/packing/packing";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -21,7 +6,6 @@ import { Button } from "../system/ui";
 import { TextAction } from "./line-frame";
 import { fonts, radius, size, space } from "@/lib/theme";
 
-/** A word that is also a control — the fill is the second signal, never the only one (#204). */
 function Chip({ word, on, onPress }: { word: string; on: boolean; onPress: () => void }) {
   const { c } = useTheme();
   return (
@@ -61,7 +45,6 @@ function RemoveSuggested({ count, onPress }: Suggested) {
   return <TextAction label={`Remove suggested (${count})`} onPress={onPress} />;
 }
 
-/** Auto packing for a Pro member (#469): why, the tier, Add all. The ideas sit in the cubes. */
 export function PackingSetup({
   why,
   tier,
@@ -103,7 +86,6 @@ export function PackingSetup({
   );
 }
 
-/** Free (#469, Aidan): no ideas and no tier. One quiet line and the way to Pro. */
 export function PackingUpgrade({
   onUpgrade,
   removeSuggested,

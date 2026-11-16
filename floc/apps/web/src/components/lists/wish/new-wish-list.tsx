@@ -11,7 +11,6 @@ import { PeopleChooser, type PeopleSources } from "./people-chooser";
 
 const NOBODY: ReadonlySet<string> = new Set();
 
-/** New wish list: pick who to ask, then land on the new list. Everyone picked gets an invite to accept (ADR-049). */
 export function NewWishList({ sources, variant = "primary" }: { sources: PeopleSources; variant?: "primary" | "secondary" }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();

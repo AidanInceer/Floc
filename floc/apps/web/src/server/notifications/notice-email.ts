@@ -29,7 +29,6 @@ function row(text: string, part: Notice["parts"][number] | undefined): MailRow {
   };
 }
 
-/** One notice, or several on one trip, as a letter (#653, ADR-062): the trip as a tile, several as rows. */
 export function noticeEmail({ to, title, href, lines, parts, trip }: Notice): OutboundEmail {
   const several = lines.length > 1;
   const subject = several ? `${lines.length} new things on ${title}` : lines[0];

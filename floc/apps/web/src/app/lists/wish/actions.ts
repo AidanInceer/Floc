@@ -1,6 +1,5 @@
 "use server";
 
-/** Wish list writes from the web (#623, ADR-049). The rules live in `server/wish-lists`; this only signs in and refreshes. */
 import { isRefusal } from "@floc/core/errors/refusal";
 
 import { requireUser } from "@/server/access";

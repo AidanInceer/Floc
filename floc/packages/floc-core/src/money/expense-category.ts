@@ -1,8 +1,3 @@
-/**
- * The fixed set an expense can be filed under. Meaning is stored (the schema
- * names its column from this list, as `CURRENCIES` does — ticket 115); the
- * line-art glyph is the rendering, drawn in `CategoryIcon`. No emoji (#148).
- */
 export const EXPENSE_CATEGORIES = [
   "food",
   "drinks",

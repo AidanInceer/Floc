@@ -8,10 +8,6 @@ import { tripCalendar } from "@floc/core/itinerary/ics";
 import { listDaysWithEvents } from "@/server/itinerary/itinerary";
 import { eventName } from "@floc/core/itinerary/names/event-name";
 
-/**
- * The trip's itinerary as `.ics`, or `null` for a non-member and a missing trip alike (rule 5). A feed link passes
- * its `epoch`, and a link older than the member's last reset answers `null` too.
- */
 export async function memberCalendar(tripId: number, userId: string, epoch?: number): Promise<string | null> {
   const row = await db
     .select({ id: trip.id, name: trip.name })

@@ -4,14 +4,8 @@ import { legCurves, spurCurve, type Point } from "@floc/core/trip/route/curves";
 import type { RouteStop, TripRoute } from "./trip-route";
 
 type Role = "start" | "end" | "both" | "mid";
-/** What a leg carries: its mode as an icon, its words when it has no mode, or nothing when it is too short to hold either. */
 type Mark = "full" | "icon" | null;
-/** A stop: `arrive` is how far along the whole route the pen is when it gets there, 0 to 1. */
 type ShapeStop = { place: string; nights: number; px: Point; role: Role; named: boolean; arrive: number };
-/**
- * One stretch the pen draws: a leg to the next stop, or a day out there and back. `a` and `b` are where it starts and ends
- * along the whole route; `mid` is the point halfway along it; `bulge` points to the outside of its bend.
- */
 export type Piece = {
   kind: "leg" | "out";
   mode: TransportType | null;
@@ -29,7 +23,6 @@ export type Piece = {
 };
 export type Shape = { stops: ShapeStop[]; pieces: Piece[] };
 
-/** `out` is how far a day out reaches, in px; `least` the shortest leg that holds a mark. */
 type Options = { samples: number; out: number; least: number };
 
 const sub = (a: Point, b: Point): Point => ({ x: a.x - b.x, y: a.y - b.y });
@@ -38,10 +31,8 @@ const unit = (a: Point): Point => {
   return { x: a.x / l, y: a.y / l };
 };
 const key = (s: RouteStop) => `${s.lat},${s.lng}`;
-/** A day out's mark needs this many px clear of every other stop's mark. */
 const MARK_ROOM = 16;
 
-/** The first stop starts and the last ends; a route back to where it began does both at the start. A place seen before is not named again. */
 function rolesOf(stops: readonly RouteStop[]) {
   const last = stops.length - 1;
   const round = last === 0 || key(stops[0]!) === key(stops[last]!);
@@ -73,15 +64,10 @@ function markOf(kind: Piece["kind"], mode: Piece["mode"], time: string, px: Poin
   if (kind === "out" || (!mode && !time)) return null;
   const room = Math.hypot(px.at(-1)!.x - px[0]!.x, px.at(-1)!.y - px[0]!.y);
   if (room < least) return null;
-  // Why: a leg with no mode has only its words to say so, so it never shrinks to a bare mark.
   if (!mode) return "full";
   return "icon";
 }
 
-/**
- * A listing's route as the pen draws it, in px where `at` puts each place: a day out comes right after its stop,
- * then the leg on to the next stop.
- */
 export function routeShape(route: TripRoute, at: (spot: { lat: number; lng: number }) => Point, options: Options): Shape {
   const P = route.stops.map(at);
   const legs = legCurves(P, route.moves.map((m) => m?.mode ?? null), options.samples);
@@ -89,8 +75,6 @@ export function routeShape(route: TripRoute, at: (spot: { lat: number; lng: numb
   const raw: Omit<Piece, "cum" | "len" | "a" | "b" | "mid" | "bulge" | "mark">[] = [];
   P.forEach((p, i) => {
     for (const out of (route.outs ?? []).filter((o) => o.at === i)) {
-      // Why: a day out points at its real place (Nara is south of Kyoto). With none given, or where its mark would sit on
-      // another stop's, it points away from the trip's middle.
       const spot = out.lat !== undefined && out.lng !== undefined ? at({ lat: out.lat, lng: out.lng }) : null;
       let away = spot ? sub(spot, p) : sub(p, centre);
       let size = Math.max(spot ? Math.hypot(away.x, away.y) : 0, options.out);
@@ -127,7 +111,6 @@ export function routeShape(route: TripRoute, at: (spot: { lat: number; lng: numb
   };
 }
 
-/** The points of a line up to fraction `f` of its length; `cum` is the length run up to each point. */
 export function cut(pts: Point[], cum: number[], f: number): Point[] {
   if (f >= 1) return pts;
   const L = cum.at(-1)! * Math.max(0, f);
@@ -138,7 +121,6 @@ export function cut(pts: Point[], cum: number[], f: number): Point[] {
   return [...pts.slice(0, i), { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }];
 }
 
-/** Where the pen is at `n` + 1 even steps from the start of the route to its end. */
 export function penPoints(shape: Shape, n: number): Point[] {
   const { pieces, stops } = shape;
   return Array.from({ length: n + 1 }, (_, k) => {

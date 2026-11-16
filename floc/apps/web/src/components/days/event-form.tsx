@@ -1,9 +1,5 @@
 "use client";
 
-// Add/edit event form (tickets 103, 321), drawn as wireframe/modal-forms B3. `autosave`
-// is the modal's edit mode: no submit button, saves on change. dayId/eventId ride as
-// hidden fields since the client picked them; submitEvent re-checks (rule 5).
-
 import { useState, type ComponentProps } from "react";
 import { useFormStatus } from "react-dom";
 
@@ -43,9 +39,7 @@ export function EventForm({
   action: (formData: FormData) => Promise<void>;
   searchPlaces: PlaceSearch;
   defaults: EventFormDefaults;
-  /** "Sat 1 May" — the day the event sits on, in the form's head. */
   dateLabel: string;
-  /** In the event modal: no submit button, saves on change (ticket 321). */
   autosave?: boolean;
 }) {
   const [type, setType] = useState<DayEventType>(defaults.type ?? "activity");
@@ -107,7 +101,6 @@ export function EventForm({
   );
 }
 
-/** The autosave form's only feedback — a word, never colour alone. */
 function SaveStatus() {
   const { pending } = useFormStatus();
   return (

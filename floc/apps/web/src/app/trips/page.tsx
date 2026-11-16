@@ -46,8 +46,6 @@ export default async function TripsPage({
   const ordered = orderCards(
     tag ? cards.filter((card) => card.tags?.some((value) => value.toLowerCase() === tag)) : cards,
   );
-  // A finished trip is still yours, so it is folded away rather than dropped —
-  // archiving is the other thing, and it is a decision someone has to make.
   const { live, ended } = splitEnded(ordered);
   const { dated, undated } = arrangeTripsList(live);
 
@@ -115,11 +113,6 @@ function TripList({
   );
 }
 
-/**
- * Trips that have finished, folded shut. Native `<details>` — the fold needs
- * no state, so the page stays a server component; the flock chevron is the
- * product's one disclosure mark (see [[icons]]).
- */
 function PastTrips({ trips }: { trips: TripCardData[] }) {
   return (
     <details className="past-trips mt-10">
@@ -132,7 +125,6 @@ function PastTrips({ trips }: { trips: TripCardData[] }) {
   );
 }
 
-/** The last row of the list is the way to add another one; with no trips yet it is the whole page's invitation. */
 function NewTripTile({ friends, groups, first }: { friends: Person[]; groups: Group[]; first?: boolean }) {
   return (
     <li className="contents">

@@ -5,7 +5,6 @@ const MONTHS = [
 
 const month = (word: string) => MONTHS.indexOf(word.trim().toLowerCase()) + 1;
 
-/** "March to May, October" → [3, 4, 5, 10]. A range may wrap the year end. */
 export function monthsOf(bestMonths: string): number[] {
   const found = new Set<number>();
   for (const part of bestMonths.split(",")) {

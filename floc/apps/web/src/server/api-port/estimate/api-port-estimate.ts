@@ -13,7 +13,6 @@ type EstimatePort = Pick<
   "loadEstimate" | "setEstimateBudget" | "setEstimateLine" | "setEstimateStyle" | "setEstimateNights" | "loadEstimateSettings" | "setEstimateSettings"
 >;
 
-/** The phone's door to your own estimate (#574): the same reads and gated writes as the web's Budget view. */
 export const estimatePort: EstimatePort = {
   async loadEstimate(viewerId, tripId) {
     const access = await scoped(viewerId, tripId);

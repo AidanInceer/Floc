@@ -1,10 +1,3 @@
-/**
- * A link into Stripe's hosted billing portal (ticket 247).
- *
- * The customer id is read from the signed-in account's own row and never
- * taken from the request, so nobody can ask for a portal into someone else's
- * billing by guessing an id.
- */
 import { headers } from "next/headers";
 
 import { appUrl } from "@/lib/env";

@@ -1,7 +1,5 @@
 "use server";
 
-// Your own cost estimate and budget (#574, ADR-057). Each action reads the form and calls
-// `server/money/estimate/estimate-save`, the same writes the phone reaches through the port.
 import { requireTripAccess, requireUser } from "@/server/access";
 import { homeCurrenciesFor } from "@/server/auth/profile";
 import {

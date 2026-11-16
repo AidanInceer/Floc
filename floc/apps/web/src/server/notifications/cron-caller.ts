@@ -1,4 +1,3 @@
-/** The Railway cron proves itself with `CRON_SECRET` (#345). No secret set means nobody gets in. */
 import "server-only";
 
 import { timingSafeEqual } from "node:crypto";

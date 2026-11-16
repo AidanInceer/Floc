@@ -1,4 +1,3 @@
-// Why this order: the web's key, in the order a group books — who can, then the trip.
 import type { TokenName } from "@floc/core/design/tokens";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -7,7 +6,6 @@ import { fonts, radius, size, space } from "@/lib/theme";
 
 const MARK = 10;
 
-// Why the edge: the pale washes all but vanish on the dark card without one.
 function Swatch({ ground, width = MARK, edge }: { ground: TokenName; width?: number; edge?: TokenName }) {
   const { c } = useTheme();
   return <View style={{ width, height: MARK, borderRadius: radius.sm, backgroundColor: c[ground], borderWidth: edge ? StyleSheet.hairlineWidth : 0, borderColor: edge ? c[edge] : undefined }} />;
@@ -23,7 +21,6 @@ function Item({ children, word }: { children: React.ReactNode; word: string }) {
   );
 }
 
-/** One line at phone width: small marks, the web's four words. */
 export function DatesKey() {
   const { c } = useTheme();
   return (

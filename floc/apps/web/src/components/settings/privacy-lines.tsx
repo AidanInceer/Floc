@@ -32,7 +32,6 @@ const AUDIENCES: { ring: RingColumn; label: string; glyph: ReactNode }[] = [
   },
 ];
 
-/** Why: one line per audience, the parts it sees as chips. Rings nest, so a chip on the wider line brings the narrower one with it. */
 export function PrivacyLines({
   isPrivate,
   rings,

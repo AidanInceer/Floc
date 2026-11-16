@@ -1,12 +1,3 @@
-/**
- * One event's thread, fetched (ticket 325).
- *
- * SPLIT FROM `comment-thread` ON PURPOSE. That file draws a run and knows
- * nothing about the network, which is what makes it testable and what keeps
- * the reply/edit/react rules in one place. This one is the wiring, and it is
- * the only part that would have to change if the thread ever hung off
- * something other than an event.
- */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -40,8 +31,6 @@ export function EventTalk({
     onError: (error: { message: string }) => setProblem(error.message),
   };
 
-  // Add and edit answer with the sentence the composer shows, or null when it
-  // landed — a comment that has since gone is an ordinary mistake, not a throw.
   const said = {
     onSuccess: (refusal: string | null) => {
       setProblem(refusal);

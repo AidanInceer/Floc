@@ -14,7 +14,6 @@ const RISE = "tour-rise";
 const WASH: Record<SectionColour, string> = { blue: "bg-pastel-blue", yellow: "bg-pastel-yellow", red: "bg-pastel-red", green: "bg-pastel-green" };
 const INK: Record<SectionColour, string> = { blue: "text-pastel-blue-ink", yellow: "text-pastel-yellow-ink", red: "text-pastel-red-ink", green: "text-pastel-green-ink" };
 
-/** Each part of the arriving page rises in turn: its top-level blocks and every list row. */
 function build(pane: HTMLElement) {
   const parts = pane.querySelectorAll<HTMLElement>(`:scope > *, li, tbody tr`);
   parts.forEach((el, k) => {
@@ -25,11 +24,6 @@ function build(pane: HTMLElement) {
   parts.forEach((el) => el.classList.add(RISE));
 }
 
-/**
- * The drawn trip page: one header, the trip's own tab bar, and each slide's screen stacked beneath. The open tab's glyph
- * tile glides to its tab and takes the section colour a beat after the new page lands, so the eye follows the page and
- * then the tab. Illustrative, not a live read.
- */
 export function TourFrame({ slides, shown, moved, onPick }: { slides: (TourSlide & { shot: ReactNode })[]; shown: number; moved: boolean; onPick: (slide: number, from: Element) => void }) {
   const bar = useRef<HTMLDivElement>(null);
   const tile = useRef<HTMLSpanElement>(null);
@@ -43,7 +37,6 @@ export function TourFrame({ slides, shown, moved, onPick }: { slides: (TourSlide
     const t = tile.current;
     const tab = g?.offsetParent as HTMLElement | null;
     if (!g || !t || !tab) return;
-    // Why: only a change of tab glides; a resize or font load puts the tile straight on its icon, so it never trails behind.
     t.style.transition = glide ? "" : "none";
     t.style.transform = `translate(${tab.offsetLeft + g.offsetLeft}px, ${tab.offsetTop + g.offsetTop}px)`;
     if (!glide) void t.offsetWidth;
@@ -97,7 +90,6 @@ export function TourFrame({ slides, shown, moved, onPick }: { slides: (TourSlide
   );
 }
 
-/** Runs `measure(true)` when `deps` change after the first paint, and `measure(false)` on mount, when the box resizes and once the fonts load. */
 function useMeasured(box: RefObject<HTMLElement | null>, measure: (glide: boolean) => void, deps: unknown[]) {
   const latest = useRef(measure);
   latest.current = measure;

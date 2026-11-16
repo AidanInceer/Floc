@@ -1,9 +1,3 @@
-/**
- * A member's Bookings area (#559, ADR-050): files that wait for them to choose a trip.
- *
- * Why its own store of rows: a trip's file must have a trip, and these have none yet. Placing one hands its
- * bytes to an ordinary private file on the trip, so nothing here ever shows a file to anyone but its member.
- */
 import "server-only";
 
 import {
@@ -70,7 +64,6 @@ type Incoming = {
   details?: BookingDetails | null;
 };
 
-/** Null when it is waiting, else the refusal in the words a form shows. */
 export async function saveWaitingBooking(userId: string, input: Incoming, now = new Date()): Promise<string | null> {
   if (!documentsEnabled()) return "File storage is not set up";
   const refusal = rejectUpload(input.mimeType, input.bytes.byteLength);
@@ -102,11 +95,9 @@ export async function saveWaitingBooking(userId: string, input: Incoming, now = 
   return null;
 }
 
-/** Moves a waiting file to the member's private files on one of their trips. Null when it moved. */
 export async function placeWaitingBooking(userId: string, id: number, tripId: number, now = new Date()): Promise<string | null> {
   const [row] = await waitingRows(userId, now, id);
   if (!row || !(await hasDocument(row.storageKey))) return GONE;
-  // Why: rule 5. A trip that is not theirs, one that does not exist and one that is over or archived answer alike.
   const [access, open] = await Promise.all([findTripAccess(tripId, userId), tripsToPlaceIn(userId)]);
   if (!access || !open.some((trip) => trip.id === tripId)) return "Choose one of your trips.";
 
@@ -115,7 +106,6 @@ export async function placeWaitingBooking(userId: string, id: number, tripId: nu
   const noSpace = rejectForSpace(space.usedBytes, row.sizeBytes, space.quotaBytes);
   if (noSpace) return noSpace;
 
-  // Why the claim comes first: only one of two calls at once may take the file, so its bytes get one owner.
   if (!(await closeWaiting(userId, row.id, true))) return GONE;
   try {
     await insertDocument({
@@ -138,10 +128,6 @@ export async function placeWaitingBooking(userId: string, id: number, tripId: nu
   return null;
 }
 
-/**
- * Off the list, and its bytes off the disk, at once. Why no wait: a waiting file has no archive to restore
- * from, and bytes kept after Remove would sit outside the list's space (ADR-050).
- */
 export async function removeWaitingBooking(userId: string, id: number, now = new Date()): Promise<void> {
   const [row] = await waitingRows(userId, now, id);
   if (!row || !(await closeWaiting(userId, row.id, false))) return;
@@ -153,7 +139,6 @@ export async function tripsForPlacing(userId: string) {
   return tripsToPlaceIn(userId);
 }
 
-/** The cron's sweep: the bytes of every unplaced file whose month is up. Returns how many it swept. */
 export async function purgeWaitingBookings(now = new Date()): Promise<number> {
   if (!documentsEnabled()) return 0;
   const keys = await keysPastTheMonth(now);

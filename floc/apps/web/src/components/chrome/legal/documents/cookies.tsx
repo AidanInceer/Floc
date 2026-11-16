@@ -54,7 +54,6 @@ export async function CookiesDocument() {
               You may give, change or withdraw your consent at any time below. Your decision is recorded for 12
               months, after which we ask again. Withdrawing consent removes the preference data stored on this device.
             </p>
-            {/* Why: with no account there is no profile to send you to, and a no must stay as easy as a yes (#368). */}
             <ConsentChoices fromServer={consent} />
           </>
         )}

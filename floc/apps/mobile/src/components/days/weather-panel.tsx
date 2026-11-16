@@ -1,7 +1,3 @@
-/**
- * Under the Dates grid in Weather view: the day you tapped, its hours, and the
- * key. A free trip gets the reason instead — the mode is never hidden (#248).
- */
 import { formatDate } from "@floc/core/dates/dates";
 import type { WeatherCondition } from "@floc/core/itinerary/weather";
 import { StyleSheet, Text, View } from "react-native";
@@ -15,7 +11,6 @@ import type { TokenName } from "@floc/core/design/tokens";
 
 export type ForecastDay = { date: string; condition: WeatherCondition; label: string; hi: number; lo: number };
 
-/** Ground and ink per condition — tokens, and always a word beside them (#204). */
 export const WEATHER_LOOK: Record<WeatherCondition, { ground: TokenName; ink: TokenName; word: string }> = {
   sun: { ground: "highlight", ink: "highlight-ink", word: "Sun" },
   part: { ground: "highlight-2", ink: "ink", word: "Sun and cloud" },
@@ -72,7 +67,6 @@ export function WeatherPanel({
       ) : (
         <>
           <Label>{`${placeName} · to ${formatDate(horizonEnd)}`}</Label>
-          {/* A phone has no hover, so the tap has to be said once. */}
           <Body tone="ink-3">Tap a day in the trip for its hours.</Body>
         </>
       )}

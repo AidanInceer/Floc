@@ -16,7 +16,6 @@ import { hoiAnAndHue } from "./hoi-an-and-hue";
 import { petraAndWadiRum } from "./petra-and-wadi-rum";
 import { kyushuOnsenLoop } from "./kyushu-onsen-loop";
 
-// Order is the order on Explore; the first few lead the map. `pnpm explore:new` adds a line here.
 export const ASIA: PresetTrip[] = [
   japanGoldenRoute,
   hanoiToBangkok,

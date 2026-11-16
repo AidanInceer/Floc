@@ -1,6 +1,5 @@
 "use client";
 
-/** One file waiting for a trip (#559): what it is, and the one thing to do with it — choose its trip. */
 import { useState, type ReactNode } from "react";
 
 import { placeBooking } from "@/app/bookings/actions";
@@ -23,7 +22,6 @@ export function WaitingFileRow({ file, trips, children }: { file: WaitingFile; t
       <span className="flex h-9 items-center">
         <KindChip mimeType={file.mimeType} />
       </span>
-      {/* Why one column after the chip: when the action drops to its own line it keeps the name's left edge. */}
       <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2">
         <div className="flex min-w-0 flex-1 basis-56 flex-col leading-snug">
           <span className="truncate text-sm font-medium text-ink">{file.name}</span>
@@ -44,11 +42,6 @@ export function WaitingFileRow({ file, trips, children }: { file: WaitingFile; t
   );
 }
 
-/**
- * Why the trips are listed even when there is only one: pressing "Add to trip" and seeing the file vanish does
- * not say where it went. The press that moves it is on the trip's own name. The list opens beside the button,
- * to its left, so it never runs off the bottom of the dialog this row also sits in.
- */
 function TripMenu({ fileName, trips, place }: { fileName: string; trips: TripChoice[]; place: (formData: FormData) => Promise<void> }) {
   return (
     <Menu

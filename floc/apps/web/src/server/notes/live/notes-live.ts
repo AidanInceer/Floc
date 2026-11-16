@@ -1,8 +1,3 @@
-/**
- * The live notes server (#391, #408): Hocuspocus, one Yjs doc per notes page,
- * and one per trip for its page list — who has which page open, and "the list
- * changed". Runs inside floc-web's custom server; the socket wiring lives there.
- */
 import { Hocuspocus } from "@hocuspocus/server";
 import * as Y from "yjs";
 
@@ -22,15 +17,10 @@ import { LIVE_STATE_MAX_BYTES, loadPageState, storePageState } from "./page-live
 
 type LiveContext = { userId: string; checkedAt: number };
 
-/**
- * Why: a check per keystroke costs a session fetch and two queries. Removal and
- * archive close the socket at once; this catches the rest, such as a session that ended.
- */
 const RECHECK_MS = 60_000;
 
 const PAGES_CHANGED = "pages";
 
-/** Why: measuring a whole doc on every keystroke is costly, so it is measured each time this much has arrived. */
 const MEASURE_EVERY_BYTES = 256 * 1024;
 
 async function mayOpen(target: LiveDocument | null, userId: string): Promise<boolean> {
@@ -59,7 +49,6 @@ export function createNotesLive(options: {
       if (!userId) throw new Error("Not signed in");
       const target = readDocumentName(documentName);
       if (!(await mayOpen(target, userId))) throw new Error("Not found");
-      // Why: the page list carries who is where and the trip channel only signals, so no client may write into either.
       if (connectionConfig && target?.kind !== "page") connectionConfig.readOnly = true;
       context.userId = userId;
       context.checkedAt = Date.now();

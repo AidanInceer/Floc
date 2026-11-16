@@ -1,8 +1,6 @@
-// The live Overview top, drawn by eye from components/trip/: the sorted bar, the route map with the trip card over it, and the people row.
 import { glyph, button, PEOPLE } from "./shared.mjs";
 import { avatar } from "/_house/kit/trip-frame.mjs";
 
-// Equirectangular, scaled for 39°N; one unit is about 3 km.
 const P = (lon, lat) => [Math.round((lon + 14.5) * 28 * 10) / 10, Math.round((41.1 - lat) * 36 * 10) / 10];
 const COAST = [
   [-8.9, 42.3], [-8.87, 41.87], [-8.78, 41.4], [-8.67, 41.15], [-8.65, 40.64], [-8.87, 40.13], [-9.07, 39.6], [-9.37, 39.36],
@@ -45,7 +43,6 @@ export function mapSvg() {
     `<g class="arrows"></g>${STOPS.map(markFor).join("")}</g></svg>`;
 }
 
-/** Arrowheads at the middle of each leg, placed from the drawn path. */
 export function placeArrows(svg) {
   const g = svg.querySelector(".arrows");
   g.innerHTML = "";

@@ -16,7 +16,6 @@ import { dakarAndSaloum } from "./dakar-and-saloum";
 import { victoriaFallsBothSides } from "./victoria-falls-both-sides";
 import { djerbaAndTheSahara } from "./djerba-and-the-sahara";
 
-// Order is the order on Explore; the first few lead the map. `pnpm explore:new` adds a line here.
 export const AFRICA: PresetTrip[] = [
   moroccoAtlasSahara,
   egyptCairoAndTheNile,

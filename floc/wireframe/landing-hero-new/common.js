@@ -1,4 +1,3 @@
-// Shared bits for the four hero takes: the live headline copy, the Sicily sample trip, a hand-drawn Sicily outline. Throwaway.
 import { ico, face, group } from "/_house/switcher.js";
 export { ico, face, group };
 
@@ -23,7 +22,6 @@ const LEGS = {
 };
 export const leg = (a, b) => LEGS[`${a}|${b}`] || LEGS[`${b}|${a}`];
 
-// Fri 12 June 2026 is day 0.
 export function day(i) {
   const d = new Date(2026, 5, 12 + i);
   return { wd: d.toLocaleDateString("en-GB", { weekday: "short" }), n: d.getDate(), month: d.toLocaleDateString("en-GB", { month: "long" }) };
@@ -61,7 +59,6 @@ export const lede = () =>
 export const ctas = () =>
   `<div class="hn-ctas"><a class="pill-btn" href="#">Start a trip — free</a><a class="pill-btn ghost" href="#">See example trips</a></div>`;
 
-// One clock per variant: every timer goes through it, so switching variant cancels the lot.
 export function clock() {
   const ids = new Set();
   return {
@@ -70,7 +67,6 @@ export function clock() {
   };
 }
 
-// Sicily, by hand from coastal towns. viewBox 0 0 300 200, equirectangular, corrected for latitude.
 const COAST = [
   [37.8, 12.43], [38.02, 12.5], [38.18, 12.73], [38.03, 12.9], [38.22, 13.3], [38.12, 13.37], [38.11, 13.54],
   [37.98, 13.7], [38.04, 14.02], [38.16, 14.75], [38.27, 15.24], [38.27, 15.65], [38.19, 15.56], [37.85, 15.29],
@@ -105,10 +101,8 @@ const MODES = {
   train: ["M4.8 1.8h4.4A1.8 1.8 0 0 1 11 3.6v4.8a1.8 1.8 0 0 1-1.8 1.8H4.8A1.8 1.8 0 0 1 3 8.4V3.6a1.8 1.8 0 0 1 1.8-1.8Z", "M3 6.4h8M5 12.2l1-2M9 12.2l-1-2"],
   car: ["M2 9.4V7.2l1.3-3a1 1 0 0 1 .9-.6h5.6a1 1 0 0 1 .9.6l1.3 3v2.2H2ZM2 7.2h10", "M4.4 9.9a1 1 0 1 0 0 2 1 1 0 0 0 0-2ZM9.6 9.9a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"],
 };
-// The house travel glyphs (components/explore/route/mode-paths.ts): flight is an aeroplane, never a paper plane.
 export const mode = (m) => `<svg class="ico" viewBox="0 0 14 14" aria-hidden="true">${MODES[m].map((d) => `<path d="${d}"/>`).join("")}</svg>`;
 
-// Round 2: the word changes by a slow cross-fade, never typed.
 export function calmHeadline(cls = "") {
   const h = document.createElement("h1");
   h.className = `hn-h1 calm ${cls}`;
@@ -134,7 +128,6 @@ export function onView(el, fn, threshold = 0.3) {
   return () => io.disconnect();
 }
 
-// Round 3: the app's own 1:50m outline (public/land-50m.json, packed by packLand), for Sicily and the toe of Italy beside it.
 let fineLand = null;
 export function fineSicily(root) {
   fineLand ??= fetch("/landing-hero-new/land-50m.json").then((r) => r.json()).then((packed) => (packed.IT || []).map((flat) => {

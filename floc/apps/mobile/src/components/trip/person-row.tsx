@@ -1,12 +1,3 @@
-/**
- * One person, with whatever this screen lets you do about them (ticket 18).
- *
- * ONE ROW, THREE SCREENS. Friends, the invite picker and a roster all draw the
- * same thing — a face, a name, and nought to two small actions — so they draw
- * it from here rather than each inventing its own spacing.
- *
- * THE FACE IS ALWAYS INITIALS, in a rounded square — the same as the web.
- */
 import type { ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 
@@ -21,9 +12,7 @@ export function PersonRow({
   children,
 }: {
   name: string;
-  /** What the row has to say that the name cannot — how you met, say. */
   caption?: string | null;
-  /** The actions, if this screen has any. */
   children?: ReactNode;
 }) {
   const { c } = useTheme();

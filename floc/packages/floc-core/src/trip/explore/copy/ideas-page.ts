@@ -3,7 +3,6 @@ import type { IdeaCost, IdeaPace, PresetIdeas } from "../detail/preset-detail-ty
 
 export const IDEAS_PAGE_TITLE = "Ideas";
 
-// Why: a tint helps the eye run down a column; the word in the cell still says it.
 const PACE_TONE: Record<IdeaPace, Tone> = { Relaxed: "mint", Steady: "butter", Active: "blush" };
 const COST_TONE: Record<IdeaCost, Tone> = { Free: "mint", Low: "peri", Mid: "butter", High: "blush" };
 
@@ -11,7 +10,6 @@ const cell = (text: string, tone: Tone | null = null): TableCell => ({ tone, con
 const heading = (id: string, level: 2 | 3, text: string): PageBlock => ({ type: "heading", id, level, indent: 0, content: [{ type: "text", text }] });
 const table = (head: string[], rows: TableCell[][]): PageBlock => ({ type: "table", header: true, rows: [head.map((h) => cell(h)), ...rows] });
 
-/** The Ideas page a copy adds (ADR-025): other things to do at each stop, then other stops to swap in. */
 export function ideasPage(ideas: PresetIdeas): PageBlock[] {
   return [
     heading("at-your-stops", 2, "At your stops"),

@@ -15,7 +15,6 @@ export type ShapeDay = {
 export const ASSUMED_NIGHTS = 7;
 export type Nights = { count: number; from: "dates" | "days" | "chosen" | "assumed" };
 
-/** How long a trip is and where it sleeps, for its estimate (#574). An undated trip still gets one (rule 9). */
 export function tripShape(args: { start: string | null; end: string | null; days: ShapeDay[]; chosenNights: number | null }): {
   nights: Nights;
   stops: GuideStop[];

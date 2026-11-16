@@ -7,7 +7,6 @@ import { tripRoute, type TripRoute } from "./trip-route";
 
 const LISTINGS = { RAIL, ONE_STOP, ROUND };
 const trip = (name: keyof typeof LISTINGS) => tripRoute(LISTINGS[name]);
-// A flat stand-in for a map: a degree is 20px.
 const at = ({ lat, lng }: { lat: number; lng: number }) => ({ x: lng * 20, y: -lat * 20 });
 const OPTS = { samples: 20, out: 30, least: 50 };
 

@@ -9,7 +9,6 @@ import { sendFeedback } from "@/server/feedback/feedback";
 
 export type FeedbackState = { sent?: boolean; error?: string };
 
-/** Feedback from the Contact page (#271). The form keeps its words unless this says `sent`. */
 export async function submitFeedback(_previous: FeedbackState, form: FormData): Promise<FeedbackState> {
   const session = await getSession();
   if (!session?.user) return { error: "Sign in to send feedback." };

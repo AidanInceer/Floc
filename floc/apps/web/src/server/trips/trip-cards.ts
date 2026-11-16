@@ -5,7 +5,6 @@ import { listMembersFor } from "@/server/access";
 import { firstOvernightPlaceByTrip } from "@/server/itinerary/itinerary";
 import { listTripsFor } from "@/server/trips/trips";
 
-/** Why: the web card's faces, place and "Needs you" (`app/trips/cards.ts`), built the same way for the phone. */
 export async function listTripCards(viewerId: string, { archived }: { archived: boolean }): Promise<TripSummary[]> {
   const rows = await listTripsFor(viewerId, { archived });
   const ids = rows.map((row) => row.id);

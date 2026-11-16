@@ -1,4 +1,3 @@
-// Every file on a stop, one upload control for each, and Whole trip as its own band.
 import Link from "next/link";
 
 import type { Leg } from "@floc/core/trip/overview/legs";
@@ -20,7 +19,6 @@ type Props = {
 
 const RING = iconFrameClass("row");
 
-// Why: this card is only for uploading bookings; finding a stay lives on Dates and the Days overnight dialog.
 export function BookingsCard({ tripId, legs, wholeTrip }: Props) {
   return (
     <aside className="max-lg:order-first lg:sticky lg:top-4">

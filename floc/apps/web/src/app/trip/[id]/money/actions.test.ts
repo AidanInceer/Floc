@@ -340,11 +340,9 @@ describe("settling up with one person across currencies (#461, #463)", () => {
   };
 
   it("clears every currency between the two of them in one payment, in the payer's home currency", async () => {
-    // The member owes the admin £15 and the admin owes the member €10.
     expect(await addExpense({}, expenseForm())).toEqual({});
     signIn(world.member);
     expect(await addExpense({}, expenseForm({ paidBy: world.member, currency: "EUR", amount: "20.00" }))).toEqual({});
-    // Settle-up prices everything from the euro (#463): £1 is €1/0.85.
     getHomeRates.mockResolvedValue({ toHome: { EUR: 1, GBP: 1 / 0.85 }, date: "2026-10-24" });
 
     expect(await settlePair({}, form({ tripId: String(world.ours.id), otherUserId: world.admin }))).toEqual({});

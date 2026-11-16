@@ -1,14 +1,3 @@
-/**
- * Asking for a reset link (#no-ticket; the web's `/forgot-password`).
- *
- * IT ALWAYS SAYS THE SAME THING. Whether an address has an account is not this
- * screen's to reveal — a refusal and a success both end on the sent notice,
- * exactly as the web form does.
- *
- * THE LINK COMES BACK INTO THE APP. `RESET_REDIRECT` is the `floc://` scheme,
- * which Better Auth is told to trust, so opening the mail on the phone lands
- * on `/reset-password` here rather than on the website.
- */
 import { isValidEmail } from "@floc/core/text/credentials";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -44,8 +33,6 @@ export default function ForgotPassword() {
       setProblem(OFFLINE);
       return;
     }
-    // Anything else is reported as sent: naming "no such account" would let
-    // anyone test which addresses are registered.
     setSent(true);
   }
 

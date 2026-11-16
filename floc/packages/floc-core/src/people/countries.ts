@@ -1,14 +1,3 @@
-/**
- * The country vocabulary the travel map speaks (ticket 95).
- *
- * Generated from Natural Earth admin-0 (public domain) — the same source as
- * `public/countries-110m.geojson`, so a code here always has a shape to fill
- * and every shape has a name in the list. Regenerating one without the other is
- * what would break them apart; they ship together.
- *
- * Keys are ISO 3166-1 alpha-2, upper case, which is what `place.country_code`
- * stores (Nominatim returns them lower case; the writer upper-cases).
- */
 const COUNTRY_NAMES: Record<string, string> = {
   AF: "Afghanistan",
   AX: "Åland",
@@ -249,25 +238,18 @@ const COUNTRY_NAMES: Record<string, string> = {
   ZW: "Zimbabwe",
 };
 
-/** Alphabetical by name — the order the type-to-filter list renders in. */
 export const COUNTRIES: { code: string; name: string }[] = Object.entries(
   COUNTRY_NAMES,
 )
   .map(([code, name]) => ({ code, name }))
   .sort((a, b) => a.name.localeCompare(b.name));
 
-/**
- * A code we can draw and name, or `null`. The only way in from stored data:
- * `place.country_code` is written from whatever Nominatim returned, so a code
- * outside this vocabulary must fall out of the map rather than paint nothing.
- */
 export function readCountryCode(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const code = value.trim().toUpperCase();
   return code in COUNTRY_NAMES ? code : null;
 }
 
-/** Name for a code, falling back to the code itself rather than to nothing. */
 export function countryName(code: string): string {
   return COUNTRY_NAMES[code] ?? code;
 }

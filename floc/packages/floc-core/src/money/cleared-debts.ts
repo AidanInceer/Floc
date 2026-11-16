@@ -1,18 +1,12 @@
 import type { SettleRow } from "./group-settle";
 import { formatMoney } from "./money";
 
-/** One debt a payment clears (#461). The web receipt and the phone's confirm word it each their own way. */
 export type ClearedDebt = {
   key: string;
-  /** The viewer is the one who owed it. */
   youOwe: boolean;
-  /** The other person in this debt. */
   otherId: string;
-  /** In the debt's own currency. */
   cleared: string;
-  /** What it costs in the payment's currency, when that is not the debt's. */
   inPay: string | null;
-  /** It runs against the payment, so it comes off the figure. */
   against: boolean;
 };
 

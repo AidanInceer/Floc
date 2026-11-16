@@ -1,8 +1,3 @@
-/**
- * Why (#613, ADR-046): logs leave the app for Railway, so they hold no personal data, secrets or trip content.
- * Keys that can carry them are dropped whole; every kept string loses emails, ids and long tokens.
- */
-
 type LogValue = string | number | boolean | null | undefined;
 export type LogFields = Record<string, LogValue>;
 

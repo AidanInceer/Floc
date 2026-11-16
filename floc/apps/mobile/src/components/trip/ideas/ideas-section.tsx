@@ -1,4 +1,3 @@
-/** Why: the panel takes rows and callbacks, so everything that talks to a server lives here. */
 import { readIdeaSort, type IdeaSort } from "@floc/core/trip/ideas";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";

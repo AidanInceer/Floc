@@ -12,7 +12,6 @@ const config = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   { settings: { next: { rootDir: "." } }, rules: { "@next/next/no-html-link-for-pages": "off" } },
 
-  // Same ceilings as everywhere else (#212).
   {
     files: ["src/**/*.ts", "src/**/*.tsx"],
     rules: {

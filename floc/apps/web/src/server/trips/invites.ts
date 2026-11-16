@@ -1,17 +1,3 @@
-/**
- * Being asked onto a trip (ticket 242, split out of the old membership file).
- * Two doors: the forwardable share link (ticket 05), and the named invite that
- * `trip_invite` records (ticket 146).
- *
- * Rules owned here: an invite is not a membership — only accepting writes
- * `trip_membership`, and it does so through `roster.ts`; upsert never insert,
- * since `trip_invite_pair_idx` ignores `deleted_at`; `inviteToTrip` re-filters
- * the roster because the form is reachable without its page (ticket 113).
- *
- * Walking through the door is one operation (`acceptInvite` / `joinWithLink`),
- * not a sequence for each caller to get right.
- */
-
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import "server-only";
 
@@ -31,7 +17,6 @@ import { invitableIdsOf } from "@/server/social/groups";
 import { recordActivity } from "@/server/notifications/activity";
 import { readShareToken } from "@/server/trips/invite-link";
 
-/** Pre-auth teaser fields only (ticket 118) — no roster/money/notes; host name only, not email/id (ticket 147). */
 export type InviteTrip = {
   id: number;
   name: string;
@@ -55,7 +40,6 @@ export async function findTripByInviteToken(
     .from(trip)
     .leftJoin(user, eq(user.id, trip.createdBy))
     .leftJoin(userProfile, eq(userProfile.userId, trip.createdBy))
-    // An archived trip is closed to new people, as its named invites are (ticket 146).
     .where(and(eq(trip.inviteToken, token), isNull(trip.deletedAt), isNull(trip.archivedAt)))
     .get();
 
@@ -69,13 +53,11 @@ export async function findTripByInviteToken(
   };
 }
 
-/** The trip a shared link opens: nothing for a link that is made up, reset or past its week (ADR-047). */
 export async function findTripByShareLink(link: string, now = Date.now()): Promise<InviteTrip | undefined> {
   const token = readShareToken(link, now);
   return token ? findTripByInviteToken(token) : undefined;
 }
 
-/** One open invite, as the invitee's own /trips banner needs to render it. */
 export type PendingInvite = {
   tripId: number;
   tripName: string;
@@ -87,7 +69,6 @@ export type PendingInvite = {
   invitedAt: Date;
 };
 
-/** Anyone you could not ask, or already on the roster, is dropped, not rejected — not worth failing the others over. */
 export async function inviteToTrip(args: {
   tripId: number;
   fromUserId: string;
@@ -95,7 +76,6 @@ export async function inviteToTrip(args: {
 }): Promise<number> {
   const { tripId, fromUserId } = args;
 
-  // Why: a crafted id must not reach a stranger's inbox. Friends and people on a live trip with you only, never a guest (#545, ADR-029).
   const requested = [...new Set(args.toUserIds)];
   const invitable = await invitableIdsOf(fromUserId, requested);
   const wanted = requested.filter((id) => invitable.has(id));
@@ -150,7 +130,6 @@ export async function inviteToTrip(args: {
   return toInvite.length;
 }
 
-/** Archived/soft-deleted trips filtered out — no deciding on an invite to a trip nobody can open (ticket 146). */
 export async function listPendingInvitesFor(
   userId: string,
 ): Promise<PendingInvite[]> {
@@ -195,7 +174,6 @@ export async function listPendingInvitesFor(
   }));
 }
 
-/** Keeps the friend picker from offering the same person twice. */
 export type PendingInvitee = {
   userId: string;
   name: string;
@@ -208,7 +186,6 @@ export async function listPendingInvitees(
   return listInviteesByStatus(tripId, "pending");
 }
 
-/** Said no, and not asked again since — re-asking flips the same row back to pending. */
 export async function listDeclinedInvitees(
   tripId: number,
 ): Promise<PendingInvitee[]> {
@@ -246,7 +223,6 @@ async function listInviteesByStatus(
   }));
 }
 
-/** Own count query, not `listPendingInvitesFor(...).length` — root layout runs this every page. */
 export async function countPendingInvitesFor(userId: string): Promise<number> {
   const [row] = await db
     .select({ value: count() })
@@ -264,7 +240,6 @@ export async function countPendingInvitesFor(userId: string): Promise<number> {
   return row?.value ?? 0;
 }
 
-/** The one open invite this person holds for this trip, if any. */
 export async function findPendingInvite(tripId: number, userId: string) {
   return db
     .select({
@@ -283,7 +258,6 @@ export async function findPendingInvite(tripId: number, userId: string) {
     .get();
 }
 
-/** Closes the open invite, if there is one. Not exported: answering is `acceptInvite`/`declineInvite`. */
 async function settleInvite(
   tripId: number,
   userId: string,
@@ -302,12 +276,7 @@ async function settleInvite(
     );
 }
 
-/**
- * Why: settling covers somebody asked by name who used the link instead — a pending
- * row left behind would keep badging the chrome for a trip they are already on.
- */
 async function admit(tripId: number, userId: string): Promise<void> {
-  // Why: every roster read stops at the ceiling, so a member past it would silently vanish.
   if ((await countMembers(tripId)) >= LIMITS.members) throw new Refusal("This trip is full.");
   await addMember(tripId, userId);
   await ensureProfile(userId);
@@ -320,26 +289,17 @@ async function admit(tripId: number, userId: string): Promise<void> {
   );
 }
 
-/**
- * The named invite answered yes. Gated on a live pending row, so a guessed trip
- * id buys no membership (rule 5) — `false` means there was nothing to accept.
- */
 export async function acceptInvite(tripId: number, userId: string): Promise<boolean> {
   if (!(await findPendingInvite(tripId, userId))) return false;
   await admit(tripId, userId);
   return true;
 }
 
-/**
- * The share link redeemed. No pending row needed — anyone holding the token may
- * join (ticket 05), confirmed inbox or not: the link is the credential.
- */
 export async function joinWithLink(tripId: number, userId: string): Promise<void> {
   if (await isLiveMember(tripId, userId)) return;
   await admit(tripId, userId);
 }
 
-/** Closes the invite, joins nothing — an admin may ask again. */
 export async function declineInvite(tripId: number, userId: string): Promise<void> {
   await settleInvite(tripId, userId, "declined");
   refresh({ kind: "invites" });

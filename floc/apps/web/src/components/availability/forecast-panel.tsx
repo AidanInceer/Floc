@@ -1,9 +1,5 @@
 "use client";
 
-/**
- * The Forecast tab's panel: the trip's days as a list, and one day's hours in its place
- * when a day is pressed. Rows, not a chart: time, sky, temperature, and rain only when there is some.
- */
 import { ChevronIcon } from "@/components/system/icons";
 import { cx } from "@/components/system/ui";
 import { WeatherGlyph } from "@/components/system/icons/weather";

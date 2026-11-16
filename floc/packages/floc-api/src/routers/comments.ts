@@ -1,17 +1,3 @@
-/**
- * Talk about one event (ticket 325).
- *
- * NOT `notes`. That router carries the trip's one rich-text document; this
- * carries threads hung off a `day_event`. They share a table and nothing else
- * — one is a page you write, the other is a conversation you join.
- *
- * EVERY MEMBER MAY POST. Commenting is not one of the admin powers.
- * Deleting somebody else's comment is: the port checks it, not this router.
- *
- * REFUSALS COME BACK AS WORDS, NOT THROWS. An empty body and a comment that
- * has since gone are ordinary mistakes; `add` and `edit` answer with the
- * sentence the composer shows, and null when it landed.
- */
 import { REACTION_KINDS } from "@floc/core/vocabulary";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { z } from "zod";
@@ -35,7 +21,6 @@ export const commentsRouter = router({
   add: tripProcedure
     .input(
       onEvent.extend({
-        /** Null starts a run; an id answers one. */
         replyTo: z.number().int().positive().nullable(),
         body,
       }),

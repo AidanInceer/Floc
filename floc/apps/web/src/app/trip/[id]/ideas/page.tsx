@@ -1,4 +1,3 @@
-/** The tab was renamed Ideas → Notes (ticket 238); old links and mail still point here. */
 import { redirect } from "next/navigation";
 
 export default async function IdeasRedirect({

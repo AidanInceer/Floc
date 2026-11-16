@@ -13,7 +13,6 @@ export function Dialog({ open, onClose, title, className, children }: {
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
-  // Why: Strict Mode runs the effect's cleanup once on mount; its close() must not read as the user closing it.
   const closingQuietly = useRef(false);
 
   useEffect(() => {
@@ -36,7 +35,6 @@ export function Dialog({ open, onClose, title, className, children }: {
       ref={ref}
       aria-label={title}
       className={className}
-      // Why the target check: React bubbles a nested sheet's close and cancel up to here, which shut this one too.
       onCancel={(event) => { if (event.target !== event.currentTarget) return; event.preventDefault(); onClose(); }}
       onClose={(event) => {
         if (event.target !== event.currentTarget) return;
@@ -55,10 +53,6 @@ export function Dialog({ open, onClose, title, className, children }: {
   );
 }
 
-/**
- * Closes the dialog it sits in, from anywhere in its body — a form's own head can
- * carry the ✕ (wireframe/modal-forms B3). The dialog's close event calls `onClose`.
- */
 const CLOSE = iconInkClass;
 
 export function DialogClose({ className, children }: { className?: string; children?: ReactNode }) {

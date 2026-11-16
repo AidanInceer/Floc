@@ -1,9 +1,3 @@
-/**
- * Table handles (#408): a six-dot grip beside the row and above the column
- * under the pointer — drag to move, click for options — a corner menu, and
- * add-row and add-column bars. On a phone the grips follow the caret instead
- * of the pointer, and the menu moves lines instead of a drag.
- */
 "use client";
 
 import { useEditorState, type Editor } from "@tiptap/react";
@@ -55,7 +49,6 @@ function dropGap(table: HTMLTableElement, kind: LineKind, event: PointerEvent) {
   return { gap, line };
 }
 
-/** The run of whole rows or columns already selected around `index`, or just `index`. Shift reaches from the run to it. */
 function selectedSpan(editor: Editor, tablePos: number, kind: LineKind, index: number, extend = false): [number, number] {
   const info = selectionInfo(editor.state);
   if (info?.tablePos !== tablePos || info.whole !== kind) return [index, index];
@@ -147,7 +140,6 @@ function Handles({ editor, hover, table, touch, drag, onDrag, onMenu, onTableMen
       if (drag?.live) return;
       const [from, to] = selectedSpan(editor, hover.tablePos, kind, index, event.shiftKey);
       selectLines(hover.tablePos, kind, from, to)(editor.state, editor.view.dispatch);
-      // Why: Delete on the chosen rows goes through the page's own keys.
       editor.view.focus();
       onMenu({ tablePos: hover.tablePos, kind, from, to, at: below(event.currentTarget) });
     },
@@ -205,7 +197,6 @@ export function TableTools({ editor, touch }: { editor: Editor; touch: boolean }
   );
 }
 
-/** Clears the grips once the pointer is well clear of the table and its handles. */
 function HoverKeeper({ table, onLeave, busy }: { table: HTMLTableElement; onLeave: () => void; busy: boolean }) {
   useEffect(() => {
     if (busy) return;

@@ -6,7 +6,6 @@ import { useTheme } from "../system/theme";
 import { RegionTags } from "./region-tag";
 import { fonts, size, space } from "@/lib/theme";
 
-/** One listing on the list's sheet: the title first, then where and the figures under it. A top pick (#624) shows a sun by its chevron. */
 export function ListingRow({
   trip,
   figures,
@@ -16,7 +15,6 @@ export function ListingRow({
 }: {
   trip: PresetTrip;
   figures: string;
-  /** The words for this season's top pick, when it is one. */
   pick?: string;
   last: boolean;
   onOpen: () => void;

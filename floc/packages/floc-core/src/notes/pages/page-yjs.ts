@@ -1,9 +1,3 @@
-/**
- * A notes page as the live Yjs doc holds it (#408). The shape is the editor's
- * ProseMirror tree as y-prosemirror stores it: one element per block, one
- * XmlText per run of text, marks as text attributes. The server reads and
- * seeds pages with this, so it never needs the editor.
- */
 import * as Y from "yjs";
 
 import { EMPTY_PAGE, clampIndent, isTone, type Inline, type Mark, type PageBlock, type TableCell, type TextRun } from "./page-blocks";
@@ -17,7 +11,6 @@ type Delta = { insert?: unknown; attributes?: Attrs }[];
 
 const MARK_ORDER: Mark["type"][] = ["bold", "italic", "underline", "strike", "link", "highlight", "comment"];
 
-// Why the prefix: comments may overlap, so y-prosemirror stores each under `comment--<hash>`.
 function markOf(key: string, value: unknown): Mark | null {
   const name = key.split("--", 1)[0];
   const attrs = (typeof value === "object" && value !== null ? value : {}) as Attrs;
@@ -120,14 +113,12 @@ function markAttrs(marks: readonly Mark[] = []): Attrs {
   for (const mark of marks) {
     if (mark.type === "link") attrs.link = { href: mark.href };
     else if (mark.type === "highlight") attrs.highlight = { tone: mark.tone };
-    // Why eight characters: y-prosemirror only strips a `--` suffix of exactly eight.
     else if (mark.type === "comment") attrs[`comment--${mark.id.toString(36).padStart(8, "0")}`] = { id: mark.id };
     else attrs[mark.type] = {};
   }
   return attrs;
 }
 
-/** One inline list as y-prosemirror lays it out: text runs share an XmlText; a link or a break sits between. */
 function inlineNodes(content: readonly Inline[]): { nodes: (Y.XmlElement | Y.XmlText)[]; fill: () => void } {
   const nodes: (Y.XmlElement | Y.XmlText)[] = [];
   const fills: [Y.XmlText, Delta][] = [];
@@ -193,7 +184,6 @@ function blockElement(block: PageBlock) {
   }
 }
 
-/** Fills an empty page doc. A doc that already has blocks is left alone. */
 export function seedPageYjs(doc: Y.Doc, blocks: readonly PageBlock[]): void {
   const fragment = doc.getXmlFragment(PAGE_FRAGMENT);
   if (fragment.length > 0) return;

@@ -1,7 +1,3 @@
-/**
- * Reads the trip again when another member changes it (#577), on the web's signal. Without the
- * socket the screen still re-reads on focus and on the query tick (`lib/api.ts`).
- */
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import { tripDocumentName } from "@floc/core/notes/live/live-names";
 import { openTripSignal } from "@floc/core/notes/live/trip-signal";

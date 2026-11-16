@@ -1,10 +1,5 @@
 "use client";
 
-/**
- * From a booking file to the plan (#559). A Travel file becomes a transport event; a Hotel file goes on
- * the first night of its stay. The form starts with what Floc read from the booking, and nothing reaches
- * Days until its member presses the button (ADR-027).
- */
 import { addFileToDays } from "@/app/trip/[id]/files/actions";
 import { HOW_LABELS } from "@/components/days/event-sheet/event-type-tiles";
 import { ActionForm, Sheet, SubmitButton, useSheetClose } from "@/components/system/client-ui";
@@ -21,7 +16,6 @@ type Props = {
   kind: "travel" | "hotel";
   name: string;
   days: DayChoice[];
-  /** What Floc read, for a Pro member. Null leaves the form to the member. */
   booking: BookingDetails | null;
 };
 

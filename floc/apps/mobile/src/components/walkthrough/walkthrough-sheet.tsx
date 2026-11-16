@@ -1,9 +1,3 @@
-/**
- * The first-trip walkthrough on the phone (wireframe/trip-onboarding E5c, #315): the web's dialog,
- * drawn tighter. Say what is sorted, and the step to start on shows in its feature's wash. The
- * small drawing of the page it opens stays on the web — on a phone it is furniture, and the words
- * carry the same step. Closing it any way marks it seen for good (#314).
- */
 import {
   chipsFor,
   sortedAtStart,
@@ -22,7 +16,6 @@ import { useTheme } from "../system/theme";
 import { Body, Button } from "../system/ui";
 import { fonts, radius, size, space } from "@/lib/theme";
 
-/** Where (Ideas) is blue, When (Dates) is yellow; the invite is yours to do, so pen. */
 const WASH = {
   ideas: ["pastel-blue", "pastel-blue-ink"],
   invite: ["pen-2", "pen-deep"],

@@ -1,8 +1,5 @@
 "use server";
 
-// Discussion threads, shared by every surface that has one (server/notes/notes.ts
-// owns the table shape, ticket 108). Anyone posts; only the author edits or
-// deletes — removing someone else's words is not one of the admin powers.
 import { requireTripAccess, type TripAccess } from "@/server/access";
 import {
   findNote,
@@ -16,7 +13,6 @@ import {
 import { REACTION_KINDS, type NoteScope, type ReactionKind } from "@/db/schema";
 import { refresh } from "@/server/freshness";
 
-/** The thread's subject must be this trip's (rule 5). Pages comment through their own actions. */
 async function isOnTrip(access: TripAccess, scope: NoteScope, scopeId: number): Promise<boolean> {
   if (!Number.isInteger(scopeId)) return false;
   switch (scope) {
@@ -48,7 +44,6 @@ export async function editNote(
     return { error: "You can only edit your own comments." };
   }
 
-  // Don't stamp "edited" on a save that didn't change anything.
   if (body.slice(0, NOTE_BODY_MAX) === row.body) return;
 
   await updateNoteBody(row.id, body);
@@ -60,7 +55,7 @@ export async function addNote(
   tripId: number,
   scope: NoteScope,
   scopeId: number,
-  replyTo: number | null, // null = new top-level comment
+  replyTo: number | null,
   formData: FormData,
 ) {
   const body = String(formData.get("body") ?? "").trim();
@@ -71,7 +66,6 @@ export async function addNote(
 
   let parentId: number | null = null;
   if (replyTo !== null) {
-    // undefined = target has gone; null = top level.
     const resolved = await resolveParent({ tripId: access.trip.id, scope, scopeId, replyTo });
     if (resolved === undefined) return { error: "That comment has gone." };
     parentId = resolved;

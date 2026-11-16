@@ -11,9 +11,7 @@ import { deleteNote, editNote, react } from "@/app/trip/[id]/notes-actions";
 
 const metaFigure = "font-mono text-[11px] tracking-[0.02em] text-ink-faint";
 
-/** One heart, inline after Reply (event comments D): yours fills in pen, the count says how many. */
 function HeartButton({ tripId, note }: { tripId: number; note: NoteRow }) {
-  // Why: the heart answers under the finger; the server's count replaces it when the toggle lands.
   const [{ count, mine }, flip] = useOptimistic(likes(note), (shown) => toggleLike(shown));
   return (
     <form
@@ -71,7 +69,6 @@ function EditForm({ tripId, note, onDone }: { tripId: number; note: NoteRow; onD
   );
 }
 
-/** Edit and Delete, behind the dots: one visible action per row. Only on your own comment. */
 function OwnMenu({
   tripId,
   note,
@@ -118,7 +115,6 @@ export function NoteComment({
   note: NoteRow;
   viewerId: string;
   onReply: () => void;
-  /** Deleting a comment takes its replies with it, so the question says so. */
   hasReplies: boolean;
   reply?: boolean;
 }) {
@@ -131,7 +127,6 @@ export function NoteComment({
       <div className="min-w-0 flex-1">
         <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm leading-[1.3]">
           <b className="font-semibold">{note.authorName}</b>
-          {/* suppressHydrationWarning: the label comes from the clock, and server and client can land a minute apart. */}
           <span suppressHydrationWarning className={metaFigure}>
             {commentTime(note.createdAt)}
           </span>

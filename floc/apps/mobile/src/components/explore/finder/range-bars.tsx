@@ -12,8 +12,6 @@ type Bounds = { min: number; max: number; step: number };
 
 const snap = (v: number, { min, max, step }: Bounds) => Math.min(max, Math.max(min, Math.round((v - min) / step) * step + min));
 
-// Why: a JS slider, not @react-native-community/slider — a native module means a rebuild of every dev
-// client, and that slider has one thumb. A touch moves whichever thumb is nearer.
 export function RangeBars({
   label,
   bars,
@@ -27,12 +25,10 @@ export function RangeBars({
   bounds: Bounds;
   value: [number, number];
   onChange: (value: [number, number]) => void;
-  /** The line under the thumbs. */
   children: ReactNode;
 }) {
   const { c } = useTheme();
   const [width, setWidth] = useState(0);
-  // Why: the pan handlers are made once, so they read the newest props through this ref (the price scale changes with its unit).
   const latest = useRef({ width, value, bounds, onChange });
   latest.current = { width, value, bounds, onChange };
   const held = useRef<0 | 1>(0);
@@ -65,7 +61,6 @@ export function RangeBars({
     return (
       <View
         accessible
-        // Why: a touch on a thumb would report its x inside the thumb; the track takes every touch.
         pointerEvents="none"
         accessibilityRole="adjustable"
         accessibilityLabel={`${label}, ${i === 0 ? "from" : "to"}`}
@@ -87,7 +82,6 @@ export function RangeBars({
   };
 
   return (
-    // Why: Android's back gesture owns the screen's edge; a thumb under it closed the sheet instead of moving.
     <View style={{ gap: space.sm, marginHorizontal: space.lg }}>
       <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 2, height: 46, paddingHorizontal: THUMB / 2 }}>
         {bars.map((b, i) => (

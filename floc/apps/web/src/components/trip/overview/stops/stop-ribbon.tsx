@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-/** A stop with a hotel file hangs a ribbon from its card. No visible word: the Bookings card beside it names the file. */
 export function StopRibbon({ tripId, fileName }: { tripId: number; fileName: string }) {
   const label = `Booked: ${fileName}`;
   return (

@@ -1,7 +1,3 @@
-/**
- * The consent choice on the phone (#368): the same two choices as the web, both off until a yes, asked again
- * after a year. On the phone, "functional" is the headings you fold in Notes.
- */
 import { NO_CONSENT, encodeConsent, readConsent, type ConsentChoice } from "@floc/core/consent/consent";
 import { today } from "@floc/core/dates/dates";
 import * as SecureStore from "expo-secure-store";
@@ -17,7 +13,6 @@ const tell = () => {
   for (const listener of listeners) listener();
 };
 
-/** Reads the stored choice once at start. A refused or empty store is a no. */
 export async function loadConsent(store: Store = SecureStore): Promise<ConsentChoice> {
   try {
     held = readConsent(await store.getItemAsync(KEY), today()) ?? NO_CONSENT;

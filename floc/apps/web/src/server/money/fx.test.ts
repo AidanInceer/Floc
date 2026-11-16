@@ -1,9 +1,3 @@
-/**
- * The rate cache and its fallback chain (ticket 253). The point of the cache
- * is that a provider outage degrades to yesterday's *labelled* rate rather
- * than to nothing — and that a stale rate is never served silently. Every
- * page reads one quote, so Overview and Money cannot show two figures.
- */
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { db, schema } from "@/db";
@@ -44,7 +38,6 @@ describe("getHomeRates", () => {
 
     expect(rates?.home).toBe("GBP");
     expect(rates?.toHome.GBP).toBe(1);
-    // €12.50 → £10.00.
     expect(Math.round(1250 * (rates?.toHome.EUR ?? 0))).toBe(1000);
     expect(rates?.toHome.USD).toBeCloseTo(0.8 / 1.04, 10);
     expect(rates?.date).toBe("2026-08-30");

@@ -1,4 +1,3 @@
-// The web trip tabs' own marks (`system/icons/nav.tsx`), so a section looks the same on both.
 import Svg, { Circle, Path } from "react-native-svg";
 
 type Drawing = { paths: string[]; circles?: [number, number, number][] };

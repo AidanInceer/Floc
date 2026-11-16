@@ -1,4 +1,3 @@
-/** Plan the next one (#443): a new undated trip, the same group ticked, each ticked person invited to their inbox. Nothing copied. */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";

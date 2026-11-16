@@ -1,8 +1,3 @@
-/**
- * Why: one sheet for name, colour and tags, as the web keeps them behind one menu (#71, #213).
- * The trip's layout owns the sheet and the write, because only a route may reach the API.
- * Tags are rows, not a comma field (#213): a row shows the shape a tag is saved in.
- */
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { MAX_TAGS, MAX_TAG_LENGTH } from "@floc/core/trip/tags";
 import { TRIP_COLORS, tripPastel, type TripColor } from "@floc/core/trip/trip-color";
@@ -19,11 +14,9 @@ import { fonts, radius, size, space } from "@/lib/theme";
 const MARK_COLUMNS = 5;
 const MARK_SIZE = 44;
 
-/** A row keeps an id so deleting one does not hand its text to the next. */
 export type TagRow = { id: number; name: string };
 
 export function rowsFromTags(tags: string[]): TagRow[] {
-  // Opens on one empty row, not nothing — else there is nothing to add beside.
   return tags.length > 0
     ? tags.map((name, id) => ({ id, name }))
     : [{ id: 0, name: "" }];
@@ -50,8 +43,6 @@ function Swatch({
         height: 34,
         borderRadius: radius.pill,
         backgroundColor: c[pastelOf(color)],
-        // Why: the ring is the second signal, and the swatch carries its colour's
-        // name for anyone who cannot see it (#204).
         borderWidth: picked ? 2.5 : StyleSheet.hairlineWidth,
         borderColor: picked ? c.ink : c[`${pastelOf(color)}-edge`],
       }}
@@ -59,12 +50,6 @@ function Swatch({
   );
 }
 
-/**
- * Why: the whole set is fifteen — see `trip-mark.ts` before adding a sixteenth.
- * Tapping the mark already on the trip clears it, so "no mark" needs no second
- * control saying None. Width is pinned to five cells because a wide phone
- * otherwise fits six on the first row and one on the second.
- */
 function MarkGrid({
   tone,
   mark,
@@ -127,7 +112,6 @@ function TagRowInput({
   row: TagRow;
   onChange: (name: string) => void;
   onDelete: () => void;
-  /** Only the last row carries it, so tags and "add one" share a line. */
   onAdd: (() => void) | null;
 }) {
   const { c } = useTheme();
@@ -151,8 +135,6 @@ function TagRowInput({
           fontSize: size.body,
         }}
       />
-      {/* The word "Delete" beside every tag was three quarters as wide as the
-          tag itself. The mark is allowed here: the label is said aloud. */}
       <IconButton label={`Delete ${row.name || "this tag"}`} onPress={onDelete}>
         {(colour) => <CrossGlyph color={colour} />}
       </IconButton>
@@ -179,10 +161,8 @@ export function TripEdit({
   tripId: number;
   name: string;
   onChangeName: (name: string) => void;
-  /** The picked colour, or null while the id rotation is still filling in. */
   color: TripColor | null;
   onChangeColor: (color: TripColor) => void;
-  /** The picked mark, or null for the pastel alone (#318). */
   mark: TripMark | null;
   onChangeMark: (mark: TripMark | null) => void;
   rows: TagRow[];

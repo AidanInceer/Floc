@@ -1,7 +1,3 @@
-/**
- * Notifications (#344) — the phone's half of `/inbox`. The server writes each
- * line, so a notification reads the same here as in a browser.
- */
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, type Href } from "expo-router";
 import { useEffect } from "react";
@@ -33,7 +29,6 @@ export default function Inbox() {
     },
   });
 
-  // Why: the bell counts unseen, and arriving here is the seeing — as on the web (#403).
   const unseen = useQuery(trpc.notifications.unread.queryOptions()).data ?? 0;
   const { mutate: see } = useMutation({
     ...trpc.notifications.seen.mutationOptions(),

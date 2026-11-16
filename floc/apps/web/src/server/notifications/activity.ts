@@ -1,8 +1,3 @@
-/**
- * The activity log's one write (#344). Every writer that changes a fact people
- * hear about calls `recordActivity` inside its own transaction, so a change and
- * its row land together or not at all.
- */
 import "server-only";
 
 import { and, eq, gte, isNull } from "drizzle-orm";
@@ -24,14 +19,11 @@ export type Change = {
   actorId: string;
   subjectId: number | null;
   href: string;
-  /** The people this change is about. The rules decide what that earns them. */
   affected: string[];
 };
 
-/** What a writer may read before its transaction opens, so it is not a round trip inside it. */
 export type KnownBefore = {
   members?: string[];
-  /** The subject was made in this transaction, so no earlier row can fold into it. */
   fresh?: boolean;
 };
 
@@ -93,6 +85,5 @@ export async function recordActivity(tx: Tx, change: Change, known: KnownBefore 
   await tx
     .insert(notification)
     .values(recipients.map((r) => ({ activityId: activityId!, userId: r.userId, loud: r.loud })))
-    // Why: a row you have read stays read — a folded repeat must not light the bell again.
     .onConflictDoUpdate({ target: [notification.activityId, notification.userId], set: touch() });
 }

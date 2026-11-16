@@ -19,10 +19,8 @@ const GLYPH: Record<GapKind, React.ReactNode> = {
 
 type Item = { kind: GapKind; text: string; sub?: string[] };
 
-/** Columns every card in the stack shares, so dates and nights start at the same x on every card. */
 export const STACK_COLUMNS = "grid gap-1.5 sm:grid-cols-[42px_max-content_max-content_max-content_1fr_auto] sm:gap-x-3.5";
 
-/** One thing in the opened stack: what it is, its dates, and the way to sort it, or "Sorted". */
 export function SortCard({ item, href, action }: { item: Item; href?: string; action?: string }) {
   const done = !href;
   const colour = SORT_COLOURS[item.kind];

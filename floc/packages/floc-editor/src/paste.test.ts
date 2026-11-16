@@ -8,7 +8,6 @@ import { schema } from "./commands/testing";
 const window = new Window();
 const parse = (html: string) => new window.DOMParser().parseFromString(html, "text/html") as unknown as Document;
 
-/** What the page would hold after the paste: `type:indent:text`, as the schema reads the reshaped HTML. */
 function pasted(html: string) {
   const reshaped = parse(reshapePastedHtml(html, parse));
   const doc = PMDOMParser.fromSchema(schema).parse(reshaped.body as unknown as HTMLElement);
@@ -17,7 +16,6 @@ function pasted(html: string) {
   return { out, doc };
 }
 
-// Google Docs' own shape: a wrapping <b style="font-weight:normal">, spans with inline styles, lists of <li><p>.
 const GOOGLE_DOCS = `<meta charset="utf-8"><b style="font-weight:normal;" id="docs-internal-guid-1">
 <h2 dir="ltr"><span style="font-size:16pt;font-family:Arial;color:#434343">Lisbon</span></h2>
 <p dir="ltr"><span style="font-family:Arial;color:#ff0000">Go </span><span style="font-weight:700">early</span><span style="font-style:italic"> please</span></p>

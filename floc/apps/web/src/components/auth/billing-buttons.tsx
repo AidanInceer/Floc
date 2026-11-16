@@ -1,11 +1,5 @@
 "use client";
 
-/**
- * The two ways out of the billing panel (ticket 247) — start a checkout, or
- * open Stripe's portal. Both ask our own API for a one-off URL and then leave
- * the app, because neither URL can be printed into the page: a checkout
- * session is created per click, and a portal link is a short-lived credential.
- */
 import { useState } from "react";
 import type { ReactNode } from "react";
 
@@ -22,7 +16,6 @@ export function BillingAction({
   body?: Record<string, string>;
   children: ReactNode;
   variant?: "primary" | "secondary" | "ghost";
-  /** Given, it replaces the shared button skin — the Pro block is ink. */
   className?: string;
 }) {
   const [busy, setBusy] = useState(false);

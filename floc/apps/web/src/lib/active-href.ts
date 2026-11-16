@@ -1,4 +1,3 @@
-// Why: `under` lends a link the pages outside its path — a trip is at `/trip/12`, but it is one of your Trips.
 export function activeHref(
   pathname: string,
   hrefs: string[],

@@ -1,7 +1,3 @@
-/**
- * Signing in (#289). Why Google first, then email: the provider is one tap and the web leads with it.
- * Why the notice: a session the server refused ends here, and the person is told rather than stranded.
- */
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
@@ -22,8 +18,6 @@ import { Text } from "react-native";
 
 export default function SignIn() {
   const router = useRouter();
-  // The screen has no bottom bar to hold the gesture indicator off, and the
-  // dev door is pinned to the foot — without this it sits under the handle.
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,8 +28,6 @@ export default function SignIn() {
   const [ended] = useState(takeEndedNotice);
   const { c } = useTheme();
 
-  // Asked once, on a dev build only. A store build never runs this branch, and
-  // a phone with no dev server on the LAN gets null and simply shows no picker.
   useEffect(() => {
     if (!__DEV__) return;
     void devAccounts().then((found) => {

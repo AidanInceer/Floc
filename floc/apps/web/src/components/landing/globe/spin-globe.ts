@@ -20,15 +20,10 @@ type Scene = {
   home: LatLng;
   places: LatLng[];
   onLight: (index: number) => void;
-  /** The globe was turned by hand and came to rest on this place. */
   onSettle: (index: number) => void;
   onWay: (state: "open" | "shut") => void;
 };
 
-/**
- * The globe of the Borrow band: it turns to a place, then the plane flies the route from home.
- * Drag turns it, a flick spins it and the nearest place takes it. Frames run only while something moves.
- */
 export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, onSettle, onWay }: Scene) {
   const paint = globePainter(canvas);
   if (!paint || places.length === 0) return null;
@@ -51,7 +46,6 @@ export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, on
   }
 
   function show(i: number, ms = 1500, turns = 0, curve = easeInOut) {
-    // Why: the first sight of the band, a spin or a hover can land while a trip is open; the route holds the camera then.
     if (trip.isOpen()) return;
     [at, takeoff] = [i, 0];
     if (!turns || still) light(i);
@@ -67,7 +61,6 @@ export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, on
   const drag = globeDrag(canvas, {
     radius: paint.radius,
     view: face.view,
-    // Why: a drag during a move would fight the camera; it takes hold once the map has arrived.
     turnTo(view) {
       if (!trip.running()) face.turnTo(view);
     },
@@ -115,16 +108,12 @@ export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, on
 
   return {
     show: (i: number) => show(i),
-    /** Two full turns, then the place asked for. */
     spin: (i: number) => show(i, 2800, 2, easeOut),
-    /** The point of the world the globe is turned to, for the tiles that roll past as it spins. */
     passing: () => faced(face.view()),
-    /** The places with a tile: each gets a pin, every other place a dot. */
     setHand(next: number[]) {
       hand = next;
       wake();
     },
-    /** The place whose tile is under the pointer, or -1: its pin pulses. */
     hold(i: number) {
       held = i;
       wake();

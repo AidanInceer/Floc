@@ -1,18 +1,12 @@
-/**
- * What Apple and Google say about a subscription, in the shape our own row
- * keeps. Pure, so every store state has a test without either store.
- */
 import type { SubscriptionStatus } from "@/db/schema";
 
 export type StoreFacts = {
-  /** Apple's original transaction id, or Google's purchase token. */
   storeTransactionId: string;
   productId: string;
   status: SubscriptionStatus;
   currentPeriodEnd: Date;
   cancelAtPeriodEnd: boolean;
   accountToken: string | null;
-  /** Bought for free in a store test environment: Pro only for an account named as a store tester. */
   test: boolean;
 };
 
@@ -25,7 +19,6 @@ type AppleTransaction = {
   environment?: string;
 };
 
-// Apple's `Status`: 1 active, 2 expired, 3 billing retry, 4 grace period, 5 revoked.
 const APPLE_STATUS: Record<number, SubscriptionStatus> = {
   1: "active",
   2: "canceled",
@@ -39,7 +32,6 @@ export function appleFacts(
   renewal: { autoRenewStatus?: number } | null = null,
   status: number | null = null,
 ): StoreFacts | null {
-  // Why: a null period end means "never lapses" to the gate, so no end is no row.
   if (!tx.originalTransactionId || !tx.productId || !tx.expiresDate) return null;
 
   const read = status === null ? "active" : (APPLE_STATUS[status] ?? "incomplete");
@@ -50,7 +42,6 @@ export function appleFacts(
     currentPeriodEnd: new Date(tx.expiresDate),
     cancelAtPeriodEnd: renewal?.autoRenewStatus === 0,
     accountToken: tx.appAccountToken ?? null,
-    // Why strict: Apple names the environment on every signed transaction, so only "Production" was paid for.
     test: tx.environment !== "Production",
   };
 }
@@ -64,13 +55,11 @@ export type PlaySubscription = {
     autoRenewingPlan?: { autoRenewEnabled?: boolean };
   }[];
   externalAccountIdentifiers?: { obfuscatedExternalAccountId?: string };
-  /** Present only on a licence tester's purchase, which Google does not charge for. */
   testPurchase?: object;
 };
 
 const PLAY_STATE: Record<string, SubscriptionStatus> = {
   SUBSCRIPTION_STATE_ACTIVE: "active",
-  // Why: a cancelled Play subscription stays paid up until it expires.
   SUBSCRIPTION_STATE_CANCELED: "active",
   SUBSCRIPTION_STATE_IN_GRACE_PERIOD: "active",
   SUBSCRIPTION_STATE_ON_HOLD: "past_due",

@@ -13,7 +13,6 @@ const mime = { ".html": "text/html", ".css": "text/css", ".js": "text/javascript
 
 const declare = (tokens) => Object.entries(tokens).map(([name, value]) => `  --${name}: ${value};`).join("\n");
 
-// Why: the web's font tokens lead with next/font's generated family, which a static page never has.
 const faces = `  --font-display-face: "${fontStacks.display[0]}";\n  --font-body-face: "${fontStacks.sans[0]}";\n  --font-data-face: "${fontStacks.type[0]}";`;
 
 const radiusCss = Object.entries(radii).map(([name, px]) => `  --radius-${name}: ${px}px;`).join("\n");
@@ -52,7 +51,6 @@ async function prototypes() {
   return (await Promise.all(entries.filter((e) => e.isDirectory() && !e.name.startsWith("_")).map(readPrototype))).filter(Boolean);
 }
 
-// The index is a shell; /_house/nav.js and /_house/index.js draw it from /_house/list.json.
 const shell = `<!doctype html><html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Floc wireframes</title>
 <link rel="stylesheet" href="/_house/house.css"><link rel="stylesheet" href="/_house/nav.css">
 <script src="/_house/house.js" defer></script><script src="/_house/nav.js" defer></script><script src="/_house/index.js" defer></script></head>

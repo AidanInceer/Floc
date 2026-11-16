@@ -7,7 +7,6 @@ import { tripRoute, type TripRoute } from "@/lib/explore/route/trip-route";
 
 type Hop = { mode: TransportType; detail: string };
 
-/** `hop` is the move that arrives at this stop, if the listing names one; `outs` are the day outs made from it. */
 type BorrowStop = {
   name: string;
   nights: number;
@@ -28,7 +27,6 @@ export type BorrowCard = {
   route: TripRoute;
 };
 
-/** The listings the landing page rolls through, in the order given; a retired id is skipped. */
 export function borrowCards(trips: PresetTrip[], ids: string[], rates: ListingRates | null = null): BorrowCard[] {
   return ids.flatMap((id) => {
     const trip = trips.find((t) => t.id === id);
@@ -48,7 +46,6 @@ export function borrowCards(trips: PresetTrip[], ids: string[], rates: ListingRa
   });
 }
 
-/** Every listing's id: the lead ones first, in the order given, then the rest as Explore lists them. */
 export function leadFirst(trips: PresetTrip[], lead: string[]): string[] {
   const known = lead.filter((id) => trips.some((t) => t.id === id));
   return [...known, ...trips.map((t) => t.id).filter((id) => !known.includes(id))];

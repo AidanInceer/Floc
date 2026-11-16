@@ -1,7 +1,3 @@
-/**
- * The recap picture through the phone's own share sheet (ADR-045): a PNG in the cache, never a link.
- * Throws when the download fails; the caller says so in words.
- */
 import { Directory, File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 

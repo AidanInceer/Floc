@@ -1,8 +1,3 @@
-/**
- * Page comments (#408): a thin dotted underline on the words, a bubble with the
- * count in the right margin, and the thread under the words — replies, a reply
- * box and Resolve. The thread never quotes the words back.
- */
 "use client";
 
 import type { Editor } from "@tiptap/react";

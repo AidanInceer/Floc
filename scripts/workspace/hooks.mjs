@@ -16,7 +16,6 @@ export function installHooks(root) {
   }
 }
 
-/** Why: one session moved one worktree through three branches and three PRs, and nobody could follow it. */
 export function switchWarning({ root, branch }) {
   if (basename(dirname(resolve(root))) !== "worktrees" || isScratch(branch) || branch.startsWith("release/")) return null;
   const folder = basename(resolve(root));

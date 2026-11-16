@@ -1,6 +1,3 @@
-// Rank number and label fonts on their own, against the chosen headings (W4, Red Hat Display 800) and text (Red Hat Text, as in W3 and W4).
-// Left: drag to order. Right: the site drawn with the font under the pointer, and your current top pick for the other role.
-// The order lives in localStorage so a reload keeps it.
 import { PICKED_HEADING as HEAD, TEXT_POOL, MONO_POOL, poolQuery, loadFonts } from "./sets.js";
 import { wordmark, hero, trip, days, money } from "./parts.js";
 
@@ -158,7 +155,6 @@ export function renderRank(stage) {
   list.addEventListener("pointerdown", (e) => {
     const li = e.target.closest(".rk-row");
     if (!li || e.target.closest("button") || e.button > 0) return;
-    // Why: on touch only the grip drags, so a swipe on the row still scrolls the page.
     if (e.pointerType !== "mouse" && !e.target.closest(".rk-grip")) { setPreview(stage, li.dataset.name); return; }
     e.preventDefault();
     startDrag(stage, li, e);

@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 
 import { cx } from "@/components/system/ui";
 
-/** A pressable chip in the rail. `count` is how many listings it would give; at 0 the chip goes dashed but stays pressable. */
 export function FinderChip({
   on,
   count,

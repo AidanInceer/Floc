@@ -1,4 +1,3 @@
-// One clock drives every variant: each frame is a pure function of t, so seek(t) on all keeps them in step.
 const $ = (id) => document.getElementById(id);
 const q = new URLSearchParams(location.search);
 const state = { posts: [], post: q.get("post"), t: 2, playing: false, speed: 1, size: 280, frames: new Map(), durations: new Map() };
@@ -6,7 +5,6 @@ const state = { posts: [], post: q.get("post"), t: 2, playing: false, speed: 1, 
 const fmt = (t) => `${Math.floor(t / 60)}:${(t % 60).toFixed(1).padStart(4, "0")}`;
 const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 const STATUS = { exploring: "Exploring", chosen: "Chosen", parked: "Parked" };
-// Why: sections are CSS order in one flex box; moving an iframe in the DOM would reload it and drop the clock.
 const SECTION = { chosen: 0, exploring: 2, parked: 4 };
 const current = () => state.posts.find((p) => p.post === state.post);
 const longest = () => Math.max(1, ...state.durations.values());

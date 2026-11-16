@@ -1,14 +1,3 @@
-/**
- * The itinerary aggregate — every read and write of `day` and `day_event`
- * (ticket 108). Route and Days are two views of the same rows, one aggregate.
- *
- * Soft-delete (rule 8) filtered here only, not in `app/`; exceptions:
- * `ensureDays` and `setTripWindow`, each noted where they are.
- * Day-first (rule 3): no stored stop, no `order_index` on a day — a "move"
- * is a permutation of day *contents* between date rows, not a drag of dates.
- * Expenses (`expense.day_id`) and comment threads (on `day_event`) deliberately
- * don't travel with a day when it moves. Last-write-wins (rule 7): no locking.
- */
 import "server-only";
 
 import { and, asc, eq, inArray, isNull, not, sql } from "drizzle-orm";
@@ -55,16 +44,10 @@ export async function listDays(tripId: number): Promise<ItineraryDay[]> {
   return bounded(rows, "days", `trip ${tripId}`);
 }
 
-/** Just the ids, in date order. */
 export async function listDayIds(tripId: number): Promise<number[]> {
   return (await listDays(tripId)).map((d) => d.id);
 }
 
-/**
- * Every live day with its event count (ticket 140). Dates tab loads it once and
- * does the arithmetic client-side (`@floc/core/trip/trip-window`) rather than a round
- * trip per drag.
- */
 export async function listDayLoads(tripId: number): Promise<DayLoad[]> {
   const rows = await db
     .select({
@@ -84,15 +67,6 @@ export async function listDayLoads(tripId: number): Promise<DayLoad[]> {
   return bounded(rows, "days", `trip ${tripId}`);
 }
 
-/**
- * Makes the itinerary match the trip's window (ticket 140): a day per date in
- * the window, nothing outside it. An empty window removes every day ("Reset
- * dates") — callers confirm with the user first, per rule 7.
- *
- * Surplus days and their events are soft-deleted (rule 8); a date that comes
- * back later is revived blank by `ensureDays`. Expenses and files are detached
- * from the removed days, never removed with them.
- */
 export async function setTripWindow(
   tripId: number,
   start: string | null,
@@ -134,7 +108,6 @@ export async function setTripWindow(
         .returning({ id: dayEvent.id })
         .all();
       await tx.update(day).set(gone).where(inArray(day.id, ids));
-      // Money and files stay; they only lose the day they were filed under.
       await tx.update(expense).set({ dayId: null }).where(inArray(expense.dayId, ids));
       await tx.update(document).set({ dayId: null }).where(inArray(document.dayId, ids));
       if (events.length) {
@@ -159,10 +132,6 @@ export async function setTripWindow(
   refresh({ kind: "tripWindow", tripId });
 }
 
-/* ---------------------------------------------- the reads the tabs render */
-// Three separate reads, not one loadDaysTab() — Days, Route, Money and the
-// invite teaser each want a different slice (ticket 118).
-
 export type DayWithEvents = {
   id: number;
   date: string;
@@ -185,11 +154,6 @@ export type DayEventRow = {
   placeName: string | null;
 };
 
-/**
- * The whole itinerary, days in date order with events attached. The events
- * query joins through `day` to scope by trip — it used to filter in JS after
- * selecting every `day_event` row, which got slower with every trip added.
- */
 export async function listDaysWithEvents(tripId: number): Promise<DayWithEvents[]> {
   const [days, events] = await Promise.all([
     db
@@ -235,7 +199,6 @@ export async function listDaysWithEvents(tripId: number): Promise<DayWithEvents[
 
   return bounded(days, "days", `trip ${tripId}`).map((d) => ({
     ...d,
-    // order_index only breaks ties among untimed events — see @floc/core/itinerary/event-order.
     events: orderEvents(events.filter((e) => e.dayId === d.id)),
   }));
 }
@@ -250,7 +213,6 @@ export type RouteDay = {
   countryCode: string | null;
 };
 
-/** Days with where they're slept, in date order (rule 3: a stop is never stored). */
 export async function listRouteDays(tripId: number): Promise<RouteDay[]> {
   const rows = await db
     .select({
@@ -271,11 +233,6 @@ export async function listRouteDays(tripId: number): Promise<RouteDay[]> {
   return bounded(rows, "days", `trip ${tripId}`);
 }
 
-/**
- * The places this trip's days already point at (ticket 141) — lets a Nominatim
- * outage's typed-name places (no provider id for `upsertPlace` to dedupe on)
- * get reused instead of minting a duplicate "Barcelona" row.
- */
 export async function listOvernightPlaces(
   tripId: number,
 ): Promise<{ id: number; name: string }[]> {
@@ -291,11 +248,6 @@ export async function listOvernightPlaces(
 
 export type DayTransport = { mode: TransportType; time: string | null; endTime: string | null };
 
-/**
- * Each day's first transport event, by day id (ticket 78): its mode, and its start and end for the Overview map's tags.
- * No route to store a mode on, so it's read off day events; first event of the
- * day wins (a taxi-then-ferry day reads as one leg, started by the earliest).
- */
 export async function transportByDay(tripId: number): Promise<Map<number, DayTransport>> {
   const rows = await db
     .select({ dayId: dayEvent.dayId, transportType: dayEvent.transportType, time: dayEvent.time, endTime: dayEvent.endTime })
@@ -320,11 +272,6 @@ export async function transportByDay(tripId: number): Promise<Map<number, DayTra
   return byDay;
 }
 
-/**
- * Where each of these trips *is*, for the Place sort on `/trips` (ticket 70).
- * No destination column (rule 3), so it's the earliest day with an overnight
- * place — one query for the whole list, not one per card.
- */
 export async function firstOvernightPlaceByTrip(
   tripIds: number[],
 ): Promise<Map<number, string>> {
@@ -346,16 +293,10 @@ export async function firstOvernightPlaceByTrip(
     .limit(LIMITS.tripsPerUser * LIMITS.days)
     .all();
 
-  // Ordered by date, so the first row seen per trip is its earliest.
   for (const r of rows) if (!out.has(r.tripId)) out.set(r.tripId, r.placeName);
   return out;
 }
 
-/**
- * Gives the trip a live day for each of `dates`. Reaches past `deletedAt` (rule 8
- * exception): a removed day still holds the (trip, date) unique index, so it is
- * brought back blank — its old events and overnight stay gone.
- */
 export async function ensureDays(
   tripId: number,
   dates: string[],
@@ -390,11 +331,6 @@ export async function ensureDays(
   }
 }
 
-/**
- * Re-points a known set of the trip's days at a place (or at nothing).
- * Filters `deletedAt` (ticket 115, rule 8) — without it, a stale dayId from a
- * page rendered before a delete would resurrect the day as a half-state.
- */
 export async function setOvernightPlaceOn(
   tripId: number,
   dayIds: number[],
@@ -409,7 +345,6 @@ export async function setOvernightPlaceOn(
     );
 }
 
-/** Its events go with it, hidden by the day's own filter — not deleted themselves. */
 export async function softDeleteDay(dayId: number, by: string): Promise<void> {
   await db.transaction(async (tx) => {
     const gone = await tx
@@ -430,11 +365,6 @@ export async function softDeleteDay(dayId: number, by: string): Promise<void> {
   });
 }
 
-/**
- * A day's events, ordered (`@floc/core/itinerary/event-order`). Joins through `day` so a
- * foreign `dayId` reads as an empty day rather than another group's itinerary
- * (ticket 104) — every reorder derives its write ids from this scoped read.
- */
 export async function listEventSlots(tripId: number, dayId: number) {
   const rows = await db
     .select({
@@ -459,7 +389,6 @@ export async function listEventSlots(tripId: number, dayId: number) {
   return orderEvents(bounded(rows, "eventsPerDay", `day ${dayId}`));
 }
 
-/** The next `order_index` for this day. */
 async function liveDayDates(tripId: number): Promise<string[]> {
   const rows = await db.select({ date: day.date }).from(day).where(and(eq(day.tripId, tripId), isNull(day.deletedAt)));
   return rows.map((r) => r.date);
@@ -484,12 +413,6 @@ export type EventFields = {
   note?: string | null;
 };
 
-/**
- * Reconciles the three time fields so they can't contradict each other. All-day
- * wins outright (a leftover start is stale, not a preference); an end not
- * strictly after the start is dropped, since `HH:MM` can't say "next morning"
- * (rule 10) — an event past midnight has no representation here.
- */
 function timing(input: Pick<EventFields, "time" | "endTime" | "allDay">) {
   if (input.allDay) return { time: null, endTime: null, allDay: true };
   const time = input.time || null;
@@ -512,7 +435,6 @@ function eventValues(input: EventFields) {
   };
 }
 
-/** Returns the new event's id, for a caller that files something on it at once (#559). */
 export async function insertEvent(dayId: number, input: EventFields, countSoFar?: number): Promise<number> {
   const count = countSoFar ?? (await eventCount(dayId));
   assertRoom("eventsPerDay", count);
@@ -524,7 +446,6 @@ export async function insertEvent(dayId: number, input: EventFields, countSoFar?
   return row.id;
 }
 
-// Filters deletedAt so a stale id cannot edit a deleted event (ticket 115).
 export async function updateEventFields(
   eventId: number,
   input: EventFields,
@@ -535,7 +456,6 @@ export async function updateEventFields(
     .where(and(eq(dayEvent.id, eventId), isNull(dayEvent.deletedAt)));
 }
 
-// Filtered so a second delete is a no-op, not a re-stamp of deleted_at.
 export async function softDeleteEvent(eventId: number): Promise<void> {
   await db
     .update(dayEvent)
@@ -552,8 +472,6 @@ export async function applyEventSlots(
     orderIndex: number;
   }[],
 ): Promise<void> {
-  // Issued together, not awaited one at a time (ticket 114) — one write per
-  // event id, no id twice, so nothing here can race anything else here.
   await Promise.all(
     writes.map((w) =>
       db
@@ -570,12 +488,6 @@ export async function applyEventSlots(
   );
 }
 
-/**
- * Drops an event at an exact time on an exact day — a calendar drag (ticket
- * 103), distinct from `applyEventSlots`'s list-position swap: the grid's whole
- * point is that the cursor's time becomes the event's time. `order_index` is
- * left alone — it only broke ties among the untimed.
- */
 export async function rescheduleEvent(
   eventId: number,
   toDayId: number,
@@ -592,8 +504,6 @@ export async function rescheduleEvent(
     .where(and(eq(dayEvent.id, eventId), isNull(dayEvent.deletedAt)));
 }
 
-// Caller checks both days belong to the trip.
-/** Why one transaction: a half-done move leaves the event on its new day with both days' order broken. */
 export async function moveEventToDay(
   eventId: number,
   toDayId: number,
@@ -616,8 +526,6 @@ export async function moveEventToDay(
 }
 
 export async function rebaseEventOrder(ids: number[]): Promise<void> {
-  // One statement per id, all in flight — distinct rows, no ordering between
-  // them (ticket 114).
   await Promise.all(
     ids.map((id, i) =>
       db
@@ -628,14 +536,6 @@ export async function rebaseEventOrder(ids: number[]): Promise<void> {
   );
 }
 
-/**
- * Appends `count` days after `afterDate`, moving the trip's end date out with
- * them (ticket 140) — a day past `end_date` is one the Dates tab would next
- * offer to delete, so the two are one write, not two.
- *
- * Only outwards, and only for a trip that already has a window: an undated
- * trip is normal (rule 9) and appending a day doesn't settle it.
- */
 export async function extendTripDays(
   target: { id: number; startDate: string | null; endDate: string | null },
   afterDate: string,

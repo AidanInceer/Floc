@@ -27,7 +27,6 @@ const found = files.filter((file) => {
   }
 });
 
-// Why gitleaks only at commit: it is optional, and it is the only scan that sees a secret while it is still free to undo.
 const gitleaks = staged && spawnSync("gitleaks", ["version"], { shell: true, stdio: "ignore" }).status === 0
   ? spawnSync("gitleaks", ["protect", "--staged", "--no-banner", "--redact"], { shell: true, stdio: "inherit" }).status
   : 0;

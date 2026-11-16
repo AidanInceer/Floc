@@ -1,7 +1,3 @@
-/**
- * Feedback to Floc from the phone (#271). Why the words are held here: a failed send must keep what was typed,
- * so only `sent` clears the box.
- */
 import { FEEDBACK_PROBLEMS, FEEDBACK_SENT, type FeedbackResult } from "@floc/core/feedback/feedback";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { useMutation } from "@tanstack/react-query";

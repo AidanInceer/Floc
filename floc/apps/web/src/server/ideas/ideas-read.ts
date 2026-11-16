@@ -1,4 +1,3 @@
-/** Reading one trip's ideas with their tally — the overview's first panel. */
 import "server-only";
 
 import { and, desc, eq, isNull } from "drizzle-orm";

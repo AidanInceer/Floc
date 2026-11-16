@@ -11,7 +11,6 @@ import { recordEvent } from "./analytics";
 
 const MAX_BYTES = 1_000;
 
-// Why always 204 (#368): a beacon never reads its answer, and a different one would tell a script what the visitor chose.
 export async function receiveEvent(request: Request): Promise<Response> {
   const done = new Response(null, { status: 204 });
   const consent = readConsent(cookieValue(request.headers.get("cookie"), CONSENT_COOKIE), today());

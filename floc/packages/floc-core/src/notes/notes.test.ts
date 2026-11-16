@@ -11,11 +11,6 @@ import {
   type NoteRow,
 } from "./notes";
 
-/**
- * The old stamp was day-granular, so a thread that moved three times on
- * Tuesday read as three identical "12 Sep"s (v0.2 ticket 06). The boundaries
- * are what actually matter here — each one is a different sentence.
- */
 describe("commentTime", () => {
   const now = new Date("2026-07-27T14:00:00");
   const ago = (mins: number) => new Date(now.getTime() - mins * 60000);
@@ -39,13 +34,10 @@ describe("commentTime", () => {
   });
 
   it("keeps a future stamp from reading as a huge age", () => {
-    // Clock skew between the server and a comment's own timestamp shouldn't
-    // produce "-3m ago".
     expect(commentTime(new Date(now.getTime() + 60000), now)).toBe("just now");
   });
 });
 
-/** One heart is the only reaction a comment shows (event comments D). */
 describe("likes", () => {
   it("is the heart count and whether it is yours", () => {
     const reactions = emptyReactions();

@@ -1,9 +1,3 @@
-/**
- * Reads that changed shape in ticket 114, checked against a seeded multi-trip
- * db, not by inspection — the fix moves a filter from JS into `where` and the
- * point is the answer stays identical. `theirs` in the seed is what lets an
- * outsider show up if the new `inArray` is wrong.
- */
 import { and, eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -25,8 +19,6 @@ beforeEach(async () => {
   world = await seedScenario();
 });
 
-/** Both seeded trips are undated; a co-trip friendship needs an ended one. */
-
 async function endTrip(tripId: number, endDate = "2020-01-01") {
   await db
     .update(schema.trip)
@@ -39,7 +31,7 @@ const friendships = () => db.select().from(schema.friendship).all();
 describe("syncCompletedCoTripFriendships", () => {
   it("friends the people you actually travelled with, and nobody else", async () => {
     await endTrip(world.ours.id);
-    await endTrip(world.theirs.id); // not the admin's trip
+    await endTrip(world.theirs.id);
 
     await syncCompletedCoTripFriendships(world.admin);
 
@@ -72,7 +64,6 @@ describe("syncCompletedCoTripFriendships", () => {
     await syncCompletedCoTripFriendships(world.admin);
     expect(await friendships()).toHaveLength(1);
 
-    // Re-run must not insert a second row nor quietly undo the removal.
     await db
       .update(schema.friendship)
       .set({ deletedAt: new Date() })
@@ -129,12 +120,7 @@ describe("sharedTripIds", () => {
   });
 });
 
-/**
- * Friends-of-friends discovery (ticket 145). `stranger` is friends with Ada,
- * in none of Mo's rings — a profile Mo can't open directly.
- */
 describe("friends of friends", () => {
-  /** Ada's friend, and nobody else's. */
   let stranger: string;
 
   async function befriend(
@@ -164,7 +150,6 @@ describe("friends of friends", () => {
     (await requireProfileView(world.admin, viewerId)).friends;
 
   it("keeps the list inside the ring the owner set", async () => {
-    // Mo shares a trip with Ada but isn't a friend; default ring is one tighter.
     expect(await listFor(world.member)).toBeNull();
 
     await befriend(world.admin, world.member);
@@ -182,7 +167,6 @@ describe("friends of friends", () => {
   it("leaves out the viewer, and anyone who went private", async () => {
     await befriend(world.admin, world.member);
 
-    // Mo shouldn't be offered themselves.
     expect((await listFor(world.member))?.map((f) => f.id)).toEqual([stranger]);
 
     await db
@@ -196,7 +180,6 @@ describe("friends of friends", () => {
     await befriend(world.member, stranger, "pending");
 
     const rows = await listFor(world.member);
-    // Mo asked first, so this is Mo's own request still out.
     expect(rows?.[0]?.state).toBe(
       world.member < stranger ? "outgoing" : "incoming",
     );
@@ -206,7 +189,6 @@ describe("friends of friends", () => {
     await befriend(world.admin, world.member);
     expect(await friendOfFriend(world.member, world.admin, stranger)).toBe(true);
 
-    // An unanswered request isn't a link in the chain.
     await befriend(world.admin, stranger, "pending");
     expect(await friendOfFriend(world.member, world.admin, stranger)).toBe(false);
   });

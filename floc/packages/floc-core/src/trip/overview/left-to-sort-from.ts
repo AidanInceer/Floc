@@ -10,14 +10,11 @@ export type LeftToSortSource = {
   members: { userId: string; name: string }[];
   markedUserIds: string[];
   ideas: { mine: boolean }[];
-  /** The group's payments as Money shows them to the viewer (#463). */
   settle: readonly SettleRow[];
   shared: { label: string; claimed: boolean }[];
-  /** The Overview's legs as `tripLegs` gives them: a stay file or null, and how you arrive (null on the first). */
   legs: { no: number; placeName: string; arrive: IsoDate; leave: IsoDate; nights: number; stay: unknown; mode: unknown }[];
 };
 
-/** The facts both surfaces hold, turned into `leftToSort`'s input, so web and phone list the same gaps (#460). */
 export function leftToSortFrom(source: LeftToSortSource): LeftToSort {
   const nameOf = new Map(source.members.map((m) => [m.userId, m.name]));
   const owe = source.settle.filter((r) => r.payer === source.viewerId);
@@ -30,7 +27,6 @@ export function leftToSortFrom(source: LeftToSortSource): LeftToSort {
     markedUserIds: source.markedUserIds,
     ideas: source.ideas,
     owe: owe.map((r) => ({ to: nameOf.get(r.payee) ?? "a former member", amountMinor: r.amountMinor, currency: r.currency })),
-    // Why: nobody can bring a speaker to a trip that has ended (rule 4, #572).
     shared: over ? [] : source.shared,
     legs: source.legs.map((l, i) => ({ ...l, hasStay: l.stay !== null, hasTravel: i === 0 || l.mode !== null })),
   });

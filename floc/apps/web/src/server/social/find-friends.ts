@@ -1,9 +1,3 @@
-/**
- * Who a person may find by name and ask to be friends (#360): anyone already
- * inside one of their rings, and a friend's friend whose profile is public —
- * reached only through a friend who shows them that list. Nobody else, so a
- * name search is never a directory of every account.
- */
 import "server-only";
 
 import { and, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
@@ -132,7 +126,6 @@ export async function findByName(viewerId: string, name: string): Promise<FoundP
   return rows.map((r) => ({ ...r, state: states.get(r.id) ?? "none" }));
 }
 
-/** The one check every "ask to be friends" by id goes through, web and phone alike. */
 export async function mayAskToBeFriends(viewerId: string, targetId: string): Promise<boolean> {
   if (!targetId || targetId === viewerId) return false;
 

@@ -1,8 +1,3 @@
-/**
- * One Settings section as a row that opens in place (F3c). A native
- * `<details>`, so rows open and close with no JavaScript and several can be
- * open at once. Closed, the row shows its answer; open, it shows its controls.
- */
 import type { ReactNode } from "react";
 
 import { ChevronIcon } from "@/components/system/icons";
@@ -26,7 +21,6 @@ export function SettingsRow({
   summary?: string;
   open?: boolean;
   danger?: boolean;
-  /** Shown on the closed row only, beside the chevron. */
   aside?: ReactNode;
   children: ReactNode;
 }) {

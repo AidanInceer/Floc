@@ -1,9 +1,3 @@
-/**
- * `/` — marketing landing (ticket 05, 19; reskinned 192; front door, ADR-019). Public, static —
- * illustrative sample UI, not a database read. White ground + domain pastels
- * (ticket 187): each stop wears the pastel its trip tab owns, so the marketing
- * page and the product teach one colour language.
- */
 import { headers } from "next/headers";
 import type { Metadata } from "next";
 import { getSession } from "@/server/access";
@@ -51,7 +45,6 @@ export const metadata: Metadata = {
   },
 };
 
-// The Explore listings the Borrow band opens on, in this order; every other listing waits behind them.
 const BORROW_IDS = [
   "japan-golden-route",
   "hanoi-to-bangkok",
@@ -61,16 +54,10 @@ const BORROW_IDS = [
   "new-zealand-south-island",
 ];
 
-/**
- * Where every call to action on the page lands. Signed out, starting a trip
- * detours through sign-up and comes back. Explore is public, so "see example
- * trips" goes straight there.
- */
 function destinations(signedIn: boolean) {
   return signedIn ? { start: "/trips", inspire: "/explore" } : { start: "/signup", inspire: "/explore" };
 }
 
-/** Stripe owns the figure, so an unreachable price sells Pro without quoting one rather than breaking. */
 function monthlyPrice(prices: ProPrice[]): string | null {
   const monthly = prices.find((p) => p.interval === "monthly");
   return monthly ? formatMoney(monthly.amountMinor, monthly.currency) : null;
@@ -80,8 +67,6 @@ export default async function LandingPage() {
   const session = await getSession();
   const signedIn = Boolean(session?.user);
   const rates = await listingRates(await viewerCurrency(session?.user?.id ?? null, await headers()));
-  // Pro is sold after the proof (ADR-019), in its own band and the FAQ. With Pro
-  // switched off neither shows, so Stripe's prices are not worth fetching.
   const sellingPro = !allFeaturesFree();
   const prices = sellingPro ? await proPrices() : [];
   const monthly = monthlyPrice(prices);
@@ -89,10 +74,7 @@ export default async function LandingPage() {
 
   return (
     <div>
-      {/* Up behind the top bar's beads (-mt-15 is the bar's height), so the bar has no band of its own. */}
       <div className="-mt-15 bg-sheet pb-4 pt-21 sm:pt-25 max-[900px]:pb-8">
-        {/* ── hero ─────────────────────────────────────────────────────── */}
-        {/* Why: at 900px and narrower the section itself is the ticket: head, trip, stub (hero-ticket.css). */}
         <section className="hero-ticket mx-auto max-w-[60rem] px-4 text-center sm:px-6 sm:pt-16">
           <div className="hero-ticket-head">
             <h1 className="font-display text-[clamp(2.3rem,7.4vw,6rem)] font-semibold leading-none tracking-[-0.04em]">
@@ -116,7 +98,6 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* Illustrative sample, not a live query — one Sicily trip settling. A phone plays the ticket above instead. */}
         <div className="mt-16 max-[900px]:hidden">
           <HeroDeck />
         </div>
@@ -124,22 +105,18 @@ export default async function LandingPage() {
       <Shore className="-mt-px fill-sheet" />
 
       <div className="mx-auto w-full max-w-[84rem] px-4 sm:px-6">
-        {/* ── feature summary ────────────────────────────────────────── */}
         <section className="mt-16">
           <FeatureTour slides={tourSlides(sellingPro).map((s) => ({ ...s, shot: shotFor(s.key) }))} />
         </section>
 
-        {/* ── explore ────────────────────────────────────────────────── */}
         <section className="mt-24">
           <BorrowTrip cards={borrowCards(PRESET_TRIPS, leadFirst(PRESET_TRIPS, BORROW_IDS), rates)} signedIn={signedIn} explore={inspire} />
         </section>
 
       </div>
 
-      {/* ── pro ────────────────────────────────────────────────────────── */}
       {sellingPro && <ProBand prices={prices} signedIn={signedIn} />}
 
-      {/* Why: the Pro slab's lower slant is painted in this white, so with Pro off the FAQ brings its own gap and hairline. */}
       <section className={cx("bg-sheet", !sellingPro && "mt-24 border-t border-rule")}>
         <LandingFaq items={landingFaq({ sellingPro, monthly })} />
       </section>

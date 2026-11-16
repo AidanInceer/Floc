@@ -1,17 +1,3 @@
-/**
- * Who can see your profile (ticket 46, on the phone).
- *
- * THE OVERRIDE SITS ABOVE THE PARTS, because when it is on they do not apply —
- * and the parts go quiet rather than disappearing, so nobody has to remember
- * what they had set while it was on.
- *
- * TWO TICK COLUMNS, NAMED ONCE. You always see your own profile, so there is
- * no "me" column; the rings nest, so ticking travelled with ticks friends too
- * (`tickRing` in @floc/core, the same rule the web uses).
- *
- * SAVED ON THE MOVE. No Save button: every control writes the whole privacy
- * record, so the screen and the row can never disagree about half of it.
- */
 import { ringTicks, tickRing, type RingColumn } from "@floc/core/people/visibility";
 import { Pressable, StyleSheet, View } from "react-native";
 

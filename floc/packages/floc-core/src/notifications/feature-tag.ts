@@ -18,7 +18,6 @@ const SECTION: Partial<Record<ActivityKind, "money" | "dates" | "days" | "packin
   booking_waiting: "files",
 };
 
-/** The trip section a notice is about, worded and coloured as its tab (ADR-034); null when it is about no one section. */
 export function featureTag(kind: ActivityKind): FeatureTag | null {
   const section = SECTION[kind];
   if (!section) return null;

@@ -1,4 +1,3 @@
-// Round 4, on I: I1 the horizon, I2 the vote, I3 the spin.
 import { ico, group, face, head, scene, reduced, clamp, ease } from "./kit.js";
 import { LEDE, CTA, ok, token, HOME, TRIPS, RAD, arc } from "./round3.js";
 
@@ -12,7 +11,6 @@ export const facing = (t) => ({ lng: t.lng - 18, lat: clamp(t.lat * 0.75 + 8, -5
 const apart = (a, b) => Math.hypot(shortest(a.lng - b.lng) * Math.cos(((a.lat + b.lat) / 2) * RAD), a.lat - b.lat);
 const tone = (t) => `<span class="g-tone c-${t.tone}">${t.country}</span>`;
 
-/** Draws the paper globe on a canvas. `fit` places the sphere, so it can be larger than the canvas. */
 export function painter(canvas, fit = (w, h) => ({ R: Math.min(w, h) / 2 - 2, cx: w / 2, cy: h / 2 })) {
   const ctx = canvas.getContext("2d");
   const g = { view: { lng: 20, lat: 30 }, R: 0, cx: 0, cy: 0, ctx };
@@ -37,7 +35,6 @@ export function painter(canvas, fit = (w, h) => ({ R: Math.min(w, h) / 2 - 2, cx
     ctx.beginPath(); ctx.arc(g.cx, g.cy, g.R, 0, Math.PI * 2); ctx.fillStyle = token("--pastel-blue"); ctx.fill();
     if (land) {
       ctx.fillStyle = token("--sheet"); ctx.strokeStyle = edge; ctx.lineWidth = 0.8;
-      // Why: land that runs behind the globe is cut where it crosses the edge and closed along the edge itself; joining the two crossing points with a straight line drew a flat side.
       const [f0, l0] = [g.view.lat * RAD, g.view.lng * RAD];
       const [s0, c0] = [Math.sin(f0), Math.cos(f0)];
       for (const ring of land) {
@@ -89,7 +86,6 @@ export function painter(canvas, fit = (w, h) => ({ R: Math.min(w, h) / 2 - 2, cx
   return g;
 }
 
-/** Turns the globe from where it is to a view, on the scene's one clock. `u` is how far it has got. */
 export function mover(g) {
   let from = { ...g.view }, by = { lng: 0, lat: 0 }, t0 = 0, dur = 0, curve = ease;
   const m = {
@@ -110,7 +106,6 @@ export function mover(g) {
   return m;
 }
 
-/** Drag to turn. Returns a getter for "is the pointer down". */
 export function draggable(canvas, g, { start, end, range = [-70, 70] } = {}) {
   let drag = null;
   canvas.addEventListener("pointerdown", (e) => { start?.(); drag = { x: e.clientX, y: e.clientY, ...g.view }; canvas.setPointerCapture(e.pointerId); });
@@ -125,7 +120,6 @@ export function draggable(canvas, g, { start, end, range = [-70, 70] } = {}) {
   return () => Boolean(drag);
 }
 
-/** The plane flies the whole route at the front of the line and lands on the pin. */
 export function plane(g, to, shown, landing) {
   const path = arc(HOME, to);
   const i = Math.max(1, Math.round((path.length - 1) * shown));
@@ -143,14 +137,10 @@ export function plane(g, to, shown, landing) {
   c.restore();
 }
 
-// ── I1: the horizon ────────────────────────────────────────────────────────
-// Why: the trip sits this far above the middle of the sphere, so it lands on the part of the dome that shows.
 const RISE = 40;
-// The plane the live hero flies behind its cards (landing/hero/flight.tsx), nose to the right.
 const PLANE = new Path2D("M23 12c0-1-1-1.4-2-1.4h-6L9.5 3h-2l3 7.6H5L3.2 8H1.6l1 4-1 4h1.6L5 13.4h5.5l-3 7.6h2l5.5-7.6h6c1 0 2-.4 2-1.4Z");
 const BELOW = new Set(["Morocco", "Vietnam"]);
 
-/** `opts` lets another band reuse the scene: `head` and `after` are markup, `extra(trip)` adds to the card, `onShow(trip, root)` hears each change. The spin also takes `main`: a button that takes the centre, with "Start from" stepping to its right. */
 export function renderHorizon(stage, opts = {}) {
   stage.innerHTML = `<div class="hero hero-i1">
     ${opts.head ?? head(`<span class="hl">Trip planning,</span> <span class="hl">sorted.</span>`)}
@@ -192,7 +182,6 @@ export function renderHorizon(stage, opts = {}) {
     opts.onShow?.(t, root);
     place();
   }
-  // The card steps to one side when another trip's pin would sit under it once the dome has turned.
   function place() {
     if (innerWidth <= 700) { card.style.translate = ""; return; }
     const [w, h, keep] = [canvas.clientWidth, canvas.clientHeight, g.view];
@@ -212,14 +201,12 @@ export function renderHorizon(stage, opts = {}) {
     show(b.dataset.go ? at + Number(b.dataset.go) : Number(b.dataset.i));
   });
 
-  // One clock: the dome turns until the trip stands on top, the route from London comes over the edge, then the tour moves on.
   s.loop(() => {
     const now = performance.now();
     if (!down()) m.step(now);
     if (m.u < 1) rested = now;
     if (auto && now - rested > 3400) { if (at === TRIPS.length - 1) auto = false; show(at + 1); }
     g.base();
-    // The flight starts as the dome settles, and takes longer the further the trip is.
     if (!takeoff && m.u > 0.6) takeoff = now;
     const u = reduced ? 1 : takeoff ? clamp((now - takeoff) / (880 + 11.2 * apart(HOME, TRIPS[at]))) : 0;
     const shown = ease(u);
@@ -242,7 +229,6 @@ export function renderHorizon(stage, opts = {}) {
   return { stop() { s.clear(); } };
 }
 
-// ── I2: the vote ───────────────────────────────────────────────────────────
 const PICKS = [0, 4, 5].map((i) => TRIPS[i]);
 const VOTES = [0, 1, 2, 0, 2, 1];
 const REST = { lng: 135, lat: 5 };
@@ -340,7 +326,6 @@ export function renderVote(stage) {
   return { stop() { s.clear(); } };
 }
 
-// ── I3: the spin ───────────────────────────────────────────────────────────
 export function renderSpin(stage, opts = {}) {
   const chip = (t, i) => `<li><button type="button" class="spin-chip" data-i="${i}">${tone(t)}<b>${t.title}</b><span class="nums">${t.nights} nights · from ${t.from}</span></button></li>`;
   stage.innerHTML = `<div class="hero hero-i3">
@@ -409,7 +394,6 @@ export function renderSpin(stage, opts = {}) {
     show(pick, 2800, 2, outCubic);
   });
 
-  // One clock: a flick coasts and slows, the nearest trip takes it; the route from London draws once the globe is still.
   s.loop(() => {
     const now = performance.now();
     const dt = Math.min(50, now - then);

@@ -15,15 +15,12 @@ import { useAtlasGlobe } from "./use-atlas-globe";
 import "./explore-globe.css";
 import { countWord } from "@floc/core/text/count-word";
 
-/** The trip whose route the globe draws; `n` goes up on each pick, so picking it again draws it again. */
 export type AtlasRoute = { id: string; n: number };
 
-// Every plane on the globe leaves from here, as on the landing page's globe.
 const LONDON = { lat: 51.507, lng: -0.128 };
 const PLACES = PRESET_TRIPS.map(firstBase);
 const STEPS = pinSteps(PLACES);
 
-/** Why: no tile layer and no map provider. The land is the outline file in `public/`, so the map costs nothing to serve. */
 export function ExploreGlobe({
   picked,
   route,
@@ -33,7 +30,6 @@ export function ExploreGlobe({
 }: {
   picked: string;
   route: AtlasRoute | null;
-  /** The postcard over the globe; the dome and a route stay clear of it. */
   card: RefObject<HTMLElement | null>;
   onPick: (presetId: string) => void;
   onWorld: () => void;

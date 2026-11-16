@@ -1,4 +1,3 @@
-// Why: the web page's own steps (`overview/page.tsx`) from the phone's queries, so both maps draw the same route.
 import type { ItineraryDay, TripPlace } from "@floc/api/port";
 import { overviewRoute, type HopTimes, type OverviewRoute } from "@floc/core/trip/overview/route";
 import type { TransportType } from "@floc/core/vocabulary";

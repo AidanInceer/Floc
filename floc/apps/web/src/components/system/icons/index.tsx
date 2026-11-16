@@ -1,7 +1,3 @@
-/**
- * Why: cross, plus, minus and chevron share their paths with the phone's `glyphs.tsx`, so one mark
- * means one thing on both surfaces. A fold opens with this chevron, pointing down closed.
- */
 import type { ReactNode } from "react";
 
 import { cx } from "@/components/system/ui";
@@ -103,7 +99,6 @@ export function ArrowUpIcon(props: IconProps) {
   );
 }
 
-/** Goes somewhere: a row that opens another page, as against a chevron that opens or closes in place. */
 export function ArrowRightIcon(props: IconProps) {
   return (
     <LineIcon {...props}>
@@ -128,7 +123,6 @@ export function UploadIcon(props: IconProps) {
   );
 }
 
-/** Share: three nodes on two lines, the same drawing as the phone's `ShareGlyph`. */
 export function ShareIcon(props: IconProps) {
   return (
     <LineIcon {...props}>
@@ -140,7 +134,6 @@ export function ShareIcon(props: IconProps) {
   );
 }
 
-/** Leaves Floc for another site. */
 export function OutIcon(props: IconProps) {
   return (
     <LineIcon {...props}>
@@ -165,7 +158,6 @@ const CHEVRON = {
   right: "M5.4 3.4 9 7l-3.6 3.6",
 } as const;
 
-/** A dashed ring round a dot: a place not chosen yet (an empty map's pill). */
 export function TargetIcon(props: IconProps) {
   return (
     <LineIcon {...props}>

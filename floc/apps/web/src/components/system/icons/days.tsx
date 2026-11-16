@@ -1,8 +1,3 @@
-/**
- * The Days page's line art: where you sleep, the folded hours, and one glyph
- * per kind of event. Why: the flight path is the app's `flights` category
- * mark, an aeroplane, so a flight reads the same on Days and Money.
- */
 import type { DayEventType, TransportType } from "@/db/schema";
 import { LineIcon } from "@/components/system/icons";
 

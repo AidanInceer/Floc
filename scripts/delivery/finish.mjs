@@ -10,7 +10,6 @@ import { listWorktrees, mainCheckout, removeWorktree, TASK_BRANCH } from "../wor
 const MINUTE = 60_000;
 const DEPLOY_WITHIN = 45 * MINUTE;
 
-/** Only a worktree whose every commit landed and that holds no unsaved edit is removed. */
 export function worktreeVerdict({ dirty, contained }) {
   if (dirty) return { remove: false, reason: "worktree kept: it has unsaved edits" };
   if (!contained) return { remove: false, reason: "worktree kept: it has commits that did not land" };
@@ -58,11 +57,6 @@ function released(main, mergeSha) {
   return closedBy(git(main, "log", `${mergeSha}^1..${mergeSha}^2`, "--format=%B"));
 }
 
-/**
- * After the merge, never before: label and pop the tickets, push this task's
- * doc pages, close its worktree. For main, first wait until production serves
- * the merge, then close split parents.
- */
 export async function finish(root, { pr: number, docs = [] }) {
   const main = mainCheckout(root);
   const pr = viewPull(main, number);

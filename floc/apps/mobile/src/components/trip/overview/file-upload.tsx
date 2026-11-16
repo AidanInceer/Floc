@@ -11,7 +11,6 @@ import { UploadGlyph } from "@/components/system/glyphs";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 
-/** A borderless ghost upload button that opens the usual file sheet. A `dayId` files the booking on that stop's first day; none files it on the whole trip. */
 export function FileUpload({
   tripId,
   dayId,

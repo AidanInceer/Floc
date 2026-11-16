@@ -8,15 +8,10 @@ import { ringsIn, type Piece, type Spot } from "@/components/explore/outline/lan
 
 type Listing = { place: string; region: Region; route: { stops: readonly Spot[] } };
 
-/** The borrowed trip's countries in its region's colour, as Explore fills them; the band has only the coarse outline. */
 export function tripTint(land: readonly Piece[], { place, region, route }: Listing): TripTint {
   return { rings: ringsIn(land, [], tripCodes(place, route.stops, land)), tone: regionToneName(region) };
 }
 
-/**
- * Why: the outline loads as the band nears the screen, so a trip opened first fills its countries once the outline arrives.
- * An open trip fills at full strength from the way in on: the layer fades its tint in again on every move, which flashed a grey country on a blue sea.
- */
 export function liveTint(drawn: Tint | undefined, open: TripTint | null): Tint | undefined {
   return open ? { ...open, alpha: 1 } : drawn;
 }

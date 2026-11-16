@@ -1,4 +1,3 @@
-// Round 2 of the motion mockups: each page draws the live page it lives on, so the motion is judged where it would run. Throwaway; state lives in memory.
 import { variants } from "/_house/switcher.js";
 import { tripFrame, ico, esc, isNarrow } from "/_house/kit/trip-frame.mjs";
 
@@ -40,14 +39,9 @@ const MORE = {
 export const glyph = (name, cls = "") =>
   MORE[name] ? `<svg class="g ${cls}" viewBox="0 0 14 14" aria-hidden="true">${MORE[name]}</svg>` : ico(name, cls);
 
-/** The house's own button: 31px, rounded-sm, mono label. */
 export const button = (label, { kind = "", icon = "", attrs = "" } = {}) =>
   `<button type="button" class="b ${kind}" ${attrs}>${icon ? glyph(icon) : ""}<span>${label}</span></button>`;
 
-/**
- * Draws the trip chrome and a slim strip above it that is not part of the design.
- * Returns the page element under the chrome.
- */
 export function mount({ tab, title, extra = "" }) {
   document.body.insertAdjacentHTML(
     "afterbegin",
@@ -67,7 +61,6 @@ export function mount({ tab, title, extra = "" }) {
 
 export const say = (text) => { const el = document.getElementById("said"); if (el) el.textContent = text; };
 
-/** Registers the variants and rebuilds the page on each switch. */
 export function run(list, build) {
   variants(list.map(({ key, name }) => ({ key, name })), (key) => {
     const v = list.find((x) => x.key === key) ?? list[0];

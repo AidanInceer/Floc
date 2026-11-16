@@ -1,4 +1,3 @@
-/** "Aidan Inceer" is AI, "Aidan" is Ai, "Ada Mary Lovelace" is AM. The web and the phone draw the same. */
 export function initials(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean);
   if (words.length === 1) {

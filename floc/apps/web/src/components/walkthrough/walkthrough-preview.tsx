@@ -1,7 +1,3 @@
-/**
- * The page a first step opens, drawn small (wireframe/trip-onboarding E5c), from the trip's own
- * data: its top ideas, its dates, its group. Where the trip has nothing yet it says so in words.
- */
 import type { ComponentProps } from "react";
 
 import type { WalkthroughStepKey } from "@floc/core/trip/walkthrough";
@@ -11,15 +7,12 @@ import { AvatarRow, cx } from "@/components/system/ui";
 type Person = ComponentProps<typeof AvatarRow>["people"][number];
 
 export type PreviewData = {
-  /** The top three by votes. */
   ideas: { title: string; votes: number }[];
-  /** The trip's dates as a line, or null while unset. */
   dates: string | null;
   inviteUrl: string;
   group: Person[];
 };
 
-// A fortnight of free-day counts, as the Dates board shades them. Day numbers, never a month: an illustration, not a claim.
 const FREE = [0, 1, 1, 2, 3, 3, 3, 1, 2, 0, 1, 2, 1, 0];
 const FREE_SKIN = ["bg-sheet-2 text-ink-faint", "bg-some-free-1 text-some-free-ink", "bg-some-free-2 text-some-free-ink", "bg-some-free-3 text-some-free-ink"];
 
@@ -41,7 +34,6 @@ function IdeasPreview({ ideas }: { ideas: PreviewData["ideas"] }) {
   );
 }
 
-/** Why no URL: the link is never drawn on a page, the button copies it (as on the group panel). */
 function InvitePreview({ inviteUrl, group }: Pick<PreviewData, "inviteUrl" | "group">) {
   return (
     <div className="flex w-full flex-wrap items-center justify-between gap-3">

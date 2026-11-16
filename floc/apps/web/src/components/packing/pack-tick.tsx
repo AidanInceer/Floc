@@ -7,7 +7,6 @@ import { CheckIcon } from "@/components/system/icons";
 import { tickBoxBase, tickBoxClass } from "@/components/packing/packing-glyphs";
 import { justTurnedOn } from "@/lib/motion/just-turned-on";
 
-/** The packed tick on both packing rows. Its tick draws itself on the press that packs it (ADR-053). */
 export function PackTick({ packed, label }: { packed: boolean; label: string }) {
   const was = useRef<boolean | undefined>(undefined);
   const draw = justTurnedOn(was.current, packed);

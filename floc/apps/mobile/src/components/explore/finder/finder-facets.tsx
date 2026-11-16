@@ -119,7 +119,6 @@ export function PriceFacet({ finder, counts, shown, onChange }: Facet) {
   );
 }
 
-/** What you like: the web's one cloud of tags, the rest behind "See more". */
 export function LikeCloud({ finder, onChange }: Pick<Facet, "finder" | "onChange">) {
   const [more, setMore] = useState(false);
   const extra = more ? MORE_TAGS : MORE_TAGS.filter((t) => finder.likes.includes(t));

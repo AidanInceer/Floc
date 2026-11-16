@@ -1,7 +1,3 @@
-/**
- * Wish lists (#623, ADR-049), the web's third Lists tab: invites waiting on you, then your lists as rows.
- * New wish list makes an empty list and opens it; you ask people from there.
- */
 import { whoTone } from "@floc/core/people/who";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";

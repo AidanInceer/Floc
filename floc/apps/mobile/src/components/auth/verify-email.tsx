@@ -1,18 +1,3 @@
-/**
- * "Confirm your email" on You (#149).
- *
- * WHY IT IS SAID AT ALL. An unconfirmed address is a missing fact and a
- * status, the two things text may say. It matters: a later Google sign-in on
- * an unconfirmed address drops the password, since nothing proved who set it.
- *
- * IT ASKS BETTER AUTH, NOT THE API. Resending is an auth operation on the
- * session's own account, so it goes through the same client that signed in.
- * That keeps it off the tRPC surface, which is about trips.
- *
- * IT NEVER DRAWS WHEN THE MAIL CANNOT GO. `canConfirmEmail` is false when the
- * host has no mail provider, and a permanent nag with no way to clear it is a
- * dead control with a sentence explaining why (rule 11).
- */
 import { useState } from "react";
 import { View } from "react-native";
 
@@ -28,15 +13,12 @@ export function VerifyEmailCard({
 }: {
   email: string;
   verified: boolean;
-  /** False when the host has no mail provider. See the note above. */
   canConfirm: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
 
-  // The card owns whether it is drawn at all: You would otherwise carry two
-  // more branches for a question that is entirely this card's.
   const nothingToSay = verified || !canConfirm;
 
   async function resend() {

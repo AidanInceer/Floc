@@ -6,7 +6,6 @@ import { DEAL_MS, type DealStart, dealEase, dealFrame, dealStarts, resumeAt } fr
 
 const clamp = (x: number) => Math.min(1, Math.max(0, x));
 
-// Why: one clock writes the height, every card and the chevron straight to the DOM, so they never drift apart and React does not render 60 times a second.
 export function useDeal() {
   const drawer = useRef<HTMLDivElement>(null);
   const list = useRef<HTMLUListElement>(null);
@@ -48,7 +47,6 @@ export function useDeal() {
     cancelAnimationFrame(run.current.frame);
     box.inert = false;
     box.style.visibility = "visible";
-    // Why: the cards travel from under the strip, above this box, so it must not clip them.
     box.style.overflow = "visible";
     const cards = [...ul.children] as HTMLElement[];
     cards.forEach((li, i) => { li.style.zIndex = String(cards.length - i); });

@@ -1,4 +1,3 @@
-/** The door checks on a thread: the subject must be this trip's, and a reaction one of the three. */
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";

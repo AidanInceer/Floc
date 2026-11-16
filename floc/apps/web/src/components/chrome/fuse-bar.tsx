@@ -6,10 +6,6 @@ import { cx } from "@/components/system/ui";
 import { useBarFuse } from "@/components/chrome/use-bar-fuse";
 import "./fuse-bar.css";
 
-/**
- * The top bar's row of beads. Scrolling fuses them into one bar; without script
- * they stay three separate beads. Each direct child is one bead.
- */
 export function FuseBar({ className, children }: { className?: string; children: ReactNode }) {
   const row = useRef<HTMLDivElement>(null);
   const skin = useRef<SVGSVGElement>(null);

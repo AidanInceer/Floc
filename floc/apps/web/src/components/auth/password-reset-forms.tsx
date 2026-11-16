@@ -1,10 +1,5 @@
 "use client";
 
-/**
- * The two halves of password reset (#149): ask for a link, then set the new
- * password. Both are client components because Better Auth's browser client
- * owns the call and the session cookie it sets.
- */
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -35,8 +30,6 @@ export function RequestResetForm() {
     });
     setBusy(false);
 
-    // Success either way: saying "no such account" would let anyone test which
-    // addresses are registered.
     if (err && err.status !== 404) {
       setError("Something went wrong. Try again.");
       return;
@@ -86,7 +79,6 @@ export function NewPasswordForm() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // Better Auth bounces an expired or spent token back here with `?error=`.
   if (!token || linkError) {
     return (
       <Stack gap={3}>

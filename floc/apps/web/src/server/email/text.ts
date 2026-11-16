@@ -13,7 +13,6 @@ function details(e: OutboundEmail): (string | null)[] {
   ];
 }
 
-/** The plain-text part (#653): the same words as the HTML, links written out, for clients and readers with no HTML. */
 export function renderText(e: OutboundEmail): string {
   const letter = e.layout === "letter";
   const foot = [e.why, e.settingsUrl ? `Turn off email in Settings: ${e.settingsUrl}` : null, "Floc · floc.live"].filter(Boolean);

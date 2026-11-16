@@ -1,16 +1,8 @@
-/** The button shapes both packing rows share (tickets 219, 220); their marks come from `system/icons`. */
-
 import { pressArea } from "@/components/system/ui";
 
-// `!` throughout to beat buttonBase's pill padding — Tailwind v4 specificity is
-// stylesheet order, not class-list order (same trick as `menuItemClass`).
-// No lift, either: these re-render under the cursor the moment they're
-// clicked, and the hover transform replaying on the fresh element reads as the
-// button bouncing (ticket 219). Colour still moves.
 export const squareButton =
   `${pressArea} !size-[26px] !shrink-0 !p-0 !transition-colors hover:!translate-y-0 hover:!shadow-none`;
 
-/** The tick box, styled by whether it's ticked. A plain button, deliberately. */
 export const tickBoxClass = (packed: boolean): string =>
   packed
     ? "border-green/40 bg-green-soft text-green"
@@ -19,18 +11,11 @@ export const tickBoxClass = (packed: boolean): string =>
 export const tickBoxBase =
   `${pressArea} inline-flex size-[26px] shrink-0 items-center justify-center rounded-sm border transition-colors duration-[0.22s] ease-(--ease)`;
 
-/**
- * The select box on a row (ticket 229). A real checkbox, associated to the bulk
- * form by id rather than nesting inside it — a row already carries its own
- * forms, and HTML has no nested forms. `accent-pen` keeps it on the one blue
- * instead of the browser's.
- */
 export function SelectLineBox({
   formId,
   lineId,
   label,
 }: {
-  /** Null while the list is in its normal reading mode — no box at all. */
   formId: string | null;
   lineId: number;
   label: string;

@@ -1,6 +1,3 @@
-// Usage: pnpm explore:new <region> <id>   e.g. pnpm explore:new europe lisbon-long-weekend
-// Writes listings/<region>/<id>.ts from a template and adds it to that region's list.
-// Fill the file in, then run `pnpm --filter @floc/core test explore` — the listing tests check it.
 import fs from "node:fs";
 import path from "node:path";
 

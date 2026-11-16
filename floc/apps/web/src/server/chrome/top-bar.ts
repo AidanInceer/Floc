@@ -10,14 +10,8 @@ import { countUnread, listUnseen } from "@/server/notifications/inbox";
 import { countIncomingFriendRequests } from "@/server/social/friends";
 import { countPendingInvitesFor } from "@/server/trips/invites";
 
-/** How many unread notifications the bell lists. One value, so the layout and the account bar share one cached read. */
 export const TOP_BAR_PREVIEW = 3;
 
-/**
- * Everything the top bar and the account bar show, read once per request.
- * Why `cache`: with the `@modal` slot beside `children`, Next renders the root layout a second time as the
- * not-found fallback (its own comment in create-component-tree.js), so without this every request ran these twice.
- */
 export const topBarFor = cache(async function topBarFor(userId: string, previewLimit: number) {
   const [inviteCount, friendRequestCount, profile, notificationCount, latest, waiting] =
     await Promise.all([
@@ -33,7 +27,6 @@ export const topBarFor = cache(async function topBarFor(userId: string, previewL
 
 export type BookingsPrompt = { files: WaitingFile[]; trips: TripChoice[] };
 
-/** Why the trips are read only when a file waits: the "Which trip?" dialog is rare, and the top bar is on every page (#559). */
 async function bookingsPrompt(userId: string, waiting: WaitingBooking[]): Promise<BookingsPrompt> {
   if (waiting.length === 0) return { files: [], trips: [] };
   const [trips, reads] = await Promise.all([tripsForPlacing(userId), canUseFeature("bookings.autoFile", userId)]);

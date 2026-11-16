@@ -1,9 +1,3 @@
-/**
- * Friendship reconciliation (tickets 01/18). No cron in v1, so "co-trip
- * completes → friends" is reconciled lazily on friends-page load: cheap,
- * idempotent (`onConflictDoNothing`), exact timing doesn't matter.
- */
-
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import "server-only";
 
@@ -22,9 +16,7 @@ import { today } from "@floc/core/dates/dates";
 import { bounded, LIMITS } from "@/server/limits";
 import { recordActivity } from "@/server/notifications/activity";
 
-/** Canonical direction is lower userId first, matching the unique index — never a duplicate reversed row. */
 export async function syncCompletedCoTripFriendships(userId: string): Promise<void> {
-  // One self-join, not trips then their members (ticket 114 scoped the second read to the trips in hand).
   const mine = alias(tripMembership, "mine");
   const coMembers = await db
     .selectDistinct({ userId: tripMembership.userId })
@@ -51,7 +43,6 @@ export async function syncCompletedCoTripFriendships(userId: string): Promise<vo
   );
   if (otherUserIds.size === 0) return;
 
-  // One insert, not one per person; onConflictDoNothing keeps it idempotent.
   await db
     .insert(friendship)
     .values(
@@ -68,7 +59,6 @@ export async function syncCompletedCoTripFriendships(userId: string): Promise<vo
     .onConflictDoNothing();
 }
 
-/** Self-join, one query — replaced two round trips + a JS intersection (ticket 114). */
 export async function sharedTripIds(a: string, b: string): Promise<number[]> {
   const mine = alias(tripMembership, "mine");
   const theirs = alias(tripMembership, "theirs");
@@ -91,7 +81,6 @@ export async function sharedTripIds(a: string, b: string): Promise<number[]> {
   return bounded(rows, "tripsPerUser", `${a} ∩ ${b}`).map((r) => r.tripId);
 }
 
-/** One row per requested direction, so "pending" means different things per end — a sent request and one waiting on you are not the same button (ticket 96). */
 export type FriendshipRow = {
   userId: string;
   friendId: string;
@@ -99,7 +88,6 @@ export type FriendshipRow = {
   origin: string;
 };
 
-/** Every live friendship the viewer is either end of, one read — which end you're at tells incoming from outgoing (ticket 118). */
 export async function listFriendshipsFor(
   viewerId: string,
 ): Promise<FriendshipRow[]> {
@@ -122,7 +110,6 @@ export async function listFriendshipsFor(
   return rows;
 }
 
-/** The three lists every Friends screen draws. */
 export function splitFriendships(rows: FriendshipRow[], viewerId: string) {
   return {
     accepted: rows.filter((r) => r.status === "accepted"),
@@ -133,7 +120,6 @@ export function splitFriendships(rows: FriendshipRow[], viewerId: string) {
 
 export type Person = { id: string; name: string; avatarIcon: AvatarIcon | null };
 
-/** One query for the lot — was a `personFor(id)` per row, a hundred friends meant a hundred round trips (ticket 118). */
 export async function peopleByIds(ids: string[]): Promise<Map<string, Person>> {
   const out = new Map<string, Person>();
   if (ids.length === 0) return out;
@@ -162,7 +148,6 @@ export async function peopleByIds(ids: string[]): Promise<Map<string, Person>> {
   return out;
 }
 
-/** Accepted only — offering someone who hasn't agreed to know you would make a trip invite a backdoor friend request (ticket 146). */
 export async function listFriendsFor(viewerId: string): Promise<Person[]> {
   const rows = await listFriendshipsFor(viewerId);
   const accepted = rows.filter((r) => r.status === "accepted");
@@ -176,7 +161,6 @@ export async function listFriendsFor(viewerId: string): Promise<Person[]> {
   );
 }
 
-/** Ids only, no visibility judgement — that's `server/auth/visibility.ts`'s call; mixing them grows a second, quieter permission model (ticket 145). */
 export async function acceptedFriendIdsOf(ownerId: string): Promise<string[]> {
   const rows = await listFriendshipsFor(ownerId);
   return rows
@@ -184,11 +168,6 @@ export async function acceptedFriendIdsOf(ownerId: string): Promise<string[]> {
     .map((r) => (r.userId === ownerId ? r.friendId : r.userId));
 }
 
-/**
- * Friend-of-a-friend chain, re-derived (ticket 145): viewer and target both
- * friends of `viaId`. Whether the viewer was allowed to see that list is a
- * separate visibility check, not this function's job.
- */
 export async function friendOfFriend(
   viewerId: string,
   viaId: string,
@@ -204,7 +183,6 @@ export async function friendOfFriend(
   return toVia?.status === "accepted" && viaToTarget?.status === "accepted";
 }
 
-/** Badges the chrome's Friends link, so a request is visible on next load, not just in an email (ticket 145). */
 export async function countIncomingFriendRequests(
   viewerId: string,
 ): Promise<number> {
@@ -224,7 +202,6 @@ export async function countIncomingFriendRequests(
 
 export type FriendState = "none" | "friends" | "outgoing" | "incoming";
 
-/** Several people at once — a trip roster asks about every member. */
 export async function friendStatesFor(
   viewerId: string,
   otherIds: string[],
@@ -273,7 +250,6 @@ export async function friendStateWith(
   return states.get(otherId) ?? "none";
 }
 
-/** For the quiet "met on <trip name>" line, distinguishing an auto-added friend from a requested one (ticket 18). */
 export async function coTripNameFor(
   userId: string,
   otherId: string,
@@ -295,14 +271,6 @@ export async function coTripNameFor(
   return ended[0]?.name ?? shared[0]?.name ?? null;
 }
 
-/* ------------------------------------------------- the request lifecycle */
-/*
- * `friendship` writes behind `app/friends/actions.ts` (ticket 108). Rules
- * owned here: soft-delete on every match; pair is unordered (`eitherWay`
- * covers both directions since the index stores one).
- */
-
-/** Both directions of a pair, live rows only. */
 function eitherWay(a: string, b: string) {
   return and(
     isNull(friendship.deletedAt),
@@ -313,7 +281,6 @@ function eitherWay(a: string, b: string) {
   );
 }
 
-/** Used to address the request email. */
 export async function findUserById(userId: string) {
   return db
     .select({ id: user.id, email: user.email })
@@ -322,12 +289,10 @@ export async function findUserById(userId: string) {
     .get();
 }
 
-/** Any live friendship between two people, in either direction. */
 export async function friendshipBetween(a: string, b: string) {
   return db.select().from(friendship).where(eitherWay(a, b)).get();
 }
 
-/** Upsert not insert — `friendship_pair_idx` ignores `deletedAt`, so a plain insert of a soft-deleted pair hits the UNIQUE constraint; revive in place instead. */
 export async function openPendingRequest(
   viewerId: string,
   targetId: string,
@@ -362,7 +327,6 @@ export async function openPendingRequest(
   });
 }
 
-/** Matches the one pending row `requesterId` opened towards `addresseeId`. */
 function pendingRequest(requesterId: string, addresseeId: string) {
   return and(
     eq(friendship.userId, requesterId),
@@ -395,7 +359,6 @@ export async function acceptPendingRequest(
   });
 }
 
-/** Declining and cancelling are the same write from the two opposite ends. */
 export async function dropPendingRequest(
   requesterId: string,
   addresseeId: string,
@@ -406,7 +369,6 @@ export async function dropPendingRequest(
     .where(pendingRequest(requesterId, addresseeId));
 }
 
-/** Soft-deletes either direction of an accepted friendship. */
 export async function dropFriendship(a: string, b: string): Promise<void> {
   await db
     .update(friendship)

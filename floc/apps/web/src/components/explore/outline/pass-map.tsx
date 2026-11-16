@@ -15,7 +15,6 @@ const STILL = "(prefers-reduced-motion: reduce)";
 
 type Box = { width: number; height: number };
 
-/** The canvas's own size in CSS px, whole, or null until it has one. */
 function useBox(canvas: React.RefObject<HTMLCanvasElement | null>): Box | null {
   const [box, setBox] = useState<Box | null>(null);
   useEffect(() => {
@@ -32,18 +31,12 @@ function useBox(canvas: React.RefObject<HTMLCanvasElement | null>): Box | null {
   return box;
 }
 
-/**
- * The pass's map: a listing's route named stop by stop, with how you travel on each leg. The first trip shows still,
- * and each pick after it plays the globe's move, which a click skips.
- * Why: drawn at the canvas's own size, so names are set at the page's 12px and never scaled soft.
- */
 export function PassMap({ trip }: { trip: PresetTrip }) {
   const land = useLand("fine");
   const canvas = useRef<HTMLCanvasElement>(null);
   const shown = useRef<string | null>(null);
   const box = useBox(canvas);
   const route = useMemo(() => tripRoute(trip), [trip]);
-  // Why: a day out is drawn as far as its real place, so the frame must hold that place too (Abu Simbel from Aswan).
   const outs = useMemo(() => (route.outs ?? []).flatMap((o) => (o.lat !== undefined && o.lng !== undefined ? [{ lat: o.lat, lng: o.lng }] : [])), [route]);
   const d = useMemo(() => (box ? drawOutline(route.stops, tripCodes(trip.country, route.stops, land), land, box, outs) : null), [route, trip.country, land, box, outs]);
 

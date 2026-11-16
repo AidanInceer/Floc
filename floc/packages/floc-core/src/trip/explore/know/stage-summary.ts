@@ -5,7 +5,6 @@ export type StageSummary = { tips: number; temporary: number; peek: string };
 
 const plain = (marked: string) => marked.replace(/\*\*/g, "");
 
-/** What a closed stage card says about itself. */
 export function stageSummary(stage: KnowStage): StageSummary {
   if (stage.stage === "At the stops") {
     const tips = stage.stops.flatMap((s) => s.tips);

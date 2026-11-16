@@ -4,7 +4,6 @@ import { flightPoint, PLANE_D, TRAIL_D, TRAIL_H, TRAIL_W } from "@/lib/landing/h
 
 import { FLIGHT_MS } from "./beats";
 
-/** A plane crosses behind the cards on a dashed arc, drawing its trail, for as long as the cards take to play. */
 export function Flight({ flying }: { flying: boolean }) {
   const box = useRef<HTMLDivElement>(null);
   const trail = useRef<SVGSVGElement>(null);
@@ -14,7 +13,6 @@ export function Flight({ flying }: { flying: boolean }) {
     const [b, tr, p] = [box.current, trail.current, plane.current];
     if (!b || !tr || !p) return;
     const place = (t: number) => {
-      // Why: percentages, not px, so the deck's CSS zoom cannot shift the plane off its trail.
       const { width, height } = b.getBoundingClientRect();
       const at = flightPoint(t, width, height);
       const left = (at.x / width) * 100;

@@ -1,17 +1,3 @@
-/**
- * Archived trips (ticket 05, 17) — the phone's half of `/trips/archived`.
- *
- * NOT A TAB. Archiving is rare and looking at what you archived is rarer, so
- * this hangs off the foot of the trip list rather than taking one of five
- * seats on the bottom bar.
- *
- * READ-ONLY FOR A MEMBER, RESTORABLE BY AN ADMIN (rule 6). There is no
- * "request restore" flow, on the phone or the web: a member asks an admin, and
- * this names them so the asking has somewhere to go.
- *
- * AN ARCHIVED TRIP IS STILL A TRIP. Tapping one opens it exactly as the list
- * does — nothing is gated (rule 4), it is simply out of the way.
- */
 import { formatDateRange } from "@floc/core/dates/dates";
 import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
 import { pastelOf } from "@floc/core/design/pastels";
@@ -32,7 +18,6 @@ export default function ArchivedTrips() {
   const restore = useMutation({
     ...trpc.trips.setArchived.mutationOptions(),
     onSuccess: () => {
-      // Both lists changed: one trip left this one and joined the other.
       queryClient.invalidateQueries({ queryKey: trpc.trips.list.queryKey() });
     },
   });
@@ -75,7 +60,6 @@ export default function ArchivedTrips() {
                   onPress={() => restore.mutate({ tripId: item.id, archived: false })}
                 />
               ) : (
-                // What is missing is one of the two things text still carries.
                 <Body tone="ink-3">Only an admin can restore this.</Body>
               )}
             </Card>

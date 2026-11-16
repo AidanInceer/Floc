@@ -36,7 +36,6 @@ export function AmountForm({ initial, currency, label, hint, busy, onSave }: { i
   );
 }
 
-/** How you travel on this trip only (#574): a change here never moves your profile's default. */
 export function StyleForm({ style, busy, onSave, onReset }: { style: TravelStyle & { tripOnly: boolean }; busy: boolean; onSave: (s: TravelStyle & { tripOnly: boolean }) => void; onReset: () => void }) {
   const [draft, setDraft] = useState(style);
   return (
@@ -65,7 +64,6 @@ export function NightsForm({ initial, busy, onSave }: { initial: number; busy: b
   );
 }
 
-/** A guess from your flight files is offered as a Confirm, never typed into the field for you. */
 export function AirportForm({ initial, suggested, busy, onSave }: { initial: string | null; suggested: string | null; busy: boolean; onSave: (code: string | null) => void }) {
   return (
     <View style={{ gap: space.md }}>

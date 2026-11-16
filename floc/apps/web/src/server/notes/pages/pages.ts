@@ -1,8 +1,3 @@
-/**
- * Changing a trip's page list (#408): make, name, give an icon, move, archive
- * and restore. Any member may do each (rule 6); a refusal comes back as words.
- * Every change tells open editors to read the list again.
- */
 import "server-only";
 import { and, eq, inArray, isNull, max } from "drizzle-orm";
 
@@ -20,7 +15,6 @@ export type Refusal = { error: string };
 
 const GONE: Refusal = { error: "That page has gone." };
 
-/** Tells this person's next render and everyone's open Notes that the list moved. */
 function changed(tripId: number, closed: readonly number[] = []) {
   pagesChanged(tripId, closed);
   refresh({ kind: "notesPages", tripId });
@@ -83,7 +77,6 @@ export async function setPageIcon(tripId: number, pageId: number, userId: string
   changed(tripId);
 }
 
-/** Moves a page before a sibling, or to the end of its list with none. */
 export async function movePage(tripId: number, pageId: number, userId: string, beforeId: number | null): Promise<Refusal | null> {
   const page = await openPage(tripId, pageId);
   if (!page) return GONE;
@@ -113,7 +106,6 @@ export async function archivePage(tripId: number, pageId: number, userId: string
   return null;
 }
 
-/** Brings back a page and the sub-pages archived with it. A sub-page whose parent is still archived comes back on its own, at the top of the list. */
 export async function restorePage(tripId: number, pageId: number, userId: string): Promise<Refusal | null> {
   const page = await findPage(tripId, pageId);
   if (!page?.archivedAt) return GONE;

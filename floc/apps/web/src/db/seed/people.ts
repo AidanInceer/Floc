@@ -1,8 +1,3 @@
-/**
- * Why: seeded people get a password so the dev sign-in door can put you in any
- * seat — half of what needs testing is invisible from one. `hashPassword` is
- * Better Auth's own, so these rows match what the sign-up form writes.
- */
 import { randomUUID } from "node:crypto";
 
 import { and, eq } from "drizzle-orm";
@@ -37,9 +32,7 @@ async function setPassword(userId: string, password: string): Promise<void> {
   });
 }
 
-/** Upserts rather than skipping — otherwise re-seeding never rolls a new column forward. */
 export async function upsertAccount(args: {
-  /** Used only when the account is new, so a fresh database always gets the same ids. */
   id: string;
   email: string;
   password: string;
@@ -87,7 +80,6 @@ async function saveTrips(userId: string, saves: Profile["saves"]): Promise<void>
   }
 }
 
-/** Hand marks only; replaced wholesale so a re-seed never keeps a stale country. */
 async function paintMap(userId: string, map: Profile["map"]): Promise<void> {
   await db.delete(userCountryMark).where(eq(userCountryMark.userId, userId));
   const rows = [
@@ -97,11 +89,6 @@ async function paintMap(userId: string, map: Profile["map"]): Promise<void> {
   if (rows.length > 0) await db.insert(userCountryMark).values(rows);
 }
 
-/**
- * A guest on an invite link is a `user` row with `is_anonymous` (ADR-029). This one also
- * gets the seed password, so the dev door can hand you its session; signing up from it still
- * runs the real adoption, because only `is_anonymous` decides that.
- */
 export async function seedGuest(args: { id: string; email: string; name: string }): Promise<string> {
   await db.insert(user).values({ ...args, emailVerified: false, isAnonymous: true });
   await setPassword(args.id, SEED_PASSWORD);
@@ -118,10 +105,6 @@ export async function seedPerson(person: Person, scenario: Scenario): Promise<st
   });
 }
 
-/**
- * The account the dev sign-in button uses. Seeded too, so a wiped database is
- * one command from working rather than a sign-up form and a fresh password.
- */
 export async function ensureDevUser(): Promise<string> {
   const email = process.env.FLOC_DEV_USER_EMAIL;
   const password = process.env.FLOC_DEV_USER_PASSWORD;
@@ -145,7 +128,6 @@ export async function ensureDevUser(): Promise<string> {
   });
 }
 
-/** Canonical lower-id-first direction, matching `friendship_pair_idx`. */
 export async function befriend(
   a: string,
   b: string,
@@ -161,11 +143,6 @@ export async function befriend(
     });
 }
 
-/**
- * Why: not sorted lower-id-first as `befriend` is — a pending row stores the
- * asker in `user_id`, the only thing telling incoming from outgoing at read
- * time (`friendStateWith`).
- */
 export async function requestFriendship(from: string, to: string): Promise<void> {
   await db
     .insert(friendship)

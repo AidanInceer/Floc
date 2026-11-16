@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { PRESET_TRIPS, type PresetTrip } from "../preset-trips";
 import { EMPTY_FINDER, finderCounts, fits, priceFigure, toggled, withNights, withPrice, withUnit, type Finder } from "./finder";
 
-// Listings made for the test, so the checks do not move when the real listings change.
 const listing = (over: Partial<PresetTrip>): PresetTrip => ({ ...PRESET_TRIPS[0], ...over });
 const LISBON = listing({ id: "lisbon", title: "Lisbon and the coast", country: "Portugal", region: "Europe", nights: 10, priceFromMinor: 120000, currency: "GBP", bestMonths: "May, June, September" });
 const NILE = listing({ id: "nile", title: "The Nile", country: "Egypt", region: "Africa", nights: 14, priceFromMinor: 200000, currency: "EUR", bestMonths: "October to April" });

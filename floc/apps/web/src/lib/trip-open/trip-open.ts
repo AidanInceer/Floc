@@ -1,15 +1,9 @@
-/**
- * Opening a trip from My trips, in two beats. The list sinks back while the trip loads and the top bar's own beads
- * join (BAR_HOLD_EVENT); then the Overview pours out of the bar onto its card (curtain.ts). Reduced motion, a new
- * tab or anything missing: a plain page change.
- */
 import { BAR_HOLD_EVENT } from "@/lib/bar-fuse";
 
 import { curtainAt, POUR_MS, type Box } from "./curtain";
 import { gooLayer } from "./goo-layer";
 
 const LEAVE_MS = 300;
-// Why: a page that never arrives (an error, a redirect, a slow server) shows itself plainly rather than a blank screen.
 const GIVE_UP_MS = 2500;
 
 let pending: { href: string; timer: number; arrived?: boolean } | null = null;
@@ -51,7 +45,6 @@ function release() {
   document.querySelector("main")?.style.removeProperty("transform-origin");
 }
 
-/** Called on a bar's click: start the first beat, then change page. */
 export function openTrip(href: string, navigate: (href: string) => void) {
   if (reduced() || pending || !barBox()) {
     navigate(href);
@@ -69,9 +62,7 @@ export function openTrip(href: string, navigate: (href: string) => void) {
   }, LEAVE_MS);
 }
 
-/** Called by the Overview once it is on screen: pour the page out of the bar onto `target`. */
 export function arrive(target: Element, href: string) {
-  // Why: React may run the Overview's effect twice; the second must not pour a second curtain.
   if (!pending || pending.arrived) return;
   const bar = barBox();
   if (pending.href !== href || !bar) {
@@ -81,7 +72,6 @@ export function arrive(target: Element, href: string) {
   window.clearTimeout(pending.timer);
   pending.arrived = true;
   const r = target.getBoundingClientRect();
-  // Why: a card taller than the window lands at the window's foot; the page underneath carries on below.
   const card = { x: r.left, y: r.top, w: r.width, h: Math.min(r.height, innerHeight - r.top - 12) };
   const layer = gooLayer();
   state("pouring");

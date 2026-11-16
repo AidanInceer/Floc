@@ -13,7 +13,6 @@ import {
 } from "./money";
 import { CURRENCIES, currencySymbol } from "./currency";
 
-/** An even split is one share each since ticket 85 — see `WritableSplitType`. */
 const people = (...ids: string[]) => ids.map((userId) => ({ userId, value: 1 }));
 
 describe("formatMoney / parseMoney", () => {
@@ -23,7 +22,6 @@ describe("formatMoney / parseMoney", () => {
     expect(parseMoney("0.05", "GBP")).toBe(5);
     expect(formatMoney(1234, "GBP")).toBe("£12.34");
     expect(formatMoney(120000, "EUR")).toBe("€1,200.00");
-    // `$` names seven currencies in the list, so USD prints its code (ticket 253).
     expect(formatMoney(1234, "USD")).toBe("USD 12.34");
     expect(formatMoney(-500, "USD")).toBe("−USD 5.00");
   });
@@ -33,9 +31,6 @@ describe("formatMoney / parseMoney", () => {
     expect(() => parseMoney("twelve", "GBP")).toThrow();
   });
 
-  // Ticket 33: an amount past the safe-integer range used to write fine and
-  // then make every later read of the trip throw, locking the group out of
-  // Overview. It has to be refused at parse time.
   it("refuses an amount too large to survive a round trip", () => {
     expect(parseMoney("999999999.99", "GBP")).toBe(99999999999);
     expect(() => parseMoney("99999999999999999999", "GBP")).toThrow(/too large/);
@@ -145,7 +140,6 @@ describe("computeBalances / suggestSettlements", () => {
   });
 
   it("overpays into a reverse balance when the underlying expense shrinks", () => {
-    // b paid a £10, then the £10 debt turned out to be £6: a now owes b £4.
     const balances = computeBalances(
       [
         {
@@ -205,7 +199,6 @@ describe("resolveWeightedSplit (ticket 85)", () => {
       { userId: "b", value: 2700 },
       { userId: "c", value: 3000 },
     ]);
-    // The result still has to survive the one place the invariant is checked.
     expect(sum(computeSplits(8400, "exact", resolved.participants))).toBe(8400);
   });
 
@@ -254,12 +247,6 @@ function sum(rows: { owedAmountMinor: number }[]) {
   return rows.reduce((a, r) => a + r.owedAmountMinor, 0);
 }
 
-/**
- * Ticket 115 (S7). `computeBalances` used to seed itself from a literal
- * `{ GBP: {}, EUR: {}, USD: {} }`. A fourth currency added to `CURRENCIES` and
- * not added here produced an `undefined` at runtime rather than a type error —
- * in the money path, where nothing is computed by hand (rule 1).
- */
 describe("computeBalances seeds itself from CURRENCIES", () => {
   it("has a book for every currency, with none left over", () => {
     const balances = computeBalances([]);
@@ -328,14 +315,11 @@ describe("the awkward halves of the money helpers", () => {
   });
 });
 
-// Ticket 253. `MINOR_PER_MAJOR` used to be hardcoded to 100, so a yen amount
-// would have been stored — and split — a hundredfold wrong.
 describe("zero-decimal currencies", () => {
   it("formats and parses without a decimal point", () => {
     expect(formatMoney(5600, "JPY")).toBe("JPY 5,600");
     expect(parseMoney("5600", "JPY")).toBe(5600);
     expect(parseMoney("¥5,600", "JPY")).toBe(5600);
-    // A typed "5600.00" is a mistake, not a hundredfold amount.
     expect(() => parseMoney("5600.00", "JPY")).toThrow();
   });
 
@@ -355,7 +339,6 @@ describe("symbols and codes (ticket 253)", () => {
   it("uses a symbol only where it names one currency in the list", () => {
     expect(currencySymbol("GBP")).toBe("£");
     expect(currencySymbol("INR")).toBe("₹");
-    // `$` covers seven of these, `kr` four, `¥` two — those print their code.
     for (const c of ["USD", "AUD", "CAD", "SEK", "ISK", "JPY", "CNY"] as const) {
       expect(currencySymbol(c)).toBeNull();
       expect(formatMoney(100, c).startsWith(c)).toBe(true);
@@ -390,13 +373,11 @@ describe("cross-currency settlement (ticket 253)", () => {
     );
     expect(balances.EUR.you).toBe(0);
     expect(balances.EUR.sam).toBe(0);
-    // No GBP debt was ever created, so nothing lands in the GBP book.
     expect(balances.GBP.you).toBeUndefined();
     expect(isAllSettled(balances)).toBe(true);
   });
 
   it("leaves the overpayment in the cleared currency when the expense goes", () => {
-    // Same settlement, expense since deleted — the settlement stands.
     const balances = computeBalances(
       [],
       [
@@ -425,9 +406,7 @@ describe("cross-currency settlement (ticket 253)", () => {
 
 describe("display conversion (ticket 253)", () => {
   it("crosses the exponent gap between a 0- and 2-decimal currency", () => {
-    // ¥5,600 at 0.0052 GBP per yen is £29.12 — 2912 pence, not 29 or 291,200.
     expect(convertMinor(5600, "JPY", "GBP", 0.0052)).toBe(2912);
-    // And back: £29.12 → ¥5,600.
     expect(convertMinor(2912, "GBP", "JPY", 1 / 0.0052)).toBe(5600);
   });
 });

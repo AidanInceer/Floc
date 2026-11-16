@@ -5,7 +5,6 @@ import { BulbGlyph, ChevronGlyph } from "../../system/glyphs";
 import { useTheme } from "../../system/theme";
 import { fonts, radius, size, space } from "@/lib/theme";
 
-/** Why: the web's closed Ideas row — count and the top idea on one line; with none, one quiet line that says what goes here. */
 export function IdeasClosedRow({ ideas, onOpen }: { ideas: IdeaRow[]; onOpen: () => void }) {
   const { c } = useTheme();
   const [top] = sortIdeas(ideas, "votes");

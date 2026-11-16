@@ -1,4 +1,3 @@
-/** A removed file waits a week in the archive, restorable, before its bytes go (ADR-048). Against a real database and a real folder. */
 import { eq } from "drizzle-orm";
 import { mkdtemp, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";

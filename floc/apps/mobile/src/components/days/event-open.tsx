@@ -1,16 +1,3 @@
-/**
- * The event the Days screen has open (ticket 325) — the modal, with the
- * screen's own form inside it.
- *
- * ITS OWN FILE SO THE SCREEN STAYS READABLE. `Days` already holds the day
- * strip, the grid, the add form and four mutations; the picking-out of one
- * event and the shell around it is a separate job, and leaving it inline took
- * the screen past what one function is allowed to branch on.
- *
- * AN EVENT THAT HAS GONE DRAWS NOTHING. Deleting one leaves its id selected
- * for the frame before the day is refetched.
- */
-
 import { EventForm, type EventDraft } from "./event-form";
 import { EventModal } from "./event-modal";
 import { eventName } from "@floc/core/itinerary/names/event-name";

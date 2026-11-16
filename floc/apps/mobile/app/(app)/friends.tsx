@@ -1,17 +1,3 @@
-/**
- * Friends (ticket 18) — the phone's half of `/friends`.
- *
- * REQUESTS FIRST. Incoming ones are the only thing on the screen waiting on
- * you, so they are at the top and they are the only rows with a filled button.
- *
- * NO ADD-BY-EMAIL, HERE OR ANYWHERE. Find someone by name or friend tag
- * (#360); a field taking an address would turn this into "is that an
- * account?" for any address typed (ticket 46).
- *
- * A NAME OPENS A PROFILE ONLY WHERE IT LANDS SOMEWHERE. An accepted friend has
- * a profile you may see; somebody who has only asked may be outside every one
- * of your rings, and that profile answers null.
- */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ScrollView, View } from "react-native";
 
@@ -26,8 +12,6 @@ export default function Friends() {
   const queryClient = useQueryClient();
   const board = useQuery(trpc.friends.list.queryOptions());
 
-  // Every button on the screen changes the same three lists, so they share one
-  // invalidation rather than each guessing which list it moved somebody out of.
   const settled = {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: trpc.friends.list.queryKey() });

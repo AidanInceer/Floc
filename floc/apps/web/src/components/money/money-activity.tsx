@@ -1,9 +1,3 @@
-/**
- * The money tab's activity feed — every expense and settlement, newest first,
- * each deletable to revert it (split out of page.tsx at ticket 253, which took
- * the page past its line ceiling). Reads data, never fetches: the page owns
- * every query.
- */
 import type { Currency, Expense, ExpenseSplit, Settlement } from "@/db/schema";
 import { formatDate, toIsoDate } from "@floc/core/dates/dates";
 import { formatMoney } from "@floc/core/money/money";
@@ -30,7 +24,6 @@ type FeedItem =
 
 export function ActivityFeed(props: {
   collapsed: boolean;
-  /** Add expense, at the right of the heading. */
   tripId: number;
   viewerId: string;
   expenses: Expense[];

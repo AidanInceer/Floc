@@ -4,11 +4,6 @@ import { useRef, useState, useTransition } from "react";
 
 import { ErrorText, cx } from "@/components/system/ui";
 
-/**
- * A name that becomes its own input when pressed (#362). Enter or
- * leaving the box saves; Escape backs out. A refused name keeps the box open
- * with the server's reason under it.
- */
 export function InlineRename({
   value,
   label,
@@ -17,7 +12,6 @@ export function InlineRename({
   className,
 }: {
   value: string;
-  /** Names the control for a screen reader, e.g. "Rename Sun cream". */
   label: string;
   maxLength: number;
   save: (next: string) => Promise<{ error?: string }>;
@@ -32,8 +26,6 @@ export function InlineRename({
     setError(undefined);
   };
 
-  // Enter saves, then the box loses focus and would save again: a ref, because
-  // the blur lands before `pending` re-renders.
   const saving = useRef(false);
   const commit = (next: string) => {
     if (saving.current) return;

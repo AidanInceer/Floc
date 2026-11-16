@@ -14,30 +14,25 @@ export type SettleUp = { rows: SettleRow[]; rateDate: string | null };
 
 type Ledger = Parameters<typeof ledgerBalances>[0];
 
-// Why: frankfurter quotes every rate from the euro, and one base for every viewer keeps the payments the same whoever looks (#463).
 const BASE: Currency = "EUR";
 
-/** The group's settle-up as the viewer sees it, read fresh — the action recomputes rather than trusting the form. */
 export async function settleUpFor(tripId: number, viewerId: string): Promise<SettleUp> {
   const [expenses, splits, settlements] = await Promise.all([listExpenses(tripId), listSplits(tripId), listSettlements(tripId)]);
   return settleUpFrom({ ledger: { expenses, splits, settlements }, viewerId });
 }
 
-/** Home currencies the caller has, plus a read for anyone they leave out (a former member, say). */
 async function homesOf(people: string[], given?: Map<string, Currency>): Promise<Map<string, Currency>> {
   const missing = people.filter((id) => !given?.has(id));
   if (missing.length === 0 && given) return given;
   return new Map([...(given ?? []), ...(await homeCurrenciesFor(missing))]);
 }
 
-/** The same, from a ledger the caller already holds; `homes` read beside the ledger saves a round trip. */
 export async function settleUpFrom({ ledger, viewerId, homes: given }: { ledger: Ledger; viewerId: string; homes?: Map<string, Currency> }): Promise<SettleUp> {
   const balances = ledgerBalances(ledger);
   const people = [...new Set([viewerId, ...CURRENCIES.flatMap((c) => Object.keys(balances[c]))])];
   const homes = await homesOf(people, given);
   const homeOf = (id: string): Currency => homes.get(id) ?? "GBP";
   const used = new Set([...people.map(homeOf), ...CURRENCIES.filter((c) => Object.values(balances[c]).some((v) => v !== 0))]);
-  // Why: the rates call can take seconds; one currency for everyone needs none.
   const one = used.size === 1 ? [...used][0] : null;
   const rates = one ? null : await getHomeRates(BASE);
   const base = one ?? BASE;
@@ -48,7 +43,6 @@ export async function settleUpFrom({ ledger, viewerId, homes: given }: { ledger:
   };
 }
 
-/** Records the one payment between the viewer and one person (#463), recomputed now; web and phone both call this. */
 export async function settleWithFor(access: Access, otherUserId: string): Promise<Refusal | null> {
   const { rows, rateDate } = await settleUpFor(access.trip.id, access.viewer.id);
   const viewerId = access.viewer.id;

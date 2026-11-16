@@ -1,20 +1,3 @@
-/**
- * Settings — what you configure, as against what you curate (ticket 302,
- * direction C; the web's own panels brought over).
- *
- * DRAWERS, GROUPED LIKE THE WEB RAIL. One long scroll of switches read as one
- * wall; three groups of closed drawers, each showing its answer, read as a
- * contents page. Delete sits alone at the foot, out of the way of everything.
- *
- * NO SAVE BUTTONS. A switch or a segmented row *is* the answer, so it is also
- * the write; only the free-text note waits for you to leave it. That is the
- * one place this differs from the web, and it differs because a browser form
- * needs a submit and a phone does not.
- *
- * THE WHOLE PANEL IS WRITTEN EACH TIME. Privacy is six fields and one call —
- * sending the changed one alone would need the server to merge, and a merge is
- * a second place for the record to be half-right.
- */
 import type { BillingStatus, MySettings } from "@floc/api/port";
 import { CURRENCIES } from "@floc/core/money/currency";
 import { PACK_TIERS, PACK_TIER_LABELS, type PackTier } from "@floc/core/packing/packing";
@@ -72,7 +55,6 @@ export default function Settings() {
       billing={billing.data}
       pro={
         billing.data ? (
-          // Pro changes what every trip screen can do, so a purchase refetches everything.
           <ProSection
             status={billing.data}
             claim={(input) => claim.mutateAsync(input)}
@@ -86,11 +68,6 @@ export default function Settings() {
   );
 }
 
-/**
- * The panels themselves, split from the screen so the loading branch above
- * does not have to hold a dozen `useState` calls it cannot use yet — hooks
- * cannot live behind an early return.
- */
 function SettingsPanels({
   settings,
   billing,
@@ -106,7 +83,6 @@ function SettingsPanels({
 }) {
   const { choice, setChoice } = useTheme();
   const choices = useConsentChoice();
-  // Why: "See Floc Pro" on a locked estimate lands here with ?pro=1, so the Pro drawer opens itself (#574).
   const { pro: openPro } = useLocalSearchParams<{ pro?: string }>();
   const [privacy, setPrivacy] = useState<Privacy>({
     isPrivate: settings.isPrivate,
@@ -128,9 +104,6 @@ function SettingsPanels({
   });
   const [failed, setFailed] = useState(false);
 
-  // A write that loses puts the screen and the row out of step, and a
-  // silent disagreement is worse than a stale read (rule 7 is last-write-wins,
-  // not last-write-invisible).
   const onError = () => setFailed(true);
   const onSuccess = () => {
     setFailed(false);
@@ -212,9 +185,6 @@ function SettingsPanels({
       <DrawerGroup label="Trips">
         <Drawer first title="Packing and money" summary={tripsSummary(PACK_TIER_LABELS[tier], currency)}>
           <View style={{ gap: space.sm }}>
-            {/* Where a new trip starts. Choosing Light on one weekend must not
-                become the default everywhere (#220) — worth the line, because a
-                defaults screen cannot show that it is defaults. */}
             <Body tone="ink-3">
               Where a new trip starts. Changing it on one trip stays on that trip.
             </Body>
@@ -264,7 +234,6 @@ function SettingsPanels({
               saveNotify.mutate({ ...notify, push });
             }}
           />
-          {/* Why: without the line, turning email off looks like it silences everything, when email only stands in for push. */}
           <Toggle
             label="Email when push can't reach you"
             value={notify.email}

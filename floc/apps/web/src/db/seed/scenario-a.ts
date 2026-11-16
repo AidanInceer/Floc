@@ -1,7 +1,3 @@
-/**
- * Why: scenario A is the ordinary case — four friends, one trip five weeks out,
- * nothing pending, nothing broken. It is the baseline you compare B against.
- */
 import { db } from "../index.ts";
 import { availability, day, dayEvent, place } from "../schema.ts";
 import type { Person } from "./people.ts";
@@ -16,8 +12,6 @@ import {
   makeTrip,
 } from "./world.ts";
 
-// All three are your friends, so from your seat only Sofia's private switch
-// shows. Sign in as each other to see the rings from inside.
 const PEOPLE: Person[] = [
   {
     handle: "priya",
@@ -79,7 +73,6 @@ export async function buildScenarioA(): Promise<string> {
     ],
   });
 
-  // Tom can't make the first two days — a real gap for the calendar to draw.
   for (const [i, userId] of [you, priya, tom].entries()) {
     await db.insert(availability).values(
       [0, 1, 2, 3, 4, 5, 6, 7].map((offset) => ({
@@ -120,7 +113,6 @@ async function planPortugal(tripId: number): Promise<{ id: number }[]> {
     })
     .returning({ id: place.id });
 
-  // Three nights Lisbon then four in Lagos — "stops" are derived, never stored.
   const days = await db
     .insert(day)
     .values(
@@ -183,7 +175,6 @@ async function packPortugal(
   tripId: number,
   { you, priya, tom, sofia }: Record<"you" | "priya" | "tom" | "sofia", string>,
 ): Promise<void> {
-  // One of each packing state, so every badge has something to render.
   await addPackingLine({
     tripId,
     createdBy: priya,

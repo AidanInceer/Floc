@@ -1,14 +1,7 @@
-/**
- * The web view's tokens (#408). The editor's stylesheet reads the same CSS
- * variables the website declares; inside the phone there is no globals.css,
- * so the values are written here from @floc/core, flattened for one theme.
- */
 import { fontStacks, radii, resolveTokens, type Theme } from "@floc/core/design/tokens";
 
-// Why these three are rewritten: the web's stacks lead with next/font's family, which a web view never has.
 const FACES = { display: fontStacks.display, sans: fontStacks.sans, type: fontStacks.type };
 
-/** The website's type scale, so a page reads the same size on both. */
 const TEXT = { xs: 11, sm: 13, base: 15, md: 17, lg: 20, xl: 25, "2xl": 31, "3xl": 39 };
 
 const stack = (names: readonly string[]) => names.map((name) => (name === "System" ? "system-ui" : `"${name}"`)).join(", ");

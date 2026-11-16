@@ -4,7 +4,6 @@ import { BEAD_COUNT, BEAD_ITEM, BEAD_PANEL, BEAD_TILE } from "@/components/chrom
 import { BellIcon } from "@/components/system/icons";
 import { AccountInbox, type InboxPreviewItem } from "@/components/chrome/account/account-inbox";
 
-/** The inbox, beside your name in the one bead that is you. */
 export function AccountBell({ unread, latest }: { unread: number; latest: InboxPreviewItem[] }) {
   const shown = unread > 99 ? "99+" : String(unread);
   return (

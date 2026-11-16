@@ -1,4 +1,3 @@
-/** The recap foot under a finished trip's postcard (#443): Share and Plan the next one, side by side. */
 import { PlusIcon, ShareIcon } from "@/components/system/icons";
 import { Sheet } from "@/components/system/client-ui";
 import { NextTripForm } from "./next-trip-form";
@@ -11,7 +10,6 @@ export function RecapFoot({
 }: {
   tripId: number;
   tripName: string;
-  /** Everyone on the trip but you, to ask onto the next one. */
   others: { id: string; name: string }[];
 }) {
   return (

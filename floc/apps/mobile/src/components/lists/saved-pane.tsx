@@ -1,10 +1,3 @@
-/**
- * Saved (#467, ADR-042): the Explore trips you saved, then the countries you want to go to, as rows.
- * Trips and countries sit in their own sections (A3); a country's name is its title. A row opens the trip or Explore searched for
- * the country; Start trip, in pen on its last line, starts one from it.
- * A country is the globe's yellow, so adding or removing one here paints the globe too.
- * While your list is shared, one quiet line says who sees it; friends who saved a row too show as initials on it (#544).
- */
 import { wantToGoCountries } from "@floc/core/itinerary/travel-map";
 import { COUNTRIES } from "@floc/core/people/countries";
 import { savedSeenBy, type FriendSaves } from "@floc/core/people/shared-saves";
@@ -44,7 +37,6 @@ export function SavedPane() {
   const profileKey = trpc.me.profile.queryKey();
   const mark = useMutation({
     ...trpc.me.setMark.mutationOptions(),
-    // Why: the row goes or comes under the finger, as on the web; the refetch puts it right either way.
     onMutate: async ({ code, state }) => {
       await queryClient.cancelQueries({ queryKey: profileKey });
       queryClient.setQueryData(profileKey, (face) =>
@@ -63,7 +55,6 @@ export function SavedPane() {
   const have = new Set(countries.map((c) => c.code));
   const needle = filter.trim().toLowerCase();
   const found = needle ? COUNTRIES.filter((c) => !have.has(c.code) && c.name.toLowerCase().includes(needle)).slice(0, 8) : [];
-  // Why: the faces are extra; a failed read leaves the rows as they were rather than failing the tab (#544).
   const friends = friendSaves.data ?? NO_FRIENDS;
   const seenBy = settings.data ? savedSeenBy(settings.data.visibilitySaved, settings.data.isPrivate) : null;
 
@@ -131,7 +122,6 @@ export function SavedPane() {
   );
 }
 
-/** A saved country as a row: Explore searched for it, or a new trip named for it. Also on a friend's profile (#544). */
 export function CountryRow({ country, first, mark, heart }: { country: Country; first: boolean; mark?: React.ReactNode; heart?: React.ReactNode }) {
   const router = useRouter();
   const count = listingsIn(country.code).length;

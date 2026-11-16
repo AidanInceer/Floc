@@ -50,7 +50,6 @@ function Copy({ slide, fresh }: { slide: TourPanel; fresh: boolean }) {
 
 const arrow = "grid size-10 max-[560px]:size-11 place-items-center rounded-sm border border-rule-strong bg-sheet text-ink-soft transition-colors hover:border-pen hover:text-pen";
 
-/** "Everything in one place": one drawn trip page that changes feature when you press an arrow or a tab. It never moves on its own. */
 export function FeatureTour({ slides }: { slides: TourPanel[] }) {
   const tour = useTour(slides.length);
   const { refs, index, shown, rested, moved, go, step } = tour;

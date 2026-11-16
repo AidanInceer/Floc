@@ -1,9 +1,3 @@
-/**
- * Why: `/floc:scenario` runs this. A start always lands on the same database: everything
- * wiped, seeds A and B in, then the start's own rows. The last line is the dev link.
- *
- *   pnpm --filter floc-web db:scenario <name>
- */
 import { assertLocalDatabase } from "../local-only.ts";
 import { buildScenarioA } from "../scenario-a.ts";
 import { buildScenarioB } from "../scenario-b.ts";

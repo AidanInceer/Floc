@@ -1,8 +1,5 @@
 "use server";
 
-// Notes pages (#408): every change any member may make (rule 6). Refusals come
-// back as the sentence the control shows; the server modules own the rules and
-// tell everyone's open Notes that something changed.
 import { requireTripAccess } from "@/server/access";
 import { addPageComment, resolvePageComment } from "@/server/notes/pages/page-comments";
 import { archivePage, createPage, movePage, renamePage, restorePage, setPageIcon } from "@/server/notes/pages/pages";

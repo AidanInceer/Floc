@@ -1,5 +1,3 @@
-// Why: Stripe owns the Pro prices (server/billing/billing.ts), so no code holds them to import.
-// Change these the day the Stripe prices change.
 export const QUOTED_PRICES = ["£0", "£3.99", "£29.99"] as const;
 
 export const AMERICAN_SPELLINGS: Record<string, string> = {

@@ -18,7 +18,6 @@ type AtlasGlobe = NonNullable<ReturnType<typeof atlasGlobe>>;
 
 const STILL = "(prefers-reduced-motion: reduce)";
 
-/** Runs Explore's globe on a canvas. `clear` is the part of the band the card and the top bar leave open, read on each frame. */
 export function useAtlasGlobe(home: LatLng, places: LatLng[], clear: () => Box) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const flags = useRef<HTMLDivElement>(null);
@@ -53,7 +52,6 @@ export function useAtlasGlobe(home: LatLng, places: LatLng[], clear: () => Box) 
     globe.current?.setLand(rings.current.world, rings.current.fine);
   }, [world, fine]);
 
-  /** Opens a trip's route, with the countries it passes through filled in its region's colour. */
   const openTrip = useCallback(
     (trip: PresetTrip) => {
       const route = tripRoute(trip);

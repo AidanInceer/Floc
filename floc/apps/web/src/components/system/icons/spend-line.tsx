@@ -3,7 +3,6 @@ import type { ExpenseCategory } from "@floc/core/money/expense-category";
 
 import { CategoryIcon } from "./category";
 
-// Why: each estimate line wears the glyph of the expenses it counts (#574), so Budget and Expenses agree.
 const ICON: Record<SpendLine, ExpenseCategory> = {
   flights: "flights",
   stay: "lodging",

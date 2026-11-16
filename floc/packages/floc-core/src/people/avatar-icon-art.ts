@@ -1,11 +1,3 @@
-/**
- * The geometry behind each face (#157) — here rather than in either app
- * because both surfaces draw the same seventeen, and two copies drift.
- *
- * A 14x14 viewBox, `fill="none"`, `stroke="currentColor"`, strokeWidth ~1.2,
- * the house rule for every icon. Each entry is the paths to stroke and the
- * circles to stroke; the surfaces supply the renderer, this supplies the hand.
- */
 import type { AvatarIcon } from "./avatar-icon";
 
 export type IconCircle = { cx: number; cy: number; r: number };

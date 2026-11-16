@@ -1,4 +1,3 @@
-// The hero's map: the route on Explore's globe, behind the card. A leg with no coordinates is named, not dropped (rule 11).
 import type { OverviewRoute } from "@floc/core/trip/overview/route";
 import type { TripColor } from "@floc/core/trip/trip-color";
 import { ButtonLink } from "@/components/system/ui";

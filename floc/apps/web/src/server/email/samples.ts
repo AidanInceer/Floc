@@ -1,7 +1,3 @@
-/**
- * Every email Floc sends, with believable content, built through the real catalogue and notice builder (#653).
- * The dev preview draws these and the snapshot test pins them, so both see exactly what is sent.
- */
 import { noticeEmail } from "@/server/notifications/notice-email";
 
 import { emails } from "./catalogue";

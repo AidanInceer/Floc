@@ -1,10 +1,8 @@
-/** The Dates screen's Weather view, kept out of the screen so the screen stays readable. */
 import type { TripForecastView } from "@floc/api/port";
 
 import { WeatherLocked, WeatherPanel, type ForecastDay } from "./weather-panel";
 
 export type ForecastIndex = {
-  /** Offered with a forecast, or when Pro is the only thing missing (#248). */
   offered: boolean;
   byDate: Record<string, ForecastDay>;
 };

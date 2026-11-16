@@ -1,11 +1,3 @@
-/**
- * Who may see what on a profile (ticket 46). Three nested rings —
- * `private` ⊂ `friends` ⊂ `trip_members` — no signed-in-stranger tier. A
- * viewer in none of them gets `notFound()`, same as a non-member on a trip
- * (rule 5): otherwise walking user ids harvests a directory of every account.
- * The comparison half is pure, at the top, testable without a database.
- */
-
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import "server-only";
 
@@ -36,13 +28,8 @@ import { readVibeTags } from "@floc/core/trip/vibe-tags";
 import type { TravelMap } from "@floc/core/itinerary/travel-map";
 import type { PastTripsShow, Visibility } from "@/db/schema";
 
-/**
- * How the viewer stands to the profile's owner. `null` is the stranger — the
- * one case that never reaches a profile page at all.
- */
 export type Relation = "self" | "friend" | "co_traveller" | null;
 
-/** Widest ring lowest; a friend is also inside trip-members, hence `>=` not equality. */
 const RELATION_RANK: Record<NonNullable<Relation>, number> = {
   co_traveller: 1,
   friend: 2,
@@ -55,13 +42,11 @@ const VISIBILITY_RANK: Record<Visibility, number> = {
   private: 3,
 };
 
-/** Whether a viewer standing in `relation` may see an attribute set to `visibility`. */
 export function canSee(relation: Relation, visibility: Visibility): boolean {
   if (!relation) return false;
   return RELATION_RANK[relation] >= VISIBILITY_RANK[visibility];
 }
 
-/** The floor: name + picture, shown to anyone inside a ring even on a private profile. `self` is always exempt. */
 export function showsAttribute(
   relation: Relation,
   visibility: Visibility,
@@ -72,7 +57,6 @@ export function showsAttribute(
   return canSee(relation, visibility);
 }
 
-/** The two ways in, run together — neither gates the other. */
 export async function relationTo(
   viewerId: string,
   ownerId: string,
@@ -98,12 +82,10 @@ export async function relationTo(
   ]);
 
   if (friend) return "friend";
-  // Any trip, any stage — planning together counts as much as having travelled together.
   if (coTrip) return "co_traveller";
   return null;
 }
 
-/** One join rather than two round trips and a JS intersection (ticket 114). */
 async function sharesATrip(a: string, b: string): Promise<boolean> {
   return (await sharedTripIds(a, b)).length > 0;
 }
@@ -113,7 +95,6 @@ type PastTrip = {
   name: string;
   startDate: string | null;
   endDate: string | null;
-  /** First overnight place on the itinerary, if any. */
   place: string | null;
 };
 
@@ -130,14 +111,10 @@ export type PublicProfile = {
   avatarIcon: AvatarIcon | null;
   relation: NonNullable<Relation>;
   isPrivate: boolean;
-  /** Already filtered by the flags — a hidden attribute simply isn't here. */
   vibeTags: string[] | null;
   pastTrips: PastTrip[] | null;
-  /** `null` when the ring shuts the viewer out (ticket 95). */
   travelMap: TravelMap | null;
-  /** `null` when the ring shuts the viewer out, empty when there's nobody to show (ticket 145). */
   friends: ProfileFriend[] | null;
-  /** Explore listing ids on their Saved list, newest first; `null` when the ring shuts the viewer out (ADR-045). */
   saved: string[] | null;
 };
 
@@ -150,7 +127,6 @@ type RingColumns = {
   visibilitySaved: Visibility | null;
 };
 
-/** Profile row is created lazily, so a never-opened account has none — read defaults, don't 404. */
 function ringsOf(row: RingColumns) {
   return {
     isPrivate: row.isPrivate ?? false,
@@ -162,7 +138,6 @@ function ringsOf(row: RingColumns) {
   } satisfies Record<string, Visibility | PastTripsShow | boolean>;
 }
 
-/** The public profile page's one loader. A stranger gets the same `notFound()` as a nonexistent id. */
 export async function requireProfileView(
   ownerId: string,
   viewerId: string,
@@ -192,8 +167,6 @@ export async function requireProfileView(
 
   const { isPrivate, vibes, pastTripsShow, travelMap, friendsRing, savedRing } = ringsOf(row);
 
-  // Parallel-when-needed (ticket 114): visibility check still gates each fetch,
-  // so a hidden attribute costs nothing rather than being fetched speculatively.
   const showPastTrips = relation === "self" || !isPrivate;
   const showTravelMap = showsAttribute(relation, travelMap, isPrivate);
   const showFriends = showsAttribute(relation, friendsRing, isPrivate);
@@ -222,11 +195,6 @@ export async function requireProfileView(
   };
 }
 
-/**
- * Same question `requireProfileView` answers on its way to rendering the list
- * (ticket 145), asked standalone by the action that trusts it — the request
- * arrives with nothing but form fields, so it must re-derive this itself.
- */
 export async function canSeeFriendsOf(
   ownerId: string,
   viewerId: string,
@@ -250,12 +218,6 @@ export async function canSeeFriendsOf(
   );
 }
 
-/**
- * Two deliberate exclusions (ticket 145): the viewer themself, and anyone
- * whose own profile is private — a friends list publishes third parties who
- * never chose to appear here, so their profile-wide switch is honoured even
- * though the list belongs to someone else.
- */
 async function friendsOnProfile(
   ownerId: string,
   viewerId: string,
@@ -293,7 +255,6 @@ async function friendsOnProfile(
     .sort((a, b) => a.name.localeCompare(b.name, "en-GB", { sensitivity: "base" }));
 }
 
-/** Ended trips only, no link in, no roster — third parties never consented to appear here (ticket 46). `show` may still be loading; the trips read does not wait for it. */
 async function pastTripsFor(
   ownerId: string,
   show: PastTripsShow | PromiseLike<PastTripsShow>,

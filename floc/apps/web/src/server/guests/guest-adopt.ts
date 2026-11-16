@@ -1,9 +1,3 @@
-/**
- * A guest signs up or signs in (#442, ADR-029): run from Better Auth's
- * `onLinkAccount`, before the plugin deletes the guest row. Each trip the guest
- * answered is joined, and the answers move to the account in one transaction.
- * The account's own answer wins; a full trip drops the guest's.
- */
 import "server-only";
 
 import { and, eq, inArray } from "drizzle-orm";
@@ -48,7 +42,6 @@ async function moveVotes(tx: Tx, tripId: number, guestId: string, accountId: str
       await tx.update(ideaVote).set({ userId: accountId, ...touch() }).where(eq(ideaVote.id, vote.id));
       continue;
     }
-    // Why: a vote the account took back is no answer, so the guest's live vote stands in for it.
     if (own.deletedAt && !vote.deletedAt) {
       await tx.update(ideaVote).set({ deletedAt: null, ...touch() }).where(eq(ideaVote.id, own.id));
     }

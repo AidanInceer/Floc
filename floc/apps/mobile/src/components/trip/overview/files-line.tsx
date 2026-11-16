@@ -8,7 +8,6 @@ import { FileUpload } from "./file-upload";
 import { LineRow } from "./line-row";
 import { fonts, size, space } from "@/lib/theme";
 
-/** Files in one line, as the web's: what is there by kind, and one way to add. */
 export function FilesLine({ tripId, files, failed, onRetry, onOpen }: {
   tripId: number;
   files: { category: DocCategory }[] | undefined;

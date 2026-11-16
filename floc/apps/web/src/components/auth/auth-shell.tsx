@@ -1,8 +1,3 @@
-/**
- * The one layout behind sign in, sign up and both halves of password reset
- * (ticket 200). Four screens that used to drift apart now share a shape, so
- * moving between them feels like staying in one place.
- */
 import type { ReactNode } from "react";
 
 import { cx } from "@/components/system/ui";
@@ -35,6 +30,5 @@ export function AuthShell({
   );
 }
 
-/** The one link out of a screen, to its counterpart. */
 export const authLinkClass =
   "text-pen underline underline-offset-2 hover:text-pen-deep";

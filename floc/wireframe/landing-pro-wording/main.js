@@ -1,6 +1,5 @@
 import { variants } from "/_house/switcher.js";
 
-// Copies by eye of the app's one source per icon: nav.tsx, weather.tsx, know.tsx, page-icons.ts.
 const PATHS = {
   receipt: '<path d="M3 1.8h8v10.4l-1.3-.9-1.4.9-1.3-.9-1.3.9-1.4-.9-1.3.9ZM5 4.6h4M5 6.6h4"/>',
   weather: '<path d="M7 4.6a2.4 2.4 0 1 0 0 4.8 2.4 2.4 0 0 0 0-4.8Z"/><path d="M7 1.4v1.4M7 11.2v1.4M1.4 7h1.4M11.2 7h1.4"/><path d="M3 3l1 1M10 10l1 1M11 3l-1 1M4 10l-1 1"/>',
@@ -17,7 +16,6 @@ const PATHS = {
 const NOW_ICONS = [["receipt", "red"], ["weather", "yellow"], ["flight", "green"], ["packing", "blue"], ["files", "grey"]];
 const SOON_ICONS = ["live", "ask", "local", "offline", "camera"];
 
-// Each variant: the lede, then [name, line] for the five Pro features and the five coming soon, in the live order.
 const COPY = {
   C: {
     lede: "Everyone on the trip uses Floc free. Pro adds five tools that only you see.",

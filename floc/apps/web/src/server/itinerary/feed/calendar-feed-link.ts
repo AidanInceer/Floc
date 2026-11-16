@@ -1,7 +1,3 @@
-/**
- * Why a reset (#334): the feed link never runs out, so a member whose link leaked needs a way to end it and stay
- * on the trip. The link carries the member's feed number; a reset raises it, and every older link stops.
- */
 import "server-only";
 
 import { and, eq, isNull, sql } from "drizzle-orm";
@@ -18,7 +14,6 @@ const live = (tripId: number, userId: string) =>
 const urlFor = (tripId: number, userId: string, epoch: number) =>
   `${appUrl()}/calendar/${mintCalendarToken(tripId, userId, epoch)}.ics`;
 
-/** Null for someone not on the trip (rule 5). */
 export async function calendarFeedUrlFor(tripId: number, userId: string): Promise<string | null> {
   const row = await db
     .select({ epoch: tripMembership.calendarFeedEpoch })
@@ -28,7 +23,6 @@ export async function calendarFeedUrlFor(tripId: number, userId: string): Promis
   return row ? urlFor(tripId, userId, row.epoch) : null;
 }
 
-/** The new URL, or null for someone not on the trip. Only the member's own link changes. */
 export async function resetCalendarFeed(tripId: number, userId: string): Promise<string | null> {
   const row = await db
     .update(tripMembership)

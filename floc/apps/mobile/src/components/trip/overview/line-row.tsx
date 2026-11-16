@@ -4,7 +4,6 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { useTheme } from "../../system/theme";
 import { space } from "@/lib/theme";
 
-/** One hairline-topped line of the trip card; the card's own edge closes the last one, so borders never stack. */
 export function LineRow({ children, onPress, label, baseline }: { children: ReactNode; onPress?: () => void; label?: string; baseline?: boolean }) {
   const { c } = useTheme();
   const style = {

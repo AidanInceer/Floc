@@ -1,8 +1,3 @@
-/**
- * The Notes tab (#408): one card, the page list on the left (it folds away)
- * and the open page on the right. The open page is in the address, so a link
- * to a page opens that page.
- */
 "use client";
 
 import "@floc/editor/editor.css";

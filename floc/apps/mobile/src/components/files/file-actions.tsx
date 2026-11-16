@@ -1,10 +1,3 @@
-/**
- * What you can do to one file (#325 feedback) — behind the row's dots.
- *
- * OFF THE LINE, BEHIND A PRESS. A re-file dropdown and an Archive button on
- * every row is three controls per file; the pile then reads as a stack of
- * forms rather than a list of files.
- */
 import { DOC_CATEGORIES, DOC_CATEGORY_LABELS, type DocCategory } from "@floc/core/documents/documents";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { View } from "react-native";
@@ -28,13 +21,11 @@ export function FileActions({
   onRename,
   onClose,
 }: {
-  /** Null when nothing is open. */
   name: string | null;
   category: DocCategory;
   busy: boolean;
   onRefile: (next: DocCategory) => void;
   onRemove: () => void;
-  /** Rejects with the refusal when the name is not taken. */
   onRename: (next: string) => Promise<unknown>;
   onClose: () => void;
 }) {

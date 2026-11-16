@@ -1,11 +1,9 @@
-/** Things that float over the page (#408): menus, bars and the thread, placed in viewport pixels. */
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 export type Point = { left: number; top: number };
 
-/** Redraws on scroll and resize, so a bar pinned to words stays on them. */
 export function useViewportTick() {
   const [, tick] = useState(0);
   useEffect(() => {
@@ -19,7 +17,6 @@ export function useViewportTick() {
   }, []);
 }
 
-/** Closes on a press outside or Escape. `keep` lists elements whose presses do not count as outside. */
 export function useDismiss(open: boolean, onClose: () => void, keep: () => (Element | null)[] = () => []) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -42,7 +39,6 @@ export function useDismiss(open: boolean, onClose: () => void, keep: () => (Elem
   return ref;
 }
 
-/** Keeps a floating box on screen: flips above its anchor when there is no room below. */
 export function useOnScreen(at: Point, anchorTop: number) {
   const ref = useRef<HTMLDivElement>(null);
   const [place, setPlace] = useState<CSSProperties>({ left: at.left, top: at.top, visibility: "hidden" });

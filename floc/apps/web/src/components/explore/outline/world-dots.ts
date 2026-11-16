@@ -1,7 +1,3 @@
-/**
- * The world as a grid of dots on its land, for a map with no stops yet: a flat (Mercator) world from 72°N to 50°S,
- * centred on Europe and Africa, cropped to fill the box. Pure, so the grid is worked out once per size.
- */
 import { onLand, type Piece } from "./land";
 
 export type Dot = { x: number; y: number; lng: number; lat: number };
@@ -13,7 +9,6 @@ const [TOP, BOTTOM, MIDDLE] = [mercY(72), mercY(-50), 12];
 
 export function worldDots(land: readonly Piece[], w: number, h: number, step: number): Dot[] {
   if (land.length === 0 || w <= 0 || h <= 0) return [];
-  // Why: the world is far wider than tall, so a short box shows less of it across rather than squashing it.
   const k = Math.max(w / (2 * Math.PI * 0.86), h / (TOP - BOTTOM));
   const yMid = (TOP + BOTTOM) / 2;
   const dots: Dot[] = [];

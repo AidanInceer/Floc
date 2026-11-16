@@ -1,8 +1,3 @@
-/**
- * #403: the guest door. A signed-in person on the sign-in pages could walk
- * back through history and become somebody else without signing out, so
- * `requireGuest` turns them round.
- */
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { REDIRECT } from "@/test/setup";

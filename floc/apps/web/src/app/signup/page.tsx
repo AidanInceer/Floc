@@ -1,8 +1,3 @@
-/**
- * /signup — public (ticket 05, 19; redesigned 200). Captures ?via= into
- * signup_channel (ticket 06) through a Server Action in `actions.ts`, run once
- * the client-side signUp() call succeeds and a session exists.
- */
 import Link from "next/link";
 
 import { AuthForm } from "@/components/auth/auth-form";

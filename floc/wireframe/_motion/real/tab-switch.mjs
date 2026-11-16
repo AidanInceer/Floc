@@ -1,4 +1,3 @@
-// Motion 6, chosen B: going to another trip tab; one tile slides to the new tab. Each tab draws its live page, so the switch is judged between real pages.
 import { mount, run, say, glyph, button, SKIN } from "./shared.mjs";
 import { avatar } from "/_house/kit/trip-frame.mjs";
 import { daysPage, placeWash } from "./days.mjs";

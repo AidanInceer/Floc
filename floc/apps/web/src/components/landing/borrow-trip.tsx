@@ -16,13 +16,8 @@ import { useSpinGlobe, type GlobeEvents } from "./globe/use-spin-globe";
 import { Glyph } from "@/components/system/icons/landing";
 import "./borrow-trip.css";
 
-// Every route on the globe leaves from here.
 const LONDON = { lat: 51.507, lng: -0.128 };
 
-/**
- * "Borrow a trip to …": every Explore listing on a globe, six of them on tiles. Pick a tile, turn the
- * globe or spin it and the plane flies there; a tile's round button opens the globe on that trip's route.
- */
 export function BorrowTrip({ cards, signedIn, explore }: { cards: Card[]; signedIn: boolean; explore: string }) {
   const places = useMemo(() => cards.flatMap((c) => (c.stops[0] ? [{ lat: c.stops[0].lat, lng: c.stops[0].lng }] : [])), [cards]);
   const events = useRef<GlobeEvents>({});
@@ -67,7 +62,6 @@ export function BorrowTrip({ cards, signedIn, explore }: { cards: Card[]; signed
           </span>
         </span>
       </h2>
-      {/* Why: the place in the heading is hidden on a phone, so the spin is announced from here at every width. */}
       <span aria-live="polite" className="sr-only">{card.place}</span>
       <p className="mx-auto mt-3.5 max-w-[40ch] text-md text-ink-soft">A finished route to start from. Change anything.</p>
       <div ref={stage} className="borrow-stage" data-deep={way ? "" : undefined} data-on={way?.on ? "" : undefined}>

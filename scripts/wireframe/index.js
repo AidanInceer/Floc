@@ -1,4 +1,3 @@
-// The wireframes index: sidebar on the left, every prototype as a card, grouped by where it lives in the app.
 (function () {
   var main = document.getElementById("wf-main");
   var side = document.getElementById("wf-side");
@@ -92,7 +91,6 @@
       tone = b.dataset.tone;
       s.redraw();
     });
-    // On a phone the sidebar is a drawer too.
     var toggle = document.createElement("button");
     toggle.type = "button";
     toggle.className = "wf-open wf-open-index";

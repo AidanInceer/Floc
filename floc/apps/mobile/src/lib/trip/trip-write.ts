@@ -1,7 +1,3 @@
-/**
- * Why: `onGone` fires on archive and delete, never on save — both take the
- * trip off the list you were on, so the caller has to go somewhere.
- */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import type { TripColor } from "@floc/core/trip/trip-color";
@@ -19,9 +15,6 @@ export type TripEditPayload = {
 export function useTripWrite(tripId: number, onGone: () => void) {
   const queryClient = useQueryClient();
 
-  // The list draws the same name, colour and tags as the trip does, so it is
-  // stale the moment any of this lands — a card that disagrees with the trip
-  // it opens is worse than one that reloads.
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: trpc.trips.get.queryKey({ tripId }) });
     queryClient.invalidateQueries({ queryKey: trpc.trips.list.queryKey() });
@@ -36,7 +29,6 @@ export function useTripWrite(tripId: number, onGone: () => void) {
   const destroy = useMutation({ ...trpc.trips.delete.mutationOptions(), onSuccess: gone });
 
   return {
-    /** A blank name is not a rename; the caller's field keeps whatever it had. */
     save: (draft: TripEditPayload) => {
       if (draft.name.trim() === "") return;
       save.mutate({

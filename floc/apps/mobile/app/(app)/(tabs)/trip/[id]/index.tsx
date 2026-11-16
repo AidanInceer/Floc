@@ -1,8 +1,3 @@
-/**
- * Trip Overview (tickets 291, 296) — the trip's *who, where and what*; Days is
- * its *when*. Undated opens here and is never an error (rules 4 and 9), and a
- * stop is derived from the days, never stored (rule 3).
- */
 import { markedUserIds } from "@floc/core/dates/availability";
 import { nightsBetween } from "@floc/core/dates/dates";
 import { yourPosition } from "@floc/core/money/position";
@@ -46,8 +41,6 @@ type Outputs = inferRouterOutputs<AppRouter>;
 export default function Overview() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
-  // A screen keeps rendering for a frame while it leaves, and `id` is gone by
-  // then: NaN goes down the wire as null and the server rightly refuses it.
   const ready = Number.isFinite(tripId);
   const router = useRouter();
 
@@ -94,7 +87,6 @@ export default function Overview() {
 
       <TripMapSection route={route} tone={pastelOf(tripPastel(readTripColor(trip.data.colorKey), tripId))} />
 
-      {/* Ideas first while undated: before the dates exist it is the only live question here. */}
       <EstimateLine tripId={tripId} onOpen={() => router.push({ pathname: "/trip/[id]/money", params: { id: tripId, view: "budget" } })} />
       <IdeasSection tripId={tripId} datesUnset={!trip.data.startDate && !trip.data.endDate} />
 
@@ -120,7 +112,6 @@ export default function Overview() {
   );
 }
 
-/** Everyone on the trip but you, to ask onto the next one (#443). */
 function othersOf(trip: Outputs["trips"]["get"], viewerId: string | undefined) {
   return trip.members.filter((m) => m.userId !== viewerId).map((m) => ({ id: m.userId, name: m.name }));
 }
@@ -129,7 +120,6 @@ function nightsOf(trip: Outputs["trips"]["get"]) {
   return trip.startDate && trip.endDate ? nightsBetween(trip.startDate, trip.endDate) : 0;
 }
 
-/** The server's payments, so this matches Money to the penny (#463). */
 function positionOf(ledger: Outputs["money"]["ledger"] | undefined, pairs: Outputs["money"]["pairs"] | undefined, viewerId: string | undefined) {
   return ledger && ledger.expenses.length > 0 && pairs && viewerId ? yourPosition(pairs.rows, viewerId) : null;
 }
@@ -147,7 +137,6 @@ function tripLegsFrom(
   });
 }
 
-/** The trip's own sheet — the same one the trips list opens — plus the invite link's reset, an admin power (#358). */
 function EditSheet({
   trip,
   draft,
@@ -168,7 +157,6 @@ function EditSheet({
     onSuccess: () => queryClient.invalidateQueries({ queryKey: trpc.invites.forTrip.queryKey({ tripId: trip.id }) }),
   });
 
-  // A save that landed has nothing left to show.
   useEffect(() => {
     if (write.saved) onClose();
   }, [write.saved, onClose]);
@@ -195,7 +183,6 @@ function EditSheet({
   );
 }
 
-// "Settling up" is the Money tab's to say; the group only waits on dates here.
 function statusesFor(trip: Outputs["trips"]["get"], availability: Outputs["availability"]["list"] | undefined) {
   const undated = !trip.startDate && !trip.endDate;
   const marked = new Set((availability ?? []).map((row) => row.userId));
@@ -205,7 +192,6 @@ function statusesFor(trip: Outputs["trips"]["get"], availability: Outputs["avail
   });
 }
 
-/** #460: the same list as the web, from the queries the screen shares (React Query reads each once). */
 function SortLine({
   tripId,
   trip,
@@ -234,7 +220,6 @@ function SortLine({
     shared: packing.data.shared.map((l) => ({ label: l.label, claimed: l.claims.length > 0 })),
     legs,
   });
-  // Overview, with its ideas, is this screen; those gaps are already in view below.
   const go = (gap: Gap) => (gap.tab === "overview" ? undefined : onGo(gap.tab));
   return <LeftToSort list={list} onGo={go} />;
 }

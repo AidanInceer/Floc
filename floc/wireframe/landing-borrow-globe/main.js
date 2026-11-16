@@ -2,7 +2,6 @@ import { variants } from "/_house/switcher.js";
 import { renderHorizon } from "/landing-hero-flock/globes.js";
 import { renderFan } from "./fan.js";
 
-// The stops of each Explore listing, from @floc/core preset trips.
 const STOPS = {
   Japan: ["Tokyo", "Hakone", "Kyoto", "Osaka"],
   Spain: ["Seville", "Córdoba", "Granada"],

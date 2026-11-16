@@ -1,8 +1,3 @@
-/**
- * What the phone's Notes screen reads and writes through the API (#408): the
- * page list, trip links, the open page's comments, and every change to the
- * list. A refusal comes back as the sentence to show.
- */
 import type { PageThread } from "@floc/editor/view/comments";
 import type { Comment } from "@floc/api/port";
 import type { PageIcon } from "@floc/core/notes/pages/page-icons";

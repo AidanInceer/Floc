@@ -51,7 +51,6 @@ export async function attachToEvent(tripId: number, dayEventId: number, formData
   await fileDocumentOnEvent(await requireTripAccess(tripId), Number(formData.get("documentId")), dayEventId);
 }
 
-/** A booking file onto the plan (#559): a Travel file makes a transport event, a Hotel file goes on its first night. */
 export async function addFileToDays(tripId: number, documentId: number, formData: FormData): Promise<{ error?: string } | void> {
   const access = await requireTripAccess(tripId);
   const dayId = Number(formData.get("dayId"));

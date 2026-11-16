@@ -1,7 +1,3 @@
-/**
- * Your own estimate and budget (#574, ADR-057), the phone's B3d: one row of figures, a thin bar, then each line
- * against its plan. Drawn from the server's view; nothing here works money out (rule 1).
- */
 import type { BudgetFit, LineProgress, Range } from "@floc/core/money/estimate/budget";
 import { lineDetail, styleSentence } from "@floc/core/money/estimate/line-words";
 import { LINE_LABELS, type EstimateLine, type SpendLine } from "@floc/core/money/estimate/lines";

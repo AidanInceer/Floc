@@ -54,10 +54,6 @@ export function parseWorktrees(porcelain) {
 
 export const listWorktrees = (root) => parseWorktrees(git(root, "worktree", "list", "--porcelain"));
 
-/**
- * Why: only work that has visibly landed is removed. A session that has just
- * started has a clean worktree too, but no merged pull request yet.
- */
 export function sweepVerdict(w) {
   if (w.isMain) return { remove: false, reason: "main checkout" };
   if (!w.managed) return { remove: false, reason: "not under .claude/worktrees" };
@@ -72,14 +68,8 @@ export function sweepVerdict(w) {
 
 export const IDLE_HOURS = 24;
 
-/** A subagent, EnterWorktree or detached worktree has no task branch, so no pull request to wait for. */
 export const isScratch = (branch) => !branch || !TASK_BRANCH.test(branch);
 
-/**
- * Why the idle time: a subagent's fresh worktree is clean and holds nothing
- * beyond develop yet, exactly like an abandoned one. A release worktree holds
- * no work of its own.
- */
 function scratchVerdict(w) {
   if (w.dirty) return { remove: false, reason: "uncommitted changes" };
   if (!w.contained) return { remove: false, reason: "commits not on develop or main" };
@@ -87,7 +77,6 @@ function scratchVerdict(w) {
   return { remove: true, reason: "no work of its own" };
 }
 
-/** A local branch with no worktree whose every commit is on develop or main holds nothing to lose. */
 export function branchVerdict(b) {
   if (["develop", "main"].includes(b.name)) return { remove: false, reason: "long-lived branch" };
   if (b.checkedOut) return { remove: false, reason: "checked out in a worktree" };
@@ -95,22 +84,16 @@ export function branchVerdict(b) {
   return { remove: true, reason: "every commit is on develop or main" };
 }
 
-/**
- * Why the rename: Windows cannot delete a folder an open shell or editor sits
- * in, and git would empty it before failing. A rename fails up front instead.
- */
 function assertNotInUse(path) {
   const probe = `${path}.removing`;
   try { renameSync(path, probe); } catch { throw new Error(`${path} is open in a shell or editor`); }
   renameSync(probe, path);
 }
 
-/** Never forced: git refuses a dirty worktree, and that refusal means keep it. */
 export function removeWorktree(main, path, branch) {
   stopServers(path);
   assertNotInUse(path);
   removeDocs(main, path);
   git(main, "worktree", "remove", path);
-  // Why -D: git compares with the local develop, which may be behind; the caller has already checked origin holds every commit.
   if (branch) git(main, "branch", "-D", branch);
 }

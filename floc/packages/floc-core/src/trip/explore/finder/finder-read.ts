@@ -23,7 +23,6 @@ function readPrice(v: unknown): Finder["price"] {
   return ok ? { unit, min: min, max: max } : { unit, min: null, max: null };
 }
 
-/** A finder from stored JSON. What cannot be read is left out rather than refusing the whole thing. */
 export function readFinder(value: unknown): Finder | null {
   if (!value || typeof value !== "object") return null;
   const raw = value as Record<string, unknown>;
@@ -37,7 +36,6 @@ export function readFinder(value: unknown): Finder | null {
   };
 }
 
-/** The finder a profile holds. Answers saved before the finder existed read as nothing. */
 export function savedFinder(saved: unknown): Finder | null {
   return saved && typeof saved === "object" ? readFinder((saved as { finder?: unknown }).finder) : null;
 }

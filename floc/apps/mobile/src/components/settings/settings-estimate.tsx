@@ -1,4 +1,3 @@
-/** Where you fly from and how you travel, for your own cost estimates (#574, ADR-057). Pro; a change on a trip stays on that trip. */
 import { airportName } from "@floc/core/money/estimate/guide/home-airport";
 import { estimateSummary } from "@floc/core/money/estimate/line-words";
 import { CABIN_LABELS, CABINS, PACE_LABELS, PACES, STAY_LABELS, STAY_STYLES } from "@floc/core/money/estimate/style";

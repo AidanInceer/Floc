@@ -1,4 +1,3 @@
-// The light/dark switch every wireframe gets, and Desktop/Phone beside it. Opens in light, at full width.
 (function () {
   var root = document.documentElement;
   var VIEWER = "/_house/phone.html";
@@ -10,7 +9,6 @@
     document.querySelectorAll(".wf-theme [data-theme]").forEach(function (b) {
       b.setAttribute("aria-pressed", String(b.dataset.theme === theme));
     });
-    // Why: in the phone viewer the page sits in a frame, and one switch should turn both.
     document.querySelectorAll("iframe").forEach(function (f) {
       try { f.contentWindow.WFTheme && f.contentWindow.WFTheme(theme); } catch (e) {}
     });
@@ -35,7 +33,6 @@
   };
 
   document.addEventListener("DOMContentLoaded", function () {
-    // Inside the phone viewer the frame's own page shows no switches or home link: the viewer has them. Its variant panel still needs nav.css.
     if (framed) return navCss();
     var bar = document.createElement("div");
     bar.className = "wf-theme";
@@ -59,7 +56,6 @@
     document.body.appendChild(bar);
     set(root.dataset.theme);
 
-    // Every prototype gets a link back to the index.
     if (location.pathname !== "/") {
       navCss();
       var js = document.createElement("script");

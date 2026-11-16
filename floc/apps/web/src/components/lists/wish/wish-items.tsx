@@ -18,10 +18,6 @@ import { StartTripButton } from "../start-trip-button";
 
 type Props = { listId: number; items: WishItem[]; listings: Record<string, PresetTrip> };
 
-/**
- * What a wish list holds (#623), in Saved's runs: Explore trips, countries, then ideas and links. Each tile says who
- * added it, starts a trip with the list's people asked along, and keeps Remove behind its menu.
- */
 export function WishItems({ listId, items, listings }: Props) {
   const trips = items.filter((i) => i.kind === "explore" && i.presetId && listings[i.presetId]);
   const countries = items.filter((i) => i.kind === "country" && i.countryCode);
@@ -115,7 +111,6 @@ function NoteTile({ listId, item }: { listId: number; item: WishItem }) {
   );
 }
 
-/** Who added it, and the menu that holds Remove: one visible action per tile stays Start trip. */
 function Foot({ listId, item, what }: { listId: number; item: WishItem; what: string }) {
   const [pending, start] = useTransition();
   const by = item.addedBy?.name;

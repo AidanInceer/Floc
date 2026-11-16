@@ -1,7 +1,3 @@
-/**
- * The trip list (#289). Each card carries the group's faces, the web card's status word and the
- * name as typed. Why New trip and Join sit at the top: at the foot of a long list they scrolled away.
- */
 import { arrangeTripsHome } from "@floc/core/trip/trips-home";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useFocusEffect, useRouter } from "expo-router";
@@ -142,7 +138,6 @@ export default function Trips() {
 
 const TARGET = { width: 44, height: 44, alignItems: "center", justifyContent: "center" } as const;
 
-/** Star and menu as bare glyphs: a bordered box per action put boxes inside every card. */
 function CardActions({ trip, tone, onMenu, onStar }: { trip: TripCard; tone: string; onMenu: () => void; onStar: () => void }) {
   const { c } = useTheme();
   return (
@@ -244,7 +239,6 @@ function FeaturedTrip({ trip, onMenu, onStar }: { trip: TripCard; onMenu: (trip:
   );
 }
 
-/** Why: card-shaped placeholders hold the layout still while the list loads, where a spinner jumped it. */
 function TripsSkeleton() {
   const { c } = useTheme();
   return (

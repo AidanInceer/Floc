@@ -1,4 +1,3 @@
-/** Expo Push Service, which hands each message to Google or Apple (#345). */
 import "server-only";
 
 import type { PushMessage, PushSender } from "@/server/notifications/push";
@@ -26,7 +25,6 @@ async function sendChunk(chunk: PushMessage[]): Promise<Ticket[]> {
   return data;
 }
 
-/** Why a failed chunk does not stop the rest: the chunks before it already went, and must not go twice. */
 export const sendExpoPushes: PushSender = async (messages) => {
   const deadTokens: string[] = [];
   const failed: PushMessage[] = [];

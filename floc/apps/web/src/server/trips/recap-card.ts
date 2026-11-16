@@ -1,7 +1,3 @@
-/**
- * What the recap share picture draws (#443, ADR-045): the trip's words and the land under its route.
- * Null for a trip that has not ended or has no dates — there is nothing to share yet (rules 4, 9).
- */
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
@@ -14,7 +10,6 @@ import { codesAt, landFromPacked, type Piece } from "@/components/explore/outlin
 import { listRouteDays, transportByDay } from "@/server/itinerary/itinerary";
 
 const MAP_WIDTH = 936;
-// Why: the picture is a fixed 1080×1350; a short stop list hands its rows to the map, so no gap opens above the foot.
 const mapHeight = (stops: number) => 620 + (8 - Math.min(stops, 8)) * 48;
 
 export type RecapPicture = {
@@ -25,7 +20,6 @@ export type RecapPicture = {
 };
 
 let land: readonly Piece[] | null = null;
-// Why: read once per server, from the same file Explore draws its outlines from; no tiles, no key (rule 11).
 function landOnce(): readonly Piece[] {
   if (!land) {
     try {

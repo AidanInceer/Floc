@@ -1,4 +1,3 @@
-/** The Bookings page's actions (#559): the signed-in member's own files, never one named by the form. */
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";

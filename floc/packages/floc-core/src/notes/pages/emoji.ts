@@ -1,8 +1,3 @@
-/**
- * The `:` picker's emoji (#408). Members may write emoji in their pages;
- * Floc's own UI never draws one. Each entry is the character and the words
- * that find it; the first word names it.
- */
 export const EMOJI: readonly (readonly [string, string])[] = [
   ["✈️", "airplane plane flight fly"], ["🚆", "train rail"], ["🚌", "bus coach"], ["🚕", "taxi cab"], ["🚗", "car drive hire"],
   ["🚲", "bike bicycle cycle"], ["⛴️", "ferry boat"], ["🛶", "kayak canoe"], ["🧳", "luggage suitcase bag packing"], ["🎒", "backpack rucksack"],

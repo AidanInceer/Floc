@@ -23,7 +23,6 @@ function Store({ name }: { name: string }) {
   );
 }
 
-/** The phone apps are not out yet, so this band has no action — only what is coming and the link that works today. */
 export function AppBand() {
   return (
     <section className="overflow-hidden border-t border-rule px-4 py-24 sm:px-6">

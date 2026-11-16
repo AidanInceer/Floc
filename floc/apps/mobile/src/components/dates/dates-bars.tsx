@@ -1,4 +1,3 @@
-// Why bars under the month: nothing writes until a press here, and each bar shows only once there is something to send.
 import { formatDate } from "@floc/core/dates/dates";
 import { compactRange } from "@floc/core/dates/dates-tabs";
 import type { ReactNode } from "react";
@@ -53,7 +52,6 @@ export function CommitBar({
   );
 }
 
-/** The one bar the open view needs, if any. */
 export function DatesBars(p: {
   view: DatesView;
   unsaved: number;

@@ -1,4 +1,3 @@
-// Why one card: the web's Dates card — stubs, one month, the bar for what is unsaved, then the open view's panel.
 import type { IsoMonth } from "@floc/core/dates/availability";
 import type { ReactNode } from "react";
 import { View } from "react-native";
@@ -21,7 +20,6 @@ export function DatesCard({
   onMonth: (month: IsoMonth) => void;
   look: (date: string) => DayLook;
   onPaint: (anchor: string, target: string) => void;
-  /** The board's own parts; null while the dates are folded away and the month only reads. */
   open: { stubs: ReactNode; bar: ReactNode; panel: ReactNode } | null;
 }) {
   return (
@@ -29,7 +27,6 @@ export function DatesCard({
       {open?.stubs}
       <View style={{ paddingHorizontal: space.md, paddingTop: space.md }}>
         <MonthNav month={month} onChange={onMonth} />
-        {/* Why: the grid claims every touch to paint; folded, it must let the page scroll. */}
         <View pointerEvents={open ? "auto" : "none"} style={{ marginTop: space.sm }}>
           <MonthGrid month={month} look={look} onPaint={onPaint} onRelease={() => {}} />
         </View>

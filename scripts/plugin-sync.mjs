@@ -20,7 +20,6 @@ try {
   committed = JSON.parse(head).version;
 } catch {}
 
-// Why: bump once per slice, against HEAD — not once per edit.
 if (current.version === committed) {
   const [major, minor, patch] = current.version.split(".").map(Number);
   current.version = `${major}.${minor}.${patch + 1}`;

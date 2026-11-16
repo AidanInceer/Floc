@@ -1,8 +1,3 @@
-/**
- * The shape shared by the four account surfaces — your profile, someone
- * else's, settings and friends (ticket 201). One column of white panels on the
- * canvas, so all four read as the same room rather than four rooms.
- */
 import type { ReactNode } from "react";
 
 import { cx, PageTitle } from "@/components/system/ui";
@@ -21,9 +16,7 @@ export function AccountPage({
   title: string;
   blurb?: ReactNode;
   actions?: ReactNode;
-  /** The account bar under the header already names the page, so the title is for screen readers only. */
   titleInBar?: boolean;
-  /** Your own profile: on a wide screen the column opens to the page's width so the globe can fill it. */
   wide?: boolean;
   children: ReactNode;
 }) {
@@ -56,7 +49,6 @@ export function AccountPage({
   );
 }
 
-/** One thing you can change, or one thing you can look at. */
 export function Panel({
   title,
   hint,
@@ -66,7 +58,6 @@ export function Panel({
 }: {
   title?: string;
   hint?: ReactNode;
-  /** Sits opposite the title — a badge, a count, one control. */
   aside?: ReactNode;
   children: ReactNode;
   className?: string;
@@ -89,7 +80,6 @@ export function Panel({
   );
 }
 
-/** A row of people, the same on friends lists and on a profile. */
 export function PersonRow({
   children,
   className,
@@ -109,10 +99,6 @@ export function PersonRow({
   );
 }
 
-/**
- * An on/off setting as a labelled row with a switch (ticket 235).
- * A real checkbox underneath, so the form still posts without JavaScript.
- */
 export function ToggleRow({
   name,
   label,
@@ -124,14 +110,11 @@ export function ToggleRow({
   name: string;
   label: string;
   hint?: ReactNode;
-  /** Set when several rows share one `name` and post as a set. */
   value?: string;
   defaultChecked: boolean;
   disabled?: boolean;
 }) {
   return (
-    // Why: the switch leads its words. At the far end of a wide panel it read
-    // as belonging to whichever row the eye landed on.
     <label className={cx("flex items-start gap-3", disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer")}>
       <input
         type="checkbox"

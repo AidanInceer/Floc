@@ -1,24 +1,3 @@
-/**
- * The files on one event, inside its modal (ticket 325). The boarding pass
- * sits on the ferry, not in a folder with eleven others.
- *
- * IT READS ITS OWN LIST, like `overnight-line`. The Days screen already holds
- * a day, a form and a thread; handing it eight more props and three mutations
- * to pass through would make the screen the wiring loom for a section it does
- * not otherwise know about.
- *
- * TWO WAYS IN, BECAUSE THERE ARE TWO SITUATIONS. The ticket is already on the
- * trip, or it is still in your downloads. Linking one that is already up costs
- * no upload, so it is offered first.
- *
- * "JUST YOU" MEANS ONLY YOU, never "restricted" — the API never sends somebody
- * else's private file, so a row that arrives here is the viewer's to see.
- *
- * DETACHING IS NOT REMOVING, so it does not ask twice and it does not take a
- * row. The file stays on the trip's Files screen; only the tie to this event
- * goes — which is worth a cross at the end of the line, not a button under it
- * (#325 feedback).
- */
 import { DOC_CATEGORY_LABELS } from "@floc/core/documents/documents";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -53,8 +32,6 @@ export function EventFiles({ tripId, dayEventId }: { tripId: number; dayEventId:
   const upload = useMutation({
     ...trpc.files.upload.mutationOptions(),
     onSuccess: (refusal) => {
-      // A refusal is a sentence, not a throw — a full trip and a 20 MB video
-      // are ordinary mistakes (the validation convention).
       setProblem(refusal);
       if (!refusal) again();
     },
@@ -108,8 +85,6 @@ export function EventFiles({ tripId, dayEventId }: { tripId: number; dayEventId:
         ))
       )}
 
-      {/* Two ways in, side by side — stacked they read as a wall of two
-          buttons saying nearly the same thing. */}
       {!adding ? (
         <View style={{ flexDirection: "row", gap: space.sm }}>
           {loose.length > 0 ? (

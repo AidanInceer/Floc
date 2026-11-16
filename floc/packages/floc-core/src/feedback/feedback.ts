@@ -1,5 +1,3 @@
-/** Feedback a member sends to Floc (#271). The words live here so web and phone say the same thing. */
-
 export const FEEDBACK_SURFACES = ["web", "ios", "android"] as const;
 export type FeedbackSurface = (typeof FEEDBACK_SURFACES)[number];
 
@@ -14,7 +12,6 @@ export const FEEDBACK_PROBLEMS: Record<Exclude<FeedbackResult, "sent">, string> 
   closed: "Feedback is not set up yet. Email us instead.",
 };
 
-/** Where the person was, as a path only: no host, query or fragment, so a link token never rides along. */
 export function feedbackPage(raw: unknown): string {
   if (typeof raw !== "string") return "unknown";
   const path = raw.split(/[?#]/)[0].trim();

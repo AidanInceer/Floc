@@ -1,13 +1,3 @@
-/**
- * Stripe, and the local record it writes (ticket 246). Written against
- * Stripe's own SDK rather than the Better Auth Stripe plugin: the plugin owns
- * tables outside our schema, which fights the migration-drift check, and its
- * injected routes sit badly with the layering and dead-code checks.
- *
- * Rule 11 throughout — with no keys set, `stripe()` is null, `PRICES` is
- * empty, and Pro simply never sells. Nothing here crashes a page; the gate in
- * ./entitlements.ts reads the local table, which stays empty.
- */
 import "server-only";
 
 import { and, desc, eq, isNull } from "drizzle-orm";
@@ -30,7 +20,6 @@ export { BILLING_INTERVALS, type BillingInterval };
 
 let client: Stripe | null | undefined;
 
-/** Null when unconfigured, so callers degrade rather than throw at import. */
 export function stripe(): Stripe | null {
   if (client === undefined) {
     const key = process.env.STRIPE_SECRET_KEY;
@@ -39,22 +28,12 @@ export function stripe(): Stripe | null {
   return client;
 }
 
-/**
- * Price *ids*, never amounts. Stripe owns the £3.99/£29.99, so a price change
- * is a dashboard edit rather than a deploy — and no money figure ever lands
- * in this repo.
- */
 export function priceFor(interval: BillingInterval): string | undefined {
   return interval === "monthly"
     ? process.env.STRIPE_PRICE_MONTHLY
     : process.env.STRIPE_PRICE_YEARLY;
 }
 
-/**
- * The Stripe customer for this account, reusing the one a previous
- * subscription recorded. `metadata.userId` is the thread back to us for
- * `customer.subscription.*` events, which name a customer and not a session.
- */
 export async function customerFor(user: {
   id: string;
   email: string;
@@ -80,12 +59,6 @@ export async function customerFor(user: {
   return created.id;
 }
 
-/**
- * Writes what Stripe just told us. Keyed on the Stripe subscription id, which
- * is unique in the schema, so a redelivered event overwrites rather than
- * inserting a second row — Stripe retries any non-2xx, so duplicate delivery
- * is ordinary traffic.
- */
 export async function recordSubscription(args: {
   userId: string;
   sub: Stripe.Subscription;
@@ -115,11 +88,6 @@ export async function recordSubscription(args: {
     });
 }
 
-/**
- * The period end lives on the items in current Stripe API versions and on the
- * subscription itself in older ones. Read both rather than pin a version and
- * have renewals silently stop extending.
- */
 function periodEndOf(sub: Stripe.Subscription): Date | null {
   const fromItem = sub.items?.data?.[0]?.current_period_end;
   const fromSub = (sub as unknown as { current_period_end?: number })
@@ -128,12 +96,6 @@ function periodEndOf(sub: Stripe.Subscription): Date | null {
   return seconds ? new Date(seconds * 1000) : null;
 }
 
-/**
- * What Pro costs, asked of Stripe rather than written down (ticket 250).
- * Stripe owns the figures, so a price change is a dashboard edit and no
- * amount ever lands in this repo. Empty when unconfigured or unreachable —
- * the page then sells Pro without quoting a price rather than breaking.
- */
 export type ProPrice = {
   interval: BillingInterval;
   amountMinor: number;
@@ -169,11 +131,6 @@ export const proPrices = cache(async function proPrices(): Promise<ProPrice[]> {
   return rows.filter((r): r is ProPrice => r !== null);
 });
 
-/**
- * The account's own subscription row, or null (ticket 247). A live row first,
- * then the newest — an account can hold a Stripe and a store row, and a lapsed
- * one must not hide the one still paying.
- */
 export const subscriptionOf = cache(async function subscriptionOf(
   userId: string,
 ): Promise<Subscription | null> {
@@ -187,11 +144,6 @@ export const subscriptionOf = cache(async function subscriptionOf(
   return rows.find((row) => isLive(row)) ?? rows[0] ?? null;
 });
 
-/**
- * A one-off link into Stripe's hosted billing portal (ticket 247). Hosted
- * rather than built: cancelling, swapping card and reading invoices all live
- * behind it, and card details never touch Floc.
- */
 export async function portalUrlFor(args: {
   customerId: string;
   returnUrl: string;
@@ -207,7 +159,6 @@ export async function portalUrlFor(args: {
   return session.url;
 }
 
-/** Who a `customer.subscription.*` event belongs to. */
 export async function userIdForCustomer(
   customer: string | Stripe.Customer | Stripe.DeletedCustomer,
 ): Promise<string | null> {

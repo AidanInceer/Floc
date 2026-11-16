@@ -1,11 +1,3 @@
-/**
- * The trip's derived stage (ticket 109).
- *
- * This is the most product-critical logic on Overview and it had no tests,
- * because it was welded to a React component. It is pure now, so the stage
- * transitions — including the undated case, which non-negotiable 9 says is
- * normal and never an error state — are properties rather than hopes.
- */
 import { describe, expect, it } from "vitest";
 
 import { tripStateFor, type StateMember, type TripStateInput } from "./trip-state";
@@ -83,7 +75,6 @@ describe("the stage", () => {
     expect(state.stageNote).toContain("nothing about a finished trip is read-only");
   });
 
-  /** Invariant: undated is normal, never an error state. */
   it("treats an undated trip as ordinary at every stage", () => {
     const state = tripStateFor(
       base({ days: [{ id: 1, overnightPlaceId: null }] }),
@@ -140,7 +131,6 @@ describe("money outstanding", () => {
         ],
       }),
     );
-    // Two people, owing in two currencies — not four outstanding things.
     expect(state.unresolved.money.sort()).toEqual(["ada", "mo"]);
     expect(state.unresolved.moneyOthers).toEqual(["mo"]);
   });
@@ -190,16 +180,11 @@ describe("the trail", () => {
     }
   });
 
-  // Ticket 126: Days used to read "locked" until an unlock timestamp was
-  // stamped. No station is ever shut now — an empty Days is "ahead", the same
-  // as any other station nobody has got to yet.
   it("shows an empty Days as ahead, never as shut", () => {
     const stations = tripStateFor(base()).stations;
     expect(stations.find((s) => s.key === "days")?.state).toBe("ahead");
   });
 
-  // Ticket 144: the Route station went with the tab, so the place count now
-  // rides on the Days caption — distinct places, not day rows.
   it("counts distinct places on the route, not day rows", () => {
     const state = tripStateFor(
       base({

@@ -1,6 +1,5 @@
 import { variants } from "/_house/switcher.js";
 
-// The live tab glyphs, copied from components/system/icons/nav.tsx and the CogIcon.
 const LIVE = {
   overview: '<path d="M3.6 2h6.8A1.6 1.6 0 0 1 12 3.6v6.8a1.6 1.6 0 0 1-1.6 1.6H3.6A1.6 1.6 0 0 1 2 10.4V3.6A1.6 1.6 0 0 1 3.6 2ZM7 2v10M7 7h5"/>',
   dates: '<path d="M3.4 3h7.2A1.4 1.4 0 0 1 12 4.4v6.4a1.4 1.4 0 0 1-1.4 1.4H3.4A1.4 1.4 0 0 1 2 10.8V4.4A1.4 1.4 0 0 1 3.4 3ZM4.8 1.8v2.4M9.2 1.8v2.4M2 6h10"/>',

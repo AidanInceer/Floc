@@ -1,7 +1,3 @@
-/**
- * The top of a notes page (#408): its icon (or a quiet "Add icon"), its name,
- * and the icon picker the page list uses too. The name saves as it is typed.
- */
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -39,7 +35,6 @@ export function PageTop({ title, icon, onRename, onIcon, onDown, touch = false }
   icon: PageIcon | null;
   onRename: (title: string) => void;
   onIcon: (icon: PageIcon | null) => void;
-  /** Enter or the down arrow in the name moves into the page. */
   onDown: () => void;
   touch?: boolean;
 }) {

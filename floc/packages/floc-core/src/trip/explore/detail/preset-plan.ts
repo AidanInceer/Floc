@@ -22,7 +22,6 @@ export type PresetPlan = {
   stops: PlanStop[];
   dayCount: number;
   inPlan: PresetFigure[];
-  /** False when nobody has written this listing's days yet. */
   detailed: boolean;
 };
 
@@ -49,7 +48,6 @@ function derivedFigures(trip: PresetTrip, stops: PlanStop[]): PresetFigure[] {
   ];
 }
 
-/** Everything the page for one listing draws. Never throws on thin or mismatched detail — it shows less. */
 export function buildPresetPlan(trip: PresetTrip, detail: PresetDetail | null): PresetPlan {
   const stops = routeStops(trip);
   let n = 0;

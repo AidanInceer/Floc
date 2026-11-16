@@ -1,8 +1,3 @@
-/**
- * The `/` block menu, and the `:` emoji menu (#408). "Link to the trip" and
- * "Emoji" turn the `/` menu into those lists in place. The typed text after
- * the trigger filters; arrows move, Enter or Tab picks, Escape closes.
- */
 "use client";
 
 import { useEditorState, type Editor } from "@tiptap/react";

@@ -1,11 +1,5 @@
-/**
- * Resend signs its webhooks the Svix way: HMAC-SHA256 over `id.timestamp.body`
- * with the base64 key after `whsec_`. Checked here by hand because the
- * installed `resend` SDK predates receiving (#328).
- */
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-// Why: a request captured off the wire is worthless after this.
 const TOLERANCE_MS = 5 * 60 * 1000;
 
 export function webhookSigned(

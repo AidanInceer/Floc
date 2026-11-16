@@ -1,5 +1,3 @@
-// #653: every email Floc sends, in four layouts. Content is the real wording from server/auth/email.ts,
-// email-fallback.ts, notification-text.ts and feedback.ts; anything the mails do not carry today is marked `added`.
 import { variants } from "/_house/switcher.js";
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
@@ -136,7 +134,6 @@ const factRows = (e, skip = []) => {
 };
 const foot = (e) =>
   `<p>${esc(e.why)}${e.settings ? ` <a href="#" onclick="return false">Turn off email in Settings</a>.` : ""}</p><p class="typed">Floc · floc.live</p>`;
-// Why: the design card keeps money and dates out of the display face, even inside a heading.
 const head = (e) => esc(e.heading).replace(/£[\d.,]+/g, (m) => `<span class="nums" style="font-weight:500">${m}</span>`);
 const tripTone = (e) => (e.trip ? trip.tone : e.tone);
 
@@ -189,7 +186,6 @@ const layouts = {
 const statusMark = `<svg viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.2"/><path d="M4.6 7h4.8"/></svg>`;
 const bookingFacts = (e) => [["Received", "Sun 15 Nov, 14:20"], ...e.facts];
 
-// Round 2 is a mix: each email takes the layout Aidan picked for it, and the open ones get two new takes.
 const MIX = {
   G: { verify: "D", reset: "D", invite: "C", notice: "C", digest: "C", unproven: "D3", nothing: "D3", partly: "D", feedback: "D" },
 };

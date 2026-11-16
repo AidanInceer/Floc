@@ -1,13 +1,3 @@
-/**
- * A ceiling on the JavaScript every page loads (#212).
- *
- * `next build` prints First Load JS but nothing asserts on it, so growth is
- * only ever noticed by eye. This measures the same thing — the shared root
- * chunks, gzipped, which every route pays before its own code — and fails when
- * an accidental heavyweight import pushes them past the budget.
- *
- * Raise BUDGET_KB deliberately, in the commit that needs it, with a reason.
- */
 import { gzipSync } from "node:zlib";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";

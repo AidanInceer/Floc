@@ -1,14 +1,3 @@
-/**
- * The trip links aggregate (ticket 103) — the shelf beside the trip thread. A
- * link is a reference the group keeps and comes back to (villa listing, ferry
- * timetable), not a chronological note that gets buried by the next
- * fortnight's conversation — hence its own table, no `scope` column, no
- * threading.
- *
- * Owns: `http`/`https`-only enforcement (a stored `javascript:` URL is a
- * stored script, and this renders an `href` someone else typed); soft-delete;
- * the label cap and host fallback; the list ceiling.
- */
 import "server-only";
 
 import { and, count, eq, isNull } from "drizzle-orm";
@@ -19,11 +8,9 @@ import { assertRoom } from "@/server/limits";
 import { capText } from "@floc/core/text/text";
 import { touch } from "@/server/audit";
 
-/** Returns the normalised string, not a boolean, so "is this a link" and "what do we store" can't disagree. */
 export function readWebUrl(value: unknown): string | null {
   const raw = String(value ?? "").trim();
   if (!raw) return null;
-  // Bare "booking.com/..." is what people paste; assume https rather than reject it.
   const candidate = /^[a-z][a-z0-9+.-]*:/i.test(raw) ? raw : `https://${raw}`;
   let url: URL;
   try {
@@ -35,10 +22,8 @@ export function readWebUrl(value: unknown): string | null {
   return url.toString().slice(0, LINK_URL_MAX);
 }
 
-/** Longer than any real link is worth keeping, short enough to bound the row. */
 const LINK_URL_MAX = 2000;
 
-/** What to show when nobody typed a label: the host, which is the useful half. */
 export function labelFor(url: string, label: string | null): string {
   if (label) return label;
   try {
@@ -72,7 +57,6 @@ export async function softDeleteTripLink(linkId: number): Promise<void> {
     .where(and(eq(tripLink.id, linkId), isNull(tripLink.deletedAt)));
 }
 
-/** The one link belonging to this trip, or undefined — never another trip's. */
 export async function findTripLink(tripId: number, linkId: number) {
   return db
     .select({ id: tripLink.id, createdBy: tripLink.createdBy })

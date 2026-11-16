@@ -16,10 +16,6 @@ const ALL_DAY = "All-day events only";
 const ALL_DAY_HINT = "Timed events leave the day free";
 const NOT_SAVED = "Couldn't save that. Nothing changed.";
 
-/**
- * Google's own white button, as on sign-in, with Google's Calendar mark on the left. Brand
- * colours are Google's, not ours to repaint — the one place a literal is allowed (ticket 206).
- */
 function GoogleCalendarButton({ reading, onClick }: { reading: boolean; onClick: () => void }) {
   return (
     <button
@@ -34,7 +30,6 @@ function GoogleCalendarButton({ reading, onClick }: { reading: boolean; onClick:
   );
 }
 
-/** Where the result goes: what was filled, or why nothing was. Words, since a colour alone says nothing. */
 function CalendarNote({ state }: { state: CalendarFillState }) {
   if (state.kind === "error") return <p className="text-[13px] text-red">{state.message}</p>;
   if (state.kind !== "done") return null;
@@ -48,10 +43,6 @@ function CalendarNote({ state }: { state: CalendarFillState }) {
   );
 }
 
-/**
- * With no days marked: Google's button, and by hand as words. The grid is already the control for
- * by hand, so only the button acts (#444).
- */
 function CalendarChoice({ state, onFill, allDay }: { state: CalendarFillState; onFill: () => void; allDay: ReactNode }) {
   return (
     <div className="grid gap-2.5 p-4">
@@ -66,7 +57,6 @@ function CalendarChoice({ state, onFill, allDay }: { state: CalendarFillState; o
   );
 }
 
-/** Once there are marks the import moves into the … menu beside the month. */
 function CalendarMenuItem({ reading, onFill }: { reading: boolean; onFill: () => void }) {
   return (
     <form
@@ -89,7 +79,6 @@ function NotSaved({ allDay, className = "" }: { allDay: AllDay; className?: stri
   return allDay.failed ? <p className={`text-[13px] text-red ${className}`}>{NOT_SAVED}</p> : null;
 }
 
-/** The remembered choice (ADR-031): only all-day events close a day. The switch is the write. */
 function AllDaySwitch({ allDay }: { allDay: AllDay }) {
   return (
     <>
@@ -106,7 +95,6 @@ function AllDaySwitch({ allDay }: { allDay: AllDay }) {
   );
 }
 
-/** The same choice in the … menu, beside the import it changes. */
 function AllDayMenuItem({ allDay }: { allDay: AllDay }) {
   return (
     <>
@@ -130,7 +118,6 @@ function AllDayMenuItem({ allDay }: { allDay: AllDay }) {
   );
 }
 
-/** Shown at once, saved behind; a failed save puts the switch back. */
 function useAllDay(source: CalendarSource | null): AllDay {
   const [on, setOn] = useState(source?.allDayOnly ?? false);
   const [failed, setFailed] = useState(false);
@@ -150,10 +137,6 @@ function useAllDay(source: CalendarSource | null): AllDay {
 
 const NO_FILL = async (): Promise<CalendarFillResult> => ({ status: "error", message: "" });
 
-/**
- * The import's three places on the Dates board: the choice while you have no days, the … menu
- * once you do, and the line under the grid saying what happened. All null with no Google key.
- */
 export function useCalendarSlots(opts: {
   tripId: number;
   month: string;

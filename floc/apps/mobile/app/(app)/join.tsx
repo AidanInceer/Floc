@@ -1,17 +1,3 @@
-/**
- * Joining by an invite link (ticket 291).
- *
- * The token, never the trip id (#05). A trip id is guessable and a token is
- * not, which is the entire reason the column exists. A token that resolves to
- * nothing answers the same way as one for a deleted trip — nothing here tells
- * anybody which they typed.
- *
- * IT SHOWS THE TRIP BEFORE YOU JOIN IT. A pasted link is a string; what the
- * person actually wants to know is whose trip it is and when. `invites.preview`
- * reads without a session and carries a name, some dates and a host — no
- * roster, no money, no notes, because whoever holds a forwarded link is not a
- * member yet (ticket 147).
- */
 import { formatDateRange } from "@floc/core/dates/dates";
 import { INVITE_LINK_DAYS } from "@floc/core/trip/group/invite-link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -26,7 +12,6 @@ import { space } from "@/lib/theme";
 
 const DEAD_LINK = `This link no longer works. An invite link works for ${INVITE_LINK_DAYS} days. Ask whoever sent it for a fresh one.`;
 
-/** People paste the whole link, not the token out of it. */
 function tokenFrom(pasted: string): string {
   const trimmed = pasted.trim();
   const match = trimmed.match(/\/invite\/([^/?#\s]+)/);
@@ -40,8 +25,6 @@ export default function Join() {
   const [problem, setProblem] = useState<string | null>(null);
 
   const token = tokenFrom(link);
-  // Only once there is something worth asking about — a half-typed link is not
-  // a question, and a spinner under every keystroke reads as a failure.
   const preview = useQuery(
     trpc.invites.preview.queryOptions({ token }, { enabled: token.length > 8 }),
   );
@@ -57,7 +40,6 @@ export default function Join() {
       router.replace({ pathname: "/trip/[id]", params: { id: trip.id } });
       void askForPushOnce();
     },
-    // A refusal carries its own sentence, such as a full trip; anything else is a dead link.
     onError: (error) =>
       setProblem(error.data?.code === "BAD_REQUEST" ? error.message : DEAD_LINK),
   });

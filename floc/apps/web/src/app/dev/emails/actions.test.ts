@@ -1,6 +1,3 @@
-/**
- * #653: "Send to me" on the email preview says whether it went, and production never answers it.
- */
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { migrateTestDb, resetDb, seedScenario, signIn, type Scenario } from "@/test/db";

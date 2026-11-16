@@ -1,7 +1,3 @@
-/**
- * Wish lists (#623, ADR-049): a few people keep trips, countries, ideas and links before any trip exists.
- * NOT A TRIP SURFACE, so `protectedProcedure`. The host checks the caller's seat on every call; the router only shapes input.
- */
 import { WISH_CAPS } from "@floc/core/lists/wish-list";
 import { z } from "zod";
 

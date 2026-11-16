@@ -1,14 +1,9 @@
-/**
- * The only thing worth testing here is the gate: this route hands out a
- * session, so "off unless local and configured" is the whole contract.
- */
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/server/auth/auth", () => ({
   auth: { api: { signInEmail: vi.fn(async () => new Response("ok")) } },
 }));
 
-// The roster is a database read; the gate is what this file is about.
 vi.mock("@/server/auth/dev-accounts", async (original) => {
   const real = await original<typeof import("@/server/auth/dev-accounts")>();
   return { ...real, listDevAccounts: vi.fn(async () => []) };
@@ -33,7 +28,6 @@ async function get(): Promise<Response> {
 }
 
 describe("the dev sign-in route", () => {
-  // Why the long timeout: the first test pays the cold import of the route, which can pass 5 s on a busy machine.
   it("404s in production even with both variables set", async () => {
     vi.stubEnv("NODE_ENV", "production");
     process.env.FLOC_DEV_USER_EMAIL = "test@example.com";
@@ -64,7 +58,6 @@ describe("the dev sign-in route", () => {
     process.env.FLOC_DEV_USER_EMAIL = "test@example.com";
     process.env.FLOC_DEV_USER_PASSWORD = "hunter2";
     expect((await post("priya@a.seed.floc.test")).status).toBe(200);
-    // The door is not a way to become a real user who happens to be local.
     expect((await post("someone@gmail.com")).status).toBe(404);
   });
 

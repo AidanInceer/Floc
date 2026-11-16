@@ -1,6 +1,3 @@
-/**
- * #653: the email preview is a dev tool. Production never serves it, and "Send to me" goes only to the signed-in address.
- */
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { OutboundEmail } from "./model";

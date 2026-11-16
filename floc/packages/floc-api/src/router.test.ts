@@ -1,9 +1,3 @@
-/**
- * Why: what this router is *for* is the gate, so that is what is tested: who gets
- * refused, and what a refusal gives away. The data behind it is a port, driven
- * here by a fake — asserting the query would be asserting the web app's
- * `server/` modules a second time, which their own tests already do.
- */
 import { describe, expect, it, vi } from "vitest";
 
 import { appRouter } from "./router";
@@ -54,7 +48,6 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
     listTrips: vi.fn().mockResolvedValue([]),
     setTripStarred: vi.fn().mockResolvedValue(undefined),
     setTripMuted: vi.fn().mockResolvedValue(undefined),
-    // Only member "u1" is in trip 1; everyone and everything else is null.
     loadTrip: vi.fn(async (viewerId: string, tripId: number) =>
       viewerId === "u1" && tripId === 1 ? TRIP : null,
     ),

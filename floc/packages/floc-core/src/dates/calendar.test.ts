@@ -94,7 +94,6 @@ describe("spanOf", () => {
   });
 
   it("treats an end that isn't after the start as no end at all", () => {
-    // The column can't say "next morning" (rule 10), so this is the honest read.
     expect(spanOf(timed(1, "22:00", "02:00"))?.open).toBe(true);
   });
 
@@ -151,7 +150,6 @@ describe("moveSpan", () => {
   });
 
   it("pushes a block back off the bottom edge rather than truncating it", () => {
-    // Dragged past midnight means "as late as it goes", not "make it shorter".
     expect(moveSpan({ start: 540, end: 660, open: false }, 23 * 60)).toEqual({
       time: "22:00",
       endTime: "24:00",

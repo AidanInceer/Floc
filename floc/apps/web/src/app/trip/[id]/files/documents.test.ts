@@ -1,8 +1,3 @@
-/**
- * Documents (ticket 239). The two things worth a test are the two that are not
- * obvious from reading a row: a private file is invisible to everyone but its
- * owner, and a shared file is any member's to remove.
- */
 import { mkdtemp, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -43,8 +38,6 @@ afterAll(() => {
 });
 
 beforeEach(async () => {
-  // A fresh volume each time, so "what is on the disk?" is a question about
-  // this test only.
   process.env.FLOC_FILES_DIR = await mkdtemp(
     path.join(tmpdir(), "floc-files-"),
   );
@@ -212,7 +205,6 @@ describe("setCategory", () => {
     const [doc] = await listDocuments(world.ours.id, world.member);
     expect(doc.category).toBe("travel");
 
-    // Somebody else on the trip moves it — filing is housekeeping, not authorship.
     signIn(world.admin);
     const move = new FormData();
     move.set("category", "hotel");

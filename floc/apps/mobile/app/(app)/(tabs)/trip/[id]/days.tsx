@@ -1,8 +1,3 @@
-/**
- * Days (#298), one day at a time; a stop is derived from the days, never stored (rule 3), and times
- * stay local to the trip (rule 10). Why an Add event button as well as a press on an hour: nobody
- * found the hour, so an empty day looked read-only.
- */
 import { today } from "@floc/core/dates/dates";
 import { formatDate } from "@floc/core/dates/dates";
 import { orderEvents } from "@floc/core/itinerary/event-order";
@@ -27,7 +22,6 @@ import { openingDay } from "@/lib/days/opening-day";
 import { trpc } from "@/lib/api";
 import { fonts, size, space } from "@/lib/theme";
 
-/** What the API wants, from what the form produced. The two differ only in the fields a phone never sets. */
 function toInput(draft: EventDraft) {
   return {
     type: draft.type as DayEventType,
@@ -40,7 +34,6 @@ function toInput(draft: EventDraft) {
   };
 }
 
-/** Nothing open, adding to this day, or editing this event. One state, so two cannot both be true. */
 type Editing =
   | { kind: "none" }
   | { kind: "add"; time: string }
@@ -49,8 +42,6 @@ type Editing =
 export default function Days() {
   const { id, date } = useLocalSearchParams<{ id: string; date?: string }>();
   const tripId = Number(id);
-  // A screen keeps rendering for a frame while it leaves, and `id` is gone by
-  // then: NaN goes down the wire as null and the server rightly refuses it.
   const ready = Number.isFinite(tripId);
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -63,8 +54,6 @@ export default function Days() {
 
   const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }));
   const tripEnd = useQuery(trpc.trips.get.queryOptions({ tripId }, { enabled: ready, select: (t) => t.endDate }));
-  // One read for every block's clip (#324), not one per event. A trip with no
-  // file store answers with an error the marker simply does without.
   const files = useQuery(trpc.files.list.queryOptions({ tripId }, { enabled: ready }));
 
   const done = () => {
@@ -107,16 +96,12 @@ export default function Days() {
 
   const dates = days.data.map((day) => day.date);
   const now = today();
-  // Why: the chosen day lives in the route, so a tap on Overview's track lands
-  // here even when this tab is already mounted.
   const selected = openingDay(dates, date, now);
   const day = days.data.find((row) => row.date === selected) ?? days.data[0];
 
   const busy = addEvent.isPending || updateEvent.isPending || deleteEvent.isPending;
   const viewerId = session?.user.id;
 
-  // Every event with a live file on it, across the whole trip — so the strip
-  // can move to another day without a second read.
   const clipped = new Set((files.data ?? []).flatMap((file) => file.dayEventId ?? []));
 
   function save(draft: EventDraft) {
@@ -143,7 +128,6 @@ export default function Days() {
         />
       </View>
 
-      {/* The head of the day stays put and the grid scrolls under it, so the date stays in view. */}
       <View style={{ paddingHorizontal: space.lg, paddingTop: space.sm, gap: space.xs, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.rule }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
           <View style={{ flex: 1, gap: 2 }}>

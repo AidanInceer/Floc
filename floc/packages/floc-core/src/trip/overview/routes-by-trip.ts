@@ -1,14 +1,9 @@
-/**
- * Every trip's route at once, for the bars on My trips: one read of days and one of transport for the whole list,
- * split here by trip. Pure — the server hands in the rows.
- */
 import type { IsoDate } from "../../dates/dates";
 import type { TransportType } from "../../vocabulary";
 import { tripLegs } from "./legs";
 import { overviewRoute, type HopTimes, type OverviewRoute, type RouteDayPin } from "./route";
 
 export type TripRouteDay = RouteDayPin & { tripId: number; dayId: number; date: IsoDate; placeName: string | null };
-/** A day's first transport event. */
 export type TripHop = HopTimes & { tripId: number; dayId: number; mode: TransportType };
 
 function byTrip<T extends { tripId: number }>(rows: T[]): Map<number, T[]> {

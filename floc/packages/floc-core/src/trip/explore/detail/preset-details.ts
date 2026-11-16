@@ -25,8 +25,6 @@ import { SYDNEY_TO_CAIRNS } from "./trips/oceania/sydney-to-cairns";
 import { THAILAND_ANDAMAN_ISLANDS } from "./trips/asia/thailand-andaman-islands";
 import { UGANDA_AND_RWANDA } from "./trips/africa/uganda-and-rwanda";
 
-// Keyed by listing id. To write a listing's page: add a file in `trips/<region>/`, add
-// its line here, and run this folder's tests — they check it against the listing.
 const PRESET_DETAILS: Record<string, PresetDetail> = {
   "boston-to-savannah": BOSTON_TO_SAVANNAH,
   "cape-to-victoria-falls": CAPE_TO_VICTORIA_FALLS,

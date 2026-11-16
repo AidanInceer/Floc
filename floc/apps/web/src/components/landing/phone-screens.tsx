@@ -75,7 +75,6 @@ export function TodayScreen() {
   );
 }
 
-// Figures match the feature film's money slide.
 const BALANCES = [
   { who: priya, amount: "+£760.00", up: true },
   { who: jo, amount: "−£62.00" },

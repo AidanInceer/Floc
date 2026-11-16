@@ -1,11 +1,3 @@
-/**
- * The top bar's bell (#344): the same count the web bar shows, and the way
- * into the inbox.
- *
- * ITS OWN FILE BECAUSE EXPLORE HAS ITS OWN STACK. The tab layout sets this as
- * `headerRight` for every tab, but Explore hides that header and draws its
- * own — so the bell vanished on one tab out of three.
- */
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { Pressable, Text } from "react-native";

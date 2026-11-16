@@ -1,6 +1,3 @@
-/**
- * #653: the asked-for mail, each in the layout Aidan picked (ADR-062), saying why it came.
- */
 import { describe, expect, it } from "vitest";
 
 import { emails } from "./catalogue";
@@ -24,7 +21,6 @@ describe("account mail", () => {
   });
 });
 
-// Why: the received time is drawn in UK time, where Floc is run; the test pins it in November (GMT).
 describe("replies to a forwarded booking", () => {
   it("says an unproven mail saved nothing, and what to do instead", () => {
     const mail = emails.inboundUnproven({ to: "ada@floc.test", bookings: BOOKINGS, received: RECEIVED });

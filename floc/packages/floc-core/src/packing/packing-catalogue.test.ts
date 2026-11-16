@@ -1,8 +1,3 @@
-/**
- * The generator's five promises (ticket 221): length sizes it, weather changes
- * what's in it, the tier scales it, no forecast still yields a list, and a
- * second run only ever adds.
- */
 import { describe, expect, it } from "vitest";
 
 import {
@@ -32,7 +27,7 @@ describe("trip length sizes the counts", () => {
   it("gives one t-shirt a night", () => {
     const five = generatePackingList({ nights: 5, climate: mild, tier: "balanced" });
     expect(countOf(five, "t-shirt")).toBe(5);
-    expect(countOf(five, "underwear")).toBe(6); // a night each, plus one spare
+    expect(countOf(five, "underwear")).toBe(6);
   });
 
   it("leaves the one-per-trip things alone however long it is", () => {
@@ -114,7 +109,7 @@ describe("degrading when there's nothing to go on", () => {
     const list = labels(generatePackingList({ nights: 3, climate: null, tier: "balanced" }));
     expect(list).not.toContain("shorts");
     expect(list).not.toContain("rain jacket");
-    expect(list).toContain("jumper"); // the not-hot default, not a weather call
+    expect(list).toContain("jumper");
   });
 });
 

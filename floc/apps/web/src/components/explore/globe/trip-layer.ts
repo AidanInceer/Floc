@@ -13,22 +13,16 @@ import { unproject, type LatLng } from "@floc/globe/sphere";
 import type { Fit } from "./dome";
 
 type Painter = NonNullable<ReturnType<typeof globePainter>>;
-/** The countries a trip passes through and the region colour to fill them in. */
 export type TripTint = { rings: ReadonlySet<number[][]>; tone: string };
-/** One trip as the globe draws it, built at the view that frames it; its points are kept on the sphere so the route turns with the globe. */
 type Built = { shape: Shape; pieces: LatLng[][]; stops: LatLng[]; names: Name[]; look: (g: number) => LatLng; length: number; pose: Pose<LatLng>; tint: TripTint };
-/** `full`: the route is already drawn, so the move only turns the map. */
 type Run = { tl: Timeline<LatLng>; t0: number; closing: boolean; fromDome: boolean; full?: boolean };
-/** `foot` keeps names off the band's foot; `edge` adds room each side for names; `slow` stretches the way in (1.3 is 30% slower). */
 type Options = { foot?: number; edge?: number; slow?: number };
 const PINS_GONE_MS = 450;
 const clamp = (v: number) => Math.min(1, Math.max(0, v));
 
-/** A view of the globe as a pose: the place at the sphere's middle, which sits at (cx, cy); `w` is the clear width over the radius. */
 export const poseOf = (fit: Fit, view: LatLng, width: number): Pose<LatLng> => ({ centre: view, w: width / fit.R, at: { x: fit.cx, y: fit.cy } });
 export const fitOf = (pose: Pose<LatLng>, width: number): Fit => ({ R: width / pose.w, cx: pose.at.x, cy: pose.at.y });
 
-/** The open trip on Explore's globe: its route, and the moves of the map into it, between trips and back out. */
 export function tripLayer(canvas: HTMLCanvasElement, paint: Painter, { foot = 36, edge = 0, slow = 1 }: Options = {}) {
   const ctx = canvas.getContext("2d")!;
   let ink = readInk(canvas);
@@ -38,7 +32,6 @@ export function tripLayer(canvas: HTMLCanvasElement, paint: Painter, { foot = 36
   let held: Pose<LatLng> | null = null;
 
   function build(route: TripRoute, tint: TripTint, clear: Box): Built {
-    // Why: the band fades into the page at its foot, and "Every trip" sits there, so a name there would be lost.
     const fit = frameRoute(route, clear, foot, edge);
     const { view, R, at } = fit;
     const back = (p: { x: number; y: number }) => unproject(view, (p.x - fit.cx) / R, (fit.cy - p.y) / R);
@@ -63,20 +56,17 @@ export function tripLayer(canvas: HTMLCanvasElement, paint: Painter, { foot = 36
   return {
     isOpen: () => trip !== null,
     running: () => run !== null,
-    /** Opens a trip from the view the map is at: fly in close, follow the pen, ease out to the whole trip. */
     open(route: TripRoute, tint: TripTint, from: Pose<LatLng>, clear: Box) {
       [old, held] = [trip, null];
       open = { route, tint };
       trip = build(route, tint, clear);
       run = { tl: followPen(sphere, { from, to: trip.pose, look: trip.look, length: trip.length, slow }), t0: performance.now(), closing: false, fromDome: old === null };
     },
-    /** Back out to every trip, to the view `to`. */
     close(from: Pose<LatLng>, to: Pose<LatLng>) {
       if (!trip) return;
       [old, trip, open, held] = [trip, null, null, null];
       run = { tl: glideTo(sphere, from, to), t0: performance.now(), closing: true, fromDome: false };
     },
-    /** Glides to stop `k` from the view the map is at, closer in; the route stays whole. */
     focus(k: number, from: Pose<LatLng>) {
       const stop = trip?.stops[k];
       if (!trip || !stop) return;
@@ -85,14 +75,12 @@ export function tripLayer(canvas: HTMLCanvasElement, paint: Painter, { foot = 36
       held = to;
       run = { tl: glideTo(sphere, from, to), t0: performance.now(), closing: false, fromDome: false, full: true };
     },
-    /** Drops the open trip at once, with no move out. */
     reset() {
       [trip, old, run, open, held] = [null, null, null, null, null];
     },
     skip() {
       if (run && !run.closing) run.t0 = performance.now() - run.tl.skip;
     },
-    /** Moves the clock on: the view the map should take, and how much of every trip's pins and the flight show (`world`). */
     advance(now: number, still: boolean): { pose: Pose<LatLng> | null; world: number } {
       if (!run) return { pose: null, world: trip ? 0 : 1 };
       t = still ? run.tl.ms : Math.min(run.tl.ms, now - run.t0);
@@ -102,7 +90,6 @@ export function tripLayer(canvas: HTMLCanvasElement, paint: Painter, { foot = 36
       if (t >= tl.ms) [run, old] = [null, null];
       return { pose, world };
     },
-    /** Where the sphere rests once a trip is open; null on the dome. */
     rest: (W: number): Fit | null => (trip ? fitOf(held ?? trip.pose, W) : null),
     tint(): Tint | undefined {
       if (trip) return { ...trip.tint, alpha: run ? clamp(t / 600) : 1 };
@@ -119,7 +106,6 @@ export function tripLayer(canvas: HTMLCanvasElement, paint: Painter, { foot = 36
       const seen = live ? markFade(live.tl, t) : () => 1;
       paintRoute(ctx, trip.shape, frameOf(trip, view, live ? live.tl.drawn(t) : 1, seen), ink, trip.names, width);
     },
-    /** New theme or new size: read the tokens again and, with no move running, build the open trip again for the clear part. */
     refresh(clear: Box): Pose<LatLng> | null {
       ink = readInk(canvas);
       width = tagWidth(ctx, ink);

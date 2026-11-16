@@ -1,7 +1,3 @@
-/**
- * Live notes pages (#391, #408): who may open which doc, how a page is seeded
- * and stored, and that archived pages and removed members are dropped at once.
- */
 import * as Y from "yjs";
 import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";

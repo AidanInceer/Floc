@@ -1,7 +1,3 @@
-/**
- * The bar above a share link (#330, #442): who you are answering as, and the
- * account that keeps it. Kept for guests on purpose — it is the way to convert.
- */
 import type { ReactNode } from "react";
 
 export function GuestCta({ text, controls }: { text: string; controls: ReactNode }) {

@@ -1,9 +1,5 @@
 "use client";
 
-/**
- * Your home airport, found by code, name or city (#574, ADR-057). A pick fills the hidden `airport`
- * input and submits the form around it, so it saves at once. The list loads when the field is first used.
- */
 import { useEffect, useId, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
 
 import { CrossIcon } from "@/components/system/icons";
@@ -62,7 +58,6 @@ export function AirportField({ id, chosen: saved, describedBy }: { id: string; c
   }
 
   function type(event: ChangeEvent<HTMLInputElement>) {
-    // Why: the form around it saves on change; typing is a search, only a pick is a change.
     event.stopPropagation();
     setText(event.target.value);
     setOpen(true);
@@ -80,7 +75,6 @@ export function AirportField({ id, chosen: saved, describedBy }: { id: string; c
       const hit = hits[active];
       if (hit) pick(hit);
     } else if (event.key === "Escape" && open) {
-      // Why: inside a Sheet, Escape would also close the dialog and drop what was typed.
       event.preventDefault();
       setOpen(false);
     }

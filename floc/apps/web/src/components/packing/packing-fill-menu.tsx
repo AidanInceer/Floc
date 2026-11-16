@@ -41,7 +41,6 @@ function SavedLists({ kits, apply }: { kits: Kit[]; apply: (kitId: number) => Pr
   );
 }
 
-/** Why: the panel closes on any submit, and a tier is a setting you change, then Add all — so it stops here. */
 function TierTrack({ tier, setTier }: Pick<FillAuto, "tier" | "setTier">) {
   return (
     <form action={setTier} onSubmit={(e) => e.stopPropagation()} aria-label="How you pack">
@@ -80,11 +79,6 @@ function AutoPart({ auto }: { auto: FillAuto | null }) {
   );
 }
 
-/**
- * Every way to fill your bag but typing, behind one button (E2,
- * wireframe/packing-bag-top): your saved lists, then how you pack and Add all.
- * Free gets one Auto pack button in place of the auto part.
- */
 export function PackingFillMenu({
   kits,
   apply,
@@ -92,7 +86,6 @@ export function PackingFillMenu({
 }: {
   kits: Kit[];
   apply: (kitId: number) => Promise<void>;
-  /** Null on Free. */
   auto: FillAuto | null;
 }) {
   return (

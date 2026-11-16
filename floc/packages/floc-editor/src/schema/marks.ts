@@ -1,8 +1,3 @@
-/**
- * Marks (#408). Pasted text keeps bold, italic, underline, strike and links;
- * fonts and colours drop because nothing here reads them. Google Docs wraps a
- * paste in `<b style="font-weight:normal">`, which is not bold.
- */
 import { Mark } from "@tiptap/core";
 import { isTone } from "@floc/core/notes/pages/page-blocks";
 import { safeHref } from "@floc/core/text/safe-href";
@@ -67,7 +62,6 @@ export const Link = Mark.create({
       },
     },
   ],
-  // Why checked again here: a link can also arrive over the live socket, never through parseHTML.
   renderHTML: ({ HTMLAttributes }) => {
     const href = safeHref(String(HTMLAttributes.href ?? ""));
     return ["a", { ...(href ? { href } : {}), rel: "noopener noreferrer nofollow", target: "_blank" }, 0];
@@ -77,12 +71,10 @@ export const Link = Mark.create({
 export const Highlight = Mark.create({
   name: "highlight",
   addAttributes: () => ({ tone: { default: "butter" } }),
-  // Why no parse from a background colour: a pasted page's colours are not ours to keep.
   parseHTML: () => [{ tag: "mark[data-tone]", getAttrs: (element: HTMLElement) => (isTone(element.dataset.tone) ? { tone: element.dataset.tone } : false) }],
   renderHTML: ({ HTMLAttributes }) => ["mark", { class: "hl", "data-tone": HTMLAttributes.tone as string }, 0],
 });
 
-/** A comment pinned to a range. Comments may overlap, so the mark does not exclude itself. */
 export const Comment = Mark.create({
   name: "comment",
   excludes: "",

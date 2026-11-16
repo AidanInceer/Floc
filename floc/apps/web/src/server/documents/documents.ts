@@ -1,12 +1,3 @@
-/**
- * The documents aggregate (ticket 239) — `document` rows, their soft-delete
- * (rule 8).
- *
- * One read serves both lists: shared rows and the viewer's own private rows
- * come back together, scoped in the query rather than filtered after, so
- * reading somebody else's private file is not expressible here (the shape
- * `server/packing/packing.ts` uses for personal bags, ticket 220).
- */
 import "server-only";
 
 import { and, count, desc, eq, isNull, or, sum } from "drizzle-orm";
@@ -39,20 +30,14 @@ export type TripDocument = {
   createdAt: Date;
   uploadedBy: string;
   uploaderName: string;
-  /** Null = shared with the trip. Set = private, and only ever the viewer's. */
   ownerId: string | null;
-  /** Where in the itinerary it sits — either, neither, or both null. */
   dayId: number | null;
-  /** The *live* event, off the join — a soft-deleted one reads as unattached. */
   dayEventId: number | null;
-  /** The event's own name, for the row's "on …" tag (ticket 323). */
   eventTitle: string | null;
   eventDayId: number | null;
-  /** What Floc read from the booking (#559), checked field by field. Null when nothing was read. */
   booking: BookingDetails | null;
 };
 
-/** Newest first — a documents list is a pile you add to, not a checklist. */
 export async function listDocuments(
   tripId: number,
   viewerId: string,
@@ -77,8 +62,6 @@ export async function listDocuments(
     })
     .from(document)
     .innerJoin(user, eq(user.id, document.uploadedBy))
-    // Rule 8 on the join's own condition, not the where: in the where it would
-    // drop every unattached file too, rather than only the dead event's tag.
     .leftJoin(
       dayEvent,
       and(eq(dayEvent.id, document.dayEventId), isNull(dayEvent.deletedAt)),
@@ -107,11 +90,6 @@ export async function listDocuments(
   }));
 }
 
-/**
- * Park a document on a day or an event, or clear it (both null). Only touches
- * a live row; the resolver has already refused another trip's or somebody
- * else's private file.
- */
 export async function placeDocument(
   documentId: number,
   where: { dayId: number | null; dayEventId: number | null },
@@ -123,13 +101,6 @@ export async function placeDocument(
     .run();
 }
 
-/**
- * Why: how many live files this trip holds, shared and private together. The read
- * truncates at `LIMITS.documents`, so without a matching check on the write a
- * trip past the ceiling would lose older bookings off the page while the serve
- * route still handed them out — the one place a `LIMITS` ceiling is not
- * harmless (see `server/limits.ts`). It also bounds the disk.
- */
 export async function countDocuments(tripId: number): Promise<number> {
   const row = await db
     .select({ n: count() })
@@ -139,7 +110,6 @@ export async function countDocuments(tripId: number): Promise<number> {
   return row?.n ?? 0;
 }
 
-/** Bytes the trip holds against its quota (#285): every member's live files, private ones too. */
 export async function usedBytes(tripId: number): Promise<number> {
   const row = await db
     .select({ bytes: sum(document.sizeBytes).mapWith(Number) })
@@ -173,7 +143,6 @@ export async function softDeleteDocument(documentId: number): Promise<void> {
     .run();
 }
 
-/** Only the label moves (#364); `storageKey` is never derived from it. */
 export async function setDocumentName(documentId: number, name: string): Promise<void> {
   await db
     .update(document)
@@ -182,11 +151,6 @@ export async function setDocumentName(documentId: number, name: string): Promise
     .run();
 }
 
-/**
- * Re-file a document. Any member who can see the row may move it: filing is
- * housekeeping, not authorship, and the resolver has already refused anything
- * that is not this trip's or is somebody else's private file.
- */
 export async function setDocumentCategory(
   documentId: number,
   category: DocCategory,
@@ -198,12 +162,6 @@ export async function setDocumentCategory(
     .run();
 }
 
-/**
- * One live document by id, with no trip check (#325 feedback). Only for a
- * request carrying a valid view token: the token was minted for this exact id
- * *after* the ordinary check passed, so the permission has already been
- * decided and re-deciding it is not possible — the caller has no viewer.
- */
 export async function liveDocument(
   documentId: number,
 ): Promise<typeof document.$inferSelect | undefined> {

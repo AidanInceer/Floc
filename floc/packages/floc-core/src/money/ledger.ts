@@ -1,7 +1,3 @@
-/**
- * A trip's ledger rows → balances. The one assembly every screen uses, so the
- * cross-currency fields (ticket 253) cannot be dropped by one of them again.
- */
 import type { Currency } from "./currency";
 import { computeBalances, type Balances } from "./money";
 

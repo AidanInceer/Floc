@@ -1,7 +1,3 @@
-/**
- * One line that grows as you type, with Post inside it — the web's composer (event comments D).
- * No face beside it on a phone: it is furniture, and the row is a budget.
- */
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
@@ -17,13 +13,11 @@ export function CommentComposer({
   onSend,
   onCancel,
 }: {
-  /** Said aloud; the field itself starts empty. */
   label: string;
   busy: boolean;
   initial?: string;
   sendLabel?: string;
   autoFocus?: boolean;
-  /** Sends the trimmed words. The caller clears the box by remounting it once they land. */
   onSend: (body: string) => void;
   onCancel?: () => void;
 }) {

@@ -27,7 +27,6 @@ function Choice({ tile, label, hint, onPress }: { tile: ReactNode; label: string
   );
 }
 
-/** Step one (ADR-025), as on the web: the dates decide what can come across, so they are asked first. */
 export function AskStep({ nights, onAnswer }: { nights: number; onAnswer: (has: boolean) => void }) {
   const { c } = useTheme();
   const tile = (ground: string, glyph: ReactNode) => (

@@ -1,7 +1,5 @@
 "use client";
 
-// Place search input (v1 ticket 09). Falls back to free-text when Nominatim
-// returns nothing (rule 11). Debounced 600ms — Nominatim caps at 1 req/s.
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 
 import { TEXT_CAPS } from "@floc/core/text/text";
@@ -22,7 +20,7 @@ export type PlacePickerResult = {
   name: string;
   lat: number | null;
   lng: number | null;
-  countryCode: string | null; // null for a typed name (ticket 95)
+  countryCode: string | null;
 };
 
 type PickerLook = "box" | "panel" | "display";
@@ -45,13 +43,10 @@ export function PlacePicker({
   defaultName?: string;
   search: (query: string) => Promise<PlaceHit[]>;
   onSelect?: (result: PlacePickerResult) => void;
-  /** `line` and `display` are the Days dialogs' quieter fields (wireframe/modal-forms B3). */
   look?: PickerLook;
 }) {
   const [query, setQuery] = useState(defaultName);
   const [results, setResults] = useState<PlaceHit[]>([]);
-  // Hint, not a latch — typing again clears it, so a transient failure
-  // doesn't strand the field in free-text mode.
   const [noMatch, setNoMatch] = useState(false);
   const [selected, setSelected] = useState<PlacePickerResult | null>(
     defaultName
@@ -59,8 +54,6 @@ export function PlacePicker({
       : null,
   );
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // The default name is an answer, not a question — searching it on mount
-  // would suggest the place already chosen. Cleared on first keystroke.
   const untouched = useRef(Boolean(defaultName));
 
   useEffect(() => {
@@ -130,7 +123,6 @@ export function PlacePicker({
           </ul>
         ) : null}
       </div>
-      {/* Hidden fields so a plain <form> submit carries the resolved place. */}
       <input type="hidden" name={`${name}Name`} value={selected?.name ?? query} />
       <input type="hidden" name={`${name}ProviderId`} value={selected?.providerId ?? ""} />
       <input type="hidden" name={`${name}Lat`} value={selected?.lat ?? ""} />

@@ -1,4 +1,3 @@
-/** #442: any member may remove a guest from the trip (not an admin power, rule 6); an outsider may not. */
 import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

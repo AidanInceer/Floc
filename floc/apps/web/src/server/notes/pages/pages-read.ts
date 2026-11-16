@@ -1,4 +1,3 @@
-/** A trip's notes pages, as the list shows them (#408). */
 import "server-only";
 import { and, eq, isNull } from "drizzle-orm";
 
@@ -25,7 +24,6 @@ export async function loadPages(tripId: number, viewerId: string): Promise<{ pag
   const read = () => db.select(columns).from(tripPage)
     .where(and(eq(tripPage.tripId, tripId), isNull(tripPage.deletedAt))).all();
   let rows = await read();
-  // Why read first: a trip almost always has an open page, so the first-page check costs no round trip of its own.
   if (!rows.some((row) => row.archivedAt === null)) {
     await ensureFirstPage(tripId, viewerId);
     rows = await read();
@@ -36,7 +34,6 @@ export async function loadPages(tripId: number, viewerId: string): Promise<{ pag
   return { pages: orderPages(rows), archived };
 }
 
-/** One page of this trip's, open or archived. Another trip's reads as gone (rule 5). */
 export async function findPage(tripId: number, pageId: number): Promise<PageRow | undefined> {
   return db.select(columns).from(tripPage)
     .where(and(eq(tripPage.id, pageId), eq(tripPage.tripId, tripId), isNull(tripPage.deletedAt))).get();

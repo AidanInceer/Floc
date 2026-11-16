@@ -1,9 +1,3 @@
-/**
- * Joins the app's live page to the editor's copy in the web view (#408). When
- * the web view says it is ready it is answered with the whole page and everyone
- * else on it; after that, only what changes. Its own typing and caret come back here
- * and go out on the socket as this person.
- */
 import { useCallback, useEffect, useMemo, useRef, type RefObject } from "react";
 
 import type { PageHandle } from "@/components/notes/page-dom";
@@ -12,12 +6,10 @@ import type { LivePage } from "./use-live-notes";
 
 export function usePageRelay(page: LivePage | null, view: RefObject<PageHandle | null>, active: boolean) {
   const ready = useRef(false);
-  // Why: a stack keeps a left screen mounted but detaches its native web view; a call into it is rejected.
   const open = useRef(active);
   open.current = active;
   if (!active) ready.current = false;
   const loaded = useRef(false);
-  // Why the doc and provider, not `page`: the page object is new each render, and a new one would reset `ready`.
   const doc = page?.doc;
   const provider = page?.provider;
   const live = useMemo(() => (doc && provider ? { doc, provider } : null), [doc, provider]);
@@ -41,7 +33,6 @@ export function usePageRelay(page: LivePage | null, view: RefObject<PageHandle |
     };
   }, [live, view]);
 
-  // Why: the held web view missed what changed while the screen was away; a whole-page update is a no-op for what it has.
   useEffect(() => {
     if (!active || !live || !loaded.current || ready.current) return;
     ready.current = true;
@@ -51,7 +42,6 @@ export function usePageRelay(page: LivePage | null, view: RefObject<PageHandle |
     if (update) view.current?.others(update);
   }, [active, live, view]);
 
-  // Why an answer and not a push: the web view's handle may not be registered yet when it says it is ready.
   const onReady = useCallback(async (): Promise<{ page: string; others: string | null } | null> => {
     if (!live) return null;
     ready.current = true;

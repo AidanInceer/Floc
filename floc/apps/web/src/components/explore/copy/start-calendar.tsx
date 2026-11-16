@@ -7,7 +7,6 @@ import { MonthGrid, type DayView } from "@/components/availability/month-grid";
 import { ChevronIcon } from "@/components/system/icons";
 import { Button } from "@/components/system/ui";
 
-/** Dates' own calendar, never the browser's: tap a start day and the listing's nights run on from it as one trip run. */
 export function StartCalendar({ month, onMonth, start, nights, onPick }: {
   month: IsoMonth;
   onMonth: (month: IsoMonth) => void;

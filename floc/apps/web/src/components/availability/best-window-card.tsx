@@ -4,11 +4,6 @@ import { spanLabel } from "@floc/core/dates/dates-tabs";
 import { ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
 import { nounFor } from "@floc/core/text/count-word";
 
-/**
- * The overlap, said — so nobody counts it off the calendar. One press commits
- * it; a window that drops planned days confirms first, as the grid does (#140).
- * A block in the Dates panel, neutral: its days may be some-free, not all-free.
- */
 export function BestWindowCard({
   window,
   memberCount,

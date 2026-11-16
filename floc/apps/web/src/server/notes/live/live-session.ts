@@ -1,7 +1,3 @@
-/**
- * Why: Better Auth's module is `server-only` and the custom server runs outside Next, so the socket asks the
- * app's own session route. The caller's address rides along, or every socket check shares one rate-limit bucket.
- */
 const CLIENT_IP_HEADER = "x-real-ip";
 
 export function sessionResolver(origin: string, fetchFn: typeof fetch = fetch) {

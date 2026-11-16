@@ -1,7 +1,3 @@
-/**
- * Why: the one way a trip is made or its own fields change, for the web's actions and the phone's API
- * alike (#573). The rules a name, colour, mark and tags must pass live here, so neither door can skip one.
- */
 import "server-only";
 
 import { Refusal } from "@floc/core/errors/refusal";
@@ -25,13 +21,11 @@ function nameOrRefuse(raw: unknown): string {
   return read.name;
 }
 
-/** A new trip with its maker as admin. The lazy profile row comes first: without it the roster shows a nameless admin. */
 export async function startTrip(
   viewerId: string,
   input: Omit<NewTrip, "name"> & { name: unknown },
 ): Promise<number> {
   const name = nameOrRefuse(input.name);
-  // Why together: the count is for the trips cap, and reading it beside the profile saves a round trip.
   const [, held] = await Promise.all([ensureProfile(viewerId), tripsHeldBy(viewerId)]);
   const id = await createTripWithAdmin({ name, startDate: input.startDate, endDate: input.endDate, createdBy: viewerId }, held);
   refresh({ kind: "tripList" });

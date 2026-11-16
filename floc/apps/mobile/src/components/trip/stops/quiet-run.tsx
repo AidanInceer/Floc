@@ -6,7 +6,6 @@ import { useTheme } from "../../system/theme";
 import { TITLE_INDENT } from "./columns";
 import { fonts, size, space } from "@/lib/theme";
 
-/** Why: a long run of empty days reads as noise one row apiece; one row says the same and still opens Days. */
 export function QuietRun({ first, last, count, onOpen }: { first: string; last: string; count: number; onOpen: () => void }) {
   const { c } = useTheme();
   return (

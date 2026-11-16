@@ -1,9 +1,3 @@
-/**
- * What each person still owes the group, as words for their row on The group.
- * Derived, never stored: a word shows exactly while the fact behind it is true.
- */
-
-/** People with a non-zero balance in any currency — people, not per-currency entries. */
 export function owingUserIds(balances: Record<string, Record<string, number>>): string[] {
   return Array.from(
     new Set(
@@ -20,7 +14,6 @@ export function groupStatuses({
   needDates,
   owing,
 }: {
-  /** Still to add their free days, while the trip is undated. */
   needDates: string[];
   owing: string[];
 }): Map<string, string[]> {

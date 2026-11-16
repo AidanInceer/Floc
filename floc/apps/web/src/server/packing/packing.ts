@@ -1,11 +1,3 @@
-/**
- * The packing aggregate — `packing_line`, `packing_claim`, and your per-trip
- * packing settings off the membership row (ticket 219, ticket 242).
- * Owns the SQL and soft-delete (rule 8). Claims are read
- * for the whole trip in one query, scoped by joining the line, so the two reads
- * can run together rather than one after the other.
- */
-
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import "server-only";
 
@@ -36,11 +28,6 @@ export type PackingClaimRow = {
   avatarIcon: AvatarIcon | null;
 };
 
-/**
- * The shared list, oldest first — a packing list is a checklist, not a feed.
- * `owner_id is null` is what makes it shared: personal lines live in the same
- * table and must never leak into the group's view (ticket 220).
- */
 export async function listPackingLines(
   tripId: number,
 ): Promise<PackingLine[]> {
@@ -68,17 +55,10 @@ export async function listPackingLines(
 export type PersonalPackingLine = PackingLine & {
   packedAt: Date | null;
   quantity: number;
-  /** The saved list it came from, if any (ticket 230) — it heads its own group. */
   kitName: string | null;
-  /** `suggested` when auto packing added it (#469). */
   origin: PackOrigin | null;
 };
 
-/**
- * One person's own bag on one trip. Scoped by owner in the query rather than
- * filtered after, so reading somebody else's list isn't expressible here
- * (ticket 220).
- */
 export async function listPersonalPackingLines(
   tripId: number,
   ownerId: string,
@@ -108,7 +88,6 @@ export async function listPersonalPackingLines(
   return bounded(rows, "packingLines", `trip ${tripId} personal`);
 }
 
-/** Name and avatar ride along: a claimer may since have left the trip, so the roster can't fill them in. */
 export async function listPackingClaims(
   tripId: number,
 ): Promise<PackingClaimRow[]> {
@@ -135,7 +114,6 @@ export async function listPackingClaims(
     .all();
 }
 
-/** Anything in the viewer's own bag, or a shared line they said they would bring (#312). */
 export async function viewerHasPacking(tripId: number, userId: string): Promise<boolean> {
   const own = await db
     .select({ id: packingLine.id })
@@ -161,7 +139,6 @@ export async function viewerHasPacking(tripId: number, userId: string): Promise<
   return claimed !== undefined;
 }
 
-/** The shared list when `ownerId` is null, else that person's own bag. */
 async function countLines(tripId: number, ownerId: string | null): Promise<number> {
   const owner = ownerId === null ? isNull(packingLine.ownerId) : eq(packingLine.ownerId, ownerId);
   const [{ n }] = await db
@@ -181,7 +158,6 @@ export async function insertPackingLine(
   await db.insert(packingLine).values({ tripId, createdBy, label, category });
 }
 
-/** Claims hang off the line id, so they ride through a rename untouched (#362). */
 export async function renamePackingLineLabel(lineId: number, label: string): Promise<void> {
   await db
     .update(packingLine)
@@ -189,7 +165,6 @@ export async function renamePackingLineLabel(lineId: number, label: string): Pro
     .where(and(eq(packingLine.id, lineId), isNull(packingLine.deletedAt)));
 }
 
-/** The same table, with an owner — author and owner are the same person by construction. */
 export async function insertPersonalPackingLine(
   tripId: number,
   ownerId: string,
@@ -202,12 +177,6 @@ export async function insertPersonalPackingLine(
     .values({ tripId, createdBy: ownerId, ownerId, label, category });
 }
 
-/**
- * Nudge a line's count by one. The arithmetic and the clamp happen in SQL
- * rather than read-modify-write in the action: two quick clicks are one plus
- * each, and a round trip through JS would let the slower one overwrite the
- * faster with a stale number.
- */
 export async function stepPersonalQuantity(
   lineId: number,
   ownerId: string,
@@ -228,11 +197,6 @@ export async function stepPersonalQuantity(
     );
 }
 
-/**
- * Tick or untick a line on your own bag. Scoped to (line, owner) so ticking
- * somebody else's is not expressible, and — because a shared line's owner is
- * null — so is a shared line picking up a personal tick nothing would read.
- */
 export async function setPersonalPacked(
   lineId: number,
   ownerId: string,
@@ -250,12 +214,6 @@ export async function setPersonalPacked(
     );
 }
 
-/**
- * Clear a whole list at once (ticket 229) — the shared one when `ownerId` is
- * null, one person's bag when it isn't. Scoped by owner in the statement rather
- * than by resolving ids first: "wipe my bag" must not be expressible as "wipe
- * someone else's", whatever ids reach it.
- */
 export async function softDeleteWholeList(
   tripId: number,
   ownerId: string | null,
@@ -273,13 +231,11 @@ export async function softDeleteWholeList(
   );
 }
 
-/** Several at once, from a tick-and-remove (ticket 229). The caller has already resolved every id through `access.packingLine`. */
 export async function softDeletePackingLines(lineIds: number[], by: string): Promise<void> {
   if (lineIds.length === 0) return;
   await dropLines(by, and(inArray(packingLine.id, lineIds), isNull(packingLine.deletedAt)));
 }
 
-/** "Remove suggested" (#469): what auto packing added and you have not packed. Owner-scoped in the SQL, so no other bag is reachable. */
 export async function softDeleteSuggestedLines(tripId: number, ownerId: string): Promise<number> {
   return dropLines(
     ownerId,
@@ -297,7 +253,6 @@ export async function softDeletePackingLine(lineId: number, by: string): Promise
   await dropLines(by, and(eq(packingLine.id, lineId), isNull(packingLine.deletedAt)));
 }
 
-/** Removing a line someone else claimed changes what they are bringing, so they hear about it (#344). */
 async function dropLines(by: string, which: SQL | undefined): Promise<number> {
   return db.transaction(async (tx) => {
     const lines = await tx
@@ -333,12 +288,6 @@ async function dropLines(by: string, which: SQL | undefined): Promise<number> {
   });
 }
 
-/**
- * Upsert on the (line, user) unique index. `deletedAt: null` is load-bearing:
- * the index doesn't know about soft-delete, so an unclaimed row blocks the
- * re-insert and, unreset, silently eats a re-claim. `packedAt` resets too — a
- * fresh claim starts unpacked whatever the last one ended as.
- */
 export async function claimPackingLine(
   lineId: number,
   userId: string,
@@ -368,7 +317,6 @@ export async function unclaimPackingLine(
     );
 }
 
-/** Tick or untick your own claim. Writes nothing if the claim isn't yours or is gone. */
 export async function setClaimPacked(
   lineId: number,
   userId: string,
@@ -386,14 +334,6 @@ export async function setClaimPacked(
     );
 }
 
-/* --------------------------------------- your packing settings on this trip */
-/*
- * Both live on the `trip_membership` row because they are facts about *you on
- * this trip*, not about the trip (ticket 220) — but they are packing's rules,
- * not the roster's, so they read that row from here (ticket 242).
- */
-
-/** Both in one read: the page asks for both, and asking twice is a second round trip to Turso for a row already in hand. */
 export async function getPackSettings(
   tripId: number,
   userId: string,
@@ -409,7 +349,6 @@ export async function getPackSettings(
   return { tier: row?.packTier ?? null, generatedAt: row?.packGeneratedAt ?? null };
 }
 
-/** Null means you have never chosen here, and the profile default applies. */
 export async function getPackTier(
   tripId: number,
   userId: string,

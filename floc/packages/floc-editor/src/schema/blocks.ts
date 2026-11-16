@@ -1,8 +1,3 @@
-/**
- * A notes page's blocks (#408): flat lines with an indent, never nested lists.
- * Names and attributes match `@floc/core/notes/pages/page-yjs`, which reads
- * and seeds the same tree on the server.
- */
 import { Node, mergeAttributes } from "@tiptap/core";
 import { MAX_INDENT } from "@floc/core/notes/pages/page-blocks";
 
@@ -14,7 +9,6 @@ const indent = {
   },
 };
 
-/** The line kinds that hold text and take an indent. */
 export const TEXT_BLOCKS = ["paragraph", "heading", "bullet", "numbered", "check", "quote"] as const;
 export type TextBlockName = (typeof TEXT_BLOCKS)[number];
 export const LIST_BLOCKS: readonly string[] = ["bullet", "numbered", "check"];
@@ -27,7 +21,6 @@ const line = (name: string, tag: string, parse: { tag: string; priority?: number
     defining: true,
     addAttributes: () => indent,
     parseHTML: () => parse,
-    // Why data-type: copy and paste go through this HTML, and a list line must come back a list line.
     renderHTML: ({ HTMLAttributes }) => [tag, mergeAttributes(HTMLAttributes, { class: `blk ${name}`, "data-type": name }), 0],
   });
 
@@ -48,7 +41,6 @@ export const Heading = Node.create({
       parseHTML: (element: HTMLElement) => Math.min(3, Number(element.tagName.slice(1)) || 3),
       renderHTML: () => ({}),
     },
-    // Why an id: a folded heading is remembered per person, by this id.
     id: {
       default: "",
       parseHTML: () => "",

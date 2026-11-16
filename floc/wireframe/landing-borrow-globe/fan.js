@@ -1,9 +1,7 @@
-// C: the Borrow band as it was on the live homepage before the globe (G2 of /landing-borrow). Built by _shots/fan.py.
 import { ico } from "/_house/switcher.js";
 
 let band = null;
 
-// Real listings from @floc/core preset trips, in the landing page's order.
 const B = (p, n, lat, lng) => ({ p, n, lat, lng });
 const H = (m, t) => ({ m, t });
 const TRIPS = [
@@ -61,8 +59,6 @@ function curve(pts) {
   return d;
 }
 
-// ── Nights laid end to end, shared by B, G and I ──────────────────────────
-// compact: hop shows its icon only and nights shrink to "4n", for card widths.
 function nightsBar(t, compact = false) {
   let from = 0;
   let hop = null;
@@ -80,7 +76,6 @@ function nightsBar(t, compact = false) {
   return `<ol class="b-line${compact ? " compact" : ""}">${segs.join("")}</ol>`;
 }
 
-// ── A fixed crop of the real map: OSM raster tiles, same source and paper filter as the app ──
 const TILE = 256;
 const MAX_Z = 9;
 function mercator(lat, lng, z) {
@@ -88,7 +83,6 @@ function mercator(lat, lng, z) {
   const s = Math.sin((lat * Math.PI) / 180);
   return [((lng + 180) / 360) * size, (0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI)) * size];
 }
-// mapPadY: a tall, thin route (Vietnam) earns a whole zoom level by giving up some top and bottom margin.
 function tileMap(t, key, w, h, pad = 34) {
   const padY = t.mapPadY ?? pad;
   const st = bases(t);
@@ -123,7 +117,6 @@ function tileMap(t, key, w, h, pad = 34) {
   </div>`;
 }
 
-// ── G: D + B — the fan, each sheet carrying its nights bar ────────────────
 function renderFanNights(real = false) {
   const n = TRIPS.length;
   let i = 0;
@@ -162,11 +155,8 @@ function renderFanNights(real = false) {
   place();
 }
 
-// The live band's four pastels, in its order.
 const TONES = ["red", "yellow", "blue", "green"];
 
-// ── G2's one clock: the bar fills night by night and the map line arrives
-// at each stop the moment the bar reaches that stop's first night.
 const JOURNEY_MS = 2600;
 const easeInOut = (x) => 0.5 - Math.cos(Math.PI * x) / 2;
 function syncedJourney() {
@@ -223,7 +213,6 @@ function syncedJourney() {
   };
 }
 
-/** The fan's own styles load only while it shows; their plain class names clash with the globe's. */
 export function renderFan(stage) {
   const css = Object.assign(document.createElement("link"), { rel: "stylesheet", href: "/landing-borrow-globe/fan.css" });
   let live = true;

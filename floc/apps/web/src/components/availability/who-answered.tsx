@@ -16,10 +16,8 @@ export function WhoAnswered({
   removeGuestFor,
 }: {
   members: TripMember[];
-  /** People on the invite link who answered with a name (#442). Not members, so never nudged. */
   guests?: Guest[];
   removeGuestFor?: (guest: Guest) => ReactNode;
-  /** userId → days marked free, for everyone who has answered; only "no" is 0 (#572). */
   marked: Partial<Record<string, number>>;
   viewerId: string;
   nudgeFor: (member: TripMember) => ReactNode;

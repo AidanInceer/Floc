@@ -1,32 +1,8 @@
-/**
- * The token VALUES, in one place (ticket 288).
- *
- * Tokens are values. Each platform draws them itself: the web app declares them
- * as CSS custom properties in `app/globals.css`, and the phone apps read them
- * from here directly, because React Native has no cascade to declare them into.
- *
- * That leaves two copies of the same numbers, which is exactly the drift this
- * ticket exists to stop — so `scripts/check-tokens.mjs` asserts, on every
- * `pnpm fitness`, that globals.css declares this map and nothing else, in both
- * themes. The CSS stays the artefact the browser loads (no build step, no
- * generated file in the repo); this stays the source the check believes.
- *
- * Order matters and is asserted: a declaration that moves is a real diff.
- *
- * DARK IS AN OVERLAY. It restates only the values that change, exactly as the
- * cascade sees it — which is why an alias (`--red: var(--pastel-red-ink)`) needs no
- * dark counterpart. `resolveTokens` flattens the two for a caller with no
- * cascade of its own.
- */
-
-/** A token value as it is written: a hex, a `var()` alias, or a composite (shadow, easing, font stack). */
 export type TokenValue = string;
 
 export type Theme = "light" | "dark";
 
-/** The light palette — the base every theme is an overlay on. */
 export const lightTokens = {
-  /* Ground and surfaces. Canvas is the page; white is every surface. */
   paper: "#fafafa",
   sheet: "#ffffff",
   "sheet-2": "#f5f4f0",
@@ -34,18 +10,15 @@ export const lightTokens = {
   rule: "#e6e4de",
   "rule-2": "#d8d5cd",
 
-  /* Ink. Three steps, all clearing WCAG AA on every surface they paint on. */
   ink: "#14141a",
   "ink-2": "#63636f",
   "ink-3": "#6f6f7b",
   "phone-frame": "var(--ink)",
 
-  /* Blue means "yours to do" and nothing else. */
   pen: "#4e68d8",
   "pen-deep": "#2b3b85",
   "pen-2": "#e7ebfa",
 
-  /* Four pastels, one per domain. The only place these values appear. */
   "pastel-blue": "#dfe3ff",
   "pastel-blue-ink": "#33409b",
   "pastel-green": "#dcefe4",
@@ -60,7 +33,6 @@ export const lightTokens = {
   "pastel-yellow-edge": "#efd9ae",
   "pastel-red-edge": "#f0c7bc",
 
-  /* Status — a separate NAME, never a separate hex. */
   highlight: "var(--pastel-yellow)",
   "highlight-2": "#fdf4e1",
   "highlight-ink": "var(--pastel-yellow-ink)",
@@ -73,7 +45,6 @@ export const lightTokens = {
   "green-edge": "var(--pastel-green-edge)",
   "pen-edge": "var(--pastel-blue-edge)",
 
-  /* A member's highlight and table colour on a notes page (#408): the tint, and the text on it. */
   "tone-yellow": "var(--pastel-yellow)",
   "tone-yellow-ink": "var(--ink)",
   "tone-red": "var(--pastel-red)",
@@ -83,13 +54,11 @@ export const lightTokens = {
   "tone-blue": "var(--pastel-blue)",
   "tone-blue-ink": "var(--ink)",
 
-  /* Dates: a day some of the group can do, stronger as more can (three steps, whatever the group size). */
   "some-free-1": "#fcebe6",
   "some-free-2": "var(--pastel-red)",
   "some-free-3": "var(--pastel-red-edge)",
   "some-free-ink": "#8c3b26",
 
-  /* A solid deep red that carries white text, for the one row that must stand out on a red wash. */
   "red-solid": "var(--some-free-ink)",
   "red-solid-ink": "#ffffff",
 
@@ -101,27 +70,22 @@ export const lightTokens = {
   "shadow-lift":
     "0 2px 4px rgb(20 20 26 / 0.06), 0 14px 28px -16px rgb(20 20 26 / 0.35)",
 
-  /* Pro is ink: black on white, white on black. Weight, not a hue, marks a paid perk. */
   pro: "var(--sheet-2)",
   "pro-2": "var(--sheet)",
   "pro-edge": "var(--rule-2)",
   "pro-ink": "var(--ink)",
   "pro-ink-2": "var(--ink-2)",
   "pro-mark": "var(--ink)",
-  /* The Pro band's black ground and the text on it. Black in both themes, so it is not simply --ink. */
   slab: "var(--ink)",
   "slab-ink": "var(--paper)",
 
   vignette: "rgb(255 255 255 / 0.5)",
 
-  /* The three faces. `--font-*-face` is next/font's doing and web-only; the
-     phone apps read `fontStacks` below instead. */
   display:
     'var(--font-display-face), "Red Hat Display", "Trebuchet MS", system-ui, sans-serif',
   sans: 'var(--font-body-face), "Red Hat Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
   type: 'var(--font-data-face), "Red Hat Mono", "Cascadia Mono", Consolas, "Courier New", monospace',
 
-  /* Eight seats, assigned from the display name (`whoTone`), never a column. */
   "who-1": "var(--pastel-blue)",
   "who-1-ink": "var(--pastel-blue-ink)",
   "who-2": "var(--pastel-red)",
@@ -140,12 +104,9 @@ export const lightTokens = {
   "who-8-ink": "#5a564d",
 } as const satisfies Record<string, TokenValue>;
 
-/** Every token name — the only keys a palette has. */
 export type TokenName = keyof typeof lightTokens;
 
-/** Dark, as an overlay on light. Same names, new values — never a new name. */
 export const darkTokens: Readonly<Partial<Record<TokenName, TokenValue>>> = {
-  /* Neutral grey, not blue-grey: a tinted ground fought every pastel on it. */
   paper: "#18181b",
   sheet: "#222226",
   "sheet-2": "#2a2a2f",
@@ -153,18 +114,15 @@ export const darkTokens: Readonly<Partial<Record<TokenName, TokenValue>>> = {
   rule: "#34343a",
   "rule-2": "#45454c",
 
-  /* Never pure white: #ffffff on a near-black ground haloes. */
   ink: "#f0f0f3",
   "ink-2": "#b8b8c1",
   "ink-3": "#a2a2ac",
   "phone-frame": "var(--rule-2)",
 
-  /* On a dark ground "pressed harder" reads as brighter, not darker. */
   pen: "#9aabff",
   "pen-deep": "#c3cbff",
   "pen-2": "#24283a",
 
-  /* The pastels swap roles: the wash is only a hint, the ink carries the colour. */
   "pastel-blue": "#252a3d",
   "pastel-blue-ink": "#c3cbff",
   "pastel-green": "#1f2e27",
@@ -179,7 +137,6 @@ export const darkTokens: Readonly<Partial<Record<TokenName, TokenValue>>> = {
   "pastel-yellow-edge": "#4a4230",
   "pastel-red-edge": "#4c3438",
 
-  /* A dark wash is too faint to mark words: highlights take the edge, and the ink carries the colour. */
   "tone-yellow": "var(--pastel-yellow-edge)",
   "tone-yellow-ink": "var(--pastel-yellow-ink)",
   "tone-red": "var(--pastel-red-edge)",
@@ -189,7 +146,6 @@ export const darkTokens: Readonly<Partial<Record<TokenName, TokenValue>>> = {
   "tone-blue": "var(--pastel-blue-edge)",
   "tone-blue-ink": "var(--pastel-blue-ink)",
 
-  /* The dark red wash sits close to the sheet: the steps climb towards the edge instead of paling. */
   "some-free-1": "var(--pastel-red)",
   "some-free-2": "#3e2b2f",
   "some-free-ink": "var(--pastel-red-ink)",
@@ -215,14 +171,8 @@ export const darkTokens: Readonly<Partial<Record<TokenName, TokenValue>>> = {
   "slab-ink": "var(--ink)",
 };
 
-// Why: three radii, nothing between — web declares them in globals.css @theme, the phone and the wireframe kit read them here.
 export const radii = { sm: 8, md: 12, pill: 999 } as const;
 
-/**
- * The face names alone, for a platform that loads fonts by name rather than by
- * a CSS stack. The web keeps its `var(--font-*-face)` stacks above, because
- * next/font's generated family has to come first there.
- */
 export const fontStacks = {
   display: ["Red Hat Display", "Trebuchet MS", "System"],
   sans: ["Red Hat Text", "System"],
@@ -231,10 +181,6 @@ export const fontStacks = {
 
 const ALIAS = /^var\(--([\w-]+)\)$/;
 
-/**
- * Why: React Native has no cascade, so `var()` aliases are followed here; a cycle or a
- * dangling alias is dropped rather than thrown, so one bad token never takes a screen down.
- */
 export function resolveTokens(theme: Theme = "light"): Record<TokenName, string> {
   const raw: Record<string, TokenValue> = { ...lightTokens };
   if (theme === "dark") Object.assign(raw, darkTokens);
@@ -256,7 +202,6 @@ export function resolveTokens(theme: Theme = "light"): Record<TokenName, string>
   return out;
 }
 
-/** Just the tokens that are a plain 6-digit hex — the ones a native style can use directly. */
 export function resolveColours(theme: Theme = "light"): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [name, value] of Object.entries(resolveTokens(theme))) {

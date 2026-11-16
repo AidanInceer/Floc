@@ -1,9 +1,3 @@
-/**
- * Saved packing lists — `packing_kit` and `packing_kit_item` (ticket 230).
- * Every read and write is scoped by `owner_id` in the statement rather than
- * checked after: someone else's saved list is not addressable from here, the
- * same way a personal packing line isn't.
- */
 import "server-only";
 
 import { and, asc, count, eq, isNull, sql } from "drizzle-orm";
@@ -23,7 +17,6 @@ import { touch } from "@/server/audit";
 export type PackingKitSummary = { id: number; name: string; itemCount: number };
 type PackingKitItem = KitItem & { id: number };
 
-/** Name and size only — the picker on a trip needs both and nothing else. */
 export async function listPackingKits(
   ownerId: string,
 ): Promise<PackingKitSummary[]> {
@@ -55,10 +48,6 @@ export type PackingKitWithItems = {
   items: PackingKitItem[];
 };
 
-/**
- * Every saved list with its things, in one join — the page renders all of them,
- * and asking per kit is 1 + 2N round trips for a screen that is one read.
- */
 export async function listPackingKitsWithItems(
   ownerId: string,
 ): Promise<PackingKitWithItems[]> {
@@ -105,7 +94,6 @@ export async function listPackingKitsWithItems(
   return [...kits.values()];
 }
 
-/** Null rather than a throw when the kit isn't yours — an unowned id and a missing one read the same. */
 async function getPackingKit(
   kitId: number,
   ownerId: string,
@@ -175,7 +163,6 @@ export async function renamePackingKit(
     );
 }
 
-/** The items go with it — a kit's rows are only ever reachable through the kit. */
 export async function softDeletePackingKit(
   kitId: number,
   ownerId: string,
@@ -199,7 +186,6 @@ export async function softDeletePackingKit(
     );
 }
 
-/** Silently a no-op at the ceiling, like every other capped list here (rule 11). */
 export async function insertPackingKitItem(
   kitId: number,
   ownerId: string,
@@ -214,7 +200,6 @@ export async function insertPackingKitItem(
     .values({ packingKitId: kit.id, label, category, quantity });
 }
 
-/** Resolved through the owning kit, so an id from someone else's list matches nothing. */
 async function ownedKitItem(
   itemId: number,
   ownerId: string,
@@ -247,7 +232,6 @@ export async function softDeletePackingKitItem(
     .where(eq(packingKitItem.id, owned.id));
 }
 
-/** Same step-in-SQL as a bag row, and for the same reason — two quick clicks are two steps, not a race. */
 export async function stepPackingKitItemQuantity(
   itemId: number,
   ownerId: string,
@@ -265,18 +249,6 @@ export async function stepPackingKitItemQuantity(
     .where(eq(packingKitItem.id, owned.id));
 }
 
-/**
- * Copy a saved list into one person's bag on one trip. A copy, not a link: the
- * rows are ordinary packing lines from the moment they land, so renaming or
- * re-counting them is just editing your bag, and a later edit to the kit does
- * not reach back into a trip.
- *
- * One transaction, for the reason `fillPersonalBag` documents: read-then-insert
- * across two statements lets a double-press read the same bag twice and write
- * the kit twice, and the duplicates then read as "already there", so no later
- * press can undo them. SQLite serialises write transactions, so the second one
- * sees the first one's rows and adds nothing.
- */
 export async function applyPackingKitToBag(args: {
   tripId: number;
   ownerId: string;
@@ -320,8 +292,6 @@ export async function applyPackingKitToBag(args: {
       return toAdd.length;
     });
   } catch (err) {
-    // The other press is doing the identical work, so "added nothing" is true
-    // rather than a 500 at somebody who clicked twice (rule 11).
     if (isLockContention(err)) return 0;
     throw err;
   }
