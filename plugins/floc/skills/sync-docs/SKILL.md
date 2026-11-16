@@ -40,7 +40,7 @@ Include untracked files. If the user named a commit range, diff that instead.
 
 | The diff touches | Update |
 |---|---|
-| `db/schema.ts` | [ERD](docs/engineering/data-model.html) block, relationships and "Tables by feature"; the feature page's *Built on*; the [system map](docs/engineering/index.html#system-map) (ask first) |
+| `db/schema.ts` | [ERD](docs/engineering/data-model.html): the table's box in `figure.sm-erd` (one `li data-col` per column shown), its join lines in the figure's JSON list (`[parent, child, kind, "", [end, end], [parent column, child column]]`), and "Tables by feature". Edit the figure in place: never delete it, never redraw it in Mermaid or another format; the feature page's *Built on*; the [system map](docs/engineering/index.html#system-map) (ask first) |
 | A surface, door, gate, `server/` module, outside service, data store, cron or CI stage | the [system map](docs/engineering/index.html#system-map) (ask first) |
 | Layers, seams, trip state, deploy | [architecture](docs/engineering/index.html) |
 | Sign-in, sessions, Better Auth | [security](docs/engineering/security.html#auth) |
@@ -106,7 +106,9 @@ before deleting it. The user has no git history for `docs/`.
 pnpm docs:check
 ```
 
-It fails on a schema table missing from the ERD, a procedure missing from the
+It fails on an ERD that is gone, drawn in Mermaid, or out of step with `schema.ts`
+(a table on one side only, a column the schema does not have, a foreign key with no
+join line), a procedure missing from the
 API map, a broken link or anchor in `docs/`, `AGENTS.md` or a skill, a page missing from
 `TREE`, a bad `related` id or `adr` number, or a feature page without *Built on*.
 It cannot see stale prose — that part is yours.

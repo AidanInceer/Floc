@@ -2,12 +2,11 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { docLinks } from "./docs-links.mjs";
+import { erdFailures, schemaTables } from "./docs-erd.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DOCS = join(ROOT, "docs");
 const read = (path) => readFileSync(join(ROOT, path), "utf8");
-
-const AUTH_TABLES = new Set(["session", "account", "verification"]);
 
 if (!existsSync(join(DOCS, "index.html"))) {
   if (process.env.CI) {
@@ -22,15 +21,8 @@ const failures = [];
 
 function checkErd() {
   const schema = read("floc/apps/web/src/db/schema.ts");
-  const erd = read("docs/engineering/data-model.html");
-  const tables = [...schema.matchAll(/Table\(\s*"([a-z_]+)"/g)].map((m) => m[1]);
-  for (const table of tables) {
-    if (AUTH_TABLES.has(table)) continue;
-    if (!new RegExp(`\\b${table.toUpperCase()}\\b`).test(erd)) {
-      failures.push(`erd.html: table "${table}" is in schema.ts but not in the diagram`);
-    }
-  }
-  return tables.length;
+  failures.push(...erdFailures(schema, read("docs/engineering/data-model.html")));
+  return schemaTables(schema).size;
 }
 
 function checkApiMap() {
