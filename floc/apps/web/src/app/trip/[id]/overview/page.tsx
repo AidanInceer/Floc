@@ -141,7 +141,12 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
                 nights: trip.startDate && trip.endDate ? nightsBetween(trip.startDate, trip.endDate) : 0,
               }}
               position={position}
-            ideas={tucked ? <IdeasRow tripId={tripId} ideas={ideas} /> : null}
+              estimate={
+                <Suspense fallback={null}>
+                  <StreamedEstimate tripId={tripId} estimate={estimate} />
+                </Suspense>
+              }
+              ideas={tucked ? <IdeasRow tripId={tripId} ideas={ideas} /> : null}
               recap={recapShows(trip.endDate, now) ? (
                 <RecapFoot
                   tripId={tripId}
@@ -167,10 +172,6 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
           {files ? <OverviewFiles tripId={tripId} files={docs} /> : null}
         </div>
       </section>
-
-      <Suspense fallback={null}>
-        <StreamedEstimate tripId={tripId} estimate={estimate} />
-      </Suspense>
 
       {tucked ? null : <IdeasPanel tripId={tripId} ideas={ideas} datesUnset={datesUnset} />}
 
