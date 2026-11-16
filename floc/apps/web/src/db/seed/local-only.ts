@@ -11,10 +11,6 @@ export function assertLocalDatabase(env: Env = process.env): void {
   }
 }
 
-/**
- * Why two roots: the main checkout keeps uploads under the web app, and a task worktree keeps
- * them in its own `.floc/` at the repo root (`pnpm workspace:new`). Nothing else is ever cleared.
- */
 export function assertClearableFilesDir(target: string, webDir: string): void {
   const roots = [webDir, resolve(webDir, "../../../.floc")];
   const inside = roots.some((root) => {

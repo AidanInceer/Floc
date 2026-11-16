@@ -1,8 +1,3 @@
-/**
- * Finding someone to befriend (#360). Mo is the viewer, a friend of Ada; Sam
- * is Ada's friend and nobody else's, so reachable only through Ada. Ozz is a
- * stranger on a trip of his own — the one nothing here may reveal.
- */
 import { and, eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

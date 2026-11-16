@@ -1,7 +1,3 @@
-/**
- * How a person's calendar import reads their events (ADR-031): every event, or all-day events
- * only. Remembered on the profile, so the choice holds on the web and the phone.
- */
 import "server-only";
 
 import { ensureProfile, getProfile, updateProfileFields } from "@/server/auth/profile";

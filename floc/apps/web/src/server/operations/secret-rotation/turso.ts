@@ -2,7 +2,6 @@ import { requestJson } from "./http.ts";
 
 const API = "https://api.turso.tech/v1/organizations";
 
-// Why: Turso takes durations as `2w1d30m`; whole minutes keep the old token's lifetime without a seconds unit.
 export function tokenExpiration(token: string, now = Date.now() / 1000): string {
   let exp: number | undefined;
   try {
@@ -35,8 +34,6 @@ export function createTurso(token: string, fetcher: typeof fetch = fetch) {
     return database;
   };
   return {
-    // Why: the repo is public, so the organisation and database are found from TURSO_DATABASE_URL.
-    // Invalidation rotates the group's signing key, so any other database in the group would lose access too.
     async assertScope(databaseUrl: string) {
       const host = new URL(databaseUrl).hostname;
       const organisations = await requestJson<{ slug: string }[]>(fetcher, API, { headers });
@@ -50,7 +47,6 @@ export function createTurso(token: string, fetcher: typeof fetch = fetch) {
       }
       throw new Error("Turso database or group scope needs review before invalidation.");
     },
-    // Why: invalidation finishes in the background; a token minted a second later was refused with 401, so mint until one works.
     async replaceToken(expiration: string, databaseUrl: string, wait: () => Promise<void> = () => new Promise((done) => setTimeout(done, 10_000))) {
       await requestJson(fetcher, `${base()}/auth/rotate`, { method: "POST", headers });
       for (let attempt = 0; attempt < 18; attempt++) {

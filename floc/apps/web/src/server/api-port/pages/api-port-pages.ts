@@ -1,8 +1,3 @@
-/**
- * The port's notes-pages half (#408): the same `server/notes/pages` modules the
- * web's Server Actions call, so the phone and the browser change one list by
- * one set of rules. Every call resolves the trip first (rule 5).
- */
 import "server-only";
 
 import type { Comment, FlocPort } from "@floc/api/port";
@@ -70,7 +65,6 @@ export const pagesPort: PagesPort = {
   },
   async listPageComments(viewerId, tripId, pageId): Promise<Comment[]> {
     const { trip, viewer } = await scoped(viewerId, tripId);
-    // No tones: the phone already has the roster and colours its own faces.
     return (await loadPageComments({ tripId: trip.id, pageId, viewerId: viewer.id, toneOf: new Map() })).map(toComment);
   },
   async addPageComment(viewerId, tripId, pageId, replyTo, body) {

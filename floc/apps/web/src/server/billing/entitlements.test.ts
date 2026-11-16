@@ -1,7 +1,3 @@
-/**
- * The gate's six states (ticket 246). Written against the module directly:
- * every one of these should fail if the rule moves back into a caller.
- */
 import { and, eq } from "drizzle-orm";
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 

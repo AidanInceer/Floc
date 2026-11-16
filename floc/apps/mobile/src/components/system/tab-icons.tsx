@@ -1,20 +1,3 @@
-/**
- * The bottom bar's three marks (ticket 302 revisited).
- *
- * WHY THESE EXIST NOW. #299 and #302 chose words because React Native had no
- * SVG here and three nouns beat three bad drawings. `react-native-svg` closes
- * that gap, so the bar can carry the same line-art the web app does: 14×14
- * `viewBox`, `fill="none"`, `strokeWidth` 1.2, colour from the caller (#148
- * still forbids the emoji this would otherwise be).
- *
- * The word stays under each mark — a glyph nobody has learnt yet is a puzzle,
- * and the label is what the screen reader reads.
- *
- * TRIPS IS THE WORDMARK. The flock chevron is the product's own mark, so the
- * tab that holds the trips is the only one that gets it. Traced from the web
- * app's `flock-chevron.tsx` on its native 26×20 box, scaled to sit level with
- * the two 14×14 marks beside it.
- */
 import type { ColorValue } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
 
@@ -44,14 +27,6 @@ export function ExploreIcon({ color }: IconProps) {
   );
 }
 
-/**
- * Why: Trips — the wordmark's three chevrons, on their own 28×22 box.
- *
- * These are the paths from `wordmark.tsx`, not `flock-chevron.tsx`. The two
- * differ by a vertical flip and mean opposite things: the wordmark is a flock
- * in a V, flying up; the chevron is the product's disclosure caret, pointing
- * down at what it opens. The tab wants the flock.
- */
 export function TripsIcon({ color }: IconProps) {
   return (
     <Svg width={(SIZE * 28) / 22} height={SIZE} viewBox="0 0 28 22" fill="none">
@@ -80,7 +55,6 @@ export function TripsIcon({ color }: IconProps) {
   );
 }
 
-/** You — a head over shoulders. */
 export function YouIcon({ color }: IconProps) {
   return (
     <Svg width={SIZE} height={SIZE} viewBox="0 0 14 14" fill="none">

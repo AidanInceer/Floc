@@ -4,8 +4,6 @@ import { buildCards, flight, runScene, playing, ORDER, DONE } from "./cards.js";
 const stage = document.getElementById("stage");
 let stop = null;
 
-// Every take: the live hero's five cards, each drawn small enough that all five show at once, none over another.
-// The cards stay where they are; the scene plays inside them, and the card playing lifts a little.
 function lay(kind, route) {
   const cards = buildCards();
   const scene = document.createElement("div");
@@ -39,7 +37,6 @@ const mid = (a, b) => (a + b) / 2;
 const ARC = (w, h, at) => `M -14 ${mid(at("ticket").t, at("ticket").b)} C ${w * 0.12} -60, ${w * 0.55} -20, ${w + 14} 2`;
 
 const LAYOUTS = {
-  /* O2 — O with the plane on one soft arc behind the cards, as on the web. */
   O2: () => lay("mid dk-arc", ARC),
 };
 

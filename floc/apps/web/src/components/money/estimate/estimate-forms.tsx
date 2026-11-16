@@ -14,7 +14,6 @@ import {
   saveNightsForm,
 } from "@/app/trip/[id]/money/estimate-actions";
 
-// Why: a field starts empty unless it holds the person's own earlier answer (design card).
 const shown = (minor: number | null, currency: Currency) => (minor == null ? undefined : toMajorInput(minor, currency));
 const moneyField = "font-mono";
 
@@ -66,7 +65,6 @@ export function NightsForm({ tripId, nights }: { tripId: number; nights: number 
   );
 }
 
-/** Your home airport. A guess from your flight files is offered as a Confirm, never typed into the field for you. */
 export async function HomeAirportForm({ suggested }: { suggested: string | null }) {
   return (
     <div className="grid gap-4">

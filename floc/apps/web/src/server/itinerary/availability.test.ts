@@ -1,8 +1,3 @@
-/**
- * Availability's one non-obvious rule (ticket 242, split out of
- * membership.test.ts): unmarking flips a row to `false` and never deletes it,
- * because the unique index ignores `deleted_at`.
- */
 import { and, eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -41,7 +36,6 @@ describe("availability", () => {
 
     expect((await marks()).map((m) => m.available)).toEqual([true, true]);
 
-    // Unmarking writes false rather than soft-deleting: the unique index ignores deleted_at, so a dead row would bar the date for good.
     await setAvailability(world.ours.id, world.member, dates, false);
     expect(await marks()).toHaveLength(2);
     expect((await marks()).every((m) => m.available === false)).toBe(true);

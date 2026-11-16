@@ -1,8 +1,3 @@
-/**
- * Which cube a typed thing goes in, so adding to your bag is one field. Pure
- * and word-based: whole words only, singular or plural, and anything it does
- * not know is Other, never a wrong guess dressed up as a right one.
- */
 import type { PackCategory } from "./packing";
 
 const WORDS: [PackCategory, string[]][] = [
@@ -20,7 +15,6 @@ function singular(word: string): string {
   return word;
 }
 
-/** "T-shirt" and "after-sun" are one word to a packer, so a hyphen joins as well as splits. */
 function wordsOf(label: string): string[] {
   const chunks = label.toLowerCase().match(/[a-z-]+/g) ?? [];
   return chunks.flatMap((chunk) => {

@@ -1,9 +1,7 @@
 export const LIVE_NOTES_PATH = "/live/notes";
 
-/** One live doc per notes page (#408), and one per trip that carries who is where and "the list changed". */
 export const pageDocumentName = (tripId: number, pageId: number) => `trip-page:${tripId}:${pageId}`;
 export const pagesDocumentName = (tripId: number) => `trip-pages:${tripId}`;
-/** "This trip changed" for every tab of the trip (#577), not only Notes. */
 export const tripDocumentName = (tripId: number) => `trip-live:${tripId}`;
 
 export type LiveDocument =

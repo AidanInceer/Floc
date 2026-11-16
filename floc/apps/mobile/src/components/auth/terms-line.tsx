@@ -1,7 +1,3 @@
-/**
- * Why on both screens (#549): Google on the sign-in screen also makes a new account, and the record of which
- * terms an account agreed to is true only if the person saw this line first.
- */
 import { Linking, Text } from "react-native";
 
 import { useTheme } from "@/components/system/theme";

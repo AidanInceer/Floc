@@ -1,4 +1,3 @@
-// Decorative: the caller carries the words "Floc Pro" for a screen reader.
 export function ProStar() {
   return (
     <svg

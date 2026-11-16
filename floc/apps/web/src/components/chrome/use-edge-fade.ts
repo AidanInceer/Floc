@@ -2,16 +2,10 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 
-// useLayoutEffect warns during SSR; on the server there is nothing to measure.
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 const FADE = "1.75rem";
 
-/**
- * A scrolling row with no visible scrollbar looks like a row that fits. Fade
- * whichever end still has links behind it — the one affordance that says
- * "there's more this way" without printing an instruction (ticket 209).
- */
 export function useEdgeFade<T extends HTMLElement>() {
   const ref = useRef<T>(null);
   const [edges, setEdges] = useState({ start: false, end: false });
@@ -38,7 +32,6 @@ export function useEdgeFade<T extends HTMLElement>() {
   return { ref, onScroll: measure, style };
 }
 
-// `black`/`transparent` are mask channels, not paint — a mask reads only the alpha.
 function edgeMask({ start, end }: { start: boolean; end: boolean }): string | null {
   if (!start && !end) return null;
   const stops = [

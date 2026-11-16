@@ -1,7 +1,5 @@
 import type * as Y from "yjs";
 
-// Why: a page doc seeded again from its body (its live state lost) is made of
-// new Yjs items. A device's cache of the old doc merged into it would double every block.
 const META = "meta";
 
 export function stampEpoch(doc: Y.Doc, epoch: string): void {

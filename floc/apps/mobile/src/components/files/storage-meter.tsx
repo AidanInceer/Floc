@@ -1,4 +1,3 @@
-/** The web's `StorageMeter`: a quiet footer line over a full-width bar (#285). The words carry it; the bar only shows the share. */
 import { formatBytes } from "@floc/core/documents/documents";
 import { Text, View } from "react-native";
 

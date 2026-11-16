@@ -1,19 +1,3 @@
-/**
- * One event, opened (ticket 325) — the phone's half of the web's event modal.
- *
- * ONE SCROLL, NOT TABS. Variant B of #255: the facts, then its files, then the
- * talk about it, in one column. Tabs would hide two thirds of an event behind
- * a control, and an event is small enough that all of it fits in a thumb's
- * travel.
- *
- * IT REPLACES EDITING IN PLACE. The grid used to swap itself for a form, which
- * meant opening an event lost sight of the day and left nowhere to put the
- * event's files or the talk about it.
- *
- * THE FACTS ARRIVE AS A CHILD, the other two fetch their own. The screen owns
- * the event's own mutations already — it drew the form before this existed —
- * whereas files and comments are nothing the Days screen otherwise knows.
- */
 import type { ReactNode } from "react";
 
 import { EventSheet } from "./event-sheet";
@@ -35,7 +19,6 @@ export function EventModal({
   dayEventId: number;
   viewerId: string;
   onClose: () => void;
-  /** The event's own facts — the screen's form, which already owns its mutations. */
   children: ReactNode;
 }) {
   return (

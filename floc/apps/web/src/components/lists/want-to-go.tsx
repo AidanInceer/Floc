@@ -19,11 +19,6 @@ type Country = { code: string; name: string };
 
 const byName = (a: Country, b: Country) => a.name.localeCompare(b.name);
 
-/**
- * Where you want to go (#467, ADR-042): the Explore trips you saved, then the countries, both as tiles.
- * Trips and countries sit apart (A3): trips as Explore tiles, countries four across and smaller. A tile opens the trip or Explore
- * searched for the country; Start trip on its last line starts one from it. A country is the globe's yellow, so adding or removing one paints it.
- */
 export function WantToGo({ trips, countries, friends }: { trips: PresetTrip[]; countries: Country[]; friends: FriendSaves }) {
   const [shown, change] = useOptimistic(countries, (list, next: { add?: Country; drop?: string }) =>
     next.add ? [...list, next.add].sort(byName) : list.filter((c) => c.code !== next.drop),

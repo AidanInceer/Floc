@@ -20,10 +20,6 @@ const ROW =
 const SOURCES = [["friends", "Friends"], ["groups", "Groups"], ["trips", "Past trips"]] as const;
 type Source = (typeof SOURCES)[number][0];
 
-/**
- * Who to ask onto a wish list (#623, ADR-049): friends one by one, or everyone in a named group or a past trip at once.
- * A group or trip only ticks its people; nothing links back to it, so a named group stays private (#545).
- */
 export function PeopleChooser({ title, verb, sources, exclude, onPick, onClose }: {
   title: string;
   verb: string;

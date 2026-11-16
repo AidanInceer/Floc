@@ -1,22 +1,8 @@
-/**
- * Pick friends to ask onto a trip (ticket 146) — the same control on the
- * "Start a trip" form and behind Invite friends on the roster.
- *
- * A plain checkbox list of `friendIds`, not a search box: v1's friends list is
- * the people you have already travelled with, so it is short by construction
- * and a filter over a dozen names would be furniture. It grows a scroll area
- * rather than a search when it gets long.
- *
- * Renders its own nothing-here state instead of collapsing to an empty box,
- * because "you have no friends yet" is the answer to why the list is blank and
- * the form around it still has a job to do.
- */
 import { Avatar, cx } from "@/components/system/ui";
 import type { Person } from "@/server/social/friends";
 
 export function FriendPicker({
   friends,
-  /** Already on the trip, or already asked — offered nowhere, listed nowhere. */
   excludeIds = [],
   emptyNote,
   unbounded,
@@ -25,9 +11,7 @@ export function FriendPicker({
   friends: Person[];
   excludeIds?: string[];
   emptyNote: string;
-  /** The container scrolls instead — a nested scroll area inside a scrolling sheet draws two bars. */
   unbounded?: boolean;
-  /** Start with everyone ticked: the same group again (#443). */
   ticked?: boolean;
 }) {
   const excluded = new Set(excludeIds);
@@ -46,7 +30,6 @@ export function FriendPicker({
     >
       {offered.map((f) => (
         <li key={f.id}>
-          {/* The whole tile is the target; the checkbox itself is hidden and the mark says which state it is in. */}
           <label className="group flex min-h-11 cursor-pointer items-center gap-2 rounded-md border border-rule bg-sheet px-2.5 py-1.5 text-sm transition-colors hover:border-pen has-[:checked]:border-pen has-[:checked]:bg-pen-soft has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-pen">
             <input type="checkbox" name="friendIds" value={f.id} defaultChecked={ticked} className="peer sr-only" />
             <Avatar name={f.name} size={26} />

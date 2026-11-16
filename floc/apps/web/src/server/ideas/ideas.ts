@@ -1,9 +1,3 @@
-/**
- * `idea` + `idea_vote` writes; reads are in `ideas-read.ts`.
- *
- * Why: removing is open to every member, not just the author — an idea belongs
- * to the group, and the admin powers stay kick/promote/delete/re-lock.
- */
 import "server-only";
 
 import { and, count, eq, isNull } from "drizzle-orm";
@@ -16,7 +10,6 @@ import { touch } from "@/server/audit";
 
 export const IDEA_TITLE_MAX = TEXT_CAPS.ideaTitle;
 
-/** One live idea of this trip's. Scoped by trip, so a foreign id reads as gone. */
 export async function findIdea(tripId: number, ideaId: number) {
   return db
     .select({ id: idea.id, title: idea.title, createdBy: idea.createdBy })
@@ -47,7 +40,6 @@ export async function softDeleteIdea(tripId: number, ideaId: number): Promise<vo
     .where(and(eq(idea.id, ideaId), eq(idea.tripId, tripId), isNull(idea.deletedAt)));
 }
 
-/** Un-voting revives the same row rather than inserting a second (rule 8), so two taps together cannot count twice. */
 export async function toggleIdeaVote(ideaId: number, userId: string): Promise<void> {
   const existing = await db
     .select({ deletedAt: ideaVote.deletedAt })

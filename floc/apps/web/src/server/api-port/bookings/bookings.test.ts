@@ -1,4 +1,3 @@
-/** The Bookings port (#559): a viewer's own waiting files, and what Floc read only for Pro. */
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";

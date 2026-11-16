@@ -1,10 +1,3 @@
-// The type sets under review. Each has a display, a sans and a mono face, as the design card asks.
-// d: display weight, track: display letter-spacing, wm: wordmark weight.
-// Rounds 1–3 closed on 2026-11-15 to a shortlist: Now (reference), H, J and W. Git holds the closed sets.
-// Round 4: each shortlisted heading face at three more weights, with its own text and mono faces.
-// Round 4 narrowed to heading weights 700–800: closed H2 500, H3 600, J2 600, J4 900, W2 600 and W 900.
-// Shipped as W4. The page stays open as a type playground: add a set to SHORTLIST or WEIGHTS to try it against the live one.
-
 const face = (name, fallback) => `"${name}", ${fallback}`;
 const SANS = "system-ui, sans-serif";
 const SERIF = "Georgia, serif";
@@ -67,11 +60,8 @@ export function loadFonts(set) {
 export const vars = (s) =>
   `--display:${s.css};--sans:${s.sansCss};--type:${s.monoCss};--d-wt:${s.d};--d-track:${s.track};--wm-wt:${s.wm};--wm-track:${s.wmTrack};--d-stretch:${s.stretch || "100%"}`;
 
-// Chosen 2026-11-15: W4 for all three roles. Headings Red Hat Display 800; text Red Hat Text and numbers Red Hat Mono, both as in W3 and W4.
 export const PICKED_HEADING = WEIGHTS.find((s) => s.key === "W4");
 
-// Every text and mono face seen in rounds 1–3, so text and numbers draw from the full field, not only the shortlist.
-// The first entry is W4's own partner; the second is the live site's.
 const pool = (names, fallback) => names.map(([name, spec]) => ({ name, css: face(name, fallback), spec: spec === undefined ? "wght@400;500;600" : spec }));
 export const TEXT_POOL = pool([
   ["Red Hat Text"], ["Instrument Sans"], ["Geist"], ["Inter"], ["DM Sans", "opsz,wght@9..40,400;9..40,500;9..40,600"],

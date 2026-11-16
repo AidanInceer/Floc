@@ -1,21 +1,3 @@
-/**
- * Days page (ticket 15, re-imagined as a calendar by ticket 103, a focus day since B5). The only
- * route over the `day` + `day_event` dataset — Route was retired by ticket
- * 142, its map/stop-list now at the foot of Overview, and the overnight place
- * is set here on the band above the clock (ticket 141).
- *
- * `components/days-calendar.tsx` is a Client Component owning geometry and
- * gestures; this stays a Server Component owning every Server Action — the
- * selected event's panel, adding/removing a day — passed over as pre-rendered
- * nodes so mutations stay on the server.
- *
- * Notes hang off *events*, not days (a free-text per-day box had no clear use);
- * trip-wide talk lives on the Notes page now, not here (ticket 321).
- *
- * Each event category has its own colour (ticket 68) via `EVENT_CATEGORIES`,
- * with the word always present too — colour is never the only signal. A
- * flight event offers a Google Flights deep link only (ticket 10).
- */
 import {
   addDays,
   deleteEvent,
@@ -76,10 +58,6 @@ export default async function DaysPage({
   const commenter = commenterOf(viewer, members);
 
   if (days.length === 0) {
-    // Two empty states (ticket 126): an undated trip is sent to Dates rather
-    // than offered "Add the first day", which would otherwise seed from
-    // `today()` — a January trip picking up an August day it never asked for
-    // (rule 9: undated is normal, never an error).
     return (
       <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
         <PageTitle className="sr-only">Days</PageTitle>
@@ -215,22 +193,15 @@ export default async function DaysPage({
   );
 }
 
-/** You, as the comment composer draws you: your trip colour and face, as on every other tab. */
 function commenterOf(viewer: { id: string; name: string }, members: TripMember[]): Viewer {
   const me = members.find((m) => m.userId === viewer.id);
   return { id: viewer.id, name: me?.name ?? viewer.name, icon: me?.avatarIcon ?? null, tone: me?.tone };
 }
 
-/** One date, formatted for a column head. UTC throughout (rule 10) — read in
- * local time, a date west of Greenwich renders as the day before. */
 function partOf(date: string, opts: Intl.DateTimeFormatOptions) {
   return fromIsoDate(date).toLocaleDateString("en-GB", { ...opts, timeZone: "UTC" });
 }
 
-/**
- * Why: the panel below the event's form — flight search, files, the thread and delete —
- * needs the server's rows. The calendar draws the form itself, so it opens on the click.
- */
 function EventPanel({
   tripId,
   date,
@@ -259,7 +230,6 @@ function EventPanel({
   const isTransport = event.type === "transport";
   const from = originPlaceName ?? event.placeName ?? "";
   const to = destinationPlaceName ?? event.placeName ?? "";
-  // Why: on a trip's first day both ends fall back to the event's own place, and "Lisbon to Lisbon" says nothing.
   const flightTitle = from && to && from !== to ? `Search flights, ${from} to ${to}` : "Search flights";
   const flightLinks =
     isTransport && event.transportType === "flight"

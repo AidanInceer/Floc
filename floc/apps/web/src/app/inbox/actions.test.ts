@@ -1,8 +1,3 @@
-/**
- * #403: the two marks the inbox writes. Seeing is landing on the page and
- * answers the bell; reading is opening a row, or the control that clears the
- * lot. Neither may touch anybody else's rows.
- */
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { REDIRECT } from "@/test/setup";

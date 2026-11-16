@@ -1,4 +1,3 @@
-// Why drawn as views over the map: MapLibre has no canvas, so the web's discs, names and tags (`paint-route.ts`) are rebuilt here at the same sizes.
 import type { StopRole } from "@floc/core/trip/route/route-lines";
 import type { TransportType } from "@floc/core/vocabulary";
 import { Text, View } from "react-native";
@@ -13,7 +12,6 @@ const OTHER = "M2.4 7h9.2M8 3.4 11.6 7 8 10.6";
 const END_R = 9;
 const MID_R = 4.4;
 
-/** The start is an ink disc with a play mark (a round trip's too), the end one with a square; a stop between is an open dot. */
 export function StopDot({ role }: { role: StopRole }) {
   const { c } = useTheme();
   if (role === "mid") {
@@ -39,7 +37,6 @@ export function StopDot({ role }: { role: StopRole }) {
   );
 }
 
-/** A stop's name, with its nights under it, haloed in the sheet so it reads over a line. */
 export function StopName({ name, nights, side }: { name: string; nights: string | null; side: "left" | "right" }) {
   const { c } = useTheme();
   const halo = { textShadowColor: c.sheet, textShadowRadius: 3, textShadowOffset: { width: 0, height: 0 } };
@@ -56,11 +53,9 @@ export function StopName({ name, nights, side }: { name: string; nights: string 
   );
 }
 
-/** A leg's tag, as the web's: the way the group travels as a mark, or a question mark and "Not set" while nobody has said. */
 export function LegTag({ mode, time }: { mode: TransportType | null; time: string }) {
   const { c } = useTheme();
   const drawn = mode && mode !== "other";
-  // Why: a leg with no mode has only its words to say so; a set one is its mark alone, as on the web (`markOf`).
   const words = mode ? "" : time;
   return (
     <View
@@ -89,7 +84,6 @@ export function LegTag({ mode, time }: { mode: TransportType | null; time: strin
   );
 }
 
-/** One arrow on a leg, for the way the trip goes. */
 export function LegArrow({ angle }: { angle: number }) {
   const { c } = useTheme();
   return (

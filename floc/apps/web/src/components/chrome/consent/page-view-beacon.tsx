@@ -5,7 +5,6 @@ import { useEffect } from "react";
 
 import { browserConsent } from "@/lib/consent/consent-cookie";
 
-/** Counts a page view, only with a yes to analytics (#368). The server checks the same cookie again. */
 export function PageViewBeacon() {
   const pathname = usePathname();
   useEffect(() => {

@@ -1,8 +1,3 @@
-/**
- * Making blocks (#408): the typed shortcuts (`# `, `- `, `1. `, `[] `, `> `,
- * `---`), the `/` block menu and the `:` emoji menu. The menus read the
- * trigger from the text before the caret, so there is no menu state to lose.
- */
 import type { Node, NodeType } from "@tiptap/pm/model";
 import { TextSelection, type Command, type EditorState, type Transaction } from "@tiptap/pm/state";
 
@@ -21,12 +16,10 @@ const MARKERS: [RegExp, Made][] = [
   [/^---$/, "divider"],
 ];
 
-/** What a line's first characters turn it into, if anything. */
 export function shortcutFor(text: string): Made | null {
   return MARKERS.find(([pattern]) => pattern.test(text))?.[1] ?? null;
 }
 
-/** Turns the paragraph at `pos` into `made`, dropping its first `length` characters. */
 export function convertLine(tr: Transaction, pos: number, length: number, made: Made): Transaction {
   const node = tr.doc.nodeAt(pos);
   if (!node) return tr;
@@ -67,7 +60,6 @@ function tableNode(type: NodeType): Node {
   return type.create({ header: false }, [0, 1, 2].map(() => tableRow.create(null, [0, 1, 2].map(() => tableCell.create()))));
 }
 
-/** The `/` menu's pick: an empty line becomes the block; a line with words gets it next. */
 export function turnInto(type: string, attrs: Record<string, unknown>, trigger: Trigger): Command {
   return (state, dispatch) => {
     const tr = state.tr.delete(trigger.from, trigger.to);
@@ -95,7 +87,6 @@ export function turnInto(type: string, attrs: Record<string, unknown>, trigger: 
   };
 }
 
-/** An emoji or a trip link where the menu was opened. A link gets a space after, so typing carries on. */
 export function insertAtTrigger(node: Node, trigger: Trigger, spaceAfter = false): Command {
   return (state, dispatch) => {
     const content = spaceAfter ? [node, state.schema.text(" ")] : [node];

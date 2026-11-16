@@ -1,8 +1,5 @@
 "use server";
 
-// Open to any member, not just admin — choosing when to go isn't one of
-// the admin powers (rule 6). Committing a window also updates
-// server/itinerary/itinerary.ts since the window decides which days exist (ticket 140).
 import { isIsoDate } from "@floc/core/dates/dates";
 import { windowProblem } from "@floc/core/trip/trip-window";
 import { requireTripAccess, requireUser } from "@/server/access";
@@ -13,8 +10,6 @@ import { removeGuest } from "@/server/guests/guests";
 import { fillFromCalendar, type CalendarFill } from "@/server/calendar/calendar-import";
 import { setCalendarAllDayOnly } from "@/server/calendar/calendar-options";
 
-// Client-provided, so checked not trusted; isIsoDate rejects impossible
-// well-shaped dates like 2026-02-31 (ticket 113).
 function assertIsoDates(dates: string[]) {
   for (const d of dates) {
     if (!isIsoDate(d)) throw new Error(`Not a date: ${d}`);
@@ -47,9 +42,6 @@ export async function saveAvailability(
   await setAvailabilityDates(tripId, remove, false);
 }
 
-// Deliberately available before everyone has answered — someone has to just
-// book it. Takes the pair as args rather than FormData (ticket 128): the
-// window comes from calendar-picked client state, so it's checked not trusted.
 export async function setTripDates(
   tripId: number,
   start: string | null,
@@ -59,25 +51,19 @@ export async function setTripDates(
   if (problem) return { error: problem };
 
   const access = await requireTripAccess(tripId);
-  // Window is the itinerary's extent (ticket 140): days in both windows keep
-  // their events, days only in the old one go, days only in the new arrive blank.
   await setTripWindow(access.trip.id, start, end, access.viewer.id);
   return {};
 }
 
-// The best window is worked out from the group's own answers, so it is always a valid one.
 export async function applyBestWindow(tripId: number, start: string, end: string): Promise<void> {
   await setTripDates(tripId, start, end);
 }
 
-// Back to undated — supported (rule 9), not an error state. No window means
-// no extent, so the itinerary goes with it (ticket 140); notes/money/people stay.
 export async function clearTripDates(tripId: number) {
   const access = await requireTripAccess(tripId);
   await setTripWindow(access.trip.id, null, null, access.viewer.id);
 }
 
-// "Start again" — per-person only, never wipes what the rest of the group said.
 export async function clearMyAvailability(tripId: number) {
   const access = await requireTripAccess(tripId);
   await clearAvailabilityFor(access.trip.id, access.viewer.id);
@@ -85,7 +71,6 @@ export async function clearMyAvailability(tripId: number) {
   refresh({ kind: "tripDates", tripId: access.trip.id });
 }
 
-// A guest is not a member, so this is not "remove a member": any member may do it (rule 6, ADR-029).
 export async function removeTripGuest(tripId: number, guestId: string) {
   const access = await requireTripAccess(tripId);
   await removeGuest(access.trip.id, String(guestId));
@@ -93,8 +78,6 @@ export async function removeTripGuest(tripId: number, guestId: string) {
   refresh({ kind: "tripDates", tripId: access.trip.id }, { kind: "tripOverview", tripId: access.trip.id });
 }
 
-// One read of the viewer's own Google calendar (#444, ADR-031). Any member, for their own days only (rule 6).
-// A refusal or a Google failure comes back as a result for the form, never a throw (rule 11).
 export async function fillFromGoogleCalendar(tripId: number, month: string): Promise<CalendarFill> {
   const access = await requireTripAccess(tripId);
   const result = await fillFromCalendar({
@@ -110,7 +93,6 @@ export async function fillFromGoogleCalendar(tripId: number, month: string): Pro
   return result;
 }
 
-// The viewer's own import choice (ADR-031): not a trip setting, so it needs a session, not a trip.
 export async function keepCalendarAllDayOnly(on: boolean): Promise<void> {
   if (typeof on !== "boolean") throw new Error("Not a choice.");
   const viewer = await requireUser();

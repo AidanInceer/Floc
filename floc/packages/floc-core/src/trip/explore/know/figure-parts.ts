@@ -15,7 +15,6 @@ function markParts(marked: string): FigurePart[] {
   return parts;
 }
 
-/** Splits a tip's text on `**x**` marks. Inside a mark only the number tokens are figures, so `**30 days**` sets "30" in the figure face and " days" plain. */
 export function figureParts(text: string): FigurePart[] {
   const parts: FigurePart[] = [];
   let at = 0;

@@ -1,9 +1,3 @@
-/**
- * The page list on the phone (#408), as a sheet from the bar's page name: the
- * same pages and sub-pages as the website's list, with who is on each. Press a
- * page to open it; its ⋯ opens what the web's menu holds — add a sub-page,
- * rename, icon, archive. Archived pages wait at the foot with Restore.
- */
 import type { PresentPerson } from "@floc/core/notes/live/live-presence";
 import { PAGE_ICON_ART, PAGE_ICONS, PAGE_ICON_LABELS, type PageIcon } from "@floc/core/notes/pages/page-icons";
 import { PAGE_LIMITS, archiveDaysLeft, pagesRefusal } from "@floc/core/notes/pages/page-rules";
@@ -26,7 +20,6 @@ export type SheetActions = {
   add: (parentId: number | null) => void;
   rename: (id: number, title: string) => Promise<unknown>;
   icon: (id: number, icon: PageIcon | null) => void;
-  /** Before a sibling, or to the end of its list with null. */
   move: (id: number, beforeId: number | null) => void;
   archive: (id: number) => void;
   restore: (id: number) => void;
@@ -47,7 +40,6 @@ function IconGrid({ current, onPick }: { current: PageIcon | null; onPick: (icon
   );
 }
 
-/** Where Move up and Move down send a page among its siblings; undefined when it cannot go that way. */
 function places(pages: NotesPage[], page: NotesPage): { up: number | null | undefined; down: number | null | undefined } {
   const siblings = pages.filter((p) => p.parentId === page.parentId);
   const at = siblings.findIndex((p) => p.id === page.id);

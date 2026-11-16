@@ -1,9 +1,3 @@
-/**
- * Why: React Native has no cascade and no `var()`, so a token must be resolved to a value here
- * rather than declared. Values come from `@floc/core/tokens`, the same file `pnpm fitness` checks
- * the web stylesheet against, so the two UIs cannot disagree. Built once at module load — ~65
- * tokens per theme, and the map never changes (#288, #289).
- */
 import { radii, resolveTokens, type Theme, type TokenName } from "@floc/core/design/tokens";
 
 export type { Theme };
@@ -19,14 +13,8 @@ export function palette(theme: Theme): Palette {
   return PALETTES[theme];
 }
 
-/**
- * Why: bundled through `@expo-google-fonts`, not named — naming a face lets the platform fall
- * back, and every word rendered in Roboto. One family per weight, never `fontWeight`: React
- * Native cannot synthesise a bold, and Android quietly renders the regular instead (#189).
- */
 export const fonts = {
   display: "RedHatDisplay_800ExtraBold",
-  // Why: one heading weight on both surfaces, 800 (type-fonts pick W4); the key stays so callers need not change.
   displayBold: "RedHatDisplay_800ExtraBold",
   sans: "RedHatText_400Regular",
   sansItalic: "RedHatText_400Regular_Italic",
@@ -35,7 +23,6 @@ export const fonts = {
   typeBold: "RedHatMono_500Medium",
 } as const;
 
-// Why: Tailwind's rhythm restated where Tailwind cannot reach, so a screen never invents a gap.
 export const space = {
   xs: 4,
   sm: 8,
@@ -47,7 +34,6 @@ export const space = {
 
 export const radius = radii;
 
-// Why: matches the web ramp; `type` is tabular and carries every figure.
 export const size = {
   label: 11,
   small: 13,

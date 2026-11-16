@@ -1,28 +1,3 @@
-/**
- * Money (ticket 300) — what you owe first, the ledger second.
- *
- * THE QUESTION IS NEVER "what did the group spend". It is "what do I owe, and
- * to whom", so the viewer's own balance leads and the list settles underneath.
- * That is the one real difference from the web page, which has room to lead
- * with the whole book.
- *
- * MONEY IS NEVER A FLOAT (rule 1). Integer minor units end to end. Every
- * amount displayed goes through `formatMoney` and every amount typed through
- * `parseMoney`, both from `@floc/core/money` — so the phone cannot round a
- * penny differently from the browser.
- *
- * BALANCES ARE DERIVED, NEVER STORED. The server works out the group's
- * payments from the ledger with its rates (#463) and the phone shows them.
- * There is no balance column, because a stored balance is a second source of
- * truth about the same money.
- *
- * SPLITS ARE SNAPSHOTS (rule 2). An edit sends the whole split set and the API
- * rewrites expense and splits together. Nothing here recalculates an old
- * expense from today's roster.
- *
- * SETTLING IS NOT AN ADMIN POWER (rule 6). Any member records a transfer, in
- * either direction — the four powers are remove, promote, delete or archive, and reset the link.
- */
 import { formatDate } from "@floc/core/dates/dates";
 import { DEFAULT_CATEGORY, isExpenseCategory } from "@floc/core/money/expense-category";
 import { formatMoney, toMajorInput } from "@floc/core/money/money";
@@ -49,23 +24,19 @@ import { fonts, size, space } from "@/lib/theme";
 import type { Ledger } from "@floc/api/port";
 import { clearedDebts } from "@floc/core/money/cleared-debts";
 
-/** Nothing open, adding, or editing this expense. One state, so two cannot both be true. */
 type Editing =
   { kind: "none" } | { kind: "add" } | { kind: "edit"; expenseId: number };
 
-/** What one payment clears, for the confirm before it is recorded. */
 function clearsLine(row: SettleRow, viewerId: string, nameOf: (userId: string) => string): string {
   return clearedDebts(row, viewerId)
     .map((d) => (d.youOwe ? `${d.cleared} you owe ${nameOf(d.otherId)}` : `${d.cleared} ${nameOf(d.otherId)} owes you`))
     .join("\n");
 }
 
-/** Why the last write failed, in words; nothing when it did not. */
 function Problem({ text }: { text: string | null }) {
   return text ? <Body tone="red">{text}</Body> : null;
 }
 
-/** The cost being edited, or nothing when the screen is not editing one. */
 function expenseBeingEdited(
   expenses: Ledger["expenses"],
   editing: Editing,
@@ -74,7 +45,6 @@ function expenseBeingEdited(
   return expenses.find((expense) => expense.id === editing.expenseId);
 }
 
-/** A stored cost, as the form's starting values. */
 function formValues(ledger: Ledger, expense: Ledger["expenses"][number]) {
   const start = editStart(
     ledger.splits.filter((split) => split.expenseId === expense.id),
@@ -82,8 +52,6 @@ function formValues(ledger: Ledger, expense: Ledger["expenses"][number]) {
   );
   return {
     description: expense.description,
-    // Guarded on the way in: `category` is a stored word and a row written
-    // before the column existed can be anything (rule 11).
     category: isExpenseCategory(expense.category)
       ? expense.category
       : DEFAULT_CATEGORY,
@@ -95,12 +63,10 @@ function formValues(ledger: Ledger, expense: Ledger["expenses"][number]) {
   };
 }
 
-/** The first cost of a trip is asked for differently from the tenth. */
 function addLabel(count: number): string {
   return count === 0 ? "Log the first cost" : "Add an expense";
 }
 
-/** The viewer's own share of each expense, read once rather than once per row. */
 function sharesOf(ledger: Ledger, viewerId: string | undefined): Map<number, number> {
   return new Map(
     ledger.splits
@@ -112,8 +78,6 @@ function sharesOf(ledger: Ledger, viewerId: string | undefined): Map<number, num
 function ExpensesView({ switcher }: { switcher: React.ReactNode }) {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
-  // A screen keeps rendering for a frame while it leaves, and `id` is gone by
-  // then: NaN goes down the wire as null and the server rightly refuses it.
   const ready = Number.isFinite(tripId);
   const queryClient = useQueryClient();
   const { data: session } = useSession();
@@ -129,8 +93,6 @@ function ExpensesView({ switcher }: { switcher: React.ReactNode }) {
     trpc.money.ledger.queryOptions({ tripId }, { enabled: ready }),
   );
   const pairs = useQuery(trpc.money.pairs.queryOptions({ tripId }, { enabled: ready }));
-  // For "which day". An undated trip returns none, which is not an error
-  // (rule 9) — the form simply stops asking.
   const itinerary = useQuery(
     trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }),
   );
@@ -165,7 +127,6 @@ function ExpensesView({ switcher }: { switcher: React.ReactNode }) {
   if (trip.isError) return <Failed onRetry={() => trip.refetch()} />;
   if (ledger.isError) return <Failed onRetry={() => ledger.refetch()} />;
 
-  // Bound once past the guards: a closure below cannot see the narrowing.
   const snapshot = ledger.data;
   const me = session?.user.id;
   const members = trip.data.members;
@@ -180,17 +141,12 @@ function ExpensesView({ switcher }: { switcher: React.ReactNode }) {
 
   const currency = ledgerCurrency(ledger.data);
 
-  // Why every expense, no mine/everyone filter: each row already says your share.
-  // Why sorted: costs arrive in logged order; sorted by day so the day headings run in trip order, undated last.
   const rank = (dayId: number | null | undefined) => {
     const at = dayOptions.findIndex((day) => day.id === dayId);
     return at < 0 ? dayOptions.length : at;
   };
   const shown = [...ledger.data.expenses].sort((a, b) => rank(a.dayId) - rank(b.dayId));
 
-  // Everything the API is told now comes from the form. It used to guess the
-  // payer, the day, the note and the split type, which is how the phone could
-  // record an expense it had no way to describe.
   function save(draft: ExpenseDraft) {
     write.mutate({
       tripId,
@@ -211,7 +167,6 @@ function ExpensesView({ switcher }: { switcher: React.ReactNode }) {
     const paying = row.payer === me;
     const other = paying ? row.payee : row.payer;
     const amount = formatMoney(row.amountMinor, row.currency);
-    // Why: this records real money as moved, so one stray tap must not do it.
     Alert.alert(
       paying ? `Pay ${nameOf(other)} ${amount}?` : `${nameOf(other)} paid you ${amount}?`,
       `Clears:\n${clearsLine(row, me ?? "", nameOf)}`,
@@ -276,7 +231,6 @@ function ExpensesView({ switcher }: { switcher: React.ReactNode }) {
         <Problem text={problem} />
         {editingExpense ? (
           <ExpenseForm
-            // Why: a new row must start a new form, or its fields keep the last row's values.
             key={editingExpense.id}
             people={peopleOnExpense(members, { paidBy: editingExpense.paidBy, splits: snapshot.splits.filter((split) => split.expenseId === editingExpense.id) }, nameOf)}
             days={dayOptions}
@@ -294,7 +248,6 @@ function ExpensesView({ switcher }: { switcher: React.ReactNode }) {
   );
 }
 
-/** Expenses, or your own Budget (#574): one switch, so Money stays one tab, as on the web. */
 export default function Money() {
   const { id, view: asked } = useLocalSearchParams<{ id: string; view?: string }>();
   const tripId = Number(id);

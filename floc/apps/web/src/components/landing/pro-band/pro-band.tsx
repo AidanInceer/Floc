@@ -37,7 +37,6 @@ function Row({ item, tile }: { item: Item; tile: string }) {
   );
 }
 
-/** Pro is personal (ADR-041): it adds to the buyer's own screen, and the trip stays free for the group. */
 export function ProBand({ prices, signedIn }: { prices: PlanPrice[]; signedIn: boolean }) {
   const { plans, initial } = proPlans(prices);
   return (

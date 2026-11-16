@@ -21,8 +21,7 @@ function serve(roots: Roots) {
     if (url === "/_house/tokens.css") return res.writeHead(200, { "Content-Type": "text/css" }).end(tokensCss);
     const file = studioFile(roots, url);
     if (!file) return res.writeHead(404).end();
-    // Why: studioFile keeps the request path inside the studio and repo roots.
-    res.writeHead(200, { "Content-Type": mimeOf(file) }).end(readFileSync(file));
+    res.writeHead(200, { "Content-Type": mimeOf(file) }).end(readFileSync(file)); // NOSONAR
   });
 }
 
@@ -81,7 +80,6 @@ export async function render(job: RenderJob): Promise<string[]> {
     if (job.stills) return job.stills.map((t) => join(job.outDir, `still-${String(t).replace(".", "_")}s.png`));
 
     const mp4 = join(job.outDir, "media.mp4");
-    // Why: a silent AAC track, because Instagram's Reel spec lists audio and a video-only file risks rejection.
     const r = spawnSync(findFfmpeg(), [
       "-y", "-framerate", String(FPS), "-i", join(frames, "%04d.png"),
       "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",

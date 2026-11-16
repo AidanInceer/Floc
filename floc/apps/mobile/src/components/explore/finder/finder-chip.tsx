@@ -3,7 +3,6 @@ import { Pressable, StyleSheet, Text } from "react-native";
 import { useTheme } from "../../system/theme";
 import { fonts, radius, size, space } from "@/lib/theme";
 
-/** A chip in the finder, the web's to the pixel: ink when on; dashed at 0 but still pressable. */
 export function FinderChip({
   label,
   on,

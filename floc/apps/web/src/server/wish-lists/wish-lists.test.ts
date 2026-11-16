@@ -1,8 +1,3 @@
-/**
- * Wish lists (#623, ADR-049). The rules worth failing on: you join only by accepting, an invite or a stranger
- * reads nothing, only friends and co-members can be asked, every member is equal, the last one out ends it,
- * and a link is only ever http or https.
- */
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { and, eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";

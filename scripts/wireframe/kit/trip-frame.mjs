@@ -1,5 +1,3 @@
-// The trip's chrome and the small helpers the Dates and Days mockups share. Drawn by eye from the app; never imported by it.
-
 const G = {
   explore: '<circle cx="7" cy="7" r="5"/><path d="M9.2 4.8 8 8 4.8 9.2 6 6z"/>',
   trips: '<path d="M1.6 4.4h10.8v7.2H1.6zM5 4.4V3a.8.8 0 0 1 .8-.8h2.4a.8.8 0 0 1 .8.8v1.4M1.6 8h10.8"/>',
@@ -62,7 +60,6 @@ export function tripFrame(tab, me) {
     `<nav class="tf-tabs" aria-label="Trip sections">${tabs}</nav>`;
 }
 
-// Dates are YYYY-MM-DD strings, read in UTC (rule 10).
 const WD = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MO = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];

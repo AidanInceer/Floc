@@ -1,15 +1,3 @@
-/**
- * Trips somebody has asked you onto (ticket 146), above your own list.
- *
- * IN-APP, NOT IN AN INBOX. A named invite sends no mail on either client — it
- * turns up the next time you look at your trips, which is where you were going
- * to decide anyway.
- *
- * ABOVE THE LIST, AND ONLY WHEN THERE IS ONE. It is the only thing on the
- * screen waiting on you; the ordinary state is that this draws nothing at all.
- * Peri, like Needs you, because it is the same kind of thing: a question for
- * you. "asked you" says so in words, so colour is never the only signal (#204).
- */
 import { formatDateRange } from "@floc/core/dates/dates";
 import { View } from "react-native";
 
@@ -49,8 +37,6 @@ export function InviteBanner({
           style={{ backgroundColor: c["pastel-blue"], borderColor: c["pastel-blue-edge"], gap: space.md }}
         >
           <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
-            {/* Who asked leads — an invite from somebody you do not recognise
-                is the one you want to decline. */}
             <Face name={invite.fromName} />
             <View style={{ flex: 1 }}>
               <Body bold>{invite.tripName}</Body>

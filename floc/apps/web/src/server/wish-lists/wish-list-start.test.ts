@@ -1,4 +1,3 @@
-/** "Start a wish list with <friend>" (#623): it copies only what you both saved, and only what they let you see. */
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

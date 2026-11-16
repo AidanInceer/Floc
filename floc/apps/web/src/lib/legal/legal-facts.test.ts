@@ -9,7 +9,6 @@ import { DATA_RECEIVERS } from "./privacy-facts";
 
 const server = (path: string) => readFileSync(join(process.cwd(), "src/server", path), "utf8").toLowerCase();
 
-// Each file that sends data out, the word that proves it still does, and the name the privacy policy must use.
 const CALLED = [
   { file: "itinerary/places.ts", needle: "nominatim", who: "Nominatim" },
   { file: "itinerary/weather.ts", needle: "api.met.no", who: "MET Norway" },

@@ -1,7 +1,3 @@
-/**
- * The trip channel end to end (#577): a real server and providers, a write's signal reaching the
- * trip's members and no one else.
- */
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 

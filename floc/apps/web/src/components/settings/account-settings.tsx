@@ -1,8 +1,3 @@
-/**
- * Your settings, as sheets of rows that open in place, several at once, like the phone's drawers
- * (ticket 07, split by section 235, rows in place F3c). They sit under your face on /profile;
- * `?section=` opens one, so a link or a checkout return lands on it.
- */
 import { deleteAccount, removeGoogleCalendar, unlinkAccount, updateNotifications, updatePrivacy } from "@/app/settings/actions";
 import { updateVibeTags } from "@/app/profile/actions";
 import type { ProPrice, subscriptionOf } from "@/server/billing/billing";
@@ -55,12 +50,10 @@ export type AccountSettingsProps = {
   profile: Awaited<ReturnType<typeof ensureProfile>>;
   linkedAccounts: Awaited<ReturnType<typeof listSignInMethods>>;
   calendarGranted: boolean;
-  /** Null when Pro is switched off: then there is no Pro row. */
   pro: { subscription: Subscription; prices: ProPrice[] } | null;
   opened: SettingsSection | null;
   billing?: string;
   estimate: EstimateSettings;
-  /** The cookie choice this browser holds; null when not yet chosen. */
   consent: ConsentChoice | null;
 };
 
@@ -165,7 +158,6 @@ export function AccountSettings({ email, profile, linkedAccounts, calendarGrante
         <EstimateRow {...row("estimate")} settings={estimate} />
       </SettingsSheet>
 
-      {/* Why one line: leaving and deleting both end your use of Floc; the theme lives behind your face in the top bar (ADR-055). */}
       <SettingsSheet>
         <div className="flex items-center justify-between gap-3 px-[18px] py-3">
           <form action={deleteAccount}>

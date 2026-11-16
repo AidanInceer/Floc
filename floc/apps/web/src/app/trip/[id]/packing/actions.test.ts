@@ -1,8 +1,3 @@
-/**
- * Rule 5 at the packing actions' door (ticket 219): a line id posted by a
- * member of another trip must read as nonexistent, not as a refusal, and must
- * leave no write behind.
- */
 import { and, eq, isNull } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -194,8 +189,6 @@ describe("the personal list", () => {
     expect((await mine(world.admin))[0].quantity).toBe(2);
   });
 
-  // Rule 5 again, one table deeper: same trip, so membership passes — it is
-  // the owner scope that has to refuse, and refuse as a missing id.
   it("refuses another member's line as though it did not exist", async () => {
     await insertPersonalPackingLine(world.ours.id, world.member, "Their meds", "toiletries");
     const [theirs] = await listPersonalPackingLines(world.ours.id, world.member);
@@ -272,7 +265,6 @@ describe("suggesting what to pack", () => {
     const after = await listPersonalPackingLines(world.ours.id, world.admin);
     expect(after).toHaveLength(before.length);
 
-    // Still editable: the gate is on generating, never on the content.
     await setPersonalPackingPacked(world.ours.id, after[0].id, true);
     const packed = await listPersonalPackingLines(world.ours.id, world.admin);
     expect(packed[0].packedAt).not.toBeNull();
@@ -299,7 +291,6 @@ describe("taking ideas and taking them back (#469)", () => {
 });
 
 describe("clearing lines in bulk", () => {
-  /** The ids the form would carry, as `getAll("lineId")` delivers them. */
   const ticked = (...ids: number[]) => {
     const fd = new FormData();
     for (const id of ids) fd.append("lineId", String(id));
@@ -337,11 +328,6 @@ describe("clearing lines in bulk", () => {
     expect(await liveLabels(world.admin)).toEqual(["Keep me"]);
   });
 
-  /*
-   * The bulk shape is a convenience, never a way round the per-line check: one
-   * bad id refuses the whole set rather than quietly removing the allowed part,
-   * so a hand-made POST can't use a legitimate id as cover for someone else's.
-   */
   it("refuses the whole set if any line isn't the presser's to touch (rule 5)", async () => {
     signIn(world.member);
     await insertPersonalPackingLine(world.ours.id, world.admin, "Their meds", "other");
@@ -361,8 +347,6 @@ describe("clearing lines in bulk", () => {
     expect(await liveLabels(null)).toContain("Sun cream");
   });
 
-  // A hand-made POST is the only way to send more ids than the list can hold,
-  // and each one costs a round trip — so the set is capped like every read is.
   it("ignores ids past what a list could hold, and ids that are not ids", async () => {
     signIn(world.admin);
     const drop = await addMine("Drop me");

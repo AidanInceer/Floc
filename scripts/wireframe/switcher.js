@@ -1,4 +1,3 @@
-// Variant switcher shared by the landing prototypes: ?variant= keeps your place; the list itself is the house panel.
 import { mountVariants } from "/_house/variants.mjs";
 
 export function variants(list, render) {

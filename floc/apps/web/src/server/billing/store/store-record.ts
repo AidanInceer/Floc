@@ -18,10 +18,6 @@ export async function ownerOfStoreTransaction(storeTransactionId: string): Promi
   return row?.userId ?? null;
 }
 
-/**
- * Keyed on the store's own id, so a repeated notification overwrites. The
- * owner is never in the update: one purchase backs one account, first come.
- */
 export async function recordStoreSubscription(args: {
   userId: string;
   source: StoreSource;

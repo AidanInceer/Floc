@@ -8,9 +8,8 @@ import { relative, resolve } from "node:path";
 import { normalise } from "./config.mjs";
 
 const FS = "security/detect-non-literal-fs-filename";
-// Why: SonarCloud's taint analysis flags a path only when it comes from outside the process.
 const UNTRUSTED = /process\.argv|parseArgs\(|process\.stdin|\b(?:req|request)\.url\b|searchParams/;
-const REVIEWED = new RegExp(String.raw`^\s*(?:\/\/|\/\*).*Why:`);
+const NOSONAR = /\/\/\s*NOSONAR\b/;
 const SONAR_KEY = { "sonarjs/no-os-command-from-path": "S4036" };
 
 function scopeText(source, line, column) {
@@ -27,9 +26,12 @@ function scopeText(source, line, column) {
 
 function untrustedPath(file, text) {
   const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
+  return (issue) => UNTRUSTED.test(scopeText(source, issue.line, issue.column));
+}
+
+function reviewed(text) {
   const lines = text.split(/\r?\n/);
-  return (issue) => UNTRUSTED.test(scopeText(source, issue.line, issue.column))
-    && !REVIEWED.test(lines[issue.line - 2] ?? "");
+  return (issue) => NOSONAR.test(lines[issue.line - 1] ?? "");
 }
 
 export async function lintSources(root, files, changes, ignored = () => false) {
@@ -59,9 +61,12 @@ export async function lintSources(root, files, changes, ignored = () => false) {
   const results = await eslint.lintFiles(files);
   return results.flatMap((result) => {
     const file = normalise(relative(root, result.filePath));
-    const tainted = untrustedPath(result.filePath, readFileSync(result.filePath, "utf8"));
+    const text = readFileSync(result.filePath, "utf8");
+    const tainted = untrustedPath(result.filePath, text);
+    const suppressed = reviewed(text);
     const changed = changes?.get(file);
     return result.messages
+      .filter((issue) => issue.fatal || !suppressed(issue))
       .filter((issue) => issue.ruleId !== FS || tainted(issue))
       .filter((issue) => !SONAR_KEY[issue.ruleId] || !ignored(file, SONAR_KEY[issue.ruleId]))
       .filter((issue) => !changes || issue.fatal || [...(changed ?? [])]

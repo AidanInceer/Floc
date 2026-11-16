@@ -1,4 +1,3 @@
-// B — one tall ticket. The whole hero is the ticket: it prints, each field fills, it is stamped, and the stub is the way in.
 import { ctas, face, group, h1, play, PLANE, swap } from "./lib.js";
 
 const FIELDS = [

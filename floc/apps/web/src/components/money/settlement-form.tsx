@@ -1,7 +1,5 @@
 "use client";
 
-// Recording a settlement, and correcting one (#361). Both post the same fields
-// to actions that share one set of rules.
 import { useActionState, useEffect, useRef, useState } from "react";
 
 import type { ActionState } from "@/app/trip/[id]/money/actions";
@@ -39,7 +37,6 @@ function CurrencyOptions() {
   ));
 }
 
-/** Paying in a currency other than the debt (ticket 253). The server fetches the rate itself — a client-posted rate would be a client-posted balance. */
 function PaidIn({ currency, initial }: { currency: Currency; initial: Currency }) {
   const [payCurrency, setPayCurrency] = useState<Currency>(initial);
   const [payAmount, setPayAmount] = useState("");
@@ -106,11 +103,6 @@ function Actions({ sheetClose, label }: { sheetClose: (() => void) | null; label
   );
 }
 
-/**
- * Settle-up form, pre-filled from a simplified transfer (money overhaul). The
- * amount is editable; from/to are fixed to the suggested pair. Server refuses
- * if the viewer isn't a party to it.
- */
 export function SettleUpForm({
   tripId,
   fromUserId,
@@ -158,13 +150,11 @@ export type EditableSettlement = {
   id: number;
   fromUserId: string;
   toUserId: string;
-  /** The debt side — what the payment cleared. */
   amountMinor: number;
   currency: Currency;
   payCurrency: Currency;
 };
 
-/** Corrects a recorded settlement in place (#361): who paid whom, how much, in what. */
 export function SettlementEditForm({
   tripId,
   settlement: s,
@@ -220,7 +210,6 @@ export function SettlementEditForm({
   );
 }
 
-/** One payment that clears every currency between two people (#461). The server recomputes it; the form only names the person. */
 export function PairSettleForm({
   tripId,
   otherUserId,

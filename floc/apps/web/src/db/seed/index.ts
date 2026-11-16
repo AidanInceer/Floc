@@ -1,22 +1,3 @@
-/**
- * The dev seed's front door (#no-ticket).
- *
- *   pnpm db:seed            both scenarios, rebuilt from scratch
- *   pnpm db:seed a          scenario A only, leaving B alone
- *   pnpm db:seed b --reset  take B out and put nothing back
- *   pnpm db:reset           empty the whole database, then both scenarios
- *
- * `db:reset` is the deterministic one: your own trips, friends and uploads go
- * too, ids restart at 1, and every account has a fixed id. Dates stay
- * relative to today on purpose — a fixed date would drift into the past and
- * turn every upcoming trip into a finished one.
- *
- * BUILDING ALWAYS RESETS FIRST. A seed you can only run once is a seed you
- * stop running: the second go leaves two Portugals and no way to tell which
- * one you were looking at. Resetting the same scenario first makes the command
- * mean "put the database in this state", which is the only shape worth
- * reaching for on a Tuesday morning.
- */
 import { SCENARIOS, SEED_PASSWORD, type Scenario, seedEmail } from "./identity.ts";
 import { assertLocalDatabase } from "./local-only.ts";
 import { buildScenarioA } from "./scenario-a.ts";

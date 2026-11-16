@@ -1,7 +1,3 @@
-/**
- * The editor and the server read one page the same way (#408): what core seeds
- * into Yjs, the editor opens; what the editor writes, core reads back.
- */
 import * as Y from "yjs";
 import { prosemirrorJSONToYXmlFragment, yXmlFragmentToProseMirrorRootNode } from "@tiptap/y-tiptap";
 import { describe, expect, it } from "vitest";

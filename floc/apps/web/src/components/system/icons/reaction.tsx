@@ -1,17 +1,3 @@
-/**
- * The heart / thumbs-up / thumbs-down glyph set, shared by the two places the
- * group says what it thinks of something: comment reactions in
- * `note-thread.tsx` (ticket 36).
- *
- * One file, because the two controls have to be the same drawing — a board note
- * and its own comment thread sit on screen together, and two hand-drawn hearts
- * a few pixels apart read as two different meanings.
- *
- * No `"use client"`: it renders nothing but paths, so it composes into a client
- * component or a server one.
- */
-
-/** Fixed render order wherever all three appear: heart, thumbs up, thumbs down. */
 export type GlyphKind = "heart" | "up" | "down";
 
 const HEART =
@@ -27,9 +13,7 @@ export function ReactionGlyph({
   size = 13,
 }: {
   kind: GlyphKind;
-  /** Yours fills in; other people's stay outlined. */
   mine: boolean;
-  /** Pixels. The vote chips on a sticky note run a shade larger. */
   size?: number;
 }) {
   const paths = kind === "heart" ? [HEART] : THUMB;
@@ -40,16 +24,11 @@ export function ReactionGlyph({
       className="shrink-0"
       style={{ width: size, height: size }}
     >
-      {/* Thumbs down is thumbs up, turned over. On a `<g>`, not on the `<svg>`
-          itself — there the attribute is read as a CSS transform against the
-          element box and shunts the glyph out of the row. */}
       <g transform={kind === "down" ? "rotate(180 7 7)" : undefined}>
         {paths.map((d) => (
           <path
             key={d}
             d={d}
-            /* The count, not the fill, is what carries the state — colour is
-               never the only signal (CLAUDE.md conventions). */
             fill={mine ? "currentColor" : "none"}
             stroke="currentColor"
             strokeWidth={mine ? 0 : 1.25}

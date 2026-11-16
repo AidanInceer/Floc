@@ -1,9 +1,3 @@
-/**
- * The fact → pages table (ticket 241). Two properties matter and neither is
- * visible at a call site: every fact names at least one page, and every page it
- * names is a route that exists — a renamed tab otherwise leaves a write
- * refreshing a URL nobody serves, and nothing anywhere fails.
- */
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
@@ -14,7 +8,6 @@ import { pagesFor, tripAreasFor, type Fact, type FactKind } from "@/server/fresh
 
 const TRIP = 7;
 
-/** One of each fact, so the table can be walked exhaustively. */
 const EVERY_FACT: { [K in FactKind]: Extract<Fact, { kind: K }> } = {
   itinerary: { kind: "itinerary", tripId: TRIP },
   tripWindow: { kind: "tripWindow", tripId: TRIP },
@@ -48,7 +41,6 @@ const EVERY_FACT: { [K in FactKind]: Extract<Fact, { kind: K }> } = {
 
 const facts = Object.values(EVERY_FACT) as Fact[];
 
-/** `/trip/7/days` → `src/app/trip/[id]/days` — the id segment is dynamic. */
 function routeExists(path: string): boolean {
   const segments = path
     .split("/")

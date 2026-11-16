@@ -1,9 +1,3 @@
-/**
- * The marks a calendar block wears (tickets 103, 324) — a note on it, files on
- * it. Both views draw the same pair. `aria-hidden`: they say only "more
- * inside", and the modal is the real answer.
- */
-
 export function EventMarkers({
   hasNote,
   hasFiles,

@@ -1,8 +1,3 @@
-/**
- * Find someone to befriend by name or full friend tag — the phone's half of
- * the web's "Find someone" panel. Never by email address: any answer to one
- * would say whether it is an account.
- */
 import type { FoundFriend, FriendSearch } from "@floc/api/port";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";

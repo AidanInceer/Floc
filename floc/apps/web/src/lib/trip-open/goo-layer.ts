@@ -1,7 +1,3 @@
-/**
- * The liquid layer the curtain is drawn on, under the top bar and the page: shapes blurred together and cut sharp
- * again with a hairline in the bar's own --rule, so the neck reads as part of the joined bar (fuse-bar.css).
- */
 import type { Box } from "./curtain";
 
 const NS = "http://www.w3.org/2000/svg";
@@ -37,7 +33,6 @@ export function gooLayer() {
   };
 
   return {
-    // Why: no shape for the bar itself; the neck starts inside it, under the bar's own skin, so only one outline shows.
     draw({ neck, card }: GooShapes) {
       const shapes = [rect(card, radiusMd)];
       if (neck) shapes.push(rect(neck, radiusSm));

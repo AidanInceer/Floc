@@ -1,7 +1,3 @@
-/**
- * Every node and mark out to HTML and back (#408): what copy and paste within
- * a page, and the web view's first paint, rely on.
- */
 import { Window } from "happy-dom";
 import { DOMParser as PMDOMParser, DOMSerializer } from "@tiptap/pm/model";
 import { describe, expect, it } from "vitest";

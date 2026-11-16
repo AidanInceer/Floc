@@ -1,4 +1,3 @@
-/** Test-only helpers: build a page state and run a command on it, no browser needed. */
 import { EditorState, TextSelection, type Command } from "@tiptap/pm/state";
 import type { Node } from "@tiptap/pm/model";
 
@@ -13,7 +12,6 @@ export const cell = (text = "", tone: string | null = null) => schema.node("tabl
 export const table = (rows: string[][], header = false) =>
   schema.node("table", { header }, rows.map((row) => schema.node("tableRow", null, row.map((text) => cell(text)))));
 
-/** A state with the caret at `offset` inside block `index` (a top-level block). */
 export function caretIn(doc: Node, index: number, offset = 0): EditorState {
   let pos = 0;
   for (let i = 0; i < index; i += 1) pos += doc.child(i).nodeSize;
@@ -28,12 +26,10 @@ export function run(command: Command, state: EditorState): { ok: boolean; state:
   return { ok, state: next };
 }
 
-/** Each top-level block as `type:indent:text`, the shape most assertions want. */
 export const lines = (state: EditorState) => {
   const out: string[] = [];
   state.doc.forEach((node) => out.push(`${node.type.name}:${(node.attrs.indent as number | undefined) ?? "-"}:${node.textContent}`));
   return out;
 };
 
-/** The top-level block the caret is in. */
 export const caretBlock = (state: EditorState) => state.selection.$from.index(0);

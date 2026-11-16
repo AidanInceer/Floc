@@ -1,8 +1,3 @@
-/**
- * The live side of Notes in the browser (#391, #408): one socket per open
- * Notes tab, carrying the open page's doc and the trip's page-list channel.
- * Edits made offline stay in IndexedDB and merge on reconnect.
- */
 "use client";
 
 import { HocuspocusProvider, HocuspocusProviderWebsocket } from "@hocuspocus/provider";
@@ -22,7 +17,6 @@ export type OwnEchoes = ReturnType<typeof ownEchoes>;
 
 type Viewer = { id: string; name: string };
 
-/** Why a token at all: the provider will not send auth without one. The cookie is what the server checks. */
 const TOKEN = "session";
 
 const attach = (provider: HocuspocusProvider) => {
@@ -44,7 +38,6 @@ export function useNotesSocket(): HocuspocusProviderWebsocket | null {
   return socket;
 }
 
-/** Who has which page open, and a fresh read of the list whenever anyone else changes it. */
 export function usePageList(
   socket: HocuspocusProviderWebsocket | null,
   tripId: number,
@@ -79,12 +72,9 @@ export type LivePage = { doc: Y.Doc; provider: HocuspocusProvider; status: LiveS
 
 const indexedDbCache: PageCache = { open: (key, doc) => new IndexeddbPersistence(key, doc) };
 
-/** Null until the connection objects exist — they are built in an effect so strict mode cannot reuse a destroyed one. */
 export function useLivePage(socket: HocuspocusProviderWebsocket | null, tripId: number, pageId: number, epoch: string | null): LivePage | null {
   const [live, setLive] = useState<{ doc: Y.Doc; provider: HocuspocusProvider } | null>(null);
   const [state, setState] = useState<LivePageState>({ status: "opening", people: [] });
-  // Why only the first: a refresh after this person's first edit brings the epoch the server just
-  // stamped, and rebuilding the doc for it would drop the page from under the caret.
   const firstEpoch = useRef(epoch);
 
   useEffect(() => {

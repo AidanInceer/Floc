@@ -17,7 +17,6 @@ export function TripPlan({ trip, plan, signedIn, startOpen }: { trip: PresetTrip
   const [open, setOpen] = useState<number[]>(plan.detailed ? [1] : []);
   const [jump, setJump] = useState<number | null>(null);
 
-  // A jump may first have to open its day, so scroll once the day is drawn open.
   useEffect(() => {
     if (jump === null) return;
     document.getElementById(`day-${jump}`)?.scrollIntoView({ behavior: calm() ? "auto" : "smooth", block: "start" });

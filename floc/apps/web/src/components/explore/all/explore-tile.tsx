@@ -14,20 +14,12 @@ import { countWord } from "@floc/core/text/count-word";
 
 export const tagClass = "typed w-fit max-w-full truncate rounded-sm px-2 py-1";
 
-/** The line under a tile's last line (#623): the same layer, without pushing itself down. */
 export const footLineClass =
   "pointer-events-none relative z-10 flex items-center justify-between gap-2 [&_a]:pointer-events-auto [&_button]:pointer-events-auto";
 
-/** A tile's last line when it holds an action (#467): figures on the left, the action on the right, both above the stretched link. */
 export const lastLineClass =
   "pointer-events-none relative z-10 mt-auto flex items-center justify-between gap-2 [&_a]:pointer-events-auto [&_button]:pointer-events-auto";
 
-/**
- * One listing as a tile: its outline map, then what it is. The children say how it fits what you asked for.
- * The tile opens the listing's own page, or `href`; the footer sits under that link, so it can hold a second action.
- * The link stretches over the whole card (#467); the heart and the footer's controls sit above it, so a tap on them never opens the page.
- * An `action` takes the right end of the last line, and the figures move down beside it.
- */
 export function ExploreTile({
   trip,
   children,
@@ -41,7 +33,6 @@ export function ExploreTile({
   children?: ReactNode;
   footer?: ReactNode;
   action?: ReactNode;
-  /** Sits in the tile's bottom-right corner: a top pick's sun (#624). */
   mark?: ReactNode;
 }) {
   const rates = useListingRates();
@@ -67,7 +58,6 @@ export function ExploreTile({
       <SaveHeart presetId={trip.id} title={trip.title} className="absolute right-1.5 top-1.5 z-10" />
       {action ? (
         <div className={cx(lastLineClass, "px-3.5", footer ? "pb-1.5" : "pb-3.5")}>
-          {/* Why: beside an action on a phone the figures stack, nights over price, rather than wrap at the dot. */}
           <span className="nums flex flex-col text-[11px] text-ink-faint sm:flex-row sm:gap-1">
             <span className="whitespace-nowrap">{countWord(trip.nights, "night")}<span className="max-sm:hidden"> ·</span></span>
             <span className="whitespace-nowrap">{listingPrice(trip, rates)}</span>

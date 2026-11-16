@@ -1,5 +1,3 @@
-// Why: pins are numbered, not named — a name on every pin is unreadable at phone width; the number
-// ties a pin to the list below. Natural Earth outlines, no tiles, as the web's Overview globe.
 import {
   Camera,
   GeoJSONSource,
@@ -25,16 +23,12 @@ export type MappablePlace = {
 
 const HEIGHT = 240;
 const PIN = 26;
-/** Why: past this the 1:110m outlines turn to blocks, and there are no streets under them. */
 const MAX_ZOOM = 6;
-/** Degrees below which a bounding box is treated as a single point, shown at the closest zoom. */
 const TIGHT_SPAN = 0.2;
-/** Keeps the outermost pins off the frame's edge. */
 const FIT_PADDING = { top: 44, right: 44, bottom: 44, left: 44 };
 
 type Pinned = { id: number; no: number; name: string; lngLat: LngLat };
 
-/** Numbering counts the full list, so a pin's number matches its name below. */
 function pin(places: MappablePlace[]): Pinned[] {
   return places.flatMap((place, index) =>
     place.lat === null || place.lng === null
@@ -50,10 +44,6 @@ function pin(places: MappablePlace[]): Pinned[] {
   );
 }
 
-/**
- * Where the camera opens. Bounds when the places are far enough apart to make
- * a box, the middle of them at town zoom when they are not.
- */
 function view(pins: Pinned[]): InitialViewState {
   const all = pins.map((p) => p.lngLat);
   const lngs = all.map((p) => p[0]);
@@ -69,10 +59,6 @@ function view(pins: Pinned[]): InitialViewState {
   return { bounds: [west, south, east, north], padding: FIT_PADDING };
 }
 
-/**
- * The map alone. Explore draws a listing's bases over its own written route,
- * so it wants the frame without a second list of the same names under it.
- */
 export function RouteMapFrame({ places }: { places: MappablePlace[] }) {
   const { c } = useTheme();
   const pins = pin(places);
@@ -91,7 +77,6 @@ export function RouteMapFrame({ places }: { places: MappablePlace[] }) {
           <Map
             style={{ flex: 1 }}
             mapStyle={paperStyle(c.sheet)}
-            // Rotating and tilting a route map only ever loses north.
             touchRotate={false}
             touchPitch={false}
             logo={false}

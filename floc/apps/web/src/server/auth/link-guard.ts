@@ -1,10 +1,3 @@
-/**
- * Why: anyone can sign up with an address they do not own, and Google links
- * onto an existing account by address. When it links onto an unconfirmed one,
- * nothing proved who set that password — so the password goes, and every
- * session it opened goes with it. The Google sign-in makes its own session
- * after this runs.
- */
 import "server-only";
 
 import { and, eq } from "drizzle-orm";

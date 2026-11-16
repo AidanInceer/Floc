@@ -1,9 +1,7 @@
-/** The Floc Pro row for someone already on Pro: the date, and the one way out that fits how they got it (ticket 247). */
 import type { Subscription } from "@/db/schema";
 import { BillingAction } from "@/components/auth/billing-buttons";
 import { renewalLabel } from "@floc/core/billing/subscription-copy";
 
-/** Apple and Google will not let anyone but themselves cancel a store subscription. */
 const STORE_NAMES: Partial<Record<string, string>> = {
   app_store: "the App Store",
   play: "Google Play",

@@ -1,19 +1,3 @@
-/**
- * Everything you can do to a trip itself, in one sheet (#71, #213, #302).
- *
- * OPENED FROM THE CARD ON THE TRIPS LIST, as the web opens its menu from the
- * card. This file holds the draft and the shape; `useTripWrite` holds the
- * wire, and `TripActions` holds the footer the sheet ends on.
- *
- * ONE DRAFT, SO IT CANNOT BE HALF-OPEN. The draft is seeded when the sheet
- * opens and thrown away when it shuts.
- *
- * SHUTTING IT IS SAVING IT. A Save button here asked you to confirm edits you
- * had already made and could see; leaving without pressing it lost them
- * silently. Every way out — the cross, the backdrop, the back gesture — writes
- * the draft, so the only sheet state is the one on screen. The sheet stays up
- * until the write lands, so a rejected save or a blank name is said, not lost.
- */
 import { parseTagNames, readTags } from "@floc/core/trip/tags";
 import { readTripColor, type TripColor } from "@floc/core/trip/trip-color";
 import { readTripMark, type TripMark } from "@floc/core/trip/mark/trip-mark";
@@ -64,10 +48,8 @@ export function TripSheet({
   write,
   children,
 }: {
-  /** Controls that are yours alone, like mute, drawn above the shared footer. */
   children?: ReactNode;
   trip: TripSheetTrip | null;
-  /** Null when the sheet is shut. The caller owns it so it survives a re-read of the trip. */
   draft: Draft | null;
   onChange: (draft: Draft) => void;
   onClose: () => void;
@@ -89,7 +71,6 @@ export function TripSheet({
   const done = () => {
     if (draft === null || trip === null) return onClose();
     if (write.saving) return;
-    // A second close after a failed save is a choice to leave it; the sheet said so.
     if (write.error) return onClose();
     const exit = sheetExit(payloadOf(draftFor(trip)), payloadOf(draft));
     setBlank(exit.kind === "blank");

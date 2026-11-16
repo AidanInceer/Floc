@@ -18,13 +18,12 @@ describe("draggedPast", () => {
     expect(draggedPast(0, 0)).toBe(false);
     expect(draggedPast(3, 0)).toBe(false);
     expect(draggedPast(4, 0)).toBe(true);
-    expect(draggedPast(3, 3)).toBe(true); // hypot ≈ 4.24
+    expect(draggedPast(3, 3)).toBe(true);
   });
 });
 
 describe("eventLanding", () => {
   it("moves the whole block, keeping the grab offset under the cursor", () => {
-    // A 09:00–10:00 block grabbed 15m down, cursor now at 11:15 → starts 11:00.
     expect(eventLanding(span(540, 600), "move", 675, 15)).toEqual({
       time: "11:00",
       endTime: "12:00",
@@ -158,10 +157,9 @@ describe("paintRange", () => {
   });
 
   it("recomputes from the anchor, so a shrunk drag drops the days it left", () => {
-    // Anchor 05-10; drag out to 05-12 then back to 05-11 paints only 10–11.
     const base = {};
     const out = paintRange(base, "2026-05-10", "2026-05-11", false, dateRange);
     expect(out).toEqual({ "2026-05-10": false, "2026-05-11": false });
-    expect(base).toEqual({}); // base untouched — a fresh map each move
+    expect(base).toEqual({});
   });
 });

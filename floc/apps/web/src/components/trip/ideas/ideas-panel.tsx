@@ -1,7 +1,3 @@
-/**
- * Why: open while the dates are unset, shut once they are set — a decided trip
- * keeps its ideas, it just stops shouting about them.
- */
 import { ChevronIcon } from "@/components/system/icons";
 import { IdeasBoard } from "./ideas-board";
 import type { IdeaRow } from "@floc/core/trip/ideas";

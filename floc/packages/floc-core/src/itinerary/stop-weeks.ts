@@ -1,8 +1,3 @@
-/**
- * The Days stop strip shows one trip week at a time (wireframe/days-week A): seven
- * days counted from the trip's first day, with the stops cut where a week ends.
- * Pure; the rows are the trip's days in order, as `deriveStops` takes them.
- */
 import { addDays, type IsoDate } from "../dates/dates";
 import type { Stop } from "./stops";
 
@@ -10,7 +5,6 @@ const WEEK = 7;
 
 export type WeekSegment = {
   stop: Stop;
-  /** The first column (0–6) the stop takes in this week. */
   column: number;
   span: number;
   cutLeft: boolean;
@@ -21,11 +15,9 @@ export type StopWeek = {
   week: number;
   weeks: number;
   dates: IsoDate[];
-  /** Dates after the trip's end that fill a short last week. */
   pad: IsoDate[];
   segments: WeekSegment[];
   note: string;
-  /** The day index to step to for the week before or after; null at an end. */
   before: number | null;
   after: number | null;
 };

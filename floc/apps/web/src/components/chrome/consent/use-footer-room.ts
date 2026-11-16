@@ -4,7 +4,6 @@ import { useCallback, useRef } from "react";
 
 const ROOM = "--consent-room";
 
-/** Why: the banner's height changes with its text and its open switches, so the footer keeps room for what it measures. */
 export function useFooterRoom() {
   const observer = useRef<ResizeObserver | null>(null);
 

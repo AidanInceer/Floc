@@ -11,12 +11,6 @@ const CHOSEN = '[aria-pressed="true"], [aria-selected="true"], [aria-current], l
 const same = (a: Box | null, b: Box | null) =>
   a?.left === b?.left && a?.top === b?.top && a?.width === b?.width && a?.height === b?.height;
 
-/**
- * Why: one white tile slides under the chosen segment (Aidan, ADR-061); it jumps under reduced motion. The chosen
- * segment is the child that says so itself: `aria-pressed`, `aria-selected`, `aria-current`, or a label round a
- * checked radio. Until the track has measured, that segment draws the tile (`trackSegmentClass`), so the first
- * frame is right.
- */
 export function SegmentTrack({ as: Tag = "div", className, children, ...props }: ComponentProps<"div"> & { as?: "div" | "nav" }) {
   const track = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState<Box | null>(null);
@@ -35,7 +29,6 @@ export function SegmentTrack({ as: Tag = "div", className, children, ...props }:
     if (!node) return;
     const resized = new ResizeObserver(measure);
     resized.observe(node);
-    // Why: a radio changes with no render of its own, so the track hears the change itself.
     node.addEventListener("change", measure);
     return () => {
       resized.disconnect();
@@ -47,7 +40,6 @@ export function SegmentTrack({ as: Tag = "div", className, children, ...props }:
     <Tag
       ref={track}
       {...props}
-      // Why: a press on a radio's words selected them on a double click, and left the arrow keys on the hidden radio (Aidan).
       onMouseDown={(event) => {
         pressed.current = (event.target as HTMLElement).closest("label") !== null;
         if (pressed.current) event.preventDefault();
@@ -72,7 +64,6 @@ export function SegmentTrack({ as: Tag = "div", className, children, ...props }:
   );
 }
 
-/** A segmented control for a form choice (money overhaul): each option a tab, the chosen one on the track's tile. */
 export function PillToggle<T extends string>({
   label,
   value,

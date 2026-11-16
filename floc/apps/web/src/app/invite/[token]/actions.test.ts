@@ -1,7 +1,3 @@
-/**
- * Joining by link. The link is the credential: an unconfirmed inbox does not
- * stop somebody who holds it, on the web or the phone.
- */
 import { and, eq, isNull } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

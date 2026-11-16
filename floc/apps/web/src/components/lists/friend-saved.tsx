@@ -10,10 +10,6 @@ import { YouBoth } from "./friend-faces";
 import { SavedSection, savedCountryGridClass, savedTripGridClass } from "./saved-section";
 import { StartTripButton } from "./start-trip-button";
 
-/**
- * A friend's Saved list on their profile (#544, ADR-045): the same tiles as your own Saved tab. A trip's heart saves it to
- * your list; what you saved too says You both. Their countries carry no heart, since they are theirs to drop.
- */
 export function FriendSaved({ part, yourCountries }: { part: FriendSavedPart; yourCountries: string[] }) {
   const { ids } = useSavedTrips();
   const yours = new Set(yourCountries);

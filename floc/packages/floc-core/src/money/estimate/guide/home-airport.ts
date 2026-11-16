@@ -1,14 +1,9 @@
 import { HOME_AIRPORTS, HUBS } from "./price-guide";
 
-/** A flight Floc read from one of your own booking files (#559): which trip, which day, where from. */
 export type FlightSeen = { tripId: number; date: string | null; from: string | null };
 
 export const isAirportCode = (value: unknown): value is string => typeof value === "string" && /^[A-Za-z]{3}$/.test(value);
 
-/**
- * Where you most likely fly from: each trip's first flight leaves home, so count those and take the most
- * common, the most recent trip breaking a tie. Only ever a suggestion the member confirms (#574).
- */
 export function inferHomeAirport(flights: FlightSeen[]): string | null {
   const tally = new Map<string, Tally>();
   for (const { date, from } of firstFlights(flights).values()) {

@@ -16,7 +16,6 @@ export function arrangeTripsHome<T extends { startDate: IsoDate | null }>(
   };
 }
 
-/** The web's My trips: every dated trip in one list, soonest first, with no featured card; undated trips apart. */
 export function arrangeTripsList<T extends { startDate: IsoDate | null }>(
   trips: readonly T[],
 ): { dated: T[]; undated: T[] } {

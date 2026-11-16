@@ -1,15 +1,9 @@
-/**
- * Where a trip is up to, derived (ticket 109). Invariant: no lifecycle
- * enum, stage is a function of what data exists. Pure — no `db`, no React —
- * so it's testable; the page just renders what it's handed.
- */
 import { ledgerBalances, type LedgerRows } from "../money/ledger";
 import type { Currency } from "../money/currency";
 import { countdownLabel, hasEnded } from "../dates/dates";
 import { owingUserIds } from "./group/group-status";
 import { countWord } from "../text/count-word";
 
-/** What a station on the trail is doing. No `locked` — every tab is open (ticket 126). */
 type StationState = "done" | "now" | "snag" | "ahead";
 
 type TrailStation = {
@@ -60,7 +54,6 @@ export type TripState<M extends StateMember> = {
   unresolved: {
     availability: M[];
     availabilityOthers: M[];
-    /** User ids with a non-zero balance in any currency. */
     money: string[];
     moneyOthers: string[];
   };
@@ -68,7 +61,6 @@ export type TripState<M extends StateMember> = {
     hasAvailability: boolean;
     positions: { currency: Currency; amount: number }[];
   };
-  /** What leaving costs, so the dialog can say it before the click (ticket 65). */
   leave: { heir: M | null; warning: string };
 };
 
@@ -80,14 +72,10 @@ export function tripStateFor<M extends StateMember>(
   const hasDays = days.length > 0;
   const datesUnset = !trip.startDate && !trip.endDate;
   const ended = hasEnded(trip.endDate);
-  // Nothing decided yet: no window, no days, no spend. Was "the idea board is
-  // empty" until the board was removed — same question, asked of the data that
-  // is left.
   const isBrandNew = datesUnset && !hasDays && expenses.length === 0;
 
   const withoutViewer = (list: M[]) => list.filter((m) => m.userId !== viewerId);
 
-  // Availability is only a question while dates are unset.
   const withAvailability = new Set(input.availabilityUserIds);
   const availability = datesUnset
     ? members.filter((m) => !withAvailability.has(m.userId))
@@ -102,7 +90,6 @@ export function tripStateFor<M extends StateMember>(
     .map(([currency, book]) => ({ currency, amount: book[viewerId] ?? 0 }))
     .filter((p) => p.amount !== 0);
 
-  // The stage is a short badge; anything else drops to `stageNote` below (ticket 89).
   const stage: { label: string; tone: StageTone } = isBrandNew
     ? { label: "Not started", tone: "open" }
     : ended
@@ -135,7 +122,6 @@ export function tripStateFor<M extends StateMember>(
     {
       key: "days",
       label: "Days",
-      // Absorbed Route's station when it retired as a tab (ticket 142).
       caption: hasDays
         ? placeCount
           ? `${days.length} sketched · ${countWord(placeCount, "place")}`
@@ -153,7 +139,6 @@ export function tripStateFor<M extends StateMember>(
     },
   ];
 
-  // At most one "now" — Dates is the default when nothing else is open.
   if (!stations.some((s) => s.state === "now")) stations[0].state = "now";
 
   const leave = leaveCostFor({
@@ -186,7 +171,6 @@ export function tripStateFor<M extends StateMember>(
   };
 }
 
-/** What leaving costs (ticket 65) — split out so the header trip menu doesn't need the six reads `tripStateFor` does. */
 export function leaveCostFor<M extends StateMember>(input: {
   trip: { name: string };
   members: M[];

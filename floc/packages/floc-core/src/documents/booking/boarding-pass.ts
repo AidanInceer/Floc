@@ -1,16 +1,8 @@
-/**
- * Reads the text of a boarding pass barcode (#559): IATA's Bar Coded Boarding Pass, the format every
- * airline prints. It carries the flight, the day and the airports, and no clock times.
- */
 import { addDays, toIsoDate, type IsoDate } from "../../dates/dates";
 import { cleanBookingDetails, type FlightDetails } from "./booking-details";
 
 const MANDATORY_LENGTH = 58;
 
-/**
- * Why the year is worked out: the barcode gives only the day of the year. A pass is issued for a
- * flight soon, so the year is the one that puts the flight nearest to today, never far in the past.
- */
 function flightDate(dayOfYear: number, today: IsoDate): IsoDate | null {
   if (dayOfYear < 1 || dayOfYear > 366) return null;
   const year = Number(today.slice(0, 4));
@@ -22,7 +14,6 @@ function flightDate(dayOfYear: number, today: IsoDate): IsoDate | null {
   return candidates.find((date) => date !== null && date >= earliest && date <= addDays(today, 335)) ?? null;
 }
 
-/** The flight on a boarding pass barcode's first leg, or null when the text is not one. */
 export function readBoardingPass(barcode: unknown, today: IsoDate): FlightDetails | null {
   if (typeof barcode !== "string" || barcode.length < MANDATORY_LENGTH || barcode.length > 700) return null;
   if (!/^[MS][1-4]/.test(barcode)) return null;

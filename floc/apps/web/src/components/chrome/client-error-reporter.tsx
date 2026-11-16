@@ -4,7 +4,6 @@ import { useEffect } from "react";
 
 import { clientErrorBeacon } from "@/lib/client-error/beacon";
 
-/** Sends uncaught browser errors to `/api/client-error`. Draws nothing. */
 export function ClientErrorReporter() {
   useEffect(() => {
     const beacon = clientErrorBeacon(

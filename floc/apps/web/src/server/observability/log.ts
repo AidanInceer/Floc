@@ -1,7 +1,3 @@
-/**
- * Why (#613, ADR-046): one JSON line per event on stdout is what Railway indexes — `message`, `level`, and each
- * other key as an attribute to search by (`@requestId:…`). Callers pass flat fields; redaction runs on every line.
- */
 import { isSpanContextValid, trace } from "@opentelemetry/api";
 
 import pkg from "../../../package.json" with { type: "json" };

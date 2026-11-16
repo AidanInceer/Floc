@@ -60,7 +60,6 @@ export type CommitState = {
   costLabel: string | null;
 };
 
-// The shrink cost is said on the button doing it, not in a dialog: the days being cut are drawn above (ticket 140).
 export function CommitBar({ pick, dated, problem, pending, onCommit, onDiscard }: {
   pick: CommitState;
   dated: boolean;
@@ -91,7 +90,6 @@ export function CommitBar({ pick, dated, problem, pending, onCommit, onDiscard }
   );
 }
 
-// In the order a group books: who can, then the trip.
 export function DatesKey() {
   const swatch = (cls: string) => <span aria-hidden className={cx("size-3 rounded-[4px] max-sm:size-2", cls)} />;
   const item = "flex items-center gap-1.5";

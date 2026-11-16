@@ -2,10 +2,6 @@ import { ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
 
 const QUIET = "hover:!border-red/60 hover:!bg-red-soft hover:!text-red hover:!shadow-none";
 
-/**
- * Clear and reset sit under the board, in view (ticket 133: disabled, never absent).
- * Reset confirms when an itinerary rides on the window (ticket 140); clear does not — marks paint back.
- */
 export function DatesActions({
   reset,
   clear,

@@ -12,18 +12,6 @@ import { SparkIcon } from "@/components/system/icons/packing";
 import { CrossIcon } from "@/components/system/icons";
 import { PackingStepper } from "@/components/packing/packing-quantity";
 
-/**
- * One thing in your own bag (ticket 220). A separate component from
- * a shared claim card: nobody claims your socks, so the
- * claim verb, the avatars and the three-way status all go, and what is left is
- * a plain checklist row with a count on it.
- *
- * A Client Component so the tick and the removal land under the finger. Every
- * write here revalidates the whole tab — both lists, the roster, the forecast —
- * and a row that sits inert until all of that returns reads as a dead control.
- * The optimistic value is overwritten by the server's, so a refused write
- * corrects itself rather than sticking.
- */
 export function PersonalPackingRow({
   tripId,
   lineId,
@@ -47,19 +35,14 @@ export function PersonalPackingRow({
   remove: (tripId: number, lineId: number) => Promise<void>;
   rename: (tripId: number, lineId: number, label: string) => Promise<{ error?: string }>;
   compact?: boolean;
-  /** Added by auto packing (#469): a faint mark, so "Remove suggested" is never a surprise. */
   suggested?: boolean;
 }) {
   const [packed, showPacked] = useOptimistic(packedAt !== null);
-  // A reducer, not a set value: two clicks before the first render commits both
-  // close over the same count, so setting one would show a single step where the
-  // SQL has applied two.
   const [shown, stepShown] = useOptimistic(quantity, (n: number, delta: number) =>
     clampPackQuantity(n + delta),
   );
   const [gone, showGone] = useOptimistic<boolean, void>(false, () => true);
 
-  // Why: the row hides before the delete lands; a press on the cross is already deliberate, so no fade.
   if (gone) return null;
 
   return (
@@ -73,8 +56,6 @@ export function PersonalPackingRow({
         <PackTick packed={packed} label={label} />
       </form>
 
-      {/* The count sits ahead of the label and shows even at one, so a row
-          never changes shape as you step it. */}
       <span
         className={cx("flex min-w-0 flex-1 items-baseline whitespace-pre text-sm transition-colors duration-[0.22s] ease-(--ease)", packed && "text-ink-soft")}
       >
@@ -116,7 +97,6 @@ export function PersonalPackingRow({
           await remove(tripId, lineId);
         }}
       >
-        {/* Why: your own bag, one press, no dialog (Aidan, E2): a wrong press costs one retype. */}
         <button
           type="submit"
           aria-label={`Remove ${label}`}

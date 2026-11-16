@@ -1,4 +1,3 @@
-/** Consent to advertising email: off until the person turns it on, with the time they agreed kept as the record. */
 import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

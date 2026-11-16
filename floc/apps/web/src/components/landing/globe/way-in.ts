@@ -6,16 +6,11 @@ import type { globePainter } from "@/components/globe/paint-globe";
 type Painter = NonNullable<ReturnType<typeof globePainter>>;
 type Tween = { from: number; to: number; t0: number; ms: number };
 
-/** `stage` carries `--deep` for the layout. */
 export type WayDom = { stage: HTMLElement };
 
 const NARROW = "(max-width: 900px)";
 const [OPEN_MS, SHUT_MS] = [1300, 1100];
 
-/**
- * The way in to one trip: the globe's box opens to the page's width and the sphere zooms in.
- * Why: the layout and the canvas both read `--deep`, so box and sphere move on one clock; two timers would drift.
- */
 export function wayIn(paint: Painter, onChange: (state: "open" | "shut") => void) {
   let [deep, half] = [0, 0];
   let zoom: Tween | null = null;
@@ -37,12 +32,10 @@ export function wayIn(paint: Painter, onChange: (state: "open" | "shut") => void
       cam = { R: zoomFor(stops, roomIn({ w: to.stage.clientWidth, h: f.h }, wide), f.max), fx: f.fx };
       zoom = { from: 0, to: 1, t0: performance.now(), ms: still ? 0 : OPEN_MS };
     },
-    /** Takes the view the open trip left the map at, so the way out starts where it is. */
     settle(fit: { R: number; cx: number; cy: number }) {
       const box = paint.box();
       cam = { R: fit.R, fx: fit.cx / box.w, fy: fit.cy / box.h };
     },
-    /** False when there is nothing to close, or it is still on its way in or out. */
     close(still: boolean) {
       if (!dom || zoom) return false;
       zoom = { from: 1, to: 0, t0: performance.now(), ms: still ? 0 : SHUT_MS };

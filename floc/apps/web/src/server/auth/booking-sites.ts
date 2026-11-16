@@ -13,7 +13,6 @@ export async function bookingSitesOf(userId: string): Promise<BookingSites> {
   return readBookingSites((await getProfile(userId))?.bookingSites ?? null);
 }
 
-/** Adds or drops one site; a move the rules refuse writes nothing and returns what stands. */
 export async function toggleBookingSite(userId: string, kind: SiteKind, site: BookingSite): Promise<BookingSites> {
   const profile = await ensureProfile(userId);
   const now = readBookingSites(profile.bookingSites);

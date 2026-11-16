@@ -12,8 +12,6 @@ const prOnly = [
     required_status_checks: requiredChecks.main.map((context) => ({ context })) } },
 ];
 
-// Why: a personal-account repo cannot let GitHub Actions bypass a ruleset, and Sync develop pushes main into develop
-// with the Actions token. So develop is guarded only against deletion and force-push; PR-only and checks stay on main.
 export function ruleset(branch) {
   return {
     name: `Floc ${branch}`,

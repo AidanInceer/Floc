@@ -1,9 +1,3 @@
-/**
- * The page list (#408): pages and one level of sub-pages, each with an optional
- * icon. Double-click renames; drag moves within its own list; the ⋯ menu adds
- * a sub-page, renames, sets the icon or archives. Archived pages wait below
- * with their days left, and Restore.
- */
 "use client";
 
 import { useEffect, useRef, useState, type DragEvent, type ReactNode } from "react";
@@ -25,7 +19,6 @@ export type RailActions = {
   add: (parentId: number | null) => void;
   rename: (id: number, title: string) => void;
   icon: (id: number, icon: PageIcon | null) => void;
-  /** Moves a page next to a sibling: before it, or after it. */
   move: (id: number, target: number, after: boolean) => void;
   archive: (id: number) => void;
   restore: (id: number) => void;

@@ -7,7 +7,6 @@ import { inferHomeAirport } from "@floc/core/money/estimate/guide/home-airport";
 import { resolveStyle } from "@floc/core/money/estimate/style";
 import type { EstimateSettings } from "@floc/core/money/estimate/view";
 
-/** Your cost-estimate settings (#574): the airport Floc suggests is read only when none is set. */
 export async function readEstimateSettings(userId: string): Promise<EstimateSettings> {
   const [pro, travel] = await Promise.all([canUseFeature("money.estimate", userId), readTravelProfile(userId)]);
   const inferred = pro && !travel.homeAirport ? inferHomeAirport(await flightsSeenBy(userId)) : null;

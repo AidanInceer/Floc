@@ -1,8 +1,3 @@
-/**
- * A notes page's live doc in the database (#408): the Yjs state, and its body
- * in our block format for every other reader. No `server-only`: the custom
- * server loads this outside Next.
- */
 import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
@@ -10,7 +5,6 @@ import { log } from "@/server/observability/log";
 import { trip, tripPage } from "@/db/schema";
 import { PAGE_LIMITS, sizeRefusal } from "@floc/core/notes/pages/page-rules";
 
-/** Why: the body cap alone misses a doc bloated by edits undone, which a modified client can send. */
 export const LIVE_STATE_MAX_BYTES = 4 * PAGE_LIMITS.pageBytes;
 
 export async function loadPageState(pageId: number): Promise<{ state: Uint8Array | null; body: string | null }> {
@@ -22,7 +16,6 @@ export async function loadPageState(pageId: number): Promise<{ state: Uint8Array
   return { state: row?.state ? new Uint8Array(row.state) : null, body: row?.body ?? null };
 }
 
-/** Stores a page still open on a live trip. A page over 1 MB is not stored; the editor stops it growing first. */
 export async function storePageState(tripId: number, pageId: number, updatedBy: string, state: Uint8Array, body: string): Promise<void> {
   if (sizeRefusal(body) || state.byteLength > LIVE_STATE_MAX_BYTES) {
     log.warn("notes.page-too-big", { pageId });

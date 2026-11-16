@@ -57,7 +57,6 @@ describe("renewalLabel", () => {
 
 describe("yearlySaving", () => {
   it("rounds the discount a year buys to a whole percent", () => {
-    // £3.99 a month against £29.99 a year.
     expect(yearlySaving(399, 2999)).toBe(37);
   });
 

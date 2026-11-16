@@ -1,9 +1,3 @@
-/**
- * Ideas — where the trip could go, before it has dates.
- *
- * Why: add, vote and remove are open to every member. An idea is the group's,
- * and gating removal would be a fourth admin power (rule 6).
- */
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { z } from "zod";
 

@@ -1,7 +1,3 @@
-/**
- * #344: what the inbox shows. Hidden when its thing is gone or you left the
- * trip, kept 30 days, 50 a page, and opening one is yours alone to do.
- */
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
@@ -107,7 +103,6 @@ describe("the inbox", () => {
   });
 
   it("pages 50 at a time", async () => {
-    // Why one batch, not 51 nudge() calls: 100+ round trips timed out on a busy machine, and the daily nudge cap needs backdating.
     const rows = Array.from({ length: 51 }, () => ({ tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab: "dates" as const, message: null }));
     const nudges = await db.insert(schema.nudge).values(rows).returning({ id: schema.nudge.id });
     const href = tripHref(world.ours.id, "dates");

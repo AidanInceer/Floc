@@ -1,4 +1,3 @@
-/** The text caps (ticket 113). */
 import { describe, expect, it } from "vitest";
 
 import { capRequiredText, capText, properCase, TEXT_CAPS } from "./text";

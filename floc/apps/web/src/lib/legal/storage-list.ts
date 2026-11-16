@@ -1,7 +1,3 @@
-/**
- * Everything Floc puts on a device (#368). The Cookie policy shows it by category, and a test holds this list
- * to what the code sets, so the policy cannot say less than the app does.
- */
 import { ANALYTICS_KEEP_DAYS } from "@floc/core/analytics/events";
 import { CONSENT_CATEGORIES, CONSENT_COOKIE, CONSENT_DAYS } from "@floc/core/consent/consent";
 import { LIVE_CACHE_PREFIX } from "@floc/core/notes/live/live-epoch";
@@ -16,7 +12,6 @@ export type StoredThing = {
   category: "necessary" | "functional";
   purpose: string;
   lasts: string;
-  /** A cookie's longest life in days. Null for storage with no clock, which stays until the event in `lasts`. */
   days: number | null;
 };
 
@@ -53,5 +48,4 @@ const CATEGORY_TERMS: Record<(typeof CONSENT_CATEGORIES)[number]["key"], { examp
   },
 };
 
-/** Why: the Cookie policy shows one row per category, not one per key; the list above stays what the tests hold to the code. */
 export const STORAGE_CATEGORIES = CONSENT_CATEGORIES.map((category) => ({ ...category, ...CATEGORY_TERMS[category.key] }));

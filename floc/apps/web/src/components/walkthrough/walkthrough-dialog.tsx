@@ -1,10 +1,5 @@
 "use client";
 
-/**
- * The first-trip walkthrough (wireframe/trip-onboarding E5c, #315). Say what is sorted; the step
- * to start on shows as a card in its feature's wash, with the page it opens drawn small. Closing
- * it any way at all — Skip, the cross, Escape, or going — marks it seen for good (#314).
- */
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -19,7 +14,6 @@ import { WalkthroughPreview, type PreviewData } from "./walkthrough-preview";
 const DIALOG =
   "m-auto w-full max-w-lg overflow-y-auto rounded-md border border-rule bg-sheet p-0 text-ink shadow-lifted backdrop:bg-black/40 max-h-[calc(100dvh-48px)] max-sm:mb-0 max-sm:max-h-[92dvh] max-sm:max-w-full max-sm:rounded-b-none";
 
-/** Where (Ideas) is blue, When (Dates) is yellow; the invite is yours to do, so pen. */
 const WASH: Record<string, { card: string; ink: string }> = {
   ideas: { card: "bg-pastel-blue", ink: "text-pastel-blue-ink" },
   invite: { card: "bg-pen-soft", ink: "text-pen-deep" },
@@ -104,11 +98,6 @@ function scrollTo(el: Element) {
   el.scrollIntoView({ block: "start", behavior: still ? "auto" : "smooth" });
 }
 
-/**
- * Why it opens what it lands on: Ideas is a fold while the plan is loose and a row that opens a
- * sheet once it has a shape (`ideasTucked`); "Go to Ideas" should show the ideas, not a closed
- * door. A tucked row with no ideas draws nothing, so then it lands on the trip card that holds it.
- */
 function landOnIdeas() {
   const el = document.getElementById("ideas");
   if (!el) {
@@ -121,7 +110,6 @@ function landOnIdeas() {
   scrollTo(el);
 }
 
-/** Opens the group's own Invite sheet, the one door for sharing the trip. */
 function landOnInvite() {
   const group = document.getElementById("the-group");
   if (!group) return;

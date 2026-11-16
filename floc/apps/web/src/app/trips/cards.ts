@@ -1,11 +1,3 @@
-/**
- * Load-and-build shared by /trips and /trips/archived — one predicate
- * argument instead of duplicating the assembly. Not in `server/`: this is
- * the card shape two pages in this folder share, not a domain aggregate.
- *
- * Archived loads less: the Place sort is live-list furniture, so that read
- * only fires for the live list.
- */
 import "server-only";
 
 import { listMembersFor, type TripMember } from "@/server/access";
@@ -19,9 +11,6 @@ import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import type { TripCardData } from "@/components/trip/trip-card";
 import type { OverviewRoute } from "@floc/core/trip/overview/route";
 
-// Card plus the roster it was built from — Archived names the admins to ask
-// for a restore. `TripCardData.members` is deliberately narrower (avatar row
-// only).
 export type TripListCard = { card: TripCardData; members: TripMember[] };
 
 export async function loadTripCards(
@@ -31,7 +20,6 @@ export async function loadTripCards(
   const rows = await listTripsFor(viewerId, { archived });
   const tripIds = rows.map((r) => r.id);
 
-  // One query for the whole list each, not one per card.
   const [membersByTrip, whereByTrip, routes] = await Promise.all([
     listMembersFor(tripIds),
     archived ? new Map<number, string>() : firstOvernightPlaceByTrip(tripIds),
@@ -51,8 +39,6 @@ export async function loadTripCards(
         starred: r.starred,
         muted: r.muted,
         members,
-        // A trip nobody has decided anything about yet — no window, nowhere to
-        // stay. Read off rows already loaded, so it costs no extra query.
         needsYou: archived
           ? undefined
           : !hasEnded(r.endDate) &&

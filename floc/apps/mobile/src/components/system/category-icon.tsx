@@ -1,17 +1,3 @@
-/**
- * The expense category glyphs, drawn (money overhaul, #148).
- *
- * THE SAME TWELVE DRAWINGS AS THE WEB. Every path is copied from
- * `components/category-icon.tsx` in the web app, unchanged, on the same 14×14
- * viewBox at the same 1.2 weight. That is deliberate: a fork's worth of
- * hand-redrawn icons is how two clients stop looking like one product, and
- * these are the app's own hand, not an icon set.
- *
- * NO EMOJI (#148). Line art, `fill="none"`, `currentColor`.
- *
- * A GLYPH IS NEVER ALONE (#204). Every place that draws one puts the category
- * word beside it — the drawing is the scanning aid, the word is the meaning.
- */
 import { CATEGORY_LABELS, type ExpenseCategory } from "@floc/core/money/expense-category";
 import Svg, { Path } from "react-native-svg";
 
@@ -50,8 +36,6 @@ export function CategoryIcon({
       height={size}
       viewBox="0 0 14 14"
       fill="none"
-      // Said aloud, because a row that shows only the glyph would otherwise
-      // announce the amount with no idea what it was for.
       accessibilityLabel={CATEGORY_LABELS[category]}
     >
       <Path

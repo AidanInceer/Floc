@@ -29,7 +29,6 @@ function FaceView({ shown, onGone }: { shown: Shown; onGone?: () => void }) {
   );
 }
 
-/** A tile's words as a reel: when the trip changes, the old words slide out below as the new ones come in from above. */
 function Reel({ card, face }: { card: Card; face: Face }) {
   const [shown, setShown] = useState<{ now: Shown; was: Shown | null }>({ now: { card, face }, was: null });
   if (shown.now.face.key !== face.key) setShown({ now: { card, face }, was: face.kind === "rest" ? null : shown.now });
@@ -41,7 +40,6 @@ function Reel({ card, face }: { card: Card; face: Face }) {
   );
 }
 
-/** One of the six trips beside the globe. The corner button opens the globe on the trip's route. */
 export function BorrowTile({ card, face, current, on }: { card: Card; face: Face; current: boolean; on: Actions }) {
   const rolling = face.kind === "tick";
   return (

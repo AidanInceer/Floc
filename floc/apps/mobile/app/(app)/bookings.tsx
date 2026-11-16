@@ -1,7 +1,3 @@
-/**
- * Bookings (#559) — the phone's half of `/bookings`: forwarded or uploaded files that wait for you to
- * choose their trip. Yours alone; a file reaches a trip only as one of your private files there.
- */
 import { bookingSummary } from "@floc/core/documents/booking/booking-details";
 import {
   bookingForwardWords, bookingInboxLeftWords, bookingInboxNote, bookingsEmptyWords, bookingsNoStorageWords,
@@ -95,7 +91,6 @@ export default function Bookings() {
                     <Label>No trip to put it in yet</Label>
                   ) : (
                     <View style={{ alignItems: "flex-start" }}>
-                      {/* Why the sheet opens even for one trip: the press that moves a file is on the trip's own name, as on the web. */}
                       <Button
                         label="Add to trip"
                         variant="quiet"

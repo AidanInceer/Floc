@@ -7,7 +7,6 @@ import { formatDateRange } from "@floc/core/dates/dates";
 import { sortIdeas, type IdeaRow } from "@floc/core/trip/ideas";
 import type { WalkthroughDialog } from "@/components/walkthrough/walkthrough-dialog";
 
-/** What the first-trip walkthrough is told about this trip: only facts it already holds. */
 export function walkthroughFor(
   { trip, viewer, members }: Pick<TripAccess, "trip" | "viewer" | "members">,
   ideas: IdeaRow[],

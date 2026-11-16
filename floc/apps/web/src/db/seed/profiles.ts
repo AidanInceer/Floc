@@ -1,9 +1,3 @@
-/**
- * Why: there is no "public" in Floc — the widest ring is `trip_members` and a
- * stranger never reaches a profile — so the presets below are the rings you can
- * actually stand in, and the scenarios give each one somebody wearing it. A vibe
- * tag outside `VIBE_TAGS` is dropped on read, so it never shows.
- */
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import type { VIBE_TAGS } from "@floc/core/trip/vibe-tags";
 
@@ -24,13 +18,10 @@ export type Profile = {
   vibes: VibeTag[];
   currency: "GBP" | "EUR" | "USD";
   rings: Rings;
-  /** ISO alpha-2. Green = been, yellow = want to go. Trips add their own greens on read. */
   map?: { green?: string[]; yellow?: string[] };
-  /** Explore listing ids on their Saved list (#544). */
   saves?: string[];
 };
 
-/** Everything shown to anyone you share a trip with. */
 export const OPEN: Rings = {
   isPrivate: false,
   avatarIcon: "compass",
@@ -41,7 +32,6 @@ export const OPEN: Rings = {
   pastTripsShow: "all",
 };
 
-/** A co-traveller who is not a friend sees name and picture, nothing else. */
 export const FRIENDS_ONLY: Rings = {
   isPrivate: false,
   avatarIcon: "camera",
@@ -52,10 +42,8 @@ export const FRIENDS_ONLY: Rings = {
   pastTripsShow: "all",
 };
 
-/** The profile-wide switch: name and picture only, whoever you are. */
 export const PRIVATE: Rings = { ...OPEN, isPrivate: true };
 
-/** One of each ring, so a single profile shows every rule at once. */
 export const MIXED: Rings = {
   isPrivate: false,
   avatarIcon: "mountain",

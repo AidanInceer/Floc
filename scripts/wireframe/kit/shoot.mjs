@@ -1,6 +1,3 @@
-// pnpm wireframe:shoot <path?variant=X> <out.png> [light|dark] [width] [height] [full]   (out is relative to the repo root)
-// Env STEPS: steps run before the shot, split by ";;". click:<sel> · drag:<selA>>><selB> · hover:<sel> · type:<sel>>><text> · wait:<ms>
-// Page errors and any sideways overflow are printed.
 import { chromium } from "playwright";
 
 const [, , path, out, theme = "light", width = "1280", height = "900", full = ""] = process.argv;
@@ -31,7 +28,6 @@ for (const step of (process.env.STEPS || "").split(";;").filter(Boolean)) {
     await page.mouse.up();
   }
 }
-// CLEAN=1 hides the wireframe's own fixed furniture, so the shot shows only the design.
 if (process.env.CLEAN) await page.evaluate(() => { for (const el of document.body.children) if (getComputedStyle(el).position === "fixed" && !el.matches("dialog, .toast")) el.style.display = "none"; });
 await page.waitForTimeout(350);
 const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);

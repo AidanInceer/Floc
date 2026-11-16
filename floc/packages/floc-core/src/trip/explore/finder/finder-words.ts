@@ -33,7 +33,6 @@ export function priceWord(price: Finder["price"], rates: ListingRates | null = n
   return `${pounds(min)}–${pounds(max)}${per(price)}`;
 }
 
-/** The two ends of the price slider: "£0 – £5,000+". */
 export function scaleWord(price: Finder["price"], rates: ListingRates | null = null): string {
   const pounds = (n: number) => poundsIn(n, rates);
   const top = price.max === null ? `${pounds(PRICE_SCALE[price.unit].max)}+` : pounds(price.max);
@@ -42,7 +41,6 @@ export function scaleWord(price: Finder["price"], rates: ListingRates | null = n
 
 export type FinderPill = { id: string; label: string; clear: Finder };
 
-/** Each must-have that is set, as a pill: what it says and the finder without it. */
 export function finderPills(f: Finder, rates: ListingRates | null = null): FinderPill[] {
   const out: FinderPill[] = [];
   if (f.q.trim()) out.push({ id: "q", label: `“${f.q.trim()}”`, clear: { ...f, q: "" } });

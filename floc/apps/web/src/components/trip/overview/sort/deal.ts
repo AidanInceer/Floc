@@ -1,5 +1,3 @@
-/** How Left to sort deals its stack down (#460, roll-down B): the paper edges under the strip are the top cards. */
-
 export const DEAL_MS = { open: 560, close: 420 };
 
 type Card = { top: number; height: number; width: number };
@@ -26,10 +24,8 @@ function bezier(x1: number, y1: number, x2: number, y2: number) {
   };
 }
 
-/** Soft start, long soft landing. */
 export const dealEase = bezier(0.3, 0.1, 0.12, 1);
 
-/** The point on the clock where `dealEase` gives `y`. */
 function inverse(y: number) {
   let [lo, hi] = [0, 1];
   for (let i = 0; i < 26; i++) {
@@ -40,10 +36,8 @@ function inverse(y: number) {
   return (lo + hi) / 2;
 }
 
-/** Where on the clock to pick up, so a click mid-way carries on from where the strip is. */
 export const resumeAt = (opening: boolean, pos: number) => inverse(opening ? pos : 1 - pos);
 
-/** Each card's start: the first on the near paper edge (5px down, 10px in), the rest on the far one (10px down, 22px in). */
 export function dealStarts(cards: Card[]): DealStart[] {
   return cards.map(({ top, height, width }, i) => {
     const near = i === 0;
@@ -52,7 +46,6 @@ export function dealStarts(cards: Card[]): DealStart[] {
   });
 }
 
-/** The stack at `pos` (0 shut, 1 open): each card a beat after the one above, and a height no lower than the lowest card. */
 export function dealFrame(pos: number, starts: DealStart[]) {
   const n = starts.length;
   const beat = Math.min(0.06, 0.45 / Math.max(1, n - 1));

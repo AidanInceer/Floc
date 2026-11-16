@@ -12,7 +12,6 @@ import { you } from "./sample-trip";
 const kicker = "font-mono text-[10px] uppercase tracking-[0.1em] text-ink-faint";
 const blank = "w-fit border-b-[1.5px] border-dashed border-rule-strong pb-[3px] text-ink-faint";
 
-/** The last band: a blank ticket. The typed place rides along to the new-trip sheet on My trips. */
 export function ClosingTicket({ signedIn }: { signedIn: boolean }) {
   const router = useRouter();
   const [dest, setDest] = useState("");

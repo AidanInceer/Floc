@@ -1,4 +1,3 @@
-/** A wavy edge between two page bands. The fill is the band above; rotate it to fill the band below. */
 export function Shore({ className }: { className: string }) {
   return (
     <svg aria-hidden viewBox="0 0 1440 80" preserveAspectRatio="none" className={`block h-14 w-full sm:h-24 ${className}`}>

@@ -24,7 +24,6 @@ const boxClass =
 
 type Kit = Awaited<ReturnType<typeof Load>>[number];
 
-/** Your saved packing lists (#230), one of the Lists pages (#467). */
 export function PackingLists({ kits }: { kits: Kit[] }) {
   return (
     <section aria-label="Packing lists">
@@ -59,7 +58,6 @@ export function PackingLists({ kits }: { kits: Kit[] }) {
   );
 }
 
-/** One saved packing list: its things in cubes, then rename and delete. */
 function KitSection({ kit }: { kit: Kit }) {
   const groups = viewPackingLines(kit.items, {
     sort: "category",

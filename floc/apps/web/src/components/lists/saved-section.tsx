@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 
-/** One run of Saved tiles under its name and count: your Saved tab and a friend's profile share it (#467, #544). */
 export function SavedSection({ title, count, children }: { title: string; count: number; children: ReactNode }) {
   return (
     <section aria-label={title} className="mt-8 first:mt-0">

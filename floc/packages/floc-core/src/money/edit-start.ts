@@ -1,7 +1,3 @@
-/**
- * Why: an unchanged save must write back what was stored. Share weights are not
- * stored, so an uneven split opens as Exact; a former member keeps their row (rule 2).
- */
 import type { Currency } from "./currency";
 import { toMajorInput } from "./money";
 

@@ -18,11 +18,6 @@ const PLAIN_LAND = "fill-sheet-2 stroke-rule-strong";
 
 const exploreTrips = (n: number) => (n === 0 ? "No Explore trips" : countWord(n, "Explore trip"));
 
-/**
- * A want-to-go country as a compact tile (#467): its outline in its continent's colour, its name, then how many Explore trips
- * go there beside Start trip. It opens Explore searched for it; its heart takes it off the list and off the globe's yellow (ADR-042).
- * On a friend's list it has no heart, since the country is theirs to drop, not yours (#544).
- */
 export function CountryTile({
   code,
   name,
@@ -35,7 +30,6 @@ export function CountryTile({
   name: string;
   onDrop?: () => void;
   children?: ReactNode;
-  /** Where Start trip goes when not the plain Saved path: a wish list asks its people along (#623). */
   startHref?: string;
   footer?: ReactNode;
 }) {

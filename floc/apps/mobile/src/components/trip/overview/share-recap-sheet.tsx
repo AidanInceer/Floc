@@ -1,4 +1,3 @@
-/** The recap picture before it leaves (ADR-045): a preview, Light or Dark (starting on the app's own), then the phone's share sheet. */
 import { useEffect, useState } from "react";
 import { Image, View } from "react-native";
 

@@ -1,8 +1,3 @@
-/**
- * Who hears about a change, and how loudly (#344). The approach is
- * docs/product/notifications/index.html.
- */
-
 export const ACTIVITY_KINDS = [
   "comment_added",
   "comment_replied",
@@ -34,10 +29,6 @@ export const ACTIVITY_KINDS = [
 ] as const;
 export type ActivityKind = (typeof ACTIVITY_KINDS)[number];
 
-/**
- * Dates, not changes (#346): made by the cron, never by a person, and exempt from the send limits.
- * Why: `still_owe` is no longer sent (#626) but stays so its old inbox rows still read.
- */
 export const REMINDER_KINDS = [
   "trip_starts_week",
   "trip_starts_today",
@@ -54,7 +45,6 @@ export function isReminder(kind: ActivityKind): kind is ReminderKind {
   return (REMINDER_KINDS as readonly ActivityKind[]).includes(kind);
 }
 
-/** A receipt for the person's own forwarded booking (#559): only they hear it, in the inbox, never by push or mail. */
 export const RECEIPT_KINDS = ["booking_filed", "booking_waiting"] as const satisfies ActivityKind[];
 export type ReceiptKind = (typeof RECEIPT_KINDS)[number];
 
@@ -62,17 +52,14 @@ export function isReceipt(kind: ActivityKind): kind is ReceiptKind {
   return (RECEIPT_KINDS as readonly ActivityKind[]).includes(kind);
 }
 
-/** Kinds whose `subjectId` is a note — the inbox hides them once the note is gone. */
 export const COMMENT_KINDS = ["comment_added", "comment_replied"] as const satisfies ActivityKind[];
 export const EXPENSE_KINDS = ["expense_added", "expense_changed"] as const satisfies ActivityKind[];
 
-/** Rapid edits by one person to one thing inside this window fold into one row. */
 export const GROUP_WINDOW_MS = 5 * 60_000;
 export const INBOX_KEEP_DAYS = 30;
 export const INBOX_PAGE = 50;
 
 type Rule = {
-  /** `trip`: every other member hears it. `affected`: only the people named. */
   audience: "trip" | "affected" | "self";
   loud: "affected" | "everyone" | "nobody";
 };

@@ -5,7 +5,6 @@ export type SheetExit =
   | { kind: "blank" }
   | { kind: "save"; payload: TripEditPayload };
 
-/** What shutting the trip sheet should do with the draft it holds. */
 export function sheetExit(before: TripEditPayload, after: TripEditPayload): SheetExit {
   const name = after.name.trim();
   if (name === "") return { kind: "blank" };

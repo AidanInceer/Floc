@@ -11,17 +11,12 @@ const greater = (a, b) => {
   return false;
 };
 
-/** The version a branch that changed the plugin should carry: one minor step past the target's, unless it is already past it. */
 export function nextPluginVersion(branchVersion, targetVersion) {
   if (greater(branchVersion, targetVersion)) return null;
   const [major, minor] = targetVersion.split(".").map(Number);
   return `${major}.${minor + 1}.0`;
 }
 
-/**
- * Why at publish: parallel sessions each bumped the version by hand and their PRs
- * conflicted on it. Publish has just merged the target in, so it knows the latest number.
- */
 export function bumpPlugin(root, target) {
   if (!git(root, "diff", "--name-only", `origin/${target}...HEAD`, "--", "plugins/floc")) return null;
   const versionOf = (text) => JSON.parse(text).version;

@@ -1,9 +1,3 @@
-/**
- * Why (#587): with an edge in front, Railway's `x-real-ip` is the edge's address, so every visitor would share one
- * rate-limit bucket. The edge's own header names the visitor, but anyone can send that header straight to Railway,
- * so it counts only when the connecting address is one of the edge's own. No `server-only`: the custom server
- * loads this outside Next.
- */
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 type Listener = (req: IncomingMessage, res: ServerResponse) => unknown;
@@ -11,7 +5,6 @@ type Listener = (req: IncomingMessage, res: ServerResponse) => unknown;
 const REAL_IP = "x-real-ip";
 const CLOUDFLARE_IP = "cf-connecting-ip";
 
-// Why here and not fetched: a limiter must not wait on the network. Source: cloudflare.com/ips, read 2026-11-14.
 const CLOUDFLARE_V4 = [
   "173.245.48.0/20", "103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22", "141.101.64.0/18", "108.162.192.0/18",
   "190.93.240.0/20", "188.114.96.0/20", "197.234.240.0/22", "198.41.128.0/17", "162.158.0.0/15", "104.16.0.0/13",
@@ -41,7 +34,6 @@ function v4(address: string): number | null {
   return value;
 }
 
-/** The first 32 bits, which is all an edge's ranges are written in. */
 function v6Head(address: string): number | null {
   const left = address.split("::")[0].split(":").filter(Boolean);
   if (!address.includes("::") && address.split(":").length !== 8) return null;
@@ -65,7 +57,6 @@ export function visitorAddress({ realIp, edgeIp, edge }: { realIp: string | unde
   return realIp;
 }
 
-/** Puts the visitor's own address on the request, where every limiter already reads it. */
 export function setVisitorAddress(req: IncomingMessage, edge = process.env.FLOC_EDGE): void {
   if (!edge) return;
   const visitor = visitorAddress({ realIp: first(req.headers[REAL_IP]), edgeIp: first(req.headers[CLOUDFLARE_IP]), edge });

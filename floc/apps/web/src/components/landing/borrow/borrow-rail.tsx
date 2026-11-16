@@ -11,7 +11,6 @@ import { countWord } from "@floc/core/text/count-word";
 
 type Props = { card: Card; tone: string; step: number; onStep: (k: number) => void; signedIn: boolean };
 
-/** The open trip, stop by stop, marked as the map marks them and joined by one plain line. Every row is one height, so a long trip never scrolls. */
 export function BorrowRail({ card, tone, step, onStep, signedIn }: Props) {
   const n = card.stops.length;
   return (
@@ -81,7 +80,6 @@ function StepButton({ label, path, disabled, onClick }: { label: string; path: s
   );
 }
 
-/** Why: the same marks the map draws, so a row and its stop read as one thing. */
 function Mark({ k, last }: { k: number; last: number }) {
   if (k !== 0 && k !== last) {
     return (

@@ -1,8 +1,3 @@
-/**
- * What a line shows besides its words (#408): list numbers (1, a, i by depth),
- * bullet shapes, the checkbox, and folded headings. All decoration — none of
- * it is stored — and folds are this person's alone.
- */
 import type { Node } from "@tiptap/pm/model";
 import { Plugin, PluginKey, type EditorState } from "@tiptap/pm/state";
 import { Decoration, DecorationSet, type EditorView } from "@tiptap/pm/view";
@@ -21,7 +16,6 @@ export type LineLook = {
   fold?: { id: string; open: boolean };
 };
 
-/** Each top-level line's extra look, from the page and this person's folds. */
 export function lineLooks(doc: Node, folded: ReadonlySet<string>): LineLook[] {
   const lines = outlineOf(doc);
   const numbers = listNumbers(lines);

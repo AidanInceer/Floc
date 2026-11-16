@@ -25,7 +25,6 @@ describe("resolveTheme", () => {
 });
 
 describe("themeBootstrap", () => {
-  /** It runs before any bundle, so a throw here would take the page with it. */
   const run = (stored: string | null, prefersDark: boolean, signedIn = true) => {
     const root = { dataset: {} as Record<string, string> };
     new Function(

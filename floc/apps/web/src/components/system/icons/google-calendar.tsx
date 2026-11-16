@@ -1,8 +1,3 @@
-/**
- * Google's Google Calendar mark, for the one button and the one Settings row that talk to it
- * (#444). Brand colours are Google's, not ours to repaint — the same exception as the G on the
- * sign-in button.
- */
 export function GoogleCalendarIcon({ size = 13 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 200 200" aria-hidden="true" className="shrink-0">

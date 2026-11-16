@@ -1,4 +1,3 @@
-/** Group ticks and person ticks are one state (#545): a group is ticked when all its people are. */
 import { goingNames } from "../trip/overview/going";
 
 export type GroupTick = "all" | "some" | "none";

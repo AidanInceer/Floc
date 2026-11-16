@@ -1,10 +1,3 @@
-/**
- * The signed-in person (#302) — what you curate, not what you configure.
- *
- * Why: the web splits profile from settings and the phone keeps the split, so nothing about
- * visibility, notifications or the account belongs here. `been` and `wantToGo` are derived on read
- * from the trips you are on, never stored (#95), so they cannot disagree with the web's map.
- */
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { z } from "zod";
 
@@ -13,8 +6,6 @@ import { protectedProcedure, router } from "../trpc";
 export const meRouter = router({
   get: protectedProcedure.query(({ ctx }) => ctx.port.loadMe(ctx.viewer.id)),
 
-  // Why: its own procedure because every screen wanting the viewer's id calls `get`, and none of
-  // them want a travel map with it.
   profile: protectedProcedure.query(({ ctx }) => ctx.port.loadMyProfile(ctx.viewer.id)),
 
   tourSeen: protectedProcedure.query(({ ctx }) => ctx.port.tourSeen(ctx.viewer.id)),
@@ -37,8 +28,6 @@ export const meRouter = router({
       await ctx.port.renameMe(ctx.viewer.id, input.displayName);
     }),
 
-  // Why: `blank` is not delete — over a country a trip still claims, it stores a rejection, or
-  // the app goes on asserting something false. The host tells the two cases apart (#108).
   setMark: protectedProcedure
     .input(
       z.object({

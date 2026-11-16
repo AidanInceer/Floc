@@ -1,6 +1,5 @@
 type Point = { x: number; y: number };
 
-/** A drawn ring with no two points nearer than `gap` px: a 1:50m coast holds many points to a pixel when drawn small. */
 export function thin<P extends Point>(points: readonly P[], gap: number): P[] {
   if (points.length < 3) return [...points];
   const out = [points[0]!];

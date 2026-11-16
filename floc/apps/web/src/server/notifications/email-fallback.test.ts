@@ -1,7 +1,3 @@
-/**
- * #346: someone with no phone, or push off, hears by email — never both for
- * one notification, inside the email limits, and never from a muted trip.
- */
 import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 

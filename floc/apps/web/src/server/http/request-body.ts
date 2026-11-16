@@ -1,6 +1,5 @@
 import "server-only";
 
-// Base64 expands an 8 MB file to 10.7 MB; leave room for JSON and metadata.
 const MAX_API_BODY_BYTES = 12 * 1024 * 1024;
 
 export async function boundedRequest(req: Request): Promise<Request | null> {
@@ -27,6 +26,5 @@ export async function boundedRequest(req: Request): Promise<Request | null> {
   } finally {
     reader.releaseLock();
   }
-  // Why: GET and HEAD returned above, so Sonar's S7733 cannot fire here.
   return new Request(req, { body: Buffer.concat(chunks, length) }); // NOSONAR
 }

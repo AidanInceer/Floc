@@ -1,13 +1,8 @@
-/**
- * Tables (#408): cells hold one line of text, a tone, and nothing else. The
- * roles let prosemirror-tables select, add, move and delete rows and columns.
- */
 import { Node, mergeAttributes } from "@tiptap/core";
 import { isTone } from "@floc/core/notes/pages/page-blocks";
 
 declare module "@tiptap/core" {
   interface NodeConfig {
-    /** prosemirror-tables' role for this node. */
     tableRole?: string;
   }
 }
@@ -18,7 +13,6 @@ export const Table = Node.create({
   content: "tableRow+",
   isolating: true,
   tableRole: "table",
-  // Why: Tiptap only copies known fields into the ProseMirror spec; prosemirror-tables finds its nodes by this one.
   extendNodeSchema: (extension) => ({ tableRole: extension.config.tableRole }),
   addAttributes: () => ({
     header: {

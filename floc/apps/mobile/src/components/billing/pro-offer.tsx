@@ -1,8 +1,3 @@
-/**
- * Buying Pro through Apple or Google. The store's word is never the answer:
- * each purchase goes to the server, which asks the store, and only a recorded
- * claim finishes the transaction — an unfinished one replays on the next launch.
- */
 import type { StoreClaim, StoreClaimResult } from "@floc/api/port";
 import { STORE_PRODUCT_IDS } from "@floc/core/billing/store-products";
 import {
@@ -136,7 +131,6 @@ export function ProOffer({
         <ProText quiet>{connected ? `Pro is not on sale in ${IN_STORE} yet.` : `Waiting for ${IN_STORE}…`}</ProText>
       )}
       {message ? <ProText>{message}</ProText> : null}
-      {/* Apple requires the renewal terms beside the price. */}
       <ProText quiet>{`Renews automatically until you cancel in your ${STORE} settings.`}</ProText>
       <TextLink label="Restore a purchase" disabled={busy} onPress={() => void restore()} />
     </View>

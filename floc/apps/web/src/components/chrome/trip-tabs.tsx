@@ -13,17 +13,13 @@ import { activeHref } from "@/lib/active-href";
 import { type TabState } from "@/lib/tabs";
 import "./trip-tabs.css";
 
-// Why: Packing and Notes write on first open (auto-fill, first page), so only a real visit may load them in full.
 const WRITES_ON_OPEN = new Set(["packing", "notes"]);
 
-// Every tab is navigable from day one (ticket 126); no un-clickable stubs.
 export function TripTabs({ tripId, tabs, children }: { tripId: number; tabs: TabState[]; children?: ReactNode }) {
   const pathname = usePathname();
   const hrefOf = (tab: TabState) => `/trip/${tripId}/${tab.key}`;
   const current = activeHref(pathname, tabs.map(hrefOf));
   const router = useRouter();
-  // Why: a tab loaded in full before the click opens without the loading skeleton, and React holds content
-  // back 300 ms after a skeleton shows. Hover, focus or touch gives the page that head start.
   const warm = (tab: TabState) => () => {
     const href = hrefOf(tab);
     if (href !== current && !WRITES_ON_OPEN.has(tab.key)) router.prefetch(href);
@@ -32,7 +28,6 @@ export function TripTabs({ tripId, tabs, children }: { tripId: number; tabs: Tab
   const nav = fade.ref;
   const tile = useTabTile(nav, current);
 
-  // On a phone the row scrolls, and the tab you opened can sit cut off at the edge.
   useEffect(() => {
     nav.current
       ?.querySelector('[aria-current="page"]')
@@ -74,13 +69,11 @@ export function TripTabs({ tripId, tabs, children }: { tripId: number; tabs: Tab
           </Link>
         ))}
       </nav>
-      {/* Why: outside the nav, which scrolls sideways and would clip the menu's panel. */}
       {children}
     </div>
   );
 }
 
-/** Why: the pressed tab takes its open look at once (trip-tabs.css), not when its page arrives. */
 function PendingMark() {
   const { pending } = useLinkStatus();
   return pending ? <span data-tab-pending hidden /> : null;

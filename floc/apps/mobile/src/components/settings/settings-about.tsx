@@ -1,5 +1,3 @@
-// Why: the seed list is short enough to lay out whole, so no picker sheet and
-// no search — ten chips in three groups, and tapping one is the write (#46, #236).
 import { VIBE_TAG_GROUPS } from "@floc/core/trip/vibe-tags";
 import { StyleSheet, Pressable, Text, View } from "react-native";
 
@@ -7,7 +5,6 @@ import { useTheme } from "../system/theme";
 import { Body } from "../system/ui";
 import { fonts, radius, size, space } from "@/lib/theme";
 
-/** One tag, on or off. A button, so a rounded square; the pen wash and the weight say it is on (#204). */
 function TagChip({
   tag,
   on,

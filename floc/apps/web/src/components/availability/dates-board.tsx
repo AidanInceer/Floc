@@ -1,10 +1,5 @@
 "use client";
 
-/**
- * The Dates card: four stubs down the left, one month, and the open stub's panel on the
- * right. A day has one colour on every tab (`dayLook`); a tab only changes what a press
- * does and what the panel says.
- */
 import { useRef, useState, useTransition, type ReactNode } from "react";
 
 import { DatesTabs, type DatesTab } from "@/components/availability/dates-tabs";
@@ -33,19 +28,15 @@ export type DatesBoardProps = {
   dayLoads: DayLoad[];
   weather: TripForecast | null;
   weatherLocked: boolean;
-  /** Members and guests, each answered or not — the group tab counts and names from this one list. */
   group: GroupAnswer[];
   viewerId: string;
   bestWindow: { start: IsoDate; end: IsoDate } | null;
-  /** Server-drawn pieces: the group's faces, and the panels' blocks. */
   slots: { faces: ReactNode; best: ReactNode; who: ReactNode; trip: ReactNode; locked: ReactNode };
   save: (add: string[], remove: string[]) => Promise<void>;
   saveDates: (start: string | null, end: string | null) => Promise<{ error?: string }>;
-  /** Null with no Google key: no button, no menu item (rule 11). */
   calendar: CalendarSource | null;
 };
 
-// Only the trip's own days carry weather (ticket 148).
 function tripWeather(weather: TripForecast | null, start: string | null, end: string | null) {
   const tripDays = start && end ? dateRange(start, end) : [];
   const byDate: Record<IsoDate, DailyForecast> = {};
@@ -78,13 +69,11 @@ export function DatesBoard(props: DatesBoardProps) {
   };
   const view = (date: string): DayView => ({ ...dayLook(ctx, date), ...handlers(date) });
 
-  // Capture on the surface, not the cell (ticket 127): a touch pointer is held by the cell it pressed.
   const capture = (e: React.PointerEvent) => {
     e.preventDefault();
     try {
       surface.current?.setPointerCapture(e.pointerId);
     } catch {
-      // The pointer is already gone; the press still stands.
     }
   };
   function handlers(date: string): Pick<DayView, "press" | "activate"> {
@@ -116,7 +105,6 @@ export function DatesBoard(props: DatesBoardProps) {
     ...props, unsaved: paint.changed, faces: slots.faces,
     forecast: showForecast ? { weather, tripDays: tripDays.length, forecastDays: Object.keys(byDate).length } : null,
   });
-  // The hint goes once there is something to act on, and never offers hours that aren't there.
   const quiet = { mine: paint.changed > 0, group: true, trip: pick.editing, forecast: !weather }[tab];
   const panel: Record<DatesTab, ReactNode> = {
     mine: choice ? <div className="hidden lg:block">{choice}</div> : <><Coverage isFree={paint.isFree} start={tripStart} end={tripEnd} />{slots.best}</>,

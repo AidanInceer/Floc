@@ -1,5 +1,3 @@
-// B3d, the pick: one quiet row of Budget, Spent, Left and Estimate, a thin whole-trip bar, then each line against its plan.
-
 const pct = (v, max) => Math.max(0, Math.min(100, (v / max) * 100));
 
 function basedOn(c) {

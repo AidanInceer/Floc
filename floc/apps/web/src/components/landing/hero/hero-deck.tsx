@@ -17,7 +17,6 @@ import { VotesCard } from "./votes-card";
 import "./hero.css";
 import { nounFor } from "@floc/core/text/count-word";
 
-// How busy each September day was before the group settled — shading only.
 const HEAT = [2, 3, 1, 2, 4, 3, 2, 3, 4, 5, 4, 5, 5, 5, 5, 5, 5, 5, 5, 3, 2, 4, 3, 1, 2, 3, 2, 1, 2, 3];
 
 function DatesCard({ step }: { step: number }) {
@@ -94,7 +93,6 @@ function TicketCard({ step }: { step: number }) {
   );
 }
 
-/** The hero's scene: one Sicily trip, fanned out as the cards a group hands round, each card playing after the one before while a plane crosses behind them. */
 export function HeroDeck() {
   const { ref, step } = useScene<HTMLDivElement>(BEATS);
   const now = playingCard(step);

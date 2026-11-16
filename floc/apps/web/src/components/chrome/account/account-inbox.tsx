@@ -5,7 +5,6 @@ import { openNotification } from "@/app/inbox/actions";
 
 export type InboxPreviewItem = { id: number; text: string; at: Date };
 
-/** What is new, in the menu. Opening a row reads it, exactly as it does on /inbox. */
 export function AccountInbox({ unread, items }: { unread: number; items: InboxPreviewItem[] }) {
   return (
     <div className="px-1.5 pb-1 pt-2">

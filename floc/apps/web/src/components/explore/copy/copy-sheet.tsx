@@ -44,7 +44,6 @@ function CopyForm({ trip }: { trip: PresetTrip }) {
   const body = useRef<HTMLDivElement>(null);
   const moved = useRef(false);
   useEffect(() => {
-    // Why: the pressed control hides with its step, so focus would fall to the page; land it on the new step's question.
     if (moved.current) body.current?.querySelector<HTMLElement>(`[data-step="${step}"] h3`)?.focus();
     moved.current = true;
   }, [step]);
@@ -83,7 +82,6 @@ function CopyForm({ trip }: { trip: PresetTrip }) {
   );
 }
 
-/** "Start this trip" on Explore (ADR-025): do you have dates yet, then when, then what else comes across. */
 export function CopySheet({
   trip,
   children,
@@ -91,10 +89,8 @@ export function CopySheet({
   defaultOpen,
 }: {
   trip: PresetTrip;
-  /** The trigger's words. */
   children: ReactNode;
   className?: string;
-  /** Open on arrival: a link from the landing page asked for it. */
   defaultOpen?: boolean;
 }) {
   return (

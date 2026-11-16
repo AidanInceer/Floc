@@ -1,4 +1,3 @@
-// #574 Your cost estimate and budget (Pro, personal). Chosen: B3d, under a Money / Budget switch, plus the Overview banner.
 import { variants } from "/_house/switcher.js";
 import { tripFrame, ico, esc, avatar, openSheet, closeSheet, sheetHead, toast } from "/_house/kit/trip-frame.mjs";
 import { budgetView, basedSheet, fitFor } from "./budget.mjs";
@@ -8,7 +7,6 @@ const PEOPLE = [ME, { name: "Priya", initial: "Pr", tone: 2 }, { name: "Jo", ini
 const TRIP = { name: "Lisbon and Porto", range: "Sat 12 – Sat 19 Sep", nights: 7, days: 8, stops: [["Lisbon", 4], ["Porto", 3]] };
 const PROFILE = { cabin: "Economy", stay: "Mid-range", pace: "Balanced" };
 
-// Floc's rough guide, minor units (rule 1). Portugal's price index is already in the stay, food and activity bands.
 const CABIN = { Economy: 1, "Premium economy": 1.7, Business: 3.6, First: 6 };
 const STAY = { Budget: [2500, 4000], "Mid-range": [4500, 7000], "High-end": [9000, 15000] };
 const FOOD = { Budget: [2000, 3000], "Mid-range": [3000, 4500], "High-end": [5000, 8000] };

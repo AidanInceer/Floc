@@ -1,4 +1,3 @@
-// One row in the Who's going sheet. Everything done *to* someone opens under their row (ticket 125).
 import Link from "next/link";
 
 import { Avatar, Field, Select, Stack, Textarea, cx, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
@@ -30,7 +29,6 @@ export function MemberRow({
   needsDates: boolean;
 }) {
   return (
-    // Why: a <details> row, not a Menu — the sheet scrolls, and a dropdown inside it is clipped at the edge.
     <details className="group open:bg-sheet-2">
       <summary className={cx(row, "cursor-pointer list-none hover:bg-sheet-2 [&::-webkit-details-marker]:hidden")}>
         <Avatar name={m.name} size={30} tone={m.tone} />
@@ -56,7 +54,6 @@ export function MemberRow({
                 <FriendButton userId={m.userId} name={m.name} state={friendState} compact />
               </div>
             )}
-            {/* Gated server-side; this is presentation only (rule 6). */}
             {isAdmin && m.role !== "admin" ? (
               <form action={promoteMember}>
                 <input type="hidden" name="tripId" value={tripId} />

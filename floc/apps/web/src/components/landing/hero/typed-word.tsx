@@ -10,10 +10,8 @@ import "./hero-ticket.css";
 
 const LAST_WORD = HEADLINE_WORDS[HEADLINE_WORDS.length - 1];
 const typed = typingScript(HEADLINE_WORDS, START_DELAY_MS, SCENE_END_MS);
-// Why: the phone ticket is the scene there: the headline rests on its last word and the mark sweeps once the ticket is stamped.
 const still = stillScript(LAST_WORD, TICKET_SORTED_MS);
 
-/** The hero's second line: types each stage of a trip, then marks "sorted." in green; on a phone it shows "sorted." and only marks it. Decorative — the heading carries the words. */
 export function TypedWord() {
   const text = useRef<HTMLElement>(null);
   const caret = useRef<HTMLElement>(null);
@@ -23,12 +21,10 @@ export function TypedWord() {
     const script = matchMedia("(max-width: 900px)").matches ? still : typed;
     const paint = (time: number) => {
       const frame = frameAt(script, time);
-      // Why: an empty line box collapses and drops the caret below the line; a zero-width space holds it.
       text.current!.textContent = frame.text || "​";
       caret.current!.style.visibility = frame.caret ? "visible" : "hidden";
       const edge = -4 + frame.sweep * 108;
       mark.current!.style.visibility = frame.sweep > 0 ? "visible" : "hidden";
-      // The leading edge leans like a chisel nib, so it reads as a pen stroke rather than a wipe.
       mark.current!.style.clipPath = `polygon(0 0, ${edge}% 0, ${edge - 4}% 100%, 0 100%)`;
     };
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -37,7 +33,6 @@ export function TypedWord() {
     }
     const start = performance.now();
     let id = 0;
-    // Why: wall-clock time, as the plane below uses, so the mark and the plane land together even after a dropped frame.
     const tick = (now: number) => {
       const time = Math.min(script.doneAt, now - start);
       paint(time);

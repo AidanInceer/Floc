@@ -6,7 +6,6 @@ import { readFriendQuery } from "@floc/core/people/friend-query";
 import { findByName } from "@/server/social/find-friends";
 import { lookupFriendTag } from "@/server/social/friend-code";
 
-/** Read-only, whatever was typed: asking is always a second, deliberate press. */
 export async function searchFriends(viewerId: string, text: string): Promise<FriendSearch> {
   const query = readFriendQuery(text);
   if (!query) return { kind: "invalid" };

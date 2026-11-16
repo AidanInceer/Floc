@@ -1,9 +1,5 @@
 "use client";
 
-/**
- * The four stubs down the left of the Dates card. Each says where it stands before you
- * open it; the open one joins the month. On a phone they are one row across the top.
- */
 import type { ReactNode } from "react";
 
 import { cx } from "@/components/system/ui";
@@ -16,7 +12,6 @@ export type TabStub = {
   label: ReactNode;
   glyph: ReactNode;
   summary: TabSummary;
-  /** Top-right: who has answered, or "Not saved". */
   corner?: ReactNode;
 };
 

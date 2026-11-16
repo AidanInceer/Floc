@@ -6,7 +6,6 @@ import { useTheme } from "../system/theme";
 import { IconButton } from "../system/ui";
 import { fonts, size, space } from "@/lib/theme";
 
-/** The month, with a square step either side — a rounded-square control, never a text "‹" in an oval. */
 export function MonthNav({ month, onChange, min }: { month: IsoMonth; onChange: (month: IsoMonth) => void; min?: IsoMonth }) {
   const { c } = useTheme();
   return (

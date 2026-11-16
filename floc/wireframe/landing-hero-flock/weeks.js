@@ -1,9 +1,7 @@
-// Round 4, on J: J1 the big date, J2 your days, J3 the calendar.
 import { ico, group, face, head, scene, reduced, clamp, ease } from "./kit.js";
 import { LEDE, CTA, ok, DAY, NIGHTS } from "./round3.js";
 
 const DAYS = Array.from({ length: 30 }, (_, i) => i + 1);
-// Only 12–19 is free for all six.
 const BUSY = { Priya: [[1, 4], [22, 26]], Sam: [[8, 10], [21, 23]], Jo: [[3, 7], [20, 21], [28, 30]], Alex: [[9, 11], [24, 27]], Maya: [[1, 2], [6, 8], [20, 24]], Kit: [[5, 6], [10, 11], [26, 30]] };
 const away = (table, name, d) => (table[name] || []).find(([a, b]) => d >= a && d <= b);
 const week = (start) => DAYS.slice(start - 1, start + 7);
@@ -20,7 +18,6 @@ function sayer(root) {
   };
 }
 
-// ── J1: the big date ───────────────────────────────────────────────────────
 export function renderDate(stage) {
   const free = DAYS.map((d) => group.filter((p) => !away(BUSY, p.name, d)).length);
   stage.innerHTML = `<div class="hero hero-j1">
@@ -91,8 +88,6 @@ export function renderDate(stage) {
   return { stop() { s.clear(); } };
 }
 
-// ── J2: your days ──────────────────────────────────────────────────────────
-// Two weeks are free for all six, 10–17 and 21–28, so one busy day of yours moves the week and it still fits.
 const BUSY2 = { Priya: [[1, 4], [18, 19]], Sam: [[6, 9], [29, 30]], Jo: [[1, 2], [8, 9], [19, 20]], Alex: [[4, 6], [18, 18], [29, 30]], Maya: [[7, 9], [20, 20], [30, 30]], Kit: [[2, 3], [18, 20], [29, 29]] };
 const YOU = { name: "You" };
 
@@ -152,7 +147,6 @@ export function renderYours(stage) {
   you.addEventListener("pointercancel", () => { mode = null; });
   you.addEventListener("click", (e) => { if (e.detail !== 0) return; take(); const d = Number(e.target.dataset.d); if (d) set(d, !mine.has(d)); });
 
-  // One clock: the six answer, the week lands on the first one that fits, then two of your days push it to the next.
   find();
   s.at(1500, land);
   s.at(3100, () => set(13, true));
@@ -160,7 +154,6 @@ export function renderYours(stage) {
   return { stop() { s.clear(); } };
 }
 
-// ── J3: the calendar ───────────────────────────────────────────────────────
 const STOPS = [["Palermo", "yellow"], ["Palermo", "yellow"], ["Cefalù", "blue"], ["Taormina", "red"], ["Taormina", "red"], ["Syracuse", "green"], ["Syracuse", "green"], ["Home", "sheet"]];
 
 export function renderCalendar(stage) {

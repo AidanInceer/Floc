@@ -1,8 +1,5 @@
-// Why: the visual corrections Aidan kept making by hand, as rules a machine can hold. .claude/rules/design.md is the human list.
-
 const RADIUS_PART = /^(var\(--radius-[\w-]+\)|0|0px|50%|inherit|initial)$/;
 const RADIUS_CLASS = /^rounded(-(t|b|l|r|s|e|tl|tr|bl|br|ss|se|es|ee))?-(sm|md|full|none)$/;
-// Why: only these map to the house tokens in @theme; `shadow-sm` is Tailwind's default and `shadow-lift` draws nothing.
 const SHADOW_CLASS = /^shadow-(none|card|raised|lifted)!?$/;
 const LENGTH = /^-?[\d.]+(px|em|rem)?$/;
 
@@ -15,7 +12,6 @@ function drawsDepth(part) {
 }
 const GREY_FILL = /^(sheet-2|sheet-3|paper|rule|rule-strong)$/;
 const GREY_VAR = /background(-color)?\s*:\s*var\(--(sheet-2|sheet-3|paper|rule|rule-2)\)/;
-// Why: one type scale (globals.css --text-xs to --text-3xl); a size between two steps is how 36 sizes got in.
 const TYPE_SCALE = [11, 13, 15, 17, 20, 25, 31, 39];
 const onScale = (value) => /^[\d.]+px$/.test(value) && TYPE_SCALE.includes(Number.parseFloat(value));
 const SCALE_HINT = "a step on the type scale: 11, 13, 15, 17, 20, 25, 31 or 39px (text-xs to text-3xl)";
@@ -102,7 +98,6 @@ function scriptLine(file, line, report) {
   for (const [, colour] of line.matchAll(/hover:bg-([\w-]+)/g)) {
     if (GREY_FILL.test(colour)) report("hover-grey", `hover:bg-${colour} → hover:bg-pen-soft, a border or a lift`);
   }
-  // Why: --pen-2 is a CSS variable; its Tailwind colour is pen-soft, so a pen-2 class renders nothing (#527).
   for (const [token] of line.matchAll(/(?<![\w-])(?:[\w-]+:)*(?:bg|text|border|ring|outline|fill|stroke)-pen-2(?![\w-])/g)) {
     report("pen-2-class", `${token} → the pen-soft class (token --pen-2)`);
   }

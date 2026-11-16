@@ -1,10 +1,6 @@
 const MAX_PER_PAGE = 5;
 const MAX_MESSAGE = 300;
 
-/**
- * Why (#613): a crash in the browser leaves no trace on the server. This sends type, message and path only — the
- * server scrubs and masks them again — and at most five a page load, so a render loop cannot flood the logs.
- */
 export function clientErrorBeacon(send: (body: string) => void, path: () => string) {
   const seen = new Set<string>();
   return {

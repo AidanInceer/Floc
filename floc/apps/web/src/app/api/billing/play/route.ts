@@ -1,4 +1,3 @@
-/** Google Play real-time developer notifications, pushed by Pub/Sub with a signed ID token. */
 import { applyPlayNotification } from "@/server/billing/store/store-notifications";
 
 export const runtime = "nodejs";

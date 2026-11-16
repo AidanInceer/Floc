@@ -1,4 +1,3 @@
-/** Notes tab (#238, #408): the trip's pages, one open at a time, written by everyone at once. */
 import type { PageThread } from "@floc/editor/view/comments";
 import { commentTime, type NoteRow } from "@floc/core/notes/notes";
 import { whoTone } from "@floc/core/people/who";
@@ -31,14 +30,12 @@ export default async function NotesPage({
   const { trip, viewer } = access;
   const asked = page ? Number(page) : null;
   const toneOf = new Map(access.members.map((member) => [member.userId, member.tone]));
-  // Why: the asked page is nearly always the one that opens, so its epoch is read beside the list; a wrong guess is dropped unread.
   const [{ pages, archived }, links, threads, guessed] = await Promise.all([
     loadPages(trip.id, viewer.id),
     loadTripLinkItems(trip.id),
     pageThreads({ tripId: trip.id, viewerId: viewer.id, toneOf }),
     asked !== null && Number.isSafeInteger(asked) ? loadPageEpoch(asked) : null,
   ]);
-  // ensureFirstPage guarantees one page, so there is always one to open.
   const open = pageToOpen(pages, asked)!;
   const rows = threads.get(open.id) ?? [];
   const epoch = open.id === asked ? guessed : await loadPageEpoch(open.id);

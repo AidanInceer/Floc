@@ -1,4 +1,3 @@
-/** One file: a category-coloured tile, name, meta line and the dots. The row opens the file; the dots open its actions. */
 import { DOC_CATEGORY_LABELS, DOC_CATEGORY_TONES, type DocCategory } from "@floc/core/documents/documents";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 

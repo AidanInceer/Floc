@@ -1,14 +1,10 @@
 import type { Region } from "@floc/core/trip/explore/preset-trips";
 
 export type RegionTone = {
-  /** A filled mark: the number of a stop. */
   mark: string;
-  /** A small dot beside a place name, in the ink the tag writes in. */
   dot: string;
 };
 
-// One colour for a whole listing, the same family as its tag on /explore (`listing.ts`).
-// Written out in full: Tailwind only keeps class names it can read in the source.
 const TONES: Record<Region, RegionTone> = {
   Europe: {
     mark: "border-pastel-blue-edge bg-pastel-blue text-pastel-blue-ink",

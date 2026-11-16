@@ -1,4 +1,3 @@
-// #624 J3, the chosen top picks: a sun in the sort row brings them first; the sun on a tile names itself on hover.
 import { variants } from "/_house/switcher.js";
 import { esc, isNarrow } from "/_house/kit/trip-frame.mjs";
 import {

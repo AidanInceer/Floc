@@ -1,9 +1,3 @@
-/**
- * A member's subscribable trip calendar (#334). No session: calendar apps poll
- * with none, so the signed token is the whole check, and it is re-checked
- * against live membership on every poll. Outside the middleware matcher on
- * purpose — a redirect to /login would break every subscription.
- */
 import { memberCalendar } from "@/server/itinerary/feed/calendar-feed";
 import { readCalendarToken } from "@/server/itinerary/feed/calendar-link";
 

@@ -1,4 +1,3 @@
-// Three real Explore listings: a short one, the longest (8 stops, 4 countries) and one with two day outs.
 export const TRIPS = [
   {
     key: "japan",
@@ -55,7 +54,6 @@ export const TRIPS = [
   },
 ];
 
-// Rule for the place tag: the first country, then "+n" for the rest. The full list is the tag's label.
 export const placeWords = (countries) => (countries.length > 1 ? `${countries[0]} +${countries.length - 1}` : countries[0]);
 export const nightsWords = (n) => `${n} ${n === 1 ? "night" : "nights"}`;
 

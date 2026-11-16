@@ -13,7 +13,6 @@ const PACKAGE = "floc/apps/web/package.json";
 
 const versionAt = (root, ref) => JSON.parse(git(root, "show", `${ref}:${PACKAGE}`)).version;
 
-// Why: a hotfix goes straight to main, so it takes the next patch version itself.
 function bumpHotfix(root) {
   const live = versionAt(root, "origin/main");
   if (versionAt(root, "HEAD") !== live) return null;
@@ -30,11 +29,6 @@ function safeSweep(main, current) {
   try { return sweep(main, current).filter((r) => r.removed && r.path).map((r) => r.path); } catch { return []; }
 }
 
-/**
- * Commit, merge the target in, push, open the PR. No checks run here: the
- * pre-commit hook is the local gate and CI on the PR is the real one
- * (AGENTS.md, Guardrail gates). Docs go out after the merge, in finish.
- */
 export function publish(root, { messageFile, hold = false }) {
   const branch = taskBranch(root);
   const target = targetFor(branch);

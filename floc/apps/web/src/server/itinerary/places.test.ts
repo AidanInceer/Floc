@@ -1,4 +1,3 @@
-/** Place search: cached, never caching a failure, and one person cannot hold the queue. */
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { db, schema } from "@/db";

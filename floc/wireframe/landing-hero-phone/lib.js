@@ -1,4 +1,3 @@
-// What the take needs: the sample group, the live headline and actions, and one clock.
 export const group = [
   { name: "Priya", tone: 1 }, { name: "Sam", tone: 4 }, { name: "Jo", tone: 2 },
   { name: "Alex", tone: 3 }, { name: "Maya", tone: 6 }, { name: "Kit", tone: 7 },
@@ -11,8 +10,6 @@ export const h1 = (cls = "") => `<h1 class="hp-h1 ${cls}">Trip planning, <span c
 export const ctas = (cls = "") => `<div class="hp-ctas ${cls}"><a class="hp-btn hp-primary" href="#">Start a trip — free</a><a class="hp-btn" href="#">See example trips</a></div>`;
 export const swap = (from, to) => `<span class="hp-swap"><span>${from}</span><span>${to}</span></span>`;
 
-// Plays `events` ([ms, fn], in time order) once the scene is in view, each once. onTick gets the time on every frame.
-// Reduced motion, or ?end=1, runs them all at once: the scene opens on its end state.
 export function play(root, events, { onTick, total } = {}) {
   const end = total ?? events[events.length - 1][0] + 900;
   const calm = matchMedia("(prefers-reduced-motion: reduce)").matches || new URLSearchParams(location.search).has("end");

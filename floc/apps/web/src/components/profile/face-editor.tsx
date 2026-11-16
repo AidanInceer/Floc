@@ -1,9 +1,5 @@
 "use client";
 
-/**
- * Why: edited in the card so it previews the draft name (C3b). The face is always initials.
- * No colour choice: `whoTone` is how you follow one member across Money, Packing and the itinerary.
- */
 import { useEffect, useRef, useState } from "react";
 
 import { updateFace } from "@/app/profile/actions";

@@ -1,22 +1,3 @@
-/**
- * Dates (ticket 297) — the screen that settles when a trip happens, drawn as the web's narrow Dates card.
- *
- * ONE MONTH, FOUR VIEWS. A row of four stubs says where each view stands; the month under them never
- * changes colour between views (`dayLookOf`), only what a press does and the panel below it.
- *   Your days  — paint the days you could go.
- *   The group  — read-only, and who still owes an answer.
- *   The trip   — press the first day, then the last, to set the trip's dates.
- *   Forecast   — the high on the trip's own days. Pro, and says so when locked.
- *
- * UNDATED IS THE NORMAL STARTING STATE (rule 9). Nothing here treats a trip with no dates as broken,
- * and clearing the dates is an ordinary thing to do.
- *
- * NOTHING WRITES UNTIL SAVE. A drag builds up local edits and one action sends them.
- *
- * NO TIMEZONES ANYWHERE (rule 10). Every date on this screen is a `YYYY-MM-DD` string.
- *
- * YOU ANSWER ONLY FOR YOURSELF. There is no control to mark somebody else's days (rule 6).
- */
 import { bestWindow, freeDaysByUser, monthOf, thisMonth } from "@floc/core/dates/availability";
 import { paintRange } from "@floc/core/dates/calendar-gestures";
 import { dateRange, formatDateRange, nightsBetween, today } from "@floc/core/dates/dates";
@@ -52,7 +33,6 @@ import { countWord } from "@floc/core/text/count-word";
 
 type Outputs = inferRouterOutputs<AppRouter>;
 
-/** The month to open on: the trip's own, else the earliest anybody marked, else this one (rule 9). */
 function openingMonth(chosen: string | null, startDate: string | null, marked: string[]): string {
   if (chosen) return chosen;
   if (startDate) return monthOf(startDate);
@@ -73,7 +53,6 @@ function bookingFor(trip: Outputs["trips"]["get"], days: Outputs["itinerary"]["d
 
 type Member = { userId: string; name: string };
 
-/** Members and the invite link's guests (#442), each with how many days they can do; null until they answer, 0 for only "no" (#572). */
 function peopleOf(members: Member[], guests: { id: string; name: string }[] | undefined, freeDays: Partial<Record<string, number>>) {
   return [
     ...members.map((m) => ({ id: m.userId, name: m.name, guest: false })),
@@ -85,7 +64,6 @@ function tripDaysOf(start: string | null, end: string | null): string[] {
   return start && end ? dateRange(start, end) : [];
 }
 
-/** Only the trip's own days carry weather, as on the web (#148). */
 function hiFor(tripDays: string[], byDate: Record<string, ForecastDay>) {
   return (date: string) => {
     const day = tripDays.includes(date) ? byDate[date] : undefined;
@@ -152,7 +130,6 @@ function DatesHead({ start, end, changing, folded, onToggle }: { start: string |
 export default function Dates() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
-  // A screen keeps rendering for a frame while it leaves, and `id` is gone by then.
   const ready = Number.isFinite(tripId);
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -170,7 +147,6 @@ export default function Dates() {
   const [changing, setChanging] = useState(false);
   const [openDay, setOpenDay] = useState<string | null>(null);
   const [month, setMonth] = useState<string | null>(null);
-  /** Local paint, over what the server said. Empty means nothing unsaved. */
   const [edits, setEdits] = useState<Record<string, boolean>>({});
   const [range, setRange] = useState<DateRange | null>(null);
 
@@ -241,12 +217,10 @@ export default function Dates() {
       setRange((current) => nextRange(current, anchor, target));
       return;
     }
-    // The whole span takes the value the anchor is becoming, recomputed from the start of the drag.
     setEdits((current) => paintRange(current, anchor, target, !mineOn(anchor), dateRange));
   }
 
   function saveEdits() {
-    // Two calls, because yes and no are two writes.
     const dates = Object.keys(edits);
     const on = dates.filter((date) => edits[date]);
     const off = dates.filter((date) => !edits[date]);
@@ -311,7 +285,6 @@ export default function Dates() {
   return (
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
       <DatesHead start={startDate} end={endDate} changing={changing} folded={datesMoment(trip.data, today()) !== "finding"} onToggle={() => {
-        // Why: "Change the dates" opens the trip's dates, not your own days.
         if (!changing) open("trip");
         setChanging(!changing);
       }} />

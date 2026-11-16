@@ -1,16 +1,3 @@
-/**
- * `expense` + `expense_split` (ticket 108). Splits are snapshots (rule 2):
- * written once from the split type, never recalculated, so they survive a
- * member leaving — `writeExpense` is the only write path, rewriting the
- * expense and its whole split set in one transaction; no smaller "update
- * splits" export exists to bypass that.
- *
- * Also owns soft-delete on every read and the `LIMITS.expenses` /
- * `expenseSplits` ceilings.
- *
- * Arithmetic lives in `@floc/core/money/money` (pure, tested) — this module only stores
- * what that computed, keeping rule 1 (money is never a float) to one seam.
- */
 import "server-only";
 
 import { and, count, desc, eq, inArray, isNull } from "drizzle-orm";
@@ -31,7 +18,6 @@ import { touch } from "@/server/audit";
 import { liveMemberIds, recordActivity } from "@/server/notifications/activity";
 import { ledgerPages } from "./ledger-pages";
 
-/** The trip's live ledger, newest first (ticket 118). Whole rows — Money and Overview both read columns from it. */
 export async function listExpenses(tripId: number): Promise<Expense[]> {
   return ledgerPages((offset, size) => db
     .select()
@@ -42,12 +28,6 @@ export async function listExpenses(tripId: number): Promise<Expense[]> {
     .all(), LIMITS.expenses);
 }
 
-/**
- * Every live split on the trip's live expenses (ticket 118). Scoped by joining
- * back to `expense` on `trip_id` rather than an `inArray` over `listExpenses`'
- * ids, which also restores rule 8 on the child rows — a split under a deleted
- * expense used to still count into the balances.
- */
 export async function listSplits(tripId: number): Promise<ExpenseSplit[]> {
   const rows = await ledgerPages((offset, size) => db
     .select()
@@ -79,13 +59,8 @@ export type ExpenseFields = {
 
 export type SplitRow = { userId: string; owedAmountMinor: number };
 
-/**
- * Why one transaction: an edit soft-deletes the old splits (rule 8) and writes
- * the new ones together — last write wins (rule 7) across parent and children.
- */
 export type ExpenseRoom = { held: number | null; members: string[] };
 
-/** What a write reads before its transaction: the trip's expense count (adds only) and who hears about it. */
 export async function readExpenseRoom(tripId: number, expenseId?: number): Promise<ExpenseRoom> {
   const [held, members] = await Promise.all([
     expenseId === undefined
@@ -149,7 +124,6 @@ export async function writeExpense(
   });
 }
 
-/** Confirms an expense is this trip's and still live, before an edit. */
 export async function findLiveExpense(
   tripId: number,
   expenseId: number,
@@ -167,7 +141,6 @@ export async function findLiveExpense(
     .get();
 }
 
-/** Soft-deletes an expense; splits are left as-is — the parent's `deletedAt` hides them on read (ticket 16), and rewriting a snapshot isn't allowed. */
 export async function softDeleteExpense(
   tripId: number,
   expenseId: number,
@@ -179,12 +152,11 @@ export async function softDeleteExpense(
       and(
         eq(expense.id, expenseId),
         eq(expense.tripId, tripId),
-        isNull(expense.deletedAt), // second delete is a no-op, not a re-stamp (ticket 115)
+        isNull(expense.deletedAt),
       ),
     );
 }
 
-/** The trip's live settlements, newest first (money overhaul). */
 export async function listSettlements(tripId: number): Promise<Settlement[]> {
   return ledgerPages((offset, size) => db
     .select()
@@ -200,20 +172,17 @@ export type Transfer = {
   toUserId: string;
   amountMinor: number;
   currency: Currency;
-  /** Cross-currency only (ticket 253) — the debt side, and the rate snapshotted at the moment it was paid. */
   clearsAmountMinor?: number;
   clearsCurrency?: Currency;
   fxRate?: number;
   fxRateDate?: string | null;
 };
 
-/** Records one transfer that has already happened off-app. Reverted by soft-delete, corrected by `rewriteSettlement`. */
 export async function writeSettlement(args: Transfer & { tripId: number; createdBy: string }): Promise<void> {
   const { tripId, createdBy, ...transfer } = args;
   await writeSettlements(tripId, createdBy, [transfer]);
 }
 
-/** One transaction for the lot: a settle-up saves whole or not at all, and never races itself for the write lock. */
 export async function writeSettlements(tripId: number, createdBy: string, transfers: Transfer[]): Promise<void> {
   await db.transaction(async (tx) => {
     for (const transfer of transfers) {
@@ -234,7 +203,6 @@ export async function writeSettlements(tripId: number, createdBy: string, transf
   });
 }
 
-/** Confirms a settlement is this trip's and still live, before reverting it. */
 export async function findLiveSettlement(
   tripId: number,
   settlementId: number,
@@ -256,7 +224,6 @@ export async function findLiveSettlement(
     .get();
 }
 
-/** Last-write-wins over the whole transfer (#361); false when the row is gone or not this trip's. */
 export async function rewriteSettlement(
   tripId: number,
   settlementId: number,
@@ -283,7 +250,6 @@ export async function rewriteSettlement(
   return rows.length > 0;
 }
 
-/** Soft-deletes a settlement — the revert; the balance recomputes as if the money never moved. */
 export async function softDeleteSettlement(
   tripId: number,
   settlementId: number,
@@ -300,7 +266,6 @@ export async function softDeleteSettlement(
     );
 }
 
-/** Display names for split participants the roster can't name — a former member whose split rows survive by design (ticket 04, moved off the page by ticket 118). */
 export async function namesForUsers(
   userIds: string[],
 ): Promise<{ id: string; name: string }[]> {

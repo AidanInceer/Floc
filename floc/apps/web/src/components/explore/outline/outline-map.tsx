@@ -13,28 +13,21 @@ import { tripCodes } from "./country";
 import { drawOutline } from "./drawing";
 import { useLand } from "./use-land";
 
-// Why: each place a tile goes has a drawing at the size it is shown, so a line keeps its width.
 const OUTLINE_SIZES = {
   tile: { width: 240, height: 170 },
   pass: { width: 432, height: 216 },
 } as const;
 
 const { line: LINE, edge: EDGE, mid: MID, end: END } = ROUTE_SIZE.tile;
-// Why: server and client can differ in the last digit of a float, which React reports as a hydration mismatch.
 const tenth = (n: number) => Math.round(n * 10) / 10;
 const pathOf = (pts: Point[]) => `M${pts.map((p) => `${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join("L")}`;
 
-/**
- * A listing's route on the outline of its countries, small, for a tile: the line in the map's own style (patterned by how you
- * travel), the start and the end in ink, no names. No tile layer: the shapes come from `public/land-50m.json`.
- */
 export function OutlineMap({ trip, size }: { trip: PresetTrip; size: "tile" | "pass" }) {
   const land = useLand("fine");
   const box = OUTLINE_SIZES[size];
   const route = useMemo(() => tripRoute(trip), [trip]);
   const d = useMemo(() => drawOutline(route.stops, tripCodes(trip.country, route.stops, land), land, box), [route, trip.country, land, box]);
   const shape = useMemo(() => (d.frame ? routeShape(route, d.frame.point, { samples: 22, out: 15, least: Infinity }) : null), [route, d.frame]);
-  // Why: at tile size a day trip's spur crowds its stop's mark into a smudge; the pass draws them.
   const pieces = useMemo(() => shape?.pieces.filter((p) => p.kind !== "out") ?? [], [shape]);
   const home = landFor(trip);
 
@@ -46,7 +39,6 @@ export function OutlineMap({ trip, size }: { trip: PresetTrip; size: "tile" | "p
       aria-label={`${route.stops.map((s) => s.place).join(", ")}, ${trip.country}`}
       className="block size-full"
     >
-      {/* Why: the trip's countries go under the rest, so where two shapes overlap (Morocco and Western Sahara) the drawn border wins. */}
       <path d={d.home} className={home} />
       <path d={d.other} strokeWidth={0.75} className="fill-sheet-3 stroke-rule-strong" />
       {d.islets.map((islet) => (

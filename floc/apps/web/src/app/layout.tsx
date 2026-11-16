@@ -1,4 +1,3 @@
-// Why: first, so Tailwind names its layer order before a component's stylesheet can declare `components` below `base`.
 import "./globals.css";
 import "./fonts/extended.css";
 
@@ -30,9 +29,6 @@ const SIGNED_OUT: Awaited<ReturnType<typeof topBarFor>> = {
   bookings: { files: [], trips: [] },
 };
 
-// Why: bundled WOFF2 files keep dev and builds independent of Google Fonts downloads.
-// Why: the display file is variable, and a face declared at 800 alone clamps every heading
-// to 800 whatever its weight class, so the heading weight lives here (type-fonts pick W4).
 const display = localFont({
   src: "./fonts/red-hat-display-latin.woff2",
   variable: "--font-display-face",
@@ -57,7 +53,6 @@ const mono = localFont({
   adjustFontFallback: false,
 });
 
-// Why: noindex unless a page opts in with `publicMetadata` (#550), so a new private page is never listed by default.
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl()),
   robots: { index: false, follow: false },
@@ -75,14 +70,9 @@ export default async function RootLayout({
 }) {
   const [session, nonce, consent] = await Promise.all([getSession(), headers().then((h) => h.get(NONCE_HEADER) ?? undefined), requestConsent()]);
 
-  // The badge on Trips (ticket 146): an invite arrives while you're elsewhere in the app, so it shows from
-  // anywhere. Friend requests count on the account bar's Friends tab (#637).
   const { inviteCount, profile, notificationCount, latest, bookings } =
     session?.user ? await topBarFor(session.user.id, TOP_BAR_PREVIEW) : SIGNED_OUT;
 
-  // The header must key the avatar off the same identity a roster does
-  // (`displayName ?? name`), so the viewer is the same initials and colour
-  // everywhere (whoTone).
   const chromeUser = session?.user
     ? {
         id: session.user.id,
@@ -91,9 +81,6 @@ export default async function RootLayout({
       }
     : null;
 
-  // `data-theme` is written by the bootstrap script below, before paint and
-  // therefore after this markup is serialised — hence suppressHydrationWarning
-  // on the one element it touches (ticket 240).
   return (
     <html
       lang="en"
@@ -101,7 +88,6 @@ export default async function RootLayout({
       className={`${display.variable} ${body.variable} ${mono.variable}`}
     >
       <head>
-        {/* A browser hides the nonce once it has read it, so the attribute never matches on hydration. */}
         <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: themeBootstrap(Boolean(session?.user)) }} />
       </head>
       <body className="min-h-dvh">

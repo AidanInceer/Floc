@@ -1,4 +1,3 @@
-// The chosen round 1 motions: a stop that opens, ticking a thing off, copying an address (A each). Days, menus, the map and tabs moved to real/ in round 2. The screen ends the same in every variant; only the motion differs. Throwaway: state lives in memory.
 import { variants } from "/_house/switcher.js";
 import { tripFrame, ico, esc } from "/_house/kit/trip-frame.mjs";
 
@@ -35,7 +34,6 @@ function shell(key, stage) {
     `<section class="stage m-${key}">${stage}</section>`;
 }
 
-/* 2 — Rows that open */
 const STOPS = [
   { name: "Lisbon", sub: "3 nights · 21–24 Dec", lines: [["Mon 21", "Land at Lisbon · Tram 28 to Alfama"], ["Tue 22", "Belém Tower · Dinner in Alfama"], ["Wed 23", "Nothing planned"]] },
   { name: "Lagos", sub: "4 nights · 24–28 Dec", lines: [["Thu 24", "Train to Lagos · Ponta da Piedade walk"], ["Fri 25", "Praia do Camilo · Christmas lunch"], ["Sat 26", "Nothing planned"], ["Sun 27", "Kayak to the grottoes"]] },
@@ -54,7 +52,6 @@ function idea2(key) {
   }));
 }
 
-/* 4 — Ticked items */
 const BAG = ["Passport", "Phone charger", "Swim shorts", "Suncream", "Travel adapter"];
 const TICK = `<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.2 7.3 5.8 9.8l5-5.6"/></svg>`;
 function idea4(key) {
@@ -77,7 +74,6 @@ function idea4(key) {
   }));
 }
 
-/* 7 — Copy */
 const ADDRESS = "trip-1-b35577ee6df3@in.floc.app";
 const COPY_GLYPH = `<svg class="g" viewBox="0 0 14 14" aria-hidden="true"><rect x="4.4" y="4.4" width="7.8" height="7.8" rx="1.4"/><path d="M9.6 4.4V3a1.2 1.2 0 0 0-1.2-1.2H3A1.2 1.2 0 0 0 1.8 3v5.4A1.2 1.2 0 0 0 3 9.6h1.4"/></svg>`;
 function idea7(key) {
@@ -108,7 +104,6 @@ function idea7(key) {
 
 const BUILD = { 2: idea2, 4: idea4, 7: idea7 };
 
-// Why: one page per idea, so each is judged alone; the page's motion-idea meta says which, and its variants are A, B and C.
 const IDEA = document.querySelector('meta[name="motion-idea"]').content;
 const MINE = LIST.filter((v) => v.key[0] === IDEA);
 variants(MINE.map((v) => ({ key: v.key[1], name: v.name.split(" · ")[1] })), (letter) => {

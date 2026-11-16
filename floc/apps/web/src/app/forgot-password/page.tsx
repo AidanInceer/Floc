@@ -1,7 +1,3 @@
-/**
- * /forgot-password — public (#149; redesigned 200). Only reachable when mail
- * can actually be sent; `/login` hides the link otherwise (rule 11).
- */
 import Link from "next/link";
 import { notFound } from "next/navigation";
 

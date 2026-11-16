@@ -1,9 +1,3 @@
-/**
- * Named groups (#545). The rules worth failing on: only friends and people on a live trip with
- * you can be put in a group, the two limits hold on the server, a member who can no longer be
- * invited drops out at read time (rule 4) without losing their row, and nobody else can see or
- * touch a group.
- */
 import { and, eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

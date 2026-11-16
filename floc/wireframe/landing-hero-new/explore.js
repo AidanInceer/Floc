@@ -1,11 +1,8 @@
-// Round 4: Sicily drawn as Explore draws a route (components/explore/route/paint-route.ts): ink line edged in white, patterned
-// by mode, one arrow and one tag a leg, white dots for the nights, an ink disc to start and to end, each name with its nights.
 import { STOPS, proj, leg, mode } from "./common.js";
 
 const BEND = 0.18;
 const TAG_H = 13;
 const pt = ([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`;
-// Hand-placed for this one route, so nothing lands on a line or a tag: [dx, dy, anchor] for the name; nights sit beneath.
 const NAME = [[0, -24, "middle"], [0, 16, "middle"], [-8, 12, "end"], [-10, -1, "end"]];
 let uid = 0;
 
@@ -46,7 +43,6 @@ function disc([x, y], end) {
 
 export const BOX = [-10, -10, 320, 215];
 
-/** The trip's route over Sicily in Explore's map style. `.routed` on any ancestor draws it, leg by leg; `--leg` is one leg's time. */
 export function exploreSicily({ cls = "", box = BOX, names = true } = {}) {
   const id = `ex-pen-${++uid}`;
   const ps = STOPS.map((s) => proj(s.lat, s.lng));
@@ -75,7 +71,6 @@ export function exploreSicily({ cls = "", box = BOX, names = true } = {}) {
     <g mask="url(#${id})">${lines}</g>${marks}${stops}</svg>`;
 }
 
-/** Hold the marks, names and lines at one size on screen while the view box zooms: `z` is view-box units per H1 unit. */
 export function setZoom(svg, z) {
   svg.style.setProperty("--z", z.toFixed(4));
   svg.querySelectorAll("[data-o]").forEach((g) => {

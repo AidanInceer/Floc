@@ -1,6 +1,5 @@
 import type { ExpenseCategory } from "../expense-category";
 
-/** The parts of a cost estimate (#574). Spending that fits none of them shows under "other", so Spent always matches Money. */
 export const ESTIMATE_LINES = ["flights", "stay", "food", "activities", "transport"] as const;
 export type EstimateLine = (typeof ESTIMATE_LINES)[number];
 export type SpendLine = EstimateLine | "other";

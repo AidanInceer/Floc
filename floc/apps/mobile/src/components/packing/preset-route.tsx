@@ -1,15 +1,3 @@
-/**
- * A listing's shape, drawn rather than written (#194).
- *
- * THE LEG CHAIN WAS THE WALL. As one line — "Praiano 7n - ferry -" — it read
- * as debris rather than an itinerary, and it was the densest thing on the old
- * card. Down the page, a base is a dot with its nights, and a hop is the stem
- * between two dots. Same data, no new fields.
- *
- * A BASE IS SOLID, A HOP IS HOLLOW. Where you sleep is the thing being chosen;
- * how you get between is how you spend the day in the middle. Both still say
- * their words, so the shapes are decoration on top of a readable list.
- */
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -60,7 +48,6 @@ export function PresetRoute({ trip }: { trip: PresetTrip }) {
             key={`${leg.place}-${leg.mode}`}
             style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}
           >
-            {/* The stem sits where the dot would be, so the chain reads as one line. */}
             <View style={{ width: DOT, alignItems: "center" }}>
               <View style={{ width: StyleSheet.hairlineWidth * 2, height: 18, backgroundColor: c.rule }} />
             </View>

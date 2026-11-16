@@ -9,16 +9,6 @@ import { CrossIcon } from "@/components/system/icons";
 import { PackingStepper } from "@/components/packing/packing-quantity";
 import { clampPackQuantity } from "@floc/core/packing/packing";
 
-/**
- * One thing in a saved list (ticket 230). The same row as a bag's, minus the
- * two things a saved list has no answer for: nothing here is packed, so there
- * is no tick and no status. The category isn't printed either — the strip the
- * row sits under already says it.
- *
- * A Client Component for the same reason the bag's row is (ticket 231): the
- * write revalidates the whole page, and a count that waits for that reads as a
- * dead button.
- */
 export function PackingKitRow({
   itemId,
   label,

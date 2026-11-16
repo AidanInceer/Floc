@@ -1,5 +1,3 @@
-// A fresh, seeded database, then the app's own server over the last build, on 3100.
-// Why server.ts and not `next start`: it is what production runs, and Notes needs its live socket.
 import { execSync, spawn } from "node:child_process";
 import { mkdirSync, rmSync } from "node:fs";
 

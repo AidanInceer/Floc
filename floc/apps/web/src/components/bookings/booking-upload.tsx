@@ -1,6 +1,5 @@
 "use client";
 
-/** Upload straight to Bookings (#559): one file, no questions — its trip is chosen on the row it lands on. */
 import { useRef } from "react";
 
 import { uploadBooking } from "@/app/bookings/actions";

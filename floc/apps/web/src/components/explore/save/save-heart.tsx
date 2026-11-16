@@ -12,10 +12,6 @@ import { cx } from "@/components/system/ui";
 export const heartClass =
   "inline-flex size-10 items-center justify-center rounded-sm bg-sheet shadow-[var(--shadow-sm)] transition-colors hover:bg-pen-soft sm:size-9";
 
-/**
- * Save to list (#467, ADR-042): outline when not saved, filled red when saved, a second tap takes it off.
- * Signed out, it is a sign-in link that comes back to this page with `?save=<id>`, and the save happens then.
- */
 export function SaveHeart({ presetId, title, className }: { presetId: string; title: string; className?: string }) {
   const { ids, signedIn } = useSavedTrips();
   const [saved, setSaved] = useOptimistic(ids.has(presetId));
@@ -54,7 +50,6 @@ function SignInHeart({ presetId, title, className }: { presetId: string; title: 
   );
 }
 
-/** Back from sign-in with `?save=<id>`: save it once, then drop the word from the address. */
 function useSaveAfterSignIn(presetId: string, wanted: boolean) {
   const asked = useSearchParams().get("save") === presetId;
   const path = usePathname();

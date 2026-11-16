@@ -1,7 +1,3 @@
-/**
- * Your own cost estimate and budget (#574, ADR-057). The host checks Pro on every write, against the viewer's
- * own plan; amounts are integer minor units (rule 1) and never touch a balance (rule 2).
- */
 import { ESTIMATE_LINES } from "@floc/core/money/estimate/lines";
 import { CABINS, PACES, STAY_STYLES } from "@floc/core/money/estimate/style";
 import { z } from "zod";

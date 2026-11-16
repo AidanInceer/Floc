@@ -1,9 +1,3 @@
-/**
- * The generator against a real database (ticket 221). The scenario's trips have
- * no place with coordinates, so `getTripForecast` bails before any fetch — these
- * exercise the degrade path and the write, and the pure catalogue tests cover
- * what the weather does to the list.
- */
 import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -121,15 +115,12 @@ describe("a second fill never costs you an edit", () => {
   });
 
   it("tops up what a longer trip now needs, and nothing else", async () => {
-    await fill(); // undated: the generic starter list
+    await fill();
     await setDates("2026-07-01", "2026-07-08");
 
     const bagBefore = await myBag();
     const added = await fill();
 
-    // Same kinds of thing without a forecast, so a longer window adds no rows —
-    // the point is that it doesn't *rewrite* the counts either (rule 7 is for
-    // people, not for a generator second-guessing them).
     expect(added).toBe(0);
     expect((await myBag()).map((l) => l.quantity)).toEqual(
       bagBefore.map((l) => l.quantity),
@@ -162,9 +153,6 @@ describe("the automatic fill happens once, ever", () => {
       plan: await packingPlanFor((await tripRow())!),
     });
 
-  // The page skips the call entirely once this is set, so the flag has to be
-  // readable from outside the fill or the tab pays for a write transaction on
-  // every render (ticket 231).
   it("reports through the membership whether it has run", async () => {
     expect(
       (await getPackSettings(world.ours.id, world.admin)).generatedAt,
@@ -193,15 +181,6 @@ describe("the automatic fill happens once, ever", () => {
     await auto();
     expect(await myBag()).toEqual([]);
   });
-
-  /*
-   * No test forces two of these to overlap. Concurrency here is the write
-   * transaction's job, and the local-file driver these tests run on answers
-   * contention with SQLITE_BUSY and a poisoned connection — so such a test
-   * would measure the driver, then break every test after it. What the code
-   * promises is in `fillInTransaction`: one transaction around the claim, the
-   * read and the insert, and lock contention reported as "added nothing".
-   */
 });
 
 describe("suggested lines (#469)", () => {

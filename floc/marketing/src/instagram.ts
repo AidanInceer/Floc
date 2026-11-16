@@ -54,8 +54,6 @@ async function call<T>(t: Transport, url: string, init: RequestInit): Promise<T>
   return body;
 }
 
-// Why: the resumable upload takes the file from this machine. A Reel created from `video_url`
-// would need the video on a public host first.
 export async function publishReel(
   cfg: InstagramConfig,
   video: Uint8Array,

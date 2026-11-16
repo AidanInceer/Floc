@@ -15,7 +15,6 @@ function Choice<T extends string>({ name, label, options, labels, value }: { nam
   );
 }
 
-/** How you travel on this trip only (#574): a change here never moves your profile's default. */
 export function StyleForm({ tripId, style }: { tripId: number; style: TravelStyle & { tripOnly: boolean } }) {
   return (
     <div className="grid gap-4">

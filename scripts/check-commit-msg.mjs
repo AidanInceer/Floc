@@ -1,14 +1,3 @@
-/**
- * The commit subject, checked before it exists rather than after it is pushed.
- *
- *   <version> #<issue>: <type>: <description>
- *   0.4.0 #93: feat: split the profile
- *
- * A wrong number in the body's `Closes` line shuts someone else's issue, and
- * on `main` that happens the moment the batch merges — which is far too late
- * to notice. `#no-ticket` is the escape hatch for work with no issue, and it
- * must not carry a `Closes`.
- */
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -18,7 +7,6 @@ const gitPath = (name) => resolve(
   process.cwd(),
   execFileSync("git", ["rev-parse", "--git-path", name], { encoding: "utf8" }).trim(),
 );
-// Why: git hands a merge that commits on its own MERGE_MSG, and publish merges develop in that way.
 const gitMessagePath = [gitPath("COMMIT_EDITMSG"), gitPath("MERGE_MSG")]
   .find((path) => suppliedPath && resolve(process.cwd(), suppliedPath) === path);
 
@@ -31,8 +19,6 @@ const raw = readFileSync(gitMessagePath, "utf8");
 const lines = raw.split("\n").filter((l) => !/^#(?!\d+:|no-ticket:)/.test(l));
 const subject = (lines[0] ?? "").trim();
 
-// A merge commit is written by git, not by us, and `develop` → `main` goes in
-// as one deliberately.
 if (/^(Merge|Revert) /.test(subject)) process.exit(0);
 
 const SUBJECT =

@@ -1,24 +1,11 @@
-/**
- * Pure geometry for the Days time grid (ticket 103): minutes on a clock,
- * block placement, overlap lanes. No DOM, no React.
- *
- * Times are `HH:MM` local to the itinerary, never a `Date` (rule 10:
- * no timezones). Minutes-since-midnight is the working unit.
- */
-
-/** Keyboard nudge; pointer drags snap to the actual minute instead (ticket 141 follow-up). */
 export const NUDGE_MINUTES = 15;
 
-/** The latest minute an event can *start*: 23:59, so a day still contains it. */
 export const LAST_START_MINUTE = 24 * 60 - 1;
 
-/** The shortest an event can be dragged down to. */
 const MIN_EVENT_MINUTES = 15;
 
-/** Reading size for an open-ended event; never a stored end. */
 const OPEN_ENDED_MINUTES = 30;
 
-/** `HH:MM` → minutes since midnight. Null for anything that isn't a time. */
 export function toMinutes(time: string | null | undefined): number | null {
   if (!time) return null;
   const m = /^(\d{2}):(\d{2})$/.exec(time);
@@ -29,13 +16,11 @@ export function toMinutes(time: string | null | undefined): number | null {
   return h * 60 + min;
 }
 
-/** Minutes → `HH:MM`. 24:00 is reachable as an end (grid's bottom edge), never as a start. */
 export function toHhmm(minutes: number): string {
   const m = Math.max(0, Math.min(24 * 60, Math.round(minutes)));
   return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 }
 
-/** Nearest whole minute, or nearest `step` of them where something wants one. */
 export function snap(minutes: number, step: number = 1): number {
   return Math.round(minutes / step) * step;
 }
@@ -44,7 +29,6 @@ export function clamp(value: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, value));
 }
 
-/** The bits of an event this module needs; the real row has plenty more. */
 export type TimedLike = {
   id: number;
   time: string | null;
@@ -52,7 +36,6 @@ export type TimedLike = {
   allDay: boolean;
 };
 
-/** Minute span on the clock, or null for all-day/no-start (see `@floc/core/itinerary/event-order`). `open` = end is drawn, not known. */
 export function spanOf(
   event: TimedLike,
 ): { start: number; end: number; open: boolean } | null {
@@ -69,11 +52,6 @@ export function spanOf(
 export type Block = { id: number; start: number; end: number };
 export type PackedBlock = Block & { lane: number; lanes: number };
 
-/**
- * Swim-lane placement for overlapping events, derived from times not a stored
- * lane. A *run* of mutually-overlapping events shares its width, so one
- * pile-up at noon doesn't narrow events alone on the clock at nine.
- */
 export function packLanes(blocks: Block[]): PackedBlock[] {
   const sorted = blocks
     .slice()
@@ -108,7 +86,6 @@ export function packLanes(blocks: Block[]): PackedBlock[] {
   return out;
 }
 
-/** Drag/nudge result: length preserved, pushed back off the bottom edge rather than truncated. Open-ended events only move their start. */
 export function moveSpan(
   span: { start: number; end: number; open: boolean },
   toStart: number,
@@ -121,7 +98,6 @@ export function moveSpan(
   return { time: toHhmm(start), endTime: toHhmm(start + length) };
 }
 
-/** Dragging the bottom edge; resizing is how an open-ended event gains an end time. */
 export function resizeSpan(
   span: { start: number; end: number },
   toEnd: number,
@@ -130,7 +106,6 @@ export function resizeSpan(
   return { time: toHhmm(span.start), endTime: toHhmm(end) };
 }
 
-/** `09:00–11:30`, an en dash because it's a range and not a minus. */
 export function formatSpan(event: {
   time: string | null;
   endTime: string | null;

@@ -1,14 +1,3 @@
-/**
- * The card someone lands on when they open you (#46, #201, #302, #157).
- *
- * A PLAIN SHEET, NOT A PASTEL. The card carried the web's yellow fill, but on
- * the phone it is the first thing under the title with nothing to contrast
- * against — so the colour read as a warning, not a welcome. The picture, the
- * name and the tags are enough to make it the page's subject.
- *
- * ONE TARGET (C3b). The face, name and counts open one sheet for the name —
- * the same as the web. The face is always initials, in a rounded square.
- */
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { PenGlyph } from "./glyphs";

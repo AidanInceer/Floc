@@ -1,8 +1,3 @@
-/**
- * Settle-up for the whole group, across currencies (#463, ADR-030). The books stay per currency (#253); the rate
- * only picks who pays whom. Each payment then clears debts in their own currencies, one settlement row each with
- * the rate it cleared at, so every book reaches exactly zero whatever the rate does later (rules 1 and 2).
- */
 import { CURRENCIES, type Currency } from "./currency";
 import { convertMinor, suggestSettlements, type Balances } from "./money";
 
@@ -13,19 +8,15 @@ export type SettlePart = {
   currency: Currency;
   clearsAmountMinor?: number;
   clearsCurrency?: Currency;
-  /** Cleared currency per one paid, as a cross-currency settlement stores it. */
   fxRate?: number;
 };
 
 export type SettleRow = {
   payer: string;
   payee: string;
-  /** The viewer's home currency, or the debt's own when there is no rate. */
   currency: Currency;
   amountMinor: number;
-  /** A rate or a second debt went into the figure, so it is not one debt as it stands. */
   netted: boolean;
-  /** What marking it paid records, in the payer's home currency. */
   parts: SettlePart[];
 };
 
@@ -34,20 +25,16 @@ export type SettleInput = {
   viewerId: string;
   homeOf: (userId: string) => Currency;
   base: Currency;
-  /** Units of `base` per one of `currency`; null when there is no rate. */
   rateFor: (currency: Currency) => number | null;
 };
 
-/** One debt cleared in its own currency. */
 type Leg = { from: string; to: string; currency: Currency; amountMinor: number };
 type Payment = { payer: string; payee: string; legs: Leg[] };
-/** The input once every rate it needs is known. */
 type Rated = Omit<SettleInput, "rateFor"> & { rate: (currency: Currency) => number };
 
 const perCurrency = (balances: Balances): Leg[] =>
   CURRENCIES.flatMap((currency) => suggestSettlements(balances[currency]).map((s) => ({ ...s, currency })));
 
-/** What `a` hands the other side over these legs, in the base. */
 const flowIn = (legs: Leg[], a: string, ctx: Rated): number =>
   legs.reduce((sum, leg) => sum + (leg.from === a ? 1 : -1) * convertMinor(leg.amountMinor, leg.currency, ctx.base, ctx.rate(leg.currency)), 0);
 
@@ -64,7 +51,6 @@ function byPair(ctx: Rated): Payment[] {
   return [...pairs.values()].map((legs) => oriented(legs, legs[0].from, legs[0].to, ctx));
 }
 
-/** People in visiting order, each with the one they were reached from. */
 function walk(root: string, links: Map<string, string[]>, seen: Set<string>): [string, string | null][] {
   const order: [string, string | null][] = [];
   const stack: [string, string | null][] = [[root, null]];
@@ -90,7 +76,6 @@ function netInBase(ctx: Rated): Record<string, number> {
   return net;
 }
 
-/** Each person's payment towards the one they were reached from: what squares everyone below them, currency by currency. */
 function clearTree(order: [string, string | null][], ctx: Rated): Payment[] | null {
   const held = new Map(order.map(([person]) => [person, CURRENCIES.map((c) => ctx.balances[c][person] ?? 0)]));
   const payments: Payment[] = [];
@@ -110,7 +95,6 @@ function clearTree(order: [string, string | null][], ctx: Rated): Payment[] | nu
   return payments;
 }
 
-/** Fewest payments on the converted balances, each cleared in its own currencies. Null when a group of them cannot square a currency. */
 function converted(ctx: Rated): Payment[] | null {
   const net = netInBase(ctx);
   const links = new Map<string, string[]>();
@@ -151,7 +135,6 @@ function rowOf(payment: Payment, ctx: Rated): SettleRow {
   return { payer, payee, currency: home, amountMinor, netted, parts };
 }
 
-/** What the payer hands over, in their own currency: the same whoever is looking. */
 export function paidIn(row: SettleRow): { currency: Currency; amountMinor: number } {
   const amountMinor = row.parts.reduce((sum, p) => sum + (p.fromUserId === row.payer ? p.amountMinor : -p.amountMinor), 0);
   return { currency: row.parts[0].currency, amountMinor };
@@ -175,9 +158,7 @@ function hasRates(input: SettleInput): boolean {
   return [...needed].every((c) => input.rateFor(c) !== null);
 }
 
-/** Every payment that squares the group, largest first; the viewer's own are among them. */
 export function groupSettleUp(input: SettleInput): SettleRow[] {
-  // Rule 11: without a rate the honest answer is each currency's own payments.
   if (!hasRates(input)) return perCurrency(input.balances).map(unrated).sort(largest);
   const ctx: Rated = { ...input, rate: (currency) => input.rateFor(currency) ?? 0 };
   const plans = [converted(ctx), byPair(ctx)].filter((p): p is Payment[] => p !== null);

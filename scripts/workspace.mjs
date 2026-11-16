@@ -13,7 +13,6 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const [action = "status", ...args] = process.argv.slice(2);
 const quiet = args.includes("--quiet");
 
-// Why: a worktree database is a local file, so no Turso token may reach it; drizzle-kit rejects an empty one.
 function withLocalDatabase(config, extra = {}) {
   const env = { ...process.env, ...localEnv(config), ...extra };
   if (!config.primary) delete env.TURSO_AUTH_TOKEN;
@@ -25,7 +24,6 @@ function localEnv(config) {
   return { TURSO_DATABASE_URL: config.database, FLOC_FILES_DIR: config.files, BETTER_AUTH_URL: `http://${config.host}:${config.ports.web}` };
 }
 
-// Why: the preview pane reads only the main checkout's launch.json; a worktree opens its own server by URL instead.
 const withUrl = (config) => ({ ...config, url: `http://${config.host}:${config.ports.web}` });
 
 const seededMark = (config) => join(config.root, ".floc/data/seeded");
@@ -39,7 +37,6 @@ async function prepare() {
   const install = !args.includes("--no-install");
   if (install) command("pnpm", ["install", "--frozen-lockfile", "--config.confirmModulesPurge=false"], { cwd: root, stdio: "inherit" });
   if (!primary) copyDevAccount(root, main);
-  // Why: only this worktree's own database, and only once; a second seed would wipe what you tested with.
   if (install && !primary && !existsSync(seededMark(config))) {
     const env = withLocalDatabase(config);
     command("pnpm", ["--filter", "floc-web", "db:migrate"], { cwd: root, env, stdio: "inherit" });

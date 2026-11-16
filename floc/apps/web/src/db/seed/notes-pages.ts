@@ -1,8 +1,3 @@
-/**
- * Scenario A's notes pages (#408): a filled-in Notes with sub-pages, icons, a
- * table, lists three deep, trip links to the seeded days, events, money and
- * packing, and one comment thread — every part of the editor has something to draw.
- */
 import { eq } from "drizzle-orm";
 
 import { db } from "../index.ts";

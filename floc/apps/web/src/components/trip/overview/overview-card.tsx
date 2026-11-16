@@ -37,7 +37,6 @@ export type OverviewTrip = {
   endDate: string | null;
   archived: boolean;
   color: TripColor | null;
-  /** The colour the trip wears: the picked one, or the id-rotation default. */
   tone: TripColor;
   mark: TripMark | null;
   tags: string[];
@@ -51,17 +50,13 @@ export function OverviewCard({
   recap,
 }: {
   trip: OverviewTrip;
-  /** Where the viewer stands with the group; null while nothing is logged. */
   position: Position | null;
-  /** The ideas row, once the plan has a shape (ideasTucked). */
   ideas?: ReactNode;
-  /** The recap foot, once the end date has passed (#443). */
   recap?: ReactNode;
 }) {
   const soon = countdownLabel(trip.startDate);
   return (
     <aside className={cx("relative flex min-w-0 flex-col gap-1.5 rounded-[inherit] border-t-[6px] p-6 pt-5", BAND[trip.tone])}>
-      {/* Why: the stamp floats, so a short name leaves the date line under it, never behind it. */}
       <div>
         <div className="relative float-right -mr-1 mb-1.5 ml-6">
           <Menu
@@ -101,7 +96,6 @@ export function OverviewCard({
           ) : (
             "Dates not set"
           )}
-          {/* Deciding dates is the Dates tab's job, where the group's availability is. */}
           <Link
             href={`/trip/${trip.id}/dates`}
             aria-label={trip.startDate ? "Change dates" : "Pick dates"}

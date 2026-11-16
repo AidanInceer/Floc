@@ -1,6 +1,3 @@
-// Why: times each click from pointerdown to the DOM answering, on the production build and its
-// own seeded database, so rounds compare like for like. `remote` adds 150 ms to every request.
-//   pnpm --filter floc-web perf:clicks -- --label r1 [--build] [--runs 7] [--only days]
 import { execSync, spawn } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -63,13 +60,11 @@ async function startServer() {
   throw new Error(`Server did not start:\n${log}`);
 }
 
-// Why: serve.mjs spawns the server as its own child, and Windows kills only the parent.
 function stop(server) {
   if (process.platform === "win32") execSync(`taskkill /pid ${server.pid} /T /F`, { stdio: "ignore" });
   else server.kill("SIGTERM");
 }
 
-/** Installed before every page script: the timer the scenarios read. */
 function timerScript() {
   window.__click = { t0: 0, t1: 0, pred: null };
   const check = () => {
@@ -171,7 +166,6 @@ async function runProfile(browser, profile, only) {
     let failures = 0;
     let error = null;
     let fresh = true;
-    // Why: one stuck click must not cost the whole scenario; it is counted, and the next sample starts clean.
     for (let i = 0; i <= RUNS && failures < 3; i++) {
       try {
         await scenario.setup?.(ctx, fresh ? 0 : i, i);

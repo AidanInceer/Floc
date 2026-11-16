@@ -1,12 +1,3 @@
-/**
- * The grid of marks that sets what a trip is a picture of (#318). One tiny form
- * per mark so it works without JavaScript and posts exactly one value, the same
- * way the colour swatches beside it do.
- *
- * Three rows of five, because that is the set — see `trip-mark.ts` before adding
- * a sixteenth. Picking the mark already on the trip clears it, so "no mark" is
- * reachable without a second control saying None.
- */
 import { TRIP_MARKS, TRIP_MARK_LABELS, type TripMark } from "@floc/core/trip/mark/trip-mark";
 import type { TripColor } from "@floc/core/trip/trip-color";
 import { PASTEL_BY_KEY, PickOption, cx } from "@/components/system/ui";
@@ -20,7 +11,6 @@ export function TripMarkPicker({
 }: {
   tripId: number;
   current: TripMark | null;
-  /** The trip's resolved pastel, so the picked mark wears the trip's own colour. */
   tone: TripColor;
 }) {
   return (

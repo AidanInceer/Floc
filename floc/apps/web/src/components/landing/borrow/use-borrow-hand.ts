@@ -8,18 +8,12 @@ import type { LatLng } from "@floc/globe/sphere";
 
 import type { Globe } from "../globe/use-spin-globe";
 
-/** What one tile shows. `tick` is a trip rolling past, `land` the trip a spin stops on, `in` a trip the globe was turned to. */
 export type Face = { card: number; kind: "rest" | "tick" | "land" | "in"; key: number };
 type Change = [slot: number, card: number, kind: Face["kind"]];
 
 const STILL = "(prefers-reduced-motion: reduce)";
-// Why: Sonar rates Math.random as a security issue, even for a game of chance.
 const pick = (n: number) => crypto.getRandomValues(new Uint32Array(1))[0]! % n;
 
-/**
- * The six tiles: the trips nearest the place the globe is on. A spin rolls them and stops them
- * one by one, the pick last; turning the globe by hand brings up the trips around where it rests.
- */
 export function useBorrowHand(places: LatLng[], globe: RefObject<Globe | null>) {
   const [faces, setFaces] = useState<Face[]>(() => places.slice(0, HAND).map((_, i) => ({ card: i, kind: "rest", key: i })));
   const live = useRef({ hand: faces.map((f) => f.card), frame: 0, keys: faces.length });
@@ -76,7 +70,6 @@ export function useBorrowHand(places: LatLng[], globe: RefObject<Globe | null>) 
   const settle = useCallback(
     (at: number) => {
       const l = live.current;
-      // Why: a globe grabbed mid-spin ends the roll, so every tile takes its new trip at once.
       const rolling = l.frame !== 0;
       cancelAnimationFrame(l.frame);
       l.frame = 0;

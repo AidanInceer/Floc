@@ -19,10 +19,6 @@ const dateUnder = (e: React.PointerEvent) =>
 
 type Trip = { start: string | null; end: string | null };
 
-/**
- * The guest's own days and nobody else's (#442): the group's counts are the members' to see.
- * The same calendar and painting as Dates, on the "mine" tab only.
- */
 export function GuestDates({ token, mine, firstMonth, trip, answer, signUpHref }: {
   token: string;
   mine: string[];
@@ -49,7 +45,6 @@ export function GuestDates({ token, mine, firstMonth, trip, answer, signUpHref }
         try {
           surface.current?.setPointerCapture(e.pointerId);
         } catch {
-          // The pointer is already gone; the press still stands.
         }
         paint.start(date);
       },

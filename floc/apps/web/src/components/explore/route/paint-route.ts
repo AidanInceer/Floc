@@ -7,14 +7,9 @@ import { MODE_PATHS, UNSET_PATHS } from "./mode-paths";
 import { lineFor, ROUTE_SIZE, type RouteInk } from "./route-ink";
 import { fonts, TAG, tagBox, type Name } from "./route-names";
 
-/**
- * One frame of a route on a canvas. `pieces` and `stops` are where the shape's points are now; `drawn` is how far the pen
- * has gone, 0 to 1; `seen(at)` how far in a mark is that the pen reached at `at` (a stop, a tag, a name each fade in on their own).
- */
 export type RouteFrame = { pieces: Point[][]; stops: Point[]; drawn: number; seen: (at: number) => number; alpha: number };
 
 const { line: LINE, edge: EDGE, mid: MID, end: END } = ROUTE_SIZE.map;
-/** A day out is a thin broken spur whatever the way there, so it never reads as a leg of the trip. */
 const OUT_LINE = { width: LINE * 0.8, dash: [LINE * 1.6, LINE * 1.9], cap: "round" as const };
 const PATHS = new Map<string, Path2D>();
 const path = (d: string) => PATHS.get(d) ?? PATHS.set(d, new Path2D(d)).get(d)!;
@@ -65,7 +60,6 @@ function pill(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h:
 
 const TIP = MID.r * 0.85;
 
-/** A day out is one straight line there and back: draw the way out only, stopping at the rim of its open dot, not inside it. */
 function toRim(pts: Point[], tip: number): Point[] {
   const out = pts.slice(0, tip + 1);
   if (out.length <= tip) return out;
@@ -74,7 +68,6 @@ function toRim(pts: Point[], tip: number): Point[] {
   return [...out.slice(0, tip), { x: b.x - ((b.x - a.x) / d) * TIP, y: b.y - ((b.y - a.y) / d) * TIP }];
 }
 
-/** The lines: a white edge under every road, rail and boat so it reads over any land, then the line itself, patterned by mode. */
 function lines(ctx: CanvasRenderingContext2D, shape: Shape, drawn: Point[][], ink: RouteInk) {
   ctx.lineJoin = "round";
   ctx.strokeStyle = ink.sheet;
@@ -97,7 +90,6 @@ function lines(ctx: CanvasRenderingContext2D, shape: Shape, drawn: Point[][], in
   ctx.setLineDash([]);
 }
 
-/** One arrow on the line, at the middle of a leg, for the way the trip goes. */
 function arrow(ctx: CanvasRenderingContext2D, pts: Point[], mid: number, ink: RouteInk) {
   const [a, b, c] = [pts[mid - 1]!, pts[mid]!, pts[mid + 1]!];
   ctx.save();
@@ -118,13 +110,11 @@ function arrow(ctx: CanvasRenderingContext2D, pts: Point[], mid: number, ink: Ro
 
 const around = (p: Point, r: number): Box => ({ left: p.x - r, top: p.y - r, right: p.x + r, bottom: p.y + r });
 
-/** Every dot on the map at the view the shape was built at: the stops, the ends and the tips of the days out. */
 function dotBoxes(shape: Shape): Box[] {
   const tips = shape.pieces.flatMap((p) => (p.kind === "out" ? [around(p.px[p.mid]!, TIP)] : []));
   return [...shape.stops.map((s) => around(s.px, s.role === "mid" ? MID.r : END_R)), ...tips];
 }
 
-/** Each leg's tag: the mode, and the time when the leg is long enough to hold it. */
 function tags(ctx: CanvasRenderingContext2D, shape: Shape, f: RouteFrame, ink: RouteInk, list: Name[], width: (time: string) => number) {
   const tagWidth = (p: Piece) => (p.mark === "full" ? width(p.time) : TAG.h + 2);
   const hidden = crowded(
@@ -155,7 +145,6 @@ function tags(ctx: CanvasRenderingContext2D, shape: Shape, f: RouteFrame, ink: R
   ctx.globalAlpha = f.alpha;
 }
 
-/** The far end of each day out the pen has reached: an open dot, a place you visit but do not sleep at. */
 function tips(ctx: CanvasRenderingContext2D, shape: Shape, f: RouteFrame, ink: RouteInk) {
   shape.pieces.forEach((p, k) => {
     if (p.kind !== "out" || f.drawn < (p.a + p.b) / 2) return;
@@ -165,7 +154,6 @@ function tips(ctx: CanvasRenderingContext2D, shape: Shape, f: RouteFrame, ink: R
 
 const END_R = 9;
 
-/** The start is an ink disc with a play mark; the end an ink disc with a square. A trip back to where it began starts and ends there, and shows the start. */
 function endDisc(ctx: CanvasRenderingContext2D, p: Point, r: number, end: boolean, ink: RouteInk) {
   dot(ctx, p, r, ink.ink, ink.sheet, END.ring);
   ctx.fillStyle = ink.sheet;
@@ -210,7 +198,6 @@ function names(ctx: CanvasRenderingContext2D, shape: Shape, f: RouteFrame, ink: 
     const seen = f.seen(n.of === "stop" ? shape.stops[n.k]!.arrive : shape.pieces[n.k]!.b);
     if (seen <= 0) continue;
     const anchor = n.of === "stop" ? f.stops[n.k]! : f.pieces[n.k]![shape.pieces[n.k]!.mid]!;
-    // Why: canvas text between whole pixels renders soft; snapped, it is as sharp as the page's own text.
     const [x, y] = [Math.round(anchor.x + n.dx), Math.round(anchor.y + n.dy + (1 - seen) * 4)];
     ctx.globalAlpha = f.alpha * seen;
     if (n.of === "out") write(ctx, n.text, x, y + 11, look.out, ink.ink2, ink.sheet);
@@ -222,7 +209,6 @@ function names(ctx: CanvasRenderingContext2D, shape: Shape, f: RouteFrame, ink: 
   ctx.globalAlpha = f.alpha;
 }
 
-/** A route in Explore's map style: ink line edged in white, a tag per leg, each stop named with its nights beneath, day outs as spurs. */
 export function paintRoute(ctx: CanvasRenderingContext2D, shape: Shape, f: RouteFrame, ink: RouteInk, list: Name[], width: (time: string) => number) {
   if (f.alpha <= 0) return;
   ctx.save();

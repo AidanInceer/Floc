@@ -14,7 +14,6 @@ export type SessionAwareness = {
   setLocalStateField(field: string, value: unknown): void;
 };
 
-/** What the session needs of a Hocuspocus provider, so it can run against a fake. */
 export type SessionProvider = {
   isSynced: boolean;
   unsyncedChanges: number;
@@ -29,18 +28,12 @@ export type SessionSocket = {
   off(event: "status", cb: Listener): unknown;
 };
 
-/** Where a device keeps a page's doc between visits. */
 export type PageCache = { open(key: string, doc: Y.Doc): { destroy(): void | Promise<void> } };
 
 export type LivePageState = { status: LiveStatus; people: PresentPerson[] };
 
 export type LivePageSession<P extends SessionProvider> = { doc: Y.Doc; provider: P; close(): void };
 
-/**
- * One open page, the same on the web and the phone.
- * Why `cacheKey`: a cache merged into a reseeded doc doubles every block (`live-epoch`),
- * so a caller that cannot name a safe key passes null and the server's stamp picks it.
- */
 export function openLivePage<P extends SessionProvider>(options: {
   name: string;
   cacheKey: string | null;
@@ -106,7 +99,6 @@ type Viewer = { id: string; name: string };
 
 export type PageListSession = { announce(viewer: Viewer, openPage: number | null): void; close(): void };
 
-/** Who has which page open, and a call whenever anyone changes the list or its comments. */
 export function openPageList(options: {
   connect: () => SessionProvider;
   onPeople: (byPage: Map<number, PresentPerson[]>) => void;

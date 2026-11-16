@@ -7,7 +7,6 @@ import { placeWaitingBooking, removeWaitingBooking, saveWaitingBooking } from "@
 
 type Answer = { error?: string } | void;
 
-/** Why the viewer is read here and never taken from the form: a waiting file is only ever its member's (#559). */
 export async function placeBooking(fileId: number, formData: FormData): Promise<Answer> {
   const viewer = await requireUser("/bookings");
   const tripId = Number(formData.get("tripId"));

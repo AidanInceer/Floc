@@ -11,7 +11,6 @@ export function rangeLook(range: DateRange | null, date: IsoDate): "end" | "insi
   return date === range.start || date === range.end ? "end" : "inside";
 }
 
-/** Why: a tap then a tap is how a phone picks a range; a drag still paints the whole span at once. */
 export function nextRange(current: DateRange | null, anchor: IsoDate, target: IsoDate): DateRange {
   const tap = anchor === target;
   if (tap && current && current.start === current.end) return rangeFrom(current.start, anchor);

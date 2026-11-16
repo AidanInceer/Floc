@@ -13,8 +13,6 @@ import { fonts, radius, size } from "@/lib/theme";
 import { countWord } from "@floc/core/text/count-word";
 
 const HEIGHT = 240;
-// Why: the picks span Mexico to New Zealand, wider than a phone can show at zoom 0, so pins at the
-// edge were cut in half. The map centres the picked trip instead, and the deck below reaches the rest.
 const ZOOM = 1.6;
 const PIN = 28;
 
@@ -52,7 +50,6 @@ export function ExploreMap({ picked, onPick }: { picked: string; onPick: (preset
         {MAP_PICKS.map((trip, i) => {
           const on = trip.id === picked;
           return (
-            // Why: on Android the map takes the touch before a view inside a marker sees it; the marker's own press is what fires.
             <Marker key={trip.id} lngLat={firstBase(trip)} onPress={() => onPick(trip.id)}>
               <Pressable
                 testID={`explore-pin-${trip.id}`}

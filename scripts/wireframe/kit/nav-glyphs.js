@@ -1,4 +1,3 @@
-// Line glyphs for the header and trip-tab wireframes. 14×14, stroke only.
 window.NavGlyphs = {
   explore: '<circle cx="7" cy="7" r="5"/><path d="M9.2 4.8 8 8 4.8 9.2 6 6z"/>',
   trips: '<path d="M1.6 4.4h10.8v7.2H1.6zM5 4.4V3a.8.8 0 0 1 .8-.8h2.4a.8.8 0 0 1 .8.8v1.4M1.6 8h10.8"/>',
@@ -20,7 +19,6 @@ window.glyph = function (name, cls) {
   var fill = name === "more" ? " fill" : "";
   return '<svg class="g ' + (cls || "") + fill + '" viewBox="0 0 14 14" aria-hidden="true">' + NavGlyphs[name] + "</svg>";
 };
-// Slides an .ind element under the current item of every [data-slide] nav.
 window.slideAll = function () {
   document.querySelectorAll("[data-slide]").forEach(function (nav) {
     var ind = nav.querySelector(".ind");

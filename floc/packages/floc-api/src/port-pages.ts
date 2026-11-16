@@ -1,7 +1,3 @@
-/**
- * The notes-pages half of the port (#408): the page list, trip links and page
- * comments. The pages' words travel over the live socket, not here.
- */
 import type { PageIcon } from "@floc/core/notes/pages/page-icons";
 import type { TripLinkItem } from "@floc/core/notes/pages/trip-links";
 
@@ -11,7 +7,6 @@ export type NotesPage = { id: number; parentId: number | null; title: string; ic
 export type ArchivedNotesPage = { id: number; parentId: number | null; title: string; icon: PageIcon | null; archivedAt: string };
 export type NotesPages = { pages: NotesPage[]; archived: ArchivedNotesPage[] };
 
-/** A refusal is the sentence the control shows; null means it landed. */
 export type Refused = string | null;
 
 export type PagesPort = {

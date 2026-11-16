@@ -1,7 +1,3 @@
-/**
- * Why a fixed row, not a scrolling rail: seven words scrolled sideways and snapped back after a
- * pick, so the open section sat off-screen. Equal cells — mark over word — fit all seven at once.
- */
 import { SECTION_COLOURS } from "@floc/core/design/section-colours";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -13,7 +9,6 @@ import { fonts, radius, size, space } from "@/lib/theme";
 import type { Pastel } from "@floc/core/design/pastels";
 
 export type Section = {
-  /** The route to push, relative to the trip. `""` is the trip's own index. */
   route: string;
   label: string;
 };
@@ -89,11 +84,9 @@ function TitleBar({
         paddingBottom: space.md,
       }}
     >
-      {/* Why: out of a trip is the list of trips, not wherever the history happened to be (#302). */}
       <Pressable accessibilityRole="button" accessibilityLabel="All trips" hitSlop={12} onPress={() => router.navigate("/trips")}>
         <BackArrow color={c.ink} />
       </Pressable>
-      {/* Why: the name as the person typed it — sentence case is theirs to choose, not ours to change. */}
       <Text
         numberOfLines={2}
         style={{ flex: 1, color: c.ink, fontFamily: fonts.display, fontSize: size.heading }}
@@ -123,7 +116,6 @@ function SectionCell({ section, on, onGo }: { section: Section; on: boolean; onG
           width: 36,
           height: 28,
           borderRadius: radius.sm,
-          // Why: Android drops the corner radius when the fill starts transparent, so the tile always has a fill and clips.
           overflow: "hidden",
           alignItems: "center",
           justifyContent: "center",
@@ -132,7 +124,6 @@ function SectionCell({ section, on, onGo }: { section: Section; on: boolean; onG
       >
         <SectionGlyph route={section.route} color={on ? c[`pastel-${colour}-ink`] : c["ink-2"]} />
       </View>
-      {/* Why: seven cells on a 360dp phone with larger text cut "Overview"; the word shrinks rather than clips. */}
       <Text
         numberOfLines={1}
         maxFontSizeMultiplier={1.15}
@@ -160,9 +151,7 @@ export function TripHeader({
 }: {
   title: string;
   sections: Section[];
-  /** The section showing, as a route — `""` for the trip's index. */
   current: string;
-  /** The figure, or null when there is nothing spent to have a balance about. */
   balance: string | null;
   owing: boolean;
   onGo: (route: string) => void;

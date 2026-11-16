@@ -6,7 +6,6 @@ import { checkCoverage } from "./coverage.mjs";
 import { lintSources } from "./lint.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
-// Why: CI runs the lint half before the tests finish and the coverage half after them; no argument runs both.
 const mode = process.argv[2] ?? "all";
 
 async function lint(changes, config) {

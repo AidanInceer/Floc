@@ -1,9 +1,3 @@
-/**
- * Your own profile (ticket 46; redesigned 201, reordered 236): your face as a
- * visitor sees it, then your settings under it. Your name and picture are edited
- * from the card itself; everything else is a row that opens in place.
- * `?section=` opens one row, so a link or a checkout return lands on it.
- */
 import { requireUser } from "@/server/access";
 import { ensureProfile } from "@/server/auth/profile";
 import { listSignInMethods } from "@/server/auth/sign-in-methods";
@@ -28,7 +22,6 @@ export default async function ProfilePage({
   searchParams: Promise<{ section?: string; billing?: string }>;
 }) {
   const asked = await searchParams;
-  // Carry the section through the login round trip, so "Upgrade now" lands on Pro.
   const viewer = await requireUser(asked.section ? `/profile?section=${asked.section}` : "/profile");
   const proOff = allFeaturesFree();
 
@@ -50,7 +43,6 @@ export default async function ProfilePage({
       <AccountTabs current="profile" userId={viewer.id} />
       <AccountPage title="Your profile" titleInBar>
         <div className="mx-auto flex w-full max-w-[41.25rem] flex-col gap-3">
-          {/* The face someone lands on when they click you, shown as they'd see it. */}
           <Panel>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
               <FaceEditor name={name} />

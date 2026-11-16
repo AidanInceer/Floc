@@ -1,17 +1,3 @@
-/**
- * Where the API is actually served (ticket 287).
- *
- * One handler, two callers. A browser arrives with the session cookie it
- * already had; a phone arrives with a bearer token (the `bearer` plugin in
- * `server/auth/auth.ts`). Better Auth reads both off the same headers, so nothing
- * here has to know which it is talking to — and there is exactly one session
- * model behind both.
- *
- * The web app does not call this. Its pages read through Server Components and
- * write through Server Actions, exactly as before; this route exists so that
- * something which is *not* the web app can read a trip. Adding it takes
- * nothing away from the pages.
- */
 import { appRouter } from "@floc/api/router";
 import type { Context } from "@floc/api/port";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
@@ -23,7 +9,6 @@ import { boundedRequest } from "@/server/http/request-body";
 import { reportTrpcError } from "@/server/observability/request-error";
 import { withRequestScope } from "@/server/request-scope";
 
-/** libSQL over HTTP, and a session read per request — nothing here is static. */
 export const dynamic = "force-dynamic";
 
 async function createContext(req: Request): Promise<Context> {

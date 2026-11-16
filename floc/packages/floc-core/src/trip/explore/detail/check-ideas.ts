@@ -3,7 +3,6 @@ import type { PresetIdeas } from "./preset-detail-types";
 
 const MIN_IDEAS = 2;
 
-/** What is wrong with a listing's ideas, in words its author can act on. Empty when every stop has some. */
 export function checkIdeas(stops: ListingStop[], ideas: PresetIdeas): string[] {
   const places = [...new Set(stops.map((s) => s.place))];
   const problems: string[] = [];

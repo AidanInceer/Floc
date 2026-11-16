@@ -14,12 +14,10 @@ type ListingWish = { lists: { id: number; title: string }[]; along: Person[] };
 
 const Context = createContext<ListingWish>({ lists: [], along: [] });
 
-/** A listing page's wish list facts (#623): your lists for Add to wish list, and who a `?wish=` start asks along. */
 export function ListingWishProvider({ value, children }: { value: ListingWish; children: ReactNode }) {
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 
-/** Inside the copy form: the people a wish list start asks along, sent as the new trip's invites. */
 export function CopyAlong() {
   const { along } = useContext(Context);
   if (along.length === 0) return null;
@@ -32,7 +30,6 @@ export function CopyAlong() {
   );
 }
 
-/** Add to wish list on a listing: a menu of your lists, or the way to make one when you have none. */
 export function AddToWishList({ presetId, className }: { presetId: string; className?: string }) {
   const { lists } = useContext(Context);
   const [added, setAdded] = useState<Set<number>>(() => new Set());

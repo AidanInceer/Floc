@@ -1,7 +1,3 @@
-/**
- * Floc Pro on the phone: what the block says, and what a store purchase sends.
- * The words come from `@floc/core`, the same ones the web Settings page uses.
- */
 import type { BillingStatus, StoreClaim } from "@floc/api/port";
 import { billingHome } from "@floc/core/billing/billing-home";
 import { intervalOfProduct } from "@floc/core/billing/store-products";
@@ -12,7 +8,6 @@ export type ProView =
   | { kind: "free"; line: string | null }
   | { kind: "pro"; line: string; manage: "app_store" | "play" | "elsewhere" | "none" };
 
-// Why: the stores refuse an app that links to a web checkout or portal, so a web subscriber gets words, not a link.
 const MANAGE = { app_store: "app_store", play: "play", web: "elsewhere", none: "none" } as const;
 
 export function proView(status: BillingStatus, now = new Date()): ProView {

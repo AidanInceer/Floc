@@ -1,10 +1,5 @@
 "use client";
 
-/**
- * The plus and minus on a row in your bag. The count itself is drawn by the
- * row, beside the label, so the row is free to put the status badge between the
- * two — they are one control conceptually, not one element.
- */
 import { cx } from "@/components/system/ui";
 import { MAX_PACK_QUANTITY, MIN_PACK_QUANTITY } from "@floc/core/packing/packing";
 import { tickBoxBase } from "@/components/packing/packing-glyphs";
@@ -16,7 +11,6 @@ export function PackingStepper({
   onStep,
   step,
 }: {
-  /** The count as the row is currently drawing it, so a button greys out on what you can see. */
   shown: number;
   label: string;
   onStep: (delta: number) => void;
@@ -48,7 +42,6 @@ export function PackingStepper({
   );
 }
 
-/** Both step buttons submit the same form, so the value rides on the button. */
 function StepButton({
   value,
   label,

@@ -10,10 +10,6 @@ function toward(from: Point, to: Point): Point {
   return { x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t };
 }
 
-/**
- * One closed ring as an SVG path. `points` repeats its first point at the end, as GeoJSON does.
- * Each corner is eased by a few pixels, so a coarse coast reads as drawn and a long straight border stays straight.
- */
 export function ringPath(points: readonly Point[]): string {
   const corners = points.length - 1;
   if (corners < 3) return "";

@@ -5,7 +5,6 @@ import { TASK_BRANCH } from "../workspace/worktrees.mjs";
 
 export const repository = "AidanInceer/Floc";
 const SHARED = ["SonarQube analysis", "Secret scan", "Known vulnerabilities"];
-// Why: the three PR jobs are listed too, so a red one is reported when it fails, not when "PR checks" finally reports.
 const PR_JOBS = ["PR fast", "PR tests", "PR build"];
 export const requiredChecks = { develop: ["PR checks", ...PR_JOBS, ...SHARED], main: ["Release checks", ...SHARED] };
 
@@ -51,7 +50,6 @@ export function withoutTickets(body, issues) {
 
 export const landedLabels = (issue) => ["issue", "edit", issue, "--add-label", "on-develop", "--remove-label", "in-progress"];
 
-/** A ticket leaves the Priority stack when its work lands on develop (delivery finish); it closes when that reaches main. */
 export function markLanded(root, issues, scratch) {
   if (!issues.length) return;
   for (const issue of issues) gh(root, ...landedLabels(issue));
@@ -68,7 +66,6 @@ export function markLanded(root, issues, scratch) {
 
 export const splitChildren = (body) => /## Split into([\s\S]*?)(?:\n## |$)/.exec(body ?? "")?.[1]?.match(/#(\d+)/g)?.map((c) => c.slice(1)) ?? [];
 
-// Why: no commit closes a split parent, so it closes here once every child has.
 export function afterRelease(root, released) {
   const stillOpen = released.filter((issue) => json(root, "issue", "view", issue, "--json", "state").state !== "CLOSED");
   const parents = json(root, "issue", "list", "--state", "open", "--label", "on-develop", "--json", "number,body");
@@ -85,11 +82,6 @@ export function waitsForChecks({ allowAutoMerge, rules }) {
   return Boolean(allowAutoMerge) && rules.some((rule) => rule.type === "required_status_checks");
 }
 
-/**
- * Why: without auto-merge allowed and required checks on the branch, GitHub
- * treats `gh pr merge --auto` as "merge now", before any check has run.
- * scripts/ci-watch.mjs merges instead, once the checks pass.
- */
 export function autoMerge(root, number, branch) {
   try {
     const allowAutoMerge = JSON.parse(command("gh", ["api", `repos/${repository}`], { cwd: root })).allow_auto_merge;

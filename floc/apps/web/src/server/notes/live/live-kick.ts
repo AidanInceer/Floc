@@ -1,8 +1,3 @@
-/**
- * Why globalThis: the custom server and Next's bundled server code each load
- * their own copy of this module in one process, so a module-level set would
- * never see the other side's registration.
- */
 type Kicker = (tripId: number | null, userId?: string) => void;
 
 const KEY = Symbol.for("floc.notesLive.kickers");

@@ -3,7 +3,6 @@ import { turn, type LatLng } from "@floc/globe/sphere";
 
 const clamp = (v: number) => Math.min(1, Math.max(0, v));
 
-/** Where the globe faces: a glide to a view, or a flick that coasts and slows until `onRest` takes it. */
 export function globeTurn(onRest: () => void) {
   let view: LatLng = { lng: 60, lat: 25 };
   let move = { at: turn(view, view), t0: 0, ms: 0, curve: easeInOut, u: 1, spin: false };
@@ -12,7 +11,6 @@ export function globeTurn(onRest: () => void) {
   return {
     view: () => view,
     turnTo: (to: LatLng) => (view = to),
-    /** How far through its glide the globe is, 0 to 1. */
     progress: () => move.u,
     spinning: () => move.spin && move.u < 1,
     coasting: () => coast !== 0,
@@ -20,7 +18,6 @@ export function globeTurn(onRest: () => void) {
     halt() {
       [move.u, coast] = [1, 0];
     },
-    /** `speed` is in degrees a millisecond. */
     flick(speed: number) {
       coast = speed;
     },

@@ -1,8 +1,3 @@
-/**
- * The trip row's own rules (ticket 242, split out of membership.test.ts) —
- * tested against the module directly, since the patch semantics and the
- * archive/delete distinction are its properties, not a caller's.
- */
 import { and, eq, sql } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -66,7 +61,7 @@ describe("creating a trip", () => {
 
     const row = await tripRow(id);
     expect(row?.name).toBe("Faroes");
-    expect(row?.inviteToken).toMatch( // random UUID, never derived from the trip id (ticket 05)
+    expect(row?.inviteToken).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     );
     expect((await membership(id, world.admin))?.role).toBe("admin");
@@ -106,7 +101,6 @@ describe("updating the trip row", () => {
     expect(row?.tags).toEqual(["beach"]);
     expect(row?.colorKey).toBe("mint");
 
-    // Null clears it back to the id-rotation default; a field left out is left alone.
     await updateTrip(world.ours.id, { colorKey: null });
     const after = await tripRow(world.ours.id);
     expect(after?.colorKey).toBeNull();

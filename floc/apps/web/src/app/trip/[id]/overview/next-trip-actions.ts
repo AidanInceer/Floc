@@ -7,11 +7,9 @@ import { requireTripAccess } from "@/server/access";
 import { LIMITS } from "@/server/limits";
 import { startTrip } from "@/server/trips/trip-save";
 
-// Why: "Plan the next one" on a finished trip's recap (#443) — the same group, a new undated trip, nothing copied.
 export async function planNextTrip(formData: FormData): Promise<{ error: string } | void> {
   const access = await requireTripAccess(Number(formData.get("tripId")));
   const onTrip = new Set(access.members.map((m) => m.userId));
-  // Why: only people on this trip; anyone else in the form did not come from the sheet.
   const friendIds = [...new Set(formData.getAll("friendIds").map(String))]
     .filter((id) => id !== access.viewer.id && onTrip.has(id))
     .slice(0, LIMITS.members);

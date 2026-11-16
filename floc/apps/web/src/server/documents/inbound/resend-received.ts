@@ -1,11 +1,3 @@
-/**
- * What Resend knows about a received mail (#328, #559): whether the From is proven, the HTML to read a
- * booking from, and whether the mail is one Floc must not answer.
- *
- * Why proof is a DMARC or DKIM pass: the From is the whole claim of whose files a booking lands in, and anyone
- * can type one. Resend reports a DKIM pass only when the signing domain is the From domain. SPF alone is not
- * enough: it checks the envelope sender, which need not match the From (ADR-039).
- */
 import "server-only";
 
 type Check = "pass" | "fail" | "gray" | "processing_failed" | "unknown";
@@ -18,11 +10,8 @@ type Received = {
 
 export type ReceivedMail = {
   proven: boolean;
-  /** Hostile input: only ever handed to `readSchemaOrg`, never stored, shown or logged. */
   html: string | null;
-  /** An auto-reply, a list or bulk mail: answering one can start a mail loop. */
   automated: boolean;
-  /** Why: a mail with two From addresses has passed the checks of large providers with a forged one (CERT VU#517845). */
   severalFrom: boolean;
 };
 

@@ -1,15 +1,9 @@
-/**
- * A trip-link chip (#408). The page stores the kind, id and last name seen;
- * the chip always shows the thing's current name, and "Removed" once it has
- * gone. Drawn outside React: a page can hold hundreds.
- */
 import type { Node } from "@tiptap/pm/model";
 import type { NodeView } from "@tiptap/pm/view";
 import { isLinkKind, showLink, type LinkKind, type TripLinkItem } from "@floc/core/notes/pages/trip-links";
 
 import { glyphMarkup } from "./icons";
 
-/** The trip's current names, shared by every chip on the page. */
 export class LinkNames {
   items: readonly TripLinkItem[] = [];
   private readonly listeners = new Set<() => void>();
@@ -40,7 +34,6 @@ export function tripLinkView(start: Node, names: LinkNames, onOpen: (kind: LinkK
   gone.textContent = "Removed";
   dom.append(icon, label);
 
-  // Why: attrs can arrive over the live socket from any member's editor, unchecked, so a kind we do not know draws as gone.
   const draw = () => {
     const link = node.attrs as Link;
     const known = isLinkKind(link.kind);

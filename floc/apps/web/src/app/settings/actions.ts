@@ -18,9 +18,6 @@ import {
 } from "@/server/auth/profile";
 import { refresh } from "@/server/freshness";
 
-// Privacy lives here, not on /profile — configuration, not identity. One
-// three-state ring per display attribute, plus a profile-wide override
-// switch. No email flag: email is never rendered on a profile at all.
 export async function updatePrivacy(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
   await ensureProfile(viewer.id);
@@ -82,7 +79,6 @@ export async function deleteAccount(): Promise<void> {
   const viewer = await requireUser();
 
   await eraseAccount(viewer.id);
-  // Why: the cookie cache would keep a dead session readable for up to a minute.
   const jar = await cookies();
   for (const { name } of jar.getAll()) {
     if (name.includes("better-auth.")) jar.delete(name);
@@ -91,7 +87,6 @@ export async function deleteAccount(): Promise<void> {
   redirect("/login");
 }
 
-// Revokes Floc's calendar access at Google, then forgets it (#444, ADR-031). The account and its sign-in stay.
 export async function removeGoogleCalendar(): Promise<{ error?: string }> {
   const viewer = await requireUser();
   const refusal = await removeCalendarAccess(viewer.id);
@@ -101,7 +96,6 @@ export async function removeGoogleCalendar(): Promise<{ error?: string }> {
   return {};
 }
 
-/** A tick in a booking-site menu: the rules sit in @floc/core, so an unknown site or kind changes nothing. */
 export async function toggleBookingSiteAction(kind: SiteKind, site: BookingSite): Promise<BookingSites> {
   const viewer = await requireUser();
   if (kind !== "flights" && kind !== "stays") return bookingSitesOf(viewer.id);

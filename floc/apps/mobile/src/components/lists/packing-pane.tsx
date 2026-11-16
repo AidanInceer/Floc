@@ -1,17 +1,3 @@
-/**
- * Saved packing lists (ticket 230) — yours, not a trip's.
- *
- * ONE LEVEL UNDER YOU, NOT A TAB. A kit belongs to a person, so it hangs off
- * the profile, on the Lists screen beside your saved trips (#467).
- *
- * THE SAME OBJECT AS A BAG, DRAWN THE SAME WAY. A photography kit and the bag
- * on a trip are one idea at two moments — so the rows here are the packing
- * rows, not a settings form.
- *
- * MAKING ONE FROM A TRIP STILL LIVES ON THE TRIP. `packing.saveKit` names the
- * bag in front of you, which is the faster way in and the reason this screen
- * does not need a list builder to be useful. This is where you edit one after.
- */
 import { PACK_CATEGORIES, PACK_CATEGORY_LABELS, type PackCategory } from "@floc/core/packing/packing";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -28,7 +14,6 @@ const CATEGORY_OPTIONS = PACK_CATEGORIES.map((category) => ({
   label: PACK_CATEGORY_LABELS[category],
 }));
 
-/** The thing being added, and which list it is going into. Null when the sheet is shut. */
 type NewItem = { kitId: number; label: string; category: PackCategory };
 
 export function PackingPane() {
@@ -44,7 +29,6 @@ export function PackingPane() {
   const create = useMutation({
     ...trpc.kits.create.mutationOptions(),
     onSuccess: (made) => {
-      // Null is the ceiling, not a failure — say so rather than doing nothing.
       setCapped(made === null);
       if (made !== null) setName("");
       void reload();
@@ -81,7 +65,6 @@ export function PackingPane() {
             onPress={() => create.mutate({ name: name.trim() })}
           />
           {capped ? <Body tone="red">That&apos;s as many lists as you can save.</Body> : null}
-          {/* What a saved list is *for* is the one thing the rows cannot show. */}
           <Body tone="ink-3">
             Keep the things you take again and again. Add a list to any trip&apos;s bag,
             then tailor it for that trip.
@@ -125,8 +108,6 @@ export function PackingPane() {
             onPress={() => {
               const label = item?.label.trim();
               if (!item || !label) return;
-              // Counts are tuned by the row's own plus and minus, so a new
-              // thing starts at one rather than asking a question up front.
               addItem.mutate({
                 kitId: item.kitId,
                 label,

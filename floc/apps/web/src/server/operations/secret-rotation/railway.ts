@@ -22,7 +22,6 @@ export function createRailway(token: string, fetcher: typeof fetch = fetch) {
   };
   const scope = () => ({ projectId: bound().project, environmentId: bound().environment });
   return {
-    // Why: the repo is public, so production IDs are looked up by service name instead of written here.
     async findTarget() {
       const { me } = await graphql<{ me: { workspaces: { id: string }[] } }>("{ me { workspaces { id } } }");
       const matches: Target[] = [];
@@ -50,7 +49,6 @@ export function createRailway(token: string, fetcher: typeof fetch = fetch) {
         variableCollectionUpsert(input: $input) }`, { input: { ...scope(), serviceId: bound()[service], variables, replace: false, skipDeploys: true } });
       if (!result.variableCollectionUpsert) throw new Error("Railway variable update was not confirmed.");
     },
-    // Why: redeploying an old deployment failed with no logs, and a crashed cron run cannot be redeployed; build the branch head like a push.
     async deploy(service: Service) {
       const { serviceInstanceDeployV2 } = await graphql<{ serviceInstanceDeployV2: string | null }>(`mutation RotationDeploy($serviceId: String!, $environmentId: String!) {
         serviceInstanceDeployV2(serviceId: $serviceId, environmentId: $environmentId) }`, { serviceId: bound()[service], environmentId: bound().environment });

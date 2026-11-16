@@ -18,7 +18,6 @@ function run([name, ...args], cwd) {
   });
 }
 
-/** Runs independent checks side by side. One line each; a failure prints the end of its output. */
 export async function runAll(tasks, cwd = process.cwd(), tail = 25) {
   const started = Date.now();
   const results = await Promise.all(tasks.map(async ([label, cmd]) => { const at = Date.now(); return { label, ...(await run(cmd, cwd)), seconds: (Date.now() - at) / 1000 }; }));

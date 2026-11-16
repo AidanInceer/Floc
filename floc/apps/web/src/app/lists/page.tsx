@@ -20,10 +20,6 @@ export const metadata = { title: "Saved" };
 
 const byId = new Map(PRESET_TRIPS.map((t) => [t.id, t]));
 
-/**
- * Where you want to go (#467, ADR-042): saved Explore trips and want-to-go countries, in one grid.
- * Who else sees it is your Saved setting (ADR-045); a tile shows the friends who saved it too (#544).
- */
 export default async function SavedPage() {
   const viewer = await requireUser("/lists");
   const [saved, map, rates, friends, profile] = await Promise.all([

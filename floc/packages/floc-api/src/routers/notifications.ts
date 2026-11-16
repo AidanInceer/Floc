@@ -1,7 +1,3 @@
-/**
- * The inbox and the bell (#344). The rules for who hears what live on the host,
- * in the activity log's writers — this only reads what they wrote.
- */
 import { z } from "zod";
 
 import { protectedProcedure, router } from "../trpc";

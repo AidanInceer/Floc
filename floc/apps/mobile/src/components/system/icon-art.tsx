@@ -1,8 +1,3 @@
-/**
- * One renderer for both hands — the faces a person picks (#157) and the marks a
- * trip wears (#318). Same geometry as the web app, from @floc/core, so the two
- * cannot drift; only this renderer is local.
- */
 import Svg, { Circle, Path } from "react-native-svg";
 
 import type { IconArt } from "@floc/core/people/avatar-icon-art";

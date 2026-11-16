@@ -1,11 +1,5 @@
 "use client";
 
-/**
- * Where the group sleeps, for a span of days (ticket 141; split out under 243) —
- * the whole gesture for anyone who can't drag. The place sits in the head; the first
- * and last night are picked on the month calendar (wireframe/days-week F), with a
- * line saying what the stay takes from another one.
- */
 import { useState } from "react";
 
 import { PlacePicker, type PlacePickerResult } from "@/components/social/place-picker";
@@ -35,13 +29,11 @@ export function OvernightDialog({
   onClear,
 }: {
   span: BandSpan;
-  /** The trip's real days — the last of them is as far as a stay can reach. */
   days: CalendarDay[];
   searchPlaces: PlaceSearch;
   groupSize: number;
   bookingPrefill: boolean;
   onClose: () => void;
-  /** The writes in order: the stay first, then the old nights it gives back. */
   onSave: (writes: StayWrite[], place: OvernightPlace) => void;
   onClear: () => void;
 }) {
@@ -61,8 +53,6 @@ export function OvernightDialog({
     previewNight(date, trip.find((d) => d.date === date)?.overnightPlaceName ?? null, pick, span, name);
 
   const save = () => {
-    // An untouched picker means the span keeps the place it already had — the
-    // id, not the name, so the stay keeps its pin (see `resolveOvernightPlace`).
     const place: OvernightPlace | null = found?.name.trim()
       ? { name: found.name, providerId: found.providerId, lat: found.lat, lng: found.lng, countryCode: found.countryCode }
       : span.placeId !== null
@@ -93,7 +83,6 @@ export function OvernightDialog({
         <p className="nums mt-2.5 text-[13px] text-ink-soft" aria-live="polite">
           {nights.label}
         </p>
-        {/* Why: a line held open, so the centred dialog does not move under the next tap. */}
         <div className="grid min-h-5 content-start gap-1">
           {nights.taken.map((line) => (
             <p key={line} className="text-[13px] text-ink-soft">
@@ -114,7 +103,6 @@ export function OvernightDialog({
       ) : null}
 
       <footer className="flex items-center justify-end gap-2 border-t border-rule px-5 py-3 max-sm:px-4">
-        {/* Only shown where there's something to clear. */}
         {span.placeId !== null ? (
           <button type="button" onClick={onClear} className="mr-auto rounded-sm px-2.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint transition-colors hover:text-pen">
             Clear place
@@ -131,7 +119,6 @@ export function OvernightDialog({
   );
 }
 
-/** Booking links for the stay, centred under the picker (wireframe/modal-forms B3, booking-sites J). */
 function FindStay(props: { place: string; checkIn: string; checkOut: string; adults: number; prefill: boolean }) {
   return (
     <section className="border-t border-rule bg-sheet-2 px-5 py-3.5 text-center max-sm:px-4">

@@ -1,7 +1,3 @@
-/**
- * Wish lists, read side (#623, ADR-049). Only an accepted member reads a list; an invitee sees its name and who
- * asked, nothing more; anyone else gets null, the same as for a list that never existed (rule 5 spirit).
- */
 import "server-only";
 
 import { wishListTitle, type WishItemKind, type WishMemberStatus } from "@floc/core/lists/wish-list";
@@ -28,7 +24,6 @@ export type WishListView = {
   id: number;
   name: string | null;
   title: string;
-  /** Accepted members, you included. */
   members: Person[];
   invited: Person[];
   items: WishItem[];
@@ -45,7 +40,6 @@ function liveSeat(listId: number, userId: string) {
   return and(eq(wishListMember.listId, listId), eq(wishListMember.userId, userId), isNull(wishListMember.deletedAt));
 }
 
-/** Your seat on a live list, or null. The one gate every read and write goes through. */
 export async function seatOn(userId: string, listId: number, reader: Pick<typeof db, "select"> = db): Promise<WishMemberStatus | null> {
   if (!Number.isSafeInteger(listId) || listId <= 0) return null;
   const row = await reader
@@ -77,7 +71,6 @@ async function seatsOn(listIds: number[]): Promise<Seat[]> {
 const othersAccepted = (seats: Seat[], listId: number, viewerId: string) =>
   seats.filter((s) => s.listId === listId && s.status === "accepted" && s.userId !== viewerId);
 
-/** Your lists, last changed first, and the invites waiting on you. */
 export async function listWishListsFor(userId: string): Promise<{ lists: WishListRow[]; invites: WishInvite[] }> {
   const mine = bounded(
     await db
@@ -114,7 +107,6 @@ export async function listWishListsFor(userId: string): Promise<{ lists: WishLis
   const invites: WishInvite[] = [];
   for (const list of mine) {
     const others = named(othersAccepted(seats, list.id, userId));
-    // Why: named after everyone else on it, invited too, so the maker and an invitee see the same name.
     const everyone = named(seats.filter((s) => s.listId === list.id && s.userId !== userId));
     const title = wishListTitle(list.name, everyone.map((p) => p.name));
     if (list.status === "invited") {
@@ -126,7 +118,6 @@ export async function listWishListsFor(userId: string): Promise<{ lists: WishLis
   return { lists, invites };
 }
 
-/** One list, for an accepted member only. */
 export async function wishListFor(userId: string, listId: number): Promise<WishListView | null> {
   if ((await seatOn(userId, listId)) !== "accepted") return null;
   const [list, seats, items] = await Promise.all([
@@ -167,7 +158,6 @@ export async function wishListFor(userId: string, listId: number): Promise<WishL
   };
 }
 
-/** Start trip from a list: its other accepted members you can still ask. Nobody, if you are not on it. */
 export async function wishListPeopleToAsk(userId: string, listId: number): Promise<Person[]> {
   if ((await seatOn(userId, listId)) !== "accepted") return [];
   const others = othersAccepted(await seatsOn([listId]), listId, userId).map((s) => s.userId);

@@ -1,7 +1,3 @@
-/**
- * The dev link hands out a session and a redirect, so the contract is the gate,
- * the person it may become, and where it may send you.
- */
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const signInEmail = vi.fn(async () => {

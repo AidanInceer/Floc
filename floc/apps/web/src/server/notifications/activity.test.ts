@@ -1,8 +1,3 @@
-/**
- * #344: every writer that changes a fact people hear about writes its activity
- * row, and the rows turn into the right notifications. Driven through the
- * writers themselves, so a writer that forgets to log fails here.
- */
 import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

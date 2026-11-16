@@ -22,10 +22,6 @@ import { nounFor } from "@floc/core/text/count-word";
 const sheetClass =
   "m-0 mt-auto max-h-[90dvh] w-full max-w-none overflow-y-auto rounded-t-md bg-sheet p-0 text-ink backdrop:bg-black/40 sm:mx-auto sm:max-w-lg lg:hidden";
 
-/**
- * Every trip, with the finder beside it: what must fit filters, what you like ranks and never hides.
- * The finder is remembered for someone signed in; the search box is for this visit only.
- */
 export function ExploreFinder({
   signedIn,
   initialFinder,
@@ -35,7 +31,6 @@ export function ExploreFinder({
   signedIn: boolean;
   initialFinder: Finder;
   blankName: string | null;
-  /** The coming three months, 1–12, read on the server so both renders agree. */
   season: number[];
 }) {
   const [finder, setFinder] = useState(initialFinder);
@@ -56,7 +51,6 @@ export function ExploreFinder({
   const change = (next: Finder) => {
     setFinder(next);
     if (!signedIn) return;
-    // Why: a dragged slider fires on every step; save the last one only.
     clearTimeout(pendingSave.current);
     pendingSave.current = setTimeout(() => void rememberFinder(next), 400);
   };

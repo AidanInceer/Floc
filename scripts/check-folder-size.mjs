@@ -1,11 +1,3 @@
-/**
- * No folder becomes a wall of files (CLAUDE.md, Code standards).
- *
- * Past about twenty files you can no longer scan a folder and know what is in
- * it, so the fix is feature subfolders — `components/trip/`, `server/money/` —
- * nested as deep as the feature wants. This counts only the files sitting
- * DIRECTLY in a folder, so splitting one always fixes it.
- */
 import { readdirSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 
@@ -14,12 +6,7 @@ const MAX = 20;
 
 const SKIP = new Set(["node_modules", ".next", ".next-verify", ".expo", ".git", "dist", "build", "coverage"]);
 
-/**
- * 2026-09-10: the four walls the cap was written for are all split. What is
- * left is the one folder a refactor would not repay.
- */
 const ALLOWLIST = new Set([
-  // Old, don't extend (CLAUDE.md) — a dead app is not worth a refactor.
   "floc/apps/prototype",
 ]);
 
@@ -31,7 +18,6 @@ function walk(dir) {
   if (posix === "floc/wireframe") return;
   const entries = readdirSync(dir, { withFileTypes: true });
 
-  // A prototype subfolder is skipped with its parent, not listed one by one.
   if (posix && [...ALLOWLIST].some((a) => posix === a || posix.startsWith(`${a}/`))) {
     if (posix === "floc/apps/prototype") return;
   }

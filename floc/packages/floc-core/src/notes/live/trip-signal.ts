@@ -1,11 +1,5 @@
-/**
- * "This trip changed" (#577): one channel per trip on the Notes socket. A write names the areas it
- * touched, and every open page of that trip, web or phone, reads its data again. The message holds
- * the areas only — no content, no names.
- */
 const PREFIX = "trip:";
 
-/** Why: a write that touches four tables sends four signals; one read covers them all. */
 export const TRIP_SIGNAL_WAIT_MS = 300;
 
 const byName = (a: string, b: string) => a.localeCompare(b);

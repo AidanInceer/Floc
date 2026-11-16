@@ -1,10 +1,5 @@
 "use client";
 
-/**
- * On a step of one day, the calendar's columns trade places (ADR-051): four
- * slots draw for 0.45s while the grid's day tracks move from the old shape to
- * the new. Reduced motion, or a jump of more than a day, changes plainly.
- */
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 
 import { slotIndices, tradeFor, tradeTracks, type Trade } from "@/lib/days/column-trade";
@@ -18,7 +13,6 @@ export function useColumnTrade(focusIndex: number, gridRef: RefObject<HTMLDivEle
   const [playing, setPlaying] = useState<Playing | null>(null);
   const last = useRef(focusIndex);
 
-  // Before paint, so the plain new day never shows for a frame ahead of the move.
   useLayoutEffect(() => {
     const from = last.current;
     last.current = focusIndex;
@@ -37,7 +31,6 @@ export function useColumnTrade(focusIndex: number, gridRef: RefObject<HTMLDivEle
   useEffect(() => {
     if (!started) return;
     if (!moving) {
-      // Why: reading layout settles the old shape as the start of the move; no frame wait, which a hidden tab never gives.
       void gridRef.current?.offsetWidth;
       setPlaying((p) => (p ? { ...p, tracks: p.after, moving: true } : p));
       return;

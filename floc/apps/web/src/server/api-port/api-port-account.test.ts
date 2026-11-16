@@ -1,7 +1,3 @@
-/**
- * Why: the rules the web pages keep by hand must survive the door the phone
- * comes through — a seed-only tag list, the last sign-in method, an owner-only kit.
- */
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";

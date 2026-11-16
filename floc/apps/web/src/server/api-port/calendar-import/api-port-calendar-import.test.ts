@@ -1,4 +1,3 @@
-/** The phone's way into the calendar import (#444): the same module as the web, behind the trip door. */
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";

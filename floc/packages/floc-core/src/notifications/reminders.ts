@@ -1,4 +1,3 @@
-/** Which date reminders a trip has today (#346, #626). No timezones: the day is the UTC day, from 08:00 UTC. */
 import { addDays, toIsoDate, type IsoDate } from "../dates/dates";
 import type { ReminderKind } from "./rules";
 
@@ -10,7 +9,6 @@ export function reminderDay(now: Date): IsoDate | null {
 
 const aYearOn = (date: IsoDate) => `${Number(date.slice(0, 4)) + 1}${date.slice(4)}`;
 
-/** Days after the end that Floc chases money still owed, only the person who owes (#626). */
 export const STILL_OWE_AFTER_DAYS = { still_owe_week: 7, still_owe_month: 30 } as const;
 export type StillOweKind = keyof typeof STILL_OWE_AFTER_DAYS;
 
@@ -33,7 +31,6 @@ export function remindersDue(
   return due;
 }
 
-/** Days after a person's last finished trip that Floc asks about the next one, while nothing is planned (#626, ADR-056). */
 export const NEXT_TRIP_AFTER_DAYS = { next_trip_2m: 60, next_trip_6m: 180 } as const;
 export type NextTripKind = keyof typeof NEXT_TRIP_AFTER_DAYS;
 

@@ -1,20 +1,3 @@
-/**
- * The trip's files (tickets 239, 296) — the phone's half of `/trip/[id]/files`.
- *
- * ONE LINE PER FILE, AND A FILTER, the way the browser draws it (#325
- * feedback). A card per file put a name, a dropdown and a button on every row,
- * so three files filled the screen.
- *
- * ADDING IS BEHIND A PRESS. The form asks two questions and picks a file; open
- * on the screen it was the first thing you met and the pile was below it.
- *
- * WITHOUT A VOLUME THERE IS NO UPLOAD DRAWN (rule 11). Not a dead button with a
- * sentence under it: the control is absent and the reason is said once.
- *
- * ARCHIVING A SHARED FILE IS ANY MEMBER'S, the way a shared packing line is. A
- * private file is never handed to anybody but its owner, so it is not
- * addressable by the rest. An archived file waits a week, restorable (ADR-048).
- */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
@@ -66,8 +49,6 @@ export default function Files() {
   const upload = useMutation({
     ...trpc.files.upload.mutationOptions(),
     onSuccess: (refusal) => {
-      // A refusal is a sentence, not a throw — a full trip and a 20 MB video
-      // are ordinary mistakes (the validation convention).
       setProblem(refusal);
       if (!refusal) settled.onSuccess();
     },
@@ -77,9 +58,6 @@ export default function Files() {
   const refile = useMutation({ ...trpc.files.setCategory.mutationOptions(), ...settled });
   const rename = useMutation({ ...trpc.files.rename.mutationOptions(), ...settled });
 
-  // The address is asked for at the moment of the tap, not held on the row:
-  // it is signed and it expires, so a list minted an hour ago opens nothing.
-  // It then goes to the phone's own reader, not a browser — see `open-file`.
   const view = async (file: { id: number; name: string; mimeType: string }) => {
     try {
       const url = await queryClient.fetchQuery(
@@ -162,9 +140,6 @@ export default function Files() {
       {usage.data && canAdd ? <StorageMeter {...usage.data} /> : null}
 
       <Sheet open={adding} onClose={() => setAdding(false)}>
-        {/* No heading over it: the dropdown, the switch and "Choose a file"
-            say what this is, and a label above a label says nothing (#325
-            feedback). */}
         <View style={{ paddingHorizontal: space.lg, gap: space.sm }}>
           <AddFile
             filedUnder="other"

@@ -1,12 +1,5 @@
 "use client";
 
-/**
- * One day's slice of the clock (ticket 243, split from `days-calendar`): the
- * catcher that turns a click into a minute, the free stretches, and the
- * blocks. The focus day draws its blocks in full; a neighbour draws them
- * smaller, and as colour only on a phone (B5). Draws and forwards gestures —
- * the rules for what they mean live in `@floc/core/dates/calendar-gestures`.
- */
 import { useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from "react";
 
 import { cx } from "@/components/system/ui";
@@ -32,10 +25,6 @@ type Gestures = {
   onKeyDown: (ev: ReactKeyboardEvent<HTMLElement>, event: CalendarEvent) => void;
 };
 
-// Packing decides *where* a block goes, not render order — rendering in
-// `packLanes`' start-sorted order re-sorted the keyed nodes on drag, and Chrome
-// drops pointer capture on a node taken out of the tree and put back. Fixed
-// order by id, with `top`/`left` doing the moving, avoids that.
 function packColumn(events: CalendarEvent[]) {
   return packLanes(
     events.flatMap((e) => {
@@ -75,12 +64,9 @@ export function DayColumn({
   const byId = new Map(events.map((e) => [e.id, e]));
   const packed = packColumn(events);
 
-  // The block for a cross-day drag stays in its own column (see `shown`), so
-  // the target column shows where it would land instead.
   const incoming =
     landing && landing.dayId === day.id && !byId.has(landing.eventId) ? landing : null;
 
-  // No `data-day-column` — what `columnAt` scans — so a drag can't land here.
   if (day.outside) {
     return <div aria-hidden className={cx("relative border-l border-rule", OUTSIDE_DAY_CLASS)} style={{ height: clock.height }} />;
   }
@@ -97,13 +83,9 @@ export function DayColumn({
       )}
       style={{ height: clock.height }}
     >
-      {/* A click anywhere empty adds at that minute; keyboard has no
-          coordinates to read, so it opens at nine. */}
       <button
         type="button"
         aria-label={`Add an event on ${day.longLabel}`}
-        // A cursor alone isn't an affordance you can see without moving the
-        // mouse (ticket 120) — the empty column tints as well.
         className="absolute inset-0 cursor-copy transition-colors hover:bg-sheet-2/60"
         onPointerMove={(ev) => {
           const rect = ev.currentTarget.getBoundingClientRect();
@@ -166,8 +148,6 @@ export function DayColumn({
   );
 }
 
-// The column's transient marks: the add-here pill under the cursor, the drop
-// line for an event arriving from another column, and the now line.
 function ColumnMarks({
   hover,
   incoming,
@@ -203,9 +183,6 @@ function ColumnMarks({
         </div>
       ) : null}
 
-      {/* The blob marks which end of the line to read from and stays findable
-          where the line crosses an empty hour. Time named for screen readers —
-          colour is never the only signal. */}
       {nowMinutes !== null ? (
         <div
           className="pointer-events-none absolute inset-x-0 z-10 border-t border-red"
@@ -222,8 +199,6 @@ function ColumnMarks({
   );
 }
 
-// One event, placed and sized by the column. Draws its own text and the resize
-// grip; the pointer/keyboard gestures are forwarded up.
 function EventBlock({
   event,
   variant,
@@ -256,15 +231,10 @@ function EventBlock({
       onKeyDown={(ev) => gestures.onKeyDown(ev, event)}
       style={{
         ...box,
-        // Without this a touch drag scrolls the page instead.
         touchAction: "none",
-        // An end nobody has written is drawn, not known: the dashes say the
-        // bottom edge is a guess and the handle is how to fix it.
         borderBottomStyle: span.open ? "dashed" : undefined,
       }}
       className={cx(
-        // `scroll-mt-32` keeps the block clear of the sticky head when focusing
-        // it scrolls it into view (see `scrollPaddingTop`).
         "absolute z-[2] flex scroll-mt-32 overflow-hidden rounded-sm border text-left leading-tight",
         EVENT_CATEGORIES[event.type].block,
         tight ? "flex-row items-center gap-2 px-2" : "flex-col gap-0.5",
@@ -275,9 +245,6 @@ function EventBlock({
     >
       <BlockText event={event} focus={focus} tight={tight} open={span.open} />
 
-      {/* Resize handle: a span, not a button — a button inside a button isn't
-          valid markup. Keyboard equivalent is ↑/↓ on the block. The grip pill
-          isn't decoration; without it the strip is invisible. */}
       <span
         aria-hidden
         onPointerDown={(ev) => {
@@ -294,7 +261,6 @@ function EventBlock({
   );
 }
 
-// Why: on a phone a neighbour is a 38px sliver, so its blocks keep their colour and drop every word.
 function BlockText({
   event,
   focus,

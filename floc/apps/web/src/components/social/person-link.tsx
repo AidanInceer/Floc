@@ -1,15 +1,3 @@
-/**
- * Someone's face, linked to their profile (ticket 46). Every avatar on the
- * site is a way in — a trip roster, the friends list, anywhere a person
- * appears — so the wiring lives in one place rather than in each surface's
- * markup.
- *
- * The link is safe to render for anyone: a viewer outside every ring gets a
- * 404 on the other end (`requireProfileView`), which is the same answer a
- * made-up user id gets. Your own face links to /profile, not to your public
- * page — that's the one you can edit.
- */
-
 import Link from "next/link";
 
 import { Avatar, cx } from "@/components/system/ui";
@@ -25,7 +13,6 @@ export function PersonLink({
   userId: string;
   name: string;
   size?: number;
-  /** A trip member's seat colour — pass it through so it survives the link. */
   tone?: string;
   isYou?: boolean;
   className?: string;

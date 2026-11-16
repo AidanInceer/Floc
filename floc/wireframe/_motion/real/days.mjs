@@ -1,4 +1,3 @@
-// The live Days page, drawn by eye from components/days/: day strip, toolbar, the three-slot calendar (day before, the day, day after).
 import { esc, glyph, button, isNarrow } from "./shared.mjs";
 
 const HOUR = 48;
@@ -70,7 +69,6 @@ function column(i, focusIdx) {
   return `<div class="d-col${focus ? "" : " side"}">${TRIP_DAYS[i].ev.map((e) => block(e, focus)).join("")}</div>`;
 }
 
-/** One slot: its head, its all-day cell and its clock column, stacked, so a slot moves as one piece. */
 export const slot = (i, focusIdx) =>
   `<div class="d-slot${i === focusIdx ? " is-focus" : ""}" data-slot="${i}">${head(i, focusIdx)}${allDay(i, focusIdx)}${column(i, focusIdx)}</div>`;
 
@@ -103,7 +101,6 @@ export function daysPage(focusIdx) {
     `<div class="d-cal">${gutter()}<div class="d-track-wrap">${rules()}<div class="d-track">${slots}</div></div></div></section>`;
 }
 
-/** Puts the strip's pen wash on a day cell; the wash is one element so it can travel. */
 export function placeWash(root, focusIdx) {
   const wash = root.querySelector(".day-wash");
   const cell = root.querySelectorAll(".day-cell")[focusIdx];

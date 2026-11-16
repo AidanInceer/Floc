@@ -1,8 +1,3 @@
-/**
- * The two files phones fetch to trust that a link to this site may open the
- * app instead (#346). Null until the signing details are set, and the routes
- * answer 404 — no half-true association.
- */
 const APP_ID = "com.floc.app";
 const PATHS = ["/trip/*", "/friends", "/inbox"];
 

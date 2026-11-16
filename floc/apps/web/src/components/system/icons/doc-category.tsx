@@ -1,4 +1,3 @@
-// One line glyph per file category, so a file chip says what it is before its name does.
 import type { DocCategory } from "@floc/core/documents/documents";
 
 import { FLIGHT_PATH } from "@/components/system/icons/travel-mode";

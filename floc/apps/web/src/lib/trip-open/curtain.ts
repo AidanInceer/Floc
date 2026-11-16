@@ -1,15 +1,8 @@
-/**
- * Why: the second beat of opening a trip, pure so its timing is tested: the page pours out of the joined top bar,
- * lands on the trip's card with the beads' give and squash (fuse-bar.css), and only then fades in, so two outlines
- * never show. One frame of shapes for a moment `t` (0–1), drawn by the goo layer.
- */
 export type Box = { x: number; y: number; w: number; h: number };
 export type CurtainFrame = {
-  /** The neck from the bar's lower edge to the sheet, until it lets go. */
   neck: Box | null;
   card: Box;
   squash: { sx: number; sy: number };
-  /** How far the trip page itself has come in, 0–1. */
   page: number;
 };
 

@@ -1,14 +1,3 @@
-/**
- * The packing generator's I/O half (ticket 221): reads the trip window and the
- * forecast, hands both to the pure catalogue, writes what comes back.
- *
- * Nothing new is persisted for weather (rule 10) — this reads the same cached
- * MET Norway aggregate the Overview does. Every read can come back empty and
- * the answer is still a list, never a throw (rule 11).
- *
- * It owns its own SQL rather than calling the packing aggregate, because the
- * read and the write have to be one transaction: see `fillPersonalBag`.
- */
 import "server-only";
 
 import { and, eq, isNull } from "drizzle-orm";
@@ -31,15 +20,7 @@ import { shortPlace } from "@floc/core/itinerary/names/place-name";
 export type PackingPlan = {
   nights: number | null;
   climate: PackClimate | null;
-  /**
-   * Why the list came out generic, when it did. Three separate answers because
-   * they need three separate things from the reader: dates, a place on the
-   * itinerary, or simply patience. One "no forecast" for all three sends
-   * someone with no places on their trip off to wait for weather that is never
-   * coming.
-   */
   gap: "no-dates" | "no-place" | "no-forecast" | null;
-  /** Where the nights are spent, for the line above the ideas (#469). */
   places: string[];
   hottest: number | null;
   firstRain: IsoDate | null;
@@ -47,11 +28,6 @@ export type PackingPlan = {
 
 const NO_WEATHER = { hottest: null, firstRain: null };
 
-/**
- * What we know about this trip, as much or as little as that is. An undated
- * trip skips the forecast entirely: with no window there is nothing to
- * intersect a forecast against, and a place's next days are not this trip's weather.
- */
 export async function packingPlanFor(trip: {
   id: number;
   startDate: string | null;
@@ -64,8 +40,6 @@ export async function packingPlanFor(trip: {
 
   const nights = nightsBetween(startDate, endDate);
 
-  // The anchor wins over the forecast so "nowhere to get weather for" doesn't read as
-  // "the weather isn't in yet". Read beside it: with no anchor the forecast asks no provider.
   const [anchor, forecast, overnight] = await Promise.all([
     tripForecastAnchor(trip.id),
     getTripForecast(trip.id),
@@ -75,7 +49,6 @@ export async function packingPlanFor(trip: {
     return { nights, climate: null, gap: "no-place", places: [], ...NO_WEATHER };
   }
 
-  // "Lisbon, Portugal" reads as two places in a comma list; the town is enough.
   const places = [...new Set(overnight.map((p) => shortPlace(p.name)))];
   const window = (forecast?.days ?? []).filter((d) => d.date >= startDate && d.date <= endDate);
   const climate = forecast ? summariseClimate(window) : null;
@@ -83,9 +56,6 @@ export async function packingPlanFor(trip: {
     ? { hottest: Math.round(Math.max(...window.map((d) => d.hi))), firstRain: window.find((d) => d.condition === "rain")?.date ?? null }
     : NO_WEATHER;
 
-  // Beyond the nine-day horizon and provider-unreachable land here together:
-  // to a packer they are the same fact, that we can't tell you the weather, so
-  // here's a list that doesn't assume any.
   return { nights, climate, gap: climate ? null : "no-forecast", places, ...weather };
 }
 
@@ -96,51 +66,19 @@ type FillArgs = {
   plan: PackingPlan;
 };
 
-/**
- * Fill the bag with whatever isn't in it yet, and return how many that was.
- *
- * Additive by construction, which is what makes this safe to press twice: a
- * label already on the list is skipped whole, so its count, its tick and any
- * rename survive untouched.
- *
- * One transaction, and that is load-bearing rather than tidiness. Read-then-
- * insert across two statements lets a double-press — or a second tab — read the
- * same empty bag twice and write the whole catalogue twice, which no later
- * press can undo, since the duplicates then read as "already there". SQLite
- * serialises write transactions, so the second one sees the first one's rows.
- */
 export async function fillPersonalBag(args: FillArgs): Promise<number> {
   return fill(args, { onlyIfNever: false });
 }
 
-/**
- * The first-open fill, when the profile asks for one. The claim is a
- * conditional UPDATE inside the same transaction as the insert, so it is both
- * a race guard and all-or-nothing: an insert that fails rolls the mark back
- * rather than burning the single auto-fill this bag ever gets.
- *
- * Safe to call on every render of the tab — it writes at most once per bag.
- */
 export async function autoFillPersonalBag(args: FillArgs): Promise<number> {
   return fill(args, { onlyIfNever: true });
 }
 
-/**
- * One idea, taken by its label (#469). The label must still be an idea for this
- * bag — anything else, or a thing already packed, adds nothing — so the count,
- * category and mark always come from the catalogue, never from the caller.
- */
 export async function takePackingIdea(args: FillArgs & { label: string }): Promise<number> {
   const label = args.label.trim().toLowerCase();
   return fill(args, { onlyIfNever: false, only: label });
 }
 
-/**
- * A lock, not a fault. Two fills of the same bag are the only thing that
- * contends here, and the one holding the write lock is doing the identical
- * work — so the loser reports "added nothing", which is exactly true, rather
- * than throwing a 500 at somebody who pressed a button twice (rule 11).
- */
 function isLockContention(err: unknown): boolean {
   const message = err instanceof Error ? err.message : String(err);
   return message.includes("SQLITE_BUSY") || message.includes("database is locked");
@@ -170,8 +108,6 @@ async function fillInTransaction(
       isNull(tripMembership.deletedAt),
     );
 
-    // Null is "never auto-filled". An emptied bag carries a date, which is what
-    // stops the generator refilling one somebody deliberately cleared.
     const marked = await tx
       .update(tripMembership)
       .set({ packGeneratedAt: new Date(), lastModifiedAt: new Date() })

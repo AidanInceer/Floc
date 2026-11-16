@@ -14,7 +14,6 @@ import { BEAD_ITEM, BEAD_PANEL } from "@/components/chrome/bead";
 import { ThemeSwitch } from "@/components/settings/theme-switch";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 
-// Why: the face is its own tile, so it takes the tile's states (hover, open, here) as a pen ring the width the glyph tiles show round a 13px glyph.
 const faceClass = "pointer-events-none inline-flex rounded-sm transition-shadow";
 const ringClass = "shadow-[0_0_0_2px_var(--pen-2)]";
 const ringOnClass = "group-hover:shadow-[0_0_0_2px_var(--pen-2)] group-data-[open=true]:shadow-[0_0_0_2px_var(--pen-2)]";
@@ -49,7 +48,6 @@ function Shortcuts({ path }: { path: string }) {
   );
 }
 
-/** Your face in the top bar opens a small card: you (to Profile), Friends, Lists and Bookings, the theme, and signing out — the theme two clicks from anywhere. */
 export function AccountCard({ name, email }: { name: string; email: string }) {
   const path = usePathname();
   const here = path === "/profile";

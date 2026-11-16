@@ -8,7 +8,6 @@ import { KindTile } from "./stop-parts";
 import { eventName } from "@floc/core/itinerary/names/event-name";
 
 
-// Why: a <details> row — a day opens without client JS, and several can stay open at once.
 export function StopDay({ tripId, date, events }: { tripId: number; date: string; events: DayEventRow[] }) {
   const { weekday, day } = dayParts(date);
   const [first] = events;

@@ -1,8 +1,3 @@
-/**
- * The ceilings (ticket 108). Small, but the behaviour at a limit is a decision
- * — truncate and say so on the server, never throw — and a decision with no
- * test is a comment.
- */
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { isRefusal } from "@floc/core/errors/refusal";
@@ -25,7 +20,6 @@ describe("bounded", () => {
   it("reports once the read comes back at the ceiling", () => {
     const rows = new Array(LIMITS.days).fill(0);
     let kept: number[] = [];
-    // Truncated, not thrown — rule 11 is degrade, don't crash.
     const lines = capturedLog(() => (kept = bounded(rows, "days", "trip 1")));
     expect(kept).toHaveLength(LIMITS.days);
     expect(lines).toEqual([expect.objectContaining({ level: "warn", limit: "days" })]);

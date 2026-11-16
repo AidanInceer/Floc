@@ -1,8 +1,3 @@
-/**
- * The words under the overnight dialog's night calendar (wireframe/days-week F): how
- * long the stay is, check-in to check-out, and which decided nights it takes from
- * another stay; and the writes that save it.
- */
 import { addDays, formatDate, type IsoDate } from "../../dates/dates";
 import { spanLabel } from "../../dates/dates-tabs";
 import { shortPlace } from "../names/place-name";
@@ -36,13 +31,11 @@ export function stayNights(
 type Range = { start: IsoDate; end: IsoDate };
 export type StayWrite = Range & { clear: boolean };
 
-/** The nights the dialog opens on (wireframe/days-week F): the trip's last day is check-out, not a night. */
 export function stayOpening(stop: Range, tripEnd: IsoDate): Range {
   const toEnd = stop.end === tripEnd && stop.start < stop.end;
   return { start: stop.start, end: toEnd ? addDays(tripEnd, -1) : stop.end };
 }
 
-// Why: the set goes first. The server only accepts a kept place id while a day still holds it.
 export function stayWrites(was: Range & { placeId: number | null }, start: IsoDate, end: IsoDate, tripEnd: IsoDate): StayWrite[] {
   const last = end === addDays(tripEnd, -1) ? tripEnd : end;
   const writes: StayWrite[] = [{ start, end: last, clear: false }];

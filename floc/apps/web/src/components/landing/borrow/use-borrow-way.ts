@@ -6,10 +6,8 @@ import type { BorrowCard as Card } from "@/lib/landing/borrow";
 
 import type { Globe } from "../globe/use-spin-globe";
 
-/** `on` turns true once the map has finished opening: the rail and the stop's name show from then. */
 type Way = { card: number; on: boolean; step: number };
 
-/** The way in to one trip: which card is open, the stop the map is on, and the nodes the globe draws into. */
 export function useBorrowWay(globe: RefObject<Globe | null>, cards: Card[]) {
   const stage = useRef<HTMLDivElement>(null);
   const back = useRef<HTMLButtonElement>(null);
@@ -23,7 +21,6 @@ export function useBorrowWay(globe: RefObject<Globe | null>, cards: Card[]) {
   }, [globe]);
 
   useEffect(() => {
-    // Why: the tiles are inert while a trip is open, so focus can go back to the one that opened it only after they return.
     if (card === null) return opener.current?.focus({ preventScroll: true });
     if (stage.current) globe.current?.open(card, cards[card]!, { stage: stage.current });
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && leave();

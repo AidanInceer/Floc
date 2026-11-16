@@ -1,4 +1,3 @@
-// Dates tab (#197, #233). Undated is the normal starting state, never an error (rule 9).
 import { requireTripAccess } from "@/server/access";
 import { listAvailability } from "@/server/itinerary/availability";
 import { listGuests, type Guest } from "@/server/guests/guests";
@@ -79,13 +78,10 @@ export default async function DatesPage({
     listAvailability(tripId),
     listDayLoads(tripId),
     listRouteDays(tripId),
-    // Null → the calendar offers no Weather mode (ticket 148), and always null
-    // on a free trip — the gate is inside the read (ticket 248).
     getTripForecast(tripId),
     canUseFeature("dates.weather", tripId),
     canUseFeature("booking.prefill", tripId),
     listGuests(tripId),
-    // Rule 11: no storage volume, no files — and no query for them.
     files ? listDocuments(tripId, viewer.id) : Promise.resolve([]),
     bookingSitesOf(viewer.id),
     calendarEnabled() ? calendarAllDayOnly(viewer.id) : Promise.resolve(false),
@@ -98,8 +94,6 @@ export default async function DatesPage({
   for (const row of free) tallies[row.date] = (tallies[row.date] ?? 0) + 1;
   const marked = freeDaysByUser(rows);
 
-  // Trip's month, else earliest marked month, else now. `?from=` overrides so
-  // paging is linkable.
   const firstMonth =
     from && /^\d{4}-\d{2}$/.test(from)
       ? from
@@ -112,8 +106,6 @@ export default async function DatesPage({
   const hasDates = !!trip.startDate && !!trip.endDate;
   const moment = datesMoment(trip, today());
 
-  // "Reset dates" cost: an empty window keeps no day, so this is the whole
-  // itinerary (ticket 140). Null when there's nothing on it.
   const resetCost = windowCost(dayLoads, null, null);
   const resetNoun = windowCostNoun(resetCost);
   const resetLabel = windowCostLabel(resetCost);
@@ -268,7 +260,6 @@ function TripBlock({ start, end }: { start: string | null; end: string | null })
   );
 }
 
-/** Chase a person, not nobody. */
 function NudgeSheet({
   tripId,
   member,
@@ -282,7 +273,6 @@ function NudgeSheet({
       triggerVariant="secondary"
       title={`Nudge ${member.name}`}
     >
-      {/* Real Server Action ref — a wrapping closure wouldn't survive the boundary. */}
       <form action={sendNudge}>
         <input type="hidden" name="tripId" value={tripId} />
         <input type="hidden" name="toUserId" value={member.userId} />
@@ -308,7 +298,6 @@ function NudgeSheet({
   );
 }
 
-/** Any member may remove a guest: a guest is not a member, so this is not an admin power (rule 6, ADR-029). */
 function RemoveGuest({ tripId, guest }: { tripId: number; guest: Guest }) {
   return (
     <Menu label={`${guest.name} actions`}>

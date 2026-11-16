@@ -1,4 +1,3 @@
-/** The phone's two optional choices (#368), both off until the person turns them on. The web's Cookies page says the same. */
 import { CONSENT_CATEGORIES, type ConsentChoice } from "@floc/core/consent/consent";
 import { View } from "react-native";
 

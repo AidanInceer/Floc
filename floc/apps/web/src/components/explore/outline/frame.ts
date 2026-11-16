@@ -3,36 +3,26 @@ import type { Box, Piece, Spot } from "./land";
 export type Size = { width: number; height: number };
 export type Frame = {
   view: Box;
-  /** Pixels to a degree of latitude. */
   scale: number;
   point: (spot: Spot) => { x: number; y: number };
 };
 
-/** How many degrees of latitude the drawing is high. */
 const SMALLEST = 4.5;
 const LARGEST = 17;
 const IN_A_BIG_COUNTRY = 11;
-// Why: at 1:110m a coast can sit half a degree from the town on it.
 const SHORE = 0.6;
 const LAND_MARGIN = 1.12;
 const ROUTE_MARGIN = 1.5;
-/** A stop stays inside the middle 68% of the drawing. */
 const REACH = 0.34;
-/** The two closest stops sit at least this share of the drawing's height apart, so each mark and the line between them can be seen. */
 const APART = 0.15;
-/** The most a route is zoomed in on to hold its closest stops apart: a town and its neighbour. */
 const TIGHTEST = 0.3;
-/** The least of the land's frame a zoomed-in route still shows; nearer stops may then touch (Aidan: the country must stay easy to tell). */
 const KEEP = 0.4;
-/** The least a lone country is framed at, so Aruba shows as an island and not a speck. */
 const ISLAND = 1.2;
-/** A piece this share of a country's largest is one of its big landmasses, framed with it. */
 const BIG_ISLAND = 0.1;
 
 const area = (b: Box) => (b.east - b.west) * (b.north - b.south);
 const clamp = (value: number, low: number, high: number) => Math.min(Math.max(value, low), high);
 
-/** The landmass of the country that the first stop is on: the mainland, not an island on the far side. */
 export function homePiece(land: readonly Piece[], code: string, first: Spot): Piece | undefined {
   return land
     .filter(({ code: c, box }) =>
@@ -46,7 +36,6 @@ function routeBox(stops: readonly Spot[]): Box {
   return { west: Math.min(...lngs), south: Math.min(...lats), east: Math.max(...lngs), north: Math.max(...lats) };
 }
 
-/** The distance, in degrees of latitude, between the two closest stops that are not the same place; 0 when there are not two. */
 function closest(stops: readonly Spot[], squeeze: number): number {
   let least = Infinity;
   stops.forEach((a, i) => {
@@ -58,14 +47,9 @@ function closest(stops: readonly Spot[], squeeze: number): number {
   return least === Infinity ? 0 : least;
 }
 
-/**
- * Why: a reader knows a country by its whole shape, so the frame is the landmass when it fits and the route only when it does not.
- * `also` are places the drawing must hold but that are not stops: a day out, which never makes the frame zoom in.
- */
 export function frameFor(stops: readonly Spot[], home: Piece | undefined, size: Size, also: readonly Spot[] = []): Frame {
   const route = routeBox([...stops, ...also]);
   const middle = { lng: (route.west + route.east) / 2, lat: (route.south + route.north) / 2 };
-  // Why: a degree of longitude is narrower away from the equator; one factor for the whole small drawing is close enough.
   const squeeze = Math.cos((middle.lat * Math.PI) / 180);
   const across = size.width / size.height;
   const needs = (b: Box) => Math.max(b.north - b.south, ((b.east - b.west) * squeeze) / across);
@@ -79,8 +63,6 @@ export function frameFor(stops: readonly Spot[], home: Piece | undefined, size: 
   const whole = high;
   high = Math.max(high, needs(route) * ROUTE_MARGIN, SMALLEST);
   const gap = closest(stops, squeeze);
-  // Why: a country-sized frame puts stops a few miles apart on top of each other; zoom in until they part, but never past the
-  // whole route or the share of the land that says which country it is. The land stays in the middle as far as the stops allow.
   if (gap > 0 && gap / high < APART) high = Math.min(high, Math.max(gap / APART, needs(route) * ROUTE_MARGIN, TIGHTEST, whole * KEEP));
 
   const wide = (high * across) / squeeze;
@@ -101,24 +83,18 @@ function frameOn(centre: Spot, high: number, squeeze: number, size: Size): Frame
   };
 }
 
-/** Land in square degrees, by the ring's own outline: a long thin island's box overstates it. */
 function landArea(ring: readonly number[][]): number {
   let twice = 0;
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) twice += (ring[j]![0]! + ring[i]![0]!) * (ring[j]![1]! - ring[i]![1]!);
   return Math.abs(twice) / 2;
 }
 
-/**
- * A country on its own, with no route (#467): its big landmasses whole, however big (Hokkaido with Honshu, the Malay peninsula
- * with Borneo), and an island never smaller than a town and its neighbour. Land past the 180th meridian falls back to the largest piece.
- */
 export function countryFrame(land: readonly Piece[], code: string, size: Size): Frame | null {
   const pieces = land.filter((p) => p.code === code).map((p) => ({ box: p.box, area: landArea(p.ring) })).sort((a, b) => b.area - a.area);
   const largest = pieces[0];
   if (!largest) return null;
   const reach = Math.max(largest.box.east - largest.box.west, largest.box.north - largest.box.south);
   const gap = (b: Box) => Math.max(b.west - largest.box.east, largest.box.west - b.east, b.south - largest.box.north, largest.box.south - b.north, 0);
-  // Why: a far territory (French Guiana for France) is not the country a reader pictures; a near island (Hokkaido) is.
   const big = pieces.filter((p) => p.area >= largest.area * BIG_ISLAND && gap(p.box) <= reach);
   const all = {
     west: Math.min(...big.map((p) => p.box.west)),

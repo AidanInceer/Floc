@@ -1,11 +1,3 @@
-/**
- * The trip link shelf (ticket 103).
- *
- * Two properties, and they are the two that would hurt: a link is an `href`
- * this app renders, so nothing but `http`/`https` may ever be stored; and a
- * link belongs to one trip, so a member of another one must not be able to
- * reach it by id (rule 5).
- */
 import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -48,7 +40,6 @@ describe("readWebUrl", () => {
   });
 
   it("refuses a scheme that isn't the web", () => {
-    // The one that matters: a stored `javascript:` URL is a stored script.
     expect(readWebUrl("javascript:alert(1)")).toBeNull();
     expect(readWebUrl("data:text/html,<script>")).toBeNull();
     expect(readWebUrl("file:///etc/passwd")).toBeNull();
@@ -99,9 +90,6 @@ describe("the link shelf", () => {
     await addTripLink(world.ours.id, form("https://example.com/villa"));
     const [link] = await linksOf(world.ours.id);
 
-    // The attacker posts *their* trip id, which they are legitimately on,
-    // alongside *our* link id. `requireTripAccess` passes; the trip join on the
-    // link is what has to refuse.
     signIn(world.outsider);
     await removeTripLink(world.theirs.id, link.id);
 
@@ -114,7 +102,6 @@ describe("the link shelf", () => {
 
     await removeTripLink(world.ours.id, link.id);
 
-    // Soft-deleted, so the row is still there — the read is what hides it.
     const rows = await db
       .select({ deletedAt: schema.tripLink.deletedAt })
       .from(schema.tripLink)

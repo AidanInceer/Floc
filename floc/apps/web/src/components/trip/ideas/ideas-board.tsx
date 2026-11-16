@@ -23,7 +23,6 @@ export function IdeasBoard({ tripId, ideas }: { tripId: number; ideas: IdeaRow[]
   const [sort, setSort] = useState<IdeaSort>("votes");
   const shown = sortIdeas(ideas, sort);
 
-  // The order is a reading preference, not trip data — it rides in the browser.
   useEffect(() => {
     setSort(readIdeaSort(readStored(SORT_KEY)));
   }, []);
@@ -73,7 +72,6 @@ function AddIdeaForm({ tripId }: { tripId: number }) {
   );
 }
 
-// One line an idea: the vote on the left, the idea, who put it up, and remove.
 function IdeaLine({ tripId, idea }: { tripId: number; idea: IdeaRow }) {
   return (
     <li className="flex items-center gap-3 px-3 py-2.5">

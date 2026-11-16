@@ -1,12 +1,3 @@
-/**
- * The geometry behind each trip mark (#318) — here rather than in either app
- * because both surfaces draw the same fifteen, and two copies drift.
- *
- * A 14x14 viewBox, `fill="none"`, `stroke="currentColor"`, strokeWidth ~1.2,
- * the house rule for every icon. Same shape as the faces in
- * `people/avatar-icon-art`, and `mountain` and `sun` ARE those entries rather
- * than a second copy of the same lines.
- */
 import { AVATAR_ICON_ART, type IconArt } from "../../people/avatar-icon-art";
 import type { TripMark } from "./trip-mark";
 
@@ -63,7 +54,6 @@ export const TRIP_MARK_ART: Record<TripMark, IconArt> = {
     ],
     circles: [],
   },
-  // Why: not the face's lighthouse — this one shines, which is what Aidan picked (2026-11-07).
   lighthouse: {
     paths: [
       "M5.4 5.4h3.2l1 7H4.4zM5.4 5.4V3.6h3.2v1.8M4.8 3.6 7 1.8l2.2 1.8M3.2 12.4h7.6M5 8.8h4",

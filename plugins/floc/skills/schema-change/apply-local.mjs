@@ -1,6 +1,3 @@
-// Why: db:generate writes a migration but applies nothing, and local.db is not
-// tracked by drizzle's journal, so the new SQL is run by hand. Hardwired to
-// floc/apps/web/local.db so it can never reach a shared database.
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { basename, join, resolve } from "node:path";

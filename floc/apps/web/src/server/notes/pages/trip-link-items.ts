@@ -1,9 +1,3 @@
-/**
- * What a notes page can link to (#408): the trip's days, events, places,
- * expenses, packing items and files, each with its current name and a line
- * that tells two alike apart. The `/` menu lists these; a chip reads its name
- * from here, so a rename shows everywhere and a deleted thing reads "Removed".
- */
 import "server-only";
 import { and, asc, eq, isNull } from "drizzle-orm";
 

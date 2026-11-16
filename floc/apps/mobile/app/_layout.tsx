@@ -1,12 +1,3 @@
-/**
- * The root of the app (ticket 289).
- *
- * Three things wrap everything: the palette, the query cache, and the
- * signed-in/signed-out decision. The last one is a redirect rather than a
- * separate navigator, because a session can end at any moment — a token
- * expiring while a trip is open has to land on sign-in from wherever it was.
- */
-// Why: one import per weight, so the bundle carries only these six files, not every weight in each package.
 import { RedHatDisplay_800ExtraBold } from "@expo-google-fonts/red-hat-display/800ExtraBold";
 import { RedHatMono_400Regular } from "@expo-google-fonts/red-hat-mono/400Regular";
 import { RedHatMono_500Medium } from "@expo-google-fonts/red-hat-mono/500Medium";
@@ -29,10 +20,6 @@ import { useSession } from "@/lib/auth";
 import { signOutHere } from "@/lib/sign-out";
 import { onSessionEnded, sessionResumed } from "@/lib/session/session-ended";
 
-/**
- * The six Red Hat files (type-fonts pick W4): display at 800, two sans, two mono, and the sans italic
- * the route map's nights wear. Every one is its own family; see `lib/theme.ts` for why.
- */
 const FACES = {
   RedHatDisplay_800ExtraBold,
   RedHatText_400Regular,
@@ -42,7 +29,6 @@ const FACES = {
   RedHatMono_500Medium,
 };
 
-/** The routes Better Auth's emails redirect into. See `deepLinked` below. */
 const DEEP_LINKED = ["reset-password", "verified"];
 
 function Routes() {
@@ -57,10 +43,6 @@ function Routes() {
 
   const signedIn = !!session?.user;
   const inApp = segments[0] === "(app)";
-  // A deep link is not a navigation, and these three arrive as one: a reset
-  // link opens while signed out *and* while signed in, and throwing the
-  // holder at /trips would strand the token. So the signed-in redirect skips
-  // them; the signed-out one does not need to, they already sit outside (app).
   const deepLinked = DEEP_LINKED.includes(segments[0] as string);
 
   useEffect(() => onSessionEnded(() => void signOutHere({ expired: true }).catch(() => undefined)), []);
@@ -70,8 +52,6 @@ function Routes() {
 
   const ready = !isPending && facesLoaded;
 
-  // Why wait for a route: on a cold start the redirect ran before the router had one, was lost, and
-  // never ran again once the index settled on sign-in — a signed-in person landed on sign-in.
   const landed = segments[0] as string | undefined;
   useEffect(() => {
     if (!ready || landed === undefined) return;
@@ -79,11 +59,6 @@ function Routes() {
     if (signedIn && !inApp && !deepLinked) router.replace("/trips");
   }, [ready, landed, signedIn, inApp, deepLinked, router]);
 
-  // Why: rendering a screen before the session is known would flash sign-in at
-  // somebody who is already signed in, every cold start. The faces wait with
-  // it: text drawn in Roboto and then reflowed into Red Hat is a worse first
-  // impression than a beat of nothing. The curtain is that beat, and it holds
-  // until both are known.
   return (
     <>
       <StatusBar style={theme === "dark" ? "light" : "dark"} />
@@ -91,17 +66,12 @@ function Routes() {
         <Stack
           screenOptions={{
             animation: reducedMotion === false ? "default" : "none",
-            // One surface, not two. A sheet-coloured bar over a paper screen
-            // draws a tone step, and the hairline under it drew a second line
-            // across a screen that is a single column of controls.
             headerStyle: { backgroundColor: c.paper },
             headerShadowVisible: false,
             headerTintColor: c.ink,
             contentStyle: { backgroundColor: c.paper },
           }}
         >
-          {/* The mark, centred, instead of the word "Floc" — the first thing
-              somebody sees on opening the app should be the mark itself. */}
           <Stack.Screen
             name="sign-in"
             options={{ headerTitle: () => <FlocWordmark />, headerTitleAlign: "center" }}

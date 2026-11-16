@@ -1,10 +1,3 @@
-/**
- * The notes aggregate's two structural rules (ticket 108): threads are exactly
- * one level deep, and a parent takes its replies with it when it goes.
- *
- * Both are properties of the table's shape rather than of any one tab, which is
- * why they are tested against the module rather than through `notes-actions.ts`.
- */
 import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -127,7 +120,6 @@ describe("deleting", () => {
 
     expect(await findNote(world.ours.id, parent.id)).toBeUndefined();
     expect(await findNote(world.ours.id, reply.id)).toBeUndefined();
-    // An unrelated top-level comment is untouched.
     expect(await findNote(world.ours.id, other.id)).toBeDefined();
   });
 });
@@ -156,12 +148,6 @@ describe("reacting", () => {
     expect((await reactions())[0].deletedAt).toBeNull();
   });
 
-  /**
-   * Ticket 115 (M7). Before the unique index this wrote two rows and the count
-   * then read as 2 from one person. The assertion is on the row count rather
-   * than on which way the toggle settled: under a race either answer is
-   * legitimate (rule 7), duplication never is.
-   */
   it("cannot duplicate a row when two taps land together", async () => {
     const row = await post("Worth a look");
 

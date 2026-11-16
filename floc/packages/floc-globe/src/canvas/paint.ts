@@ -1,14 +1,9 @@
 import { limbRing, shortest, type LatLng } from "../sphere";
 
-/** Where the sphere sits in its box: its radius and its middle, in px. */
 export type Fit = { R: number; cx: number; cy: number };
 
 const RAD = Math.PI / 180;
 
-/**
- * Traces one land outline as seen from `view`. False when all of it is behind the globe.
- * Why the edge: land that runs behind is cut where it crosses the edge and followed along it; a straight line between the two crossings draws a flat side.
- */
 export function traceRing(ctx: CanvasRenderingContext2D, { R, cx, cy }: Fit, view: LatLng, ring: number[][]): boolean {
   const out = limbRing(view, ring);
   if (!out) return false;

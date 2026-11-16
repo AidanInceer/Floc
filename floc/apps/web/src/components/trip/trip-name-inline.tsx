@@ -1,17 +1,5 @@
 "use client";
 
-/**
- * The trip's name, editable in place (ticket 37). It used to render in the
- * persistent header above the tabs *and* read-only on the Overview hero, which
- * printed the same name and dates twice a hand's width apart; ticket 89 kept
- * one — this, on the hero, where it is now the headline. Renaming is still one
- * click on the name itself rather than three into a settings disclosure.
- *
- * The name reads as a plain heading until you reach for Rename, so the hero
- * doesn't turn into a form.
- *
- * Still open to any member, not just an admin — see `renameTrip`.
- */
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { useActionState, useEffect, useRef, useState } from "react";
 
@@ -28,13 +16,10 @@ export function TripNameInline({
 }: {
   tripId: number;
   name: string;
-  /** A real Server Action reference, so it survives the server→client boundary. */
   rename: (formData: FormData) => Promise<{ error?: string } | void>;
 }) {
   const [editing, setEditing] = useState(false);
 
-  // `saved` is a counter, not a boolean: two renames in a row would otherwise
-  // leave the flag already true and the second edit would never close itself.
   const [state, formAction] = useActionState(
     async (previous: RenameState, formData: FormData): Promise<RenameState> => {
       const result = await rename(formData);
@@ -57,8 +42,6 @@ export function TripNameInline({
   if (!editing) {
     return (
       <h1 className="min-w-0 font-display text-3xl font-semibold leading-[1.05] tracking-tight [overflow-wrap:anywhere]">
-        {/* The name is the control: click it to rename. The pencil is faint at
-            rest and full on hover, so touch still has something to aim at. */}
         <button
           type="button"
           title="Rename trip"
@@ -77,8 +60,6 @@ export function TripNameInline({
 
   return (
     <form action={formAction} className="flex w-full flex-col gap-1.5">
-      {/* The visible heading is the input while editing, so the page keeps an
-          <h1> for anything reading the outline. */}
       <h1 className="sr-only">{name}</h1>
       <span className="flex flex-wrap items-center gap-1.5">
         <input type="hidden" name="tripId" value={tripId} />
@@ -90,8 +71,6 @@ export function TripNameInline({
           autoFocus
           aria-label="Trip name"
           className="w-full min-w-0 !py-1 font-display !text-lg"
-          // Escape backs out without saving — the same key that dismisses the
-          // page's sheets and confirm dialogs.
           onKeyDown={(e) => {
             if (e.key === "Escape") setEditing(false);
           }}

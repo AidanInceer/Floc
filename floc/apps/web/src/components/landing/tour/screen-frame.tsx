@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 
 import { cx } from "@/components/system/ui";
 
-/** The page's own title, as each tab opens with one. */
 export function PageHead({ title, sub, children }: { title: string; sub?: string; children?: ReactNode }) {
   return (
     <div className="mb-4 flex items-end justify-between gap-4">

@@ -1,10 +1,5 @@
 "use client";
 
-/**
- * One day on the Dates calendar. Its colour comes from `dayMark` and is the same on every
- * tab; your own day is a soft disc behind the number, solid on the trip so it reads on the green. Every mark sits on top of the cell,
- * never in its flow, so the number never moves.
- */
 import { cx } from "@/components/system/ui";
 import { markKey, type DayMark } from "@floc/core/dates/day-marks";
 
@@ -33,14 +28,10 @@ export type DateCellProps = {
   mine: boolean;
   past: boolean;
   today: boolean;
-  /** In the stored trip but outside the window being picked: these days would go. */
   cut: boolean;
-  /** The day's high, on the forecast tab. */
   hi?: number;
   label: string;
-  /** Null: the day only reads. */
   press: ((e: React.PointerEvent) => void) | null;
-  /** Enter or Space, which arrive as a click with no pointer behind it. */
   activate: (() => void) | null;
   selected?: boolean;
 };

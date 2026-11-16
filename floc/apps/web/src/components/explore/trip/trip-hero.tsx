@@ -24,7 +24,6 @@ export function TripHero({ trip, figures, rates }: { trip: PresetTrip; figures: 
       <div className="relative">
         <div className="absolute right-0 top-0 flex items-start gap-3 max-sm:hidden">
           <PostcardStamp trip={trip} />
-          {/* Why: on a wide screen the heart sits in the stamp's row, so the two share a top edge whatever the map's height. */}
           <SaveHeart presetId={trip.id} title={trip.title} className="!border !border-rule !shadow-none max-lg:hidden" />
         </div>
         <p className="typed sm:pr-24 lg:pr-36">

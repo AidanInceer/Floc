@@ -9,7 +9,6 @@ export function MemberRow({ name, you, admin, word, first, onMore }: {
   name: string;
   you: boolean;
   admin: boolean;
-  /** Quiet status for somebody not on the roster yet — Invited, Declined. */
   word?: string;
   first: boolean;
   onMore?: () => void;

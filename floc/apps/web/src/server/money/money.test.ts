@@ -1,11 +1,3 @@
-/**
- * The money aggregate's one headline rule (ticket 108): an expense and its
- * whole split set move together, and a split has no independent life.
- *
- * `writeExpense` is the only way to write either table, so these tests are how
- * non-negotiable 2 — `expense_split` rows are snapshots, rewritten whole and
- * never merged — stops being a comment and starts being a property.
- */
 import { and, eq, isNull } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -75,7 +67,6 @@ describe("writing an expense", () => {
 
     const splits = await splitsOf(row.id);
     expect(splits).toHaveLength(2);
-    // Integer minor units, and the splits sum to the total exactly (rule 1).
     expect(splits.reduce((n, s) => n + s.owedAmountMinor, 0)).toBe(3000);
   });
 
@@ -87,7 +78,6 @@ describe("writing an expense", () => {
       expenseId: row.id,
       createdBy: world.admin,
       fields: fields({ amountMinor: 1000, description: "Ferry, one way" }),
-      // The member is tapped out: no row, not a zero row.
       splits: [{ userId: world.admin, owedAmountMinor: 1000 }],
     });
 
@@ -96,7 +86,6 @@ describe("writing an expense", () => {
     expect(splits).toHaveLength(1);
     expect(splits[0].userId).toBe(world.admin);
     expect((await expensesOf(world.ours.id))[0].description).toBe("Ferry, one way");
-    // The old snapshot is kept, marked gone (rule 8).
     const all = await db.select().from(schema.expenseSplit).where(eq(schema.expenseSplit.expenseId, row.id)).all();
     expect(all.length).toBeGreaterThan(1);
   });
@@ -114,7 +103,6 @@ describe("finding an expense", () => {
     await softDeleteExpense(world.ours.id, row.id);
 
     expect(await findLiveExpense(world.ours.id, row.id)).toBeUndefined();
-    // The splits are snapshots — hidden by the parent's `deletedAt`, not rewritten.
     expect(await splitsOf(row.id)).toHaveLength(2);
   });
 });
@@ -226,7 +214,6 @@ describe("settlements", () => {
   });
 });
 
-/** Ticket 115 (M10) — writes filter soft-deletes too, not just reads. */
 describe("writes against deleted rows", () => {
   it("does not re-stamp deletedAt on a second delete", async () => {
     const row = await seedExpense();

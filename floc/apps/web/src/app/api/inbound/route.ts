@@ -1,7 +1,3 @@
-/**
- * Resend's received-email webhook (#328, #559). The signature check is the first gate of this route: without
- * it anyone could post mail as a member, so an unsigned body is refused before its JSON is read.
- */
 import { documentsEnabled } from "@/server/documents/document-store";
 import { barcodeTexts } from "@/server/documents/inbound/barcode";
 import { receiveBookingMail } from "@/server/documents/inbound/booking-mail";

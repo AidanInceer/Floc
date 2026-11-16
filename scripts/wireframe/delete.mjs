@@ -1,6 +1,3 @@
-// pnpm wireframe:delete <path> [...]   Deletes prototype files or folders, only inside floc/wireframe/ of the checkout it runs in.
-// Why: closing a prototype round deletes the rejected options (floc:prototype), and the shell's own rm -r / Remove-Item -Recurse
-// are denied everywhere; this one command is allowed because it cannot reach past floc/wireframe.
 import { existsSync, rmSync } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";

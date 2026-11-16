@@ -1,21 +1,3 @@
-/**
- * The port's event-comments half (ticket 325).
- *
- * SAME TABLE, SAME RULES AS THE WEB'S THREAD. Every read and write here goes
- * through `server/notes/`, which the Days page already uses — so a comment
- * posted from a phone and one typed in a browser are the same row, one level
- * deep, with the same cap on the body and the same answer to "may I delete
- * this". There is no second set of rules to drift.
- *
- * THE EVENT IS RESOLVED, NEVER TRUSTED. `access.event` binds the id to this
- * trip, so another trip's event is not addressable rather than merely refused
- * (ticket 106) — which also stops a crafted `dayEventId` reading a thread the
- * viewer has no trip in.
- *
- * DATES CROSS AS ISO STRINGS. A comment's time is a record of when somebody
- * typed, not an itinerary time, so rule 10 does not apply — but a `Date` does
- * not survive JSON, so it is stringified at the seam rather than at the screen.
- */
 import "server-only";
 
 import { Refusal } from "@floc/core/errors/refusal";
@@ -65,9 +47,6 @@ export const commentsPort: CommentsPort = {
     const access = await scoped(viewerId, tripId);
     const event = await access.event(dayEventId);
 
-    // `loadThreads` reads the trip's whole `day_event` scope in one query,
-    // which is the shape the Days page wants; a phone shows one event, so it
-    // takes its own run out of the map and drops the rest.
     const byEvent = await loadThreads({
       tripId: access.trip.id,
       scope: "day_event",
@@ -84,7 +63,6 @@ export const commentsPort: CommentsPort = {
 
     let parentId: number | null = null;
     if (replyTo !== null) {
-      // undefined means the target has gone; null means "attach at the top".
       const resolved = await resolveParent({
         tripId: access.trip.id,
         scope: "day_event",
@@ -112,7 +90,6 @@ export const commentsPort: CommentsPort = {
     const access = await scoped(viewerId, tripId);
     const row = await findNote(access.trip.id, commentId);
     if (!row) return "That comment has gone.";
-    // Author only, deliberately not an admin power (rule 6).
     if (row.createdBy !== access.viewer.id) {
       return "You can only edit your own comments.";
     }

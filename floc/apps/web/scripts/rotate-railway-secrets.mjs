@@ -18,7 +18,7 @@ async function railwayLogin() {
     const expiry = Number(user?.tokenExpiresAt);
     const expiresAt = expiry > 1e12 ? expiry : expiry * 1000;
     if (user?.accessToken && expiresAt > Date.now() + 120_000) return createRailway(user.accessToken);
-  } catch { /* Why: no CLI login is a prerequisite message, not a crash. */ }
+  } catch {}
   throw new Error("No Railway login. Run `railway login` (or `railway whoami` to refresh it), then run this again.");
 }
 
@@ -38,7 +38,6 @@ STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 `;
 
-// Why: the file holds live secrets inside the checkout, so refuse it unless git ignores it.
 function assertIgnored(path) {
   return new Promise((done, fail) => execFile("git", ["check-ignore", "-q", path], { cwd: checkout },
     (error) => error ? fail(new Error(`${path} is not ignored by git. Fix .gitignore before putting secrets in it.`)) : done()));

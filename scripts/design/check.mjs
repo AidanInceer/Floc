@@ -16,11 +16,9 @@ const SCAN = [
   ["scripts/wireframe", /\.css$/],
 ];
 
-// Why: user content, seed data and images rendered without a stylesheet are not house UI.
 const EXEMPT = [
   { rule: "emoji", path: /notes\/pages\/emoji|db\/seed\// },
   { rule: "radius", path: /opengraph-image/ },
-  // Why: the landing page sets display type and draws the app small inside phone and tour pictures; the walkthrough and share cards are pictures too.
   { rule: "type-size", path: new RegExp("components/(landing|walkthrough)/|wordmark|og-card|opengraph-image|scripts/wireframe/|server/auth/email") },
   { rule: "icon-box", path: new RegExp("components/landing/") },
 ];
@@ -53,7 +51,6 @@ const baseline = existsSync(BASELINE) ? JSON.parse(readFileSync(BASELINE, "utf8"
 
 if (process.argv.includes("--write-baseline")) {
   const next = {};
-  // Why: a rule added after the first baseline starts from what exists; once it has an entry it only shrinks, like the rest.
   const known = new Set(Object.keys(baseline ?? {}).map((key) => key.split(" ")[0]));
   for (const [key, n] of Object.entries(counts)) {
     const allowed = baseline && known.has(key.split(" ")[0]) ? Math.min(n, baseline[key] ?? 0) : n;

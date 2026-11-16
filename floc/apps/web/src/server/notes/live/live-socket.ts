@@ -15,10 +15,6 @@ const TRUSTED_ORIGINS = [process.env.BETTER_AUTH_URL, process.env.FLOC_LAN_ORIGI
   }
 });
 
-/**
- * Why: a page on another site can open a socket with the visitor's cookie, so a browser's Origin must be ours.
- * A native app sends none, or its own server's; both pass.
- */
 function fromOurOrigin(req: IncomingMessage): boolean {
   const origin = req.headers.origin;
   if (!origin) return true;
@@ -41,7 +37,6 @@ function toRequest(req: IncomingMessage): Request {
   return new Request(`http://${req.headers.host ?? "localhost"}${req.url ?? "/"}`, { headers });
 }
 
-/** Every other upgrade (Next's dev reload socket) goes to `fallback`. */
 export function attachNotesLive(
   server: Server,
   live: Hocuspocus,

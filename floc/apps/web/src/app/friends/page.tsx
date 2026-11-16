@@ -1,8 +1,3 @@
-/**
- * Friends (ticket 18; redesigned 201): accepted friends, incoming requests to
- * act on, outgoing requests still pending, and finding someone new by name or
- * full friend tag — never by email address.
- */
 import { acceptFriend, declineFriend, cancelRequest } from "./actions";
 import { today } from "@floc/core/dates/dates";
 import { requireUser } from "@/server/access";
@@ -34,8 +29,6 @@ export const metadata = { title: "Friends" };
 export default async function FriendsPage() {
   const viewer = await requireUser("/friends");
 
-  // Lazy reconciliation — v1 has no cron, so a completed co-trip only turns
-  // into a friendship the next time either party loads this page.
   await syncCompletedCoTripFriendships(viewer.id);
 
   const [rows, tag, groups, pastTrips] = await Promise.all([
@@ -48,17 +41,12 @@ export default async function FriendsPage() {
 
   const otherIdOf = (r: (typeof rows)[number]) => (r.userId === viewer.id ? r.friendId : r.userId);
 
-  // Every face on the page in one query, rather than one per row — this was an
-  // await inside a `.map`, so a hundred friends was a hundred serial round
-  // trips (ticket 118).
   const people = await peopleByIds(rows.map(otherIdOf));
   const personFor = (id: string) => people.get(id) ?? UNKNOWN(id);
 
   const acceptedPeople = await Promise.all(
     accepted.map(async (r) => {
       const otherId = otherIdOf(r);
-      // Ticket 18: distinguish auto (co_trip) from manual (request) friends
-      // quietly — a small caption, not a badge, naming the trip if we know it.
       const metOn = r.origin === "co_trip" ? await coTripNameFor(viewer.id, otherId) : null;
       return { person: personFor(otherId), origin: r.origin, metOn };
     }),
@@ -81,7 +69,6 @@ export default async function FriendsPage() {
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
       <PageTitle className="sr-only">Friends</PageTitle>
       <div className="mx-auto max-w-[41.25rem]">
-        {/* Requests lead because they are the only thing here waiting on you; none, no strip. */}
         {requests > 0 ? (
           <section>
             <h2 className="flex items-center gap-2 text-sm font-medium">

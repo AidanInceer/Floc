@@ -1,10 +1,5 @@
 "use server";
 
-/**
- * Day/day_event mutations (ticket 15). Open to all members, not admin-only
- * (ticket 01 step 7). Last-write-wins (ticket 12) — no version check.
- * SQL lives in `server/itinerary/itinerary.ts` (ticket 108); nothing here imports `@/db`.
- */
 import { DAY_EVENT_TYPES, TRANSPORT_TYPES, type DayEventType, type TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
 import { removeEvent, saveEvent } from "@/server/itinerary/event-save";
@@ -28,7 +23,6 @@ export async function addDays(tripId: number, afterDate: string, count: number) 
   await extendTripDays(access.trip, afterDate, count, access.viewer.id);
 }
 
-/** Soft-deletes a single day row; its events go with it (hidden by the day's own filter). */
 export async function removeDay(tripId: number, dayId: number) {
   const access = await requireTripAccess(tripId);
   const target = await access.day(dayId);
@@ -36,10 +30,6 @@ export async function removeDay(tripId: number, dayId: number) {
   refresh({ kind: "itinerary", tripId: access.trip.id });
 }
 
-/**
- * Where the group sleeps, for a run of days (ticket 141). The rules live in
- * `server/itinerary/overnight.ts` (ticket 308) so the phone reaches them through the API.
- */
 export async function setDayOvernight(
   tripId: number,
   startDate: string,
@@ -68,13 +58,6 @@ export async function deleteEvent(tripId: number, eventId: number) {
   await removeEvent(await requireTripAccess(tripId), eventId);
 }
 
-/**
- * Drops an event into a different position within its day.
- *
- * The times don't move — the *events* do, between the day's existing slots.
- * Same trade a day drag makes with the trip's dates; lets a day stay
- * time-ordered and hand-arrangeable at once.
- */
 export async function reorderEvents(
   tripId: number,
   dayId: number,
@@ -89,20 +72,6 @@ export async function reorderEvents(
   refresh({ kind: "itinerary", tripId: access.trip.id });
 }
 
-/**
- * Dropping an event into a gap — one action behind both "put it here in this
- * day" and "put it here in *that* day", since from the hand's point of view
- * they're the same gesture.
- *
- * Within a day it's a permutation of the slots, so the run the event passed
- * over shifts to close the space. Across days there's no permutation to
- * make — the target list grows — so the event keeps its own time and the
- * target day re-sorts around it, rather than overwriting whichever time it
- * happened to land next to.
- *
- * Trip and destination day come first, so Days can `.bind(null, access.trip.id,
- * dayId)` (ticket 117, S11).
- */
 async function insertEventAt(
   tripId: number,
   toDayId: number,
@@ -112,8 +81,6 @@ async function insertEventAt(
 ) {
   const access = await requireTripAccess(tripId);
 
-  // Both days must be this trip's — otherwise a way to reach another group's
-  // itinerary by id (rule 5).
   const dayIds = new Set(await listDayIds(access.trip.id));
   if (!dayIds.has(fromDayId) || !dayIds.has(toDayId)) return;
 
@@ -133,8 +100,6 @@ async function insertEventAt(
     index,
   );
 
-  // Event changes day first, so the target's re-base sees it there. No
-  // locking, no rejection (rule 7).
   await moveEventToDay(eventId, toDayId, {
     target,
     source: source.filter((e) => e.id !== eventId).map((e) => e.id),
@@ -143,11 +108,6 @@ async function insertEventAt(
   refresh({ kind: "itinerary", tripId: access.trip.id });
 }
 
-/**
- * Dragging an all-day event to another day (ticket 103). Goes through
- * `insertEventAt` rather than `rescheduleEvent`, which has no time to invent —
- * appended to the target's tail since the all-day strip has no order to aim at.
- */
 export async function moveEventToAnotherDay(
   tripId: number,
   eventId: number,
@@ -157,13 +117,6 @@ export async function moveEventToAnotherDay(
   await insertEventAt(tripId, toDayId, eventId, fromDayId, Number.MAX_SAFE_INTEGER);
 }
 
-/**
- * Dropping an event somewhere on the calendar grid (ticket 103) — one entry
- * point behind every gesture that changes *when* an event is, since they all
- * come out as the same three facts: a day, a start and an end. Times are
- * re-validated here rather than trusted from the client, since the action is
- * reachable without the grid.
- */
 export async function rescheduleEvent(
   tripId: number,
   eventId: number,
@@ -173,7 +126,6 @@ export async function rescheduleEvent(
 ) {
   const access = await requireTripAccess(tripId);
 
-  // Both ends must be this trip's (rule 5).
   const target = await access.event(eventId);
   const toDay = await access.day(toDayId);
 
@@ -185,10 +137,6 @@ export async function rescheduleEvent(
   refresh({ kind: "itinerary", tripId: access.trip.id });
 }
 
-/**
- * `HH:MM` and nothing else (ticket 113). `24:00` is accepted as an *end* — the
- * grid's bottom edge — but `timing` in the aggregate refuses it as a start.
- */
 function readClockTime(value: string | null): string | null {
   if (!value) return null;
   const m = /^(\d{2}):(\d{2})$/.exec(value);
@@ -198,12 +146,6 @@ function readClockTime(value: string | null): string | null {
   return value;
 }
 
-/**
- * What the add/edit event sheet posts (ticket 117, S11). One entry point for
- * both: `eventId` tells them apart. Day and event id ride in the form rather
- * than being bound (ticket 103) — both are client state (which block was
- * clicked/opened) — and are checked against the trip below like a bound id would be.
- */
 export async function submitEvent(tripId: number, formData: FormData) {
   const dayId = Number(formData.get("dayId"));
   if (!Number.isInteger(dayId)) return;
@@ -212,8 +154,6 @@ export async function submitEvent(tripId: number, formData: FormData) {
   if (eventId !== null && !Number.isInteger(eventId)) return;
 
   const title = String(formData.get("title") ?? "").trim();
-  // The input is `required`, so an empty title only arrives from a client with
-  // validation off. Drop it rather than write a nameless event.
   if (!title) return;
 
   const access = await requireTripAccess(tripId);
@@ -221,7 +161,6 @@ export async function submitEvent(tripId: number, formData: FormData) {
     { ...readEventFields(formData), title }, placeFrom(formData));
 }
 
-/** Every closed-set field is checked, not cast: a form is reachable without its page. */
 function readEventFields(formData: FormData) {
   const rawType = String(formData.get("type") ?? "activity");
   const rawTransport = String(formData.get("transportType") ?? "");
@@ -251,7 +190,6 @@ function placeFrom(formData: FormData) {
   };
 }
 
-/** A new calendar feed link for the viewer; their older links stop (#334). Null if they are not on the trip. */
 export async function resetCalendarLink(tripId: number): Promise<string | null> {
   const access = await requireTripAccess(tripId);
   return resetCalendarFeed(access.trip.id, access.viewer.id);

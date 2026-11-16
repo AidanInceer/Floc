@@ -37,7 +37,6 @@ function MonthChip({ month, on, onPress }: { month: StartMonth; on: boolean; onP
   );
 }
 
-/** Step two (ADR-025), as on the web: a best month starts on its 1st; Dates' own calendar takes any day still ahead. */
 export function WhenStep({ months, nights, start, month, onStart, onMonth }: {
   months: StartMonth[];
   nights: number;

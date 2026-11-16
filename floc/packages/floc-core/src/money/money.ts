@@ -1,7 +1,3 @@
-/**
- * Money is never a float; every amount is an integer minor-unit count.
- * Exact-sum invariant is enforced here, not in the schema (issue 04).
- */
 import {
   CURRENCIES,
   currencySymbol,
@@ -11,10 +7,8 @@ import {
 } from "./currency";
 import type { SplitType } from "../vocabulary";
 
-/** Ceiling of £1bn in minor units — past MAX_SAFE_INTEGER, every later read throws and locks the trip out (ticket 33). */
 const MAX_AMOUNT_MINOR = 100_000_000_000;
 
-/** A single expense (or a pinned share) can't exceed 1,000,000 major units — a friendly cap well under the arithmetic ceiling. */
 export function maxExpenseMinor(currency: Currency): number {
   return 1_000_000 * minorPerMajor(currency);
 }
@@ -25,7 +19,6 @@ function assertInRange(amountMinor: number): void {
   }
 }
 
-/** Digits only, no symbol or code — "12.34", "5600". The shared half of both formatters. */
 function decimalString(amountMinor: number, currency: Currency): string {
   const exponent = minorUnitExponent(currency);
   const per = minorPerMajor(currency);
@@ -35,7 +28,6 @@ function decimalString(amountMinor: number, currency: Currency): string {
   return `${major}.${String(abs % per).padStart(exponent, "0")}`;
 }
 
-/** "£47.50", "JPY 5600" — symbol where one names this currency alone, ISO code where it doesn't (ticket 253). */
 export function formatMoney(amountMinor: number, currency: Currency): string {
   const symbol = currencySymbol(currency);
   const digits = decimalString(amountMinor, currency);
@@ -43,12 +35,10 @@ export function formatMoney(amountMinor: number, currency: Currency): string {
   return amountMinor < 0 ? `−${body}` : body;
 }
 
-/** Minor units → the bare decimal a form box edits — "12.34", "5600". No grouping, no symbol. */
 export function toMajorInput(amountMinor: number, currency: Currency): string {
   return (amountMinor / minorPerMajor(currency)).toFixed(minorUnitExponent(currency));
 }
 
-/** Keeps a money box to digits and at most this currency's decimal places. */
 export function sanitizeAmountInput(raw: string, currency: Currency): string {
   const exponent = minorUnitExponent(currency);
   const cleaned = raw.replace(/[^\d.]/g, "");
@@ -57,11 +47,6 @@ export function sanitizeAmountInput(raw: string, currency: Currency): string {
   return rest.length ? `${whole}.${rest.join("").slice(0, exponent)}` : whole;
 }
 
-/**
- * Parses "12.34", "12", "£12.34" into minor units. Throws on nonsense —
- * including more decimal places than the currency has, so "5600.00" is a
- * rejection for JPY rather than a hundredfold error (ticket 253).
- */
 export function parseMoney(input: string, currency: Currency): number {
   const exponent = minorUnitExponent(currency);
   const cleaned = input.replace(/[^\d.-]/g, "");
@@ -81,19 +66,11 @@ export function parseMoney(input: string, currency: Currency): number {
 
 export type SplitInput = {
   userId: string;
-  /** Meaning depends on split type: unused / minor units / percent / shares. */
   value?: number;
 };
 
 export type SplitResult = { userId: string; owedAmountMinor: number };
 
-/**
- * Split types still *writable* (ticket 117, S12). `even`/`percentage` remain
- * readable (immutable snapshots, non-negotiable 2) but only these two are
- * produced since the shares model (ticket 85).
- */
-// `satisfies` rather than a bare tuple: these must stay real `SplitType`s, so
-// renaming one in the vocabulary breaks here instead of at a call site.
 export const WRITABLE_SPLIT_TYPES = [
   "shares",
   "exact",
@@ -101,7 +78,6 @@ export const WRITABLE_SPLIT_TYPES = [
 
 export type WritableSplitType = (typeof WRITABLE_SPLIT_TYPES)[number];
 
-/** Split type + participants → snapshot rows summing to exactly `amountMinor`. */
 export function computeSplits(
   amountMinor: number,
   splitType: WritableSplitType,
@@ -140,11 +116,6 @@ export function computeSplits(
   }
 }
 
-/**
- * Weighted allocation of an integer total. Floors each share, then hands the
- * remainder out a penny at a time to the largest fractional parts (ties broken
- * by participant order) so the result is stable and sums exactly.
- */
 function distribute(
   amountMinor: number,
   weights: number[],
@@ -179,13 +150,10 @@ function distribute(
 
 export type WeightedInput = {
   userId: string;
-  /** Shares of whatever is left this person carries. */
   shares: number;
-  /** Fixed amount in minor units — "Ravi owes exactly £30" — or null. */
   pinnedMinor: number | null;
 };
 
-/** Shares + optional pins (ticket 85) → stored vocabulary: nothing pinned → `shares`, anything pinned → `exact`. */
 export function resolveWeightedSplit(
   amountMinor: number,
   rows: WeightedInput[],
@@ -224,11 +192,6 @@ export function resolveWeightedSplit(
   };
 }
 
-/**
- * Pins first, then what is left by shares among the unpinned. Never refuses:
- * the form's live preview shows a shortfall or an overrun as it is typed, and
- * `resolveWeightedSplit` refuses the same numbers at save.
- */
 export function allocateWeighted(
   amountMinor: number,
   rows: WeightedInput[],
@@ -245,10 +208,6 @@ export function allocateWeighted(
   return { amounts, remainder, shareTotal };
 }
 
-// Balances — derived at read time, never stored (ticket 04). An expense is
-// what a bill implies about who owes who; a settlement is real money that has
-// since moved. The net of the two is the live position, and either can be
-// soft-deleted to undo it (money overhaul).
 export type LedgerLine = {
   paidBy: string;
   currency: Currency;
@@ -256,12 +215,6 @@ export type LedgerLine = {
   splits: { userId: string; owedAmountMinor: number }[];
 };
 
-/**
- * A recorded transfer that has already happened off-app. When the money left
- * the payer's pocket in one currency and cleared a debt in another, `clears*`
- * carry the debt side and the balance moves there — the amount actually handed
- * over is a record of the payment, never a rate to reuse (ticket 253).
- */
 export type LedgerSettlement = {
   from: string;
   to: string;
@@ -271,17 +224,12 @@ export type LedgerSettlement = {
   clearsAmountMinor?: number | null;
 };
 
-/**
- * Per-currency net position for each member: positive = owed money back,
- * negative = owes (or, after an underlying expense is deleted, has *overpaid*).
- */
 export type Balances = Record<Currency, Record<string, number>>;
 
 export function computeBalances(
   lines: LedgerLine[],
   settlements: LedgerSettlement[] = [],
 ): Balances {
-  // Derived from CURRENCIES, not a literal — drifted silently to undefined on a 4th currency before (ticket 115).
   const balances = Object.fromEntries(
     CURRENCIES.map((c) => [c, {}]),
   ) as Balances;
@@ -295,7 +243,6 @@ export function computeBalances(
     }
   }
 
-  // A paid B: B's debt drops (B moves up), A is owed that much less (A down).
   for (const s of settlements) {
     const currency = s.clearsCurrency ?? s.currency;
     const amountMinor = s.clearsAmountMinor ?? s.amountMinor;
@@ -307,7 +254,6 @@ export function computeBalances(
   return balances;
 }
 
-/** True when nobody owes anybody, in any currency — the "trip settled up" state. */
 export function isAllSettled(balances: Balances): boolean {
   return CURRENCIES.every((c) =>
     Object.values(balances[c]).every((amount) => amount === 0),
@@ -316,11 +262,6 @@ export function isAllSettled(balances: Balances): boolean {
 
 export type Settlement = { from: string; to: string; amountMinor: number };
 
-/**
- * Greedy settle-up: match the biggest debtor to the biggest creditor until
- * everyone is square. Minimises the number of transfers well enough for a
- * group of friends, and is a suggestion only — v1 moves no money.
- */
 export function suggestSettlements(
   book: Record<string, number>,
 ): Settlement[] {
@@ -353,7 +294,6 @@ export function suggestSettlements(
   return settlements;
 }
 
-/** Applies a `to`-per-`from` rate to a minor amount, honouring both exponents. */
 export function convertMinor(
   amountMinor: number,
   from: Currency,

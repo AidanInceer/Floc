@@ -1,10 +1,5 @@
 "use client";
 
-/**
- * Shared login/signup form (ticket 19). Google first when enabled, then
- * email/password — matches ticket 06's primary path (Google + email at
- * launch, Facebook is a fast-follow so it never renders here).
- */
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -24,9 +19,7 @@ export function AuthForm({
 }: {
   mode: "login" | "signup";
   googleEnabled: boolean;
-  /** Reset needs mail; without it the link would lead nowhere (rule 11). */
   resetEnabled?: boolean;
-  /** Server Action, signup only: writes signup_channel once (ticket 06). */
   captureChannel?: (via: string) => Promise<void>;
 }) {
   const router = useRouter();
@@ -40,16 +33,11 @@ export function AuthForm({
   const justReset = params.get("reset") === "1";
 
   const [error, setError] = useState<string | null>(null);
-  // The form submits through Better Auth's browser client, not a form action,
-  // so `useFormStatus` never sees it — pending is tracked here instead, and it
-  // is what stops a second submission (ticket 200).
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // Rule 11: hidden in production when Google isn't configured. Shown in dev
-  // regardless so the button can be previewed before keys exist (ticket 149).
   const showGoogle = googleEnabled || process.env.NODE_ENV !== "production";
 
   async function handleGoogle() {
@@ -82,7 +70,6 @@ export function AuthForm({
       setError("That doesn't look like an email address.");
       return;
     }
-    // Strength is only enforced on the way in, not on an existing password.
     if (mode === "signup") {
       const weak = passwordWeakness(password);
       if (weak) {
@@ -100,8 +87,6 @@ export function AuthForm({
           setError(mapAuthError(err.message));
           return;
         }
-        // ensureProfile no-ops if a profile already exists, so this only ever
-        // sets signup_channel on the very first sign-up (ticket 06).
         await captureChannel?.(via ?? "direct");
       } else {
         const { error: err } = await signIn.email({ email, password });
@@ -116,14 +101,10 @@ export function AuthForm({
       setError("Could not reach Floc. Try again.");
       return;
     }
-    // Without the refresh the header stays signed out: the root layout is a
-    // Server Component, and the router cache would replay the payload it
-    // rendered before the session cookie existed. Matches SignOutButton.
     router.push(redirectTo);
     router.refresh();
   }
 
-  // Why on sign-in too, and before the first button (#549): Google here also makes a new account, and its terms record must be true.
   const termsLine = (
     <p className="text-xs text-ink-soft">
       By continuing you agree to the{" "}
@@ -219,11 +200,6 @@ export function AuthForm({
   );
 }
 
-/**
- * Google's own sign-in button (ticket 149): the four-colour "G" mark on a
- * white face with a grey rule, per Google's branding guidelines. Kept in this
- * file because it's the only place a provider button renders.
- */
 function GoogleButton({
   onClick,
   label,
@@ -238,9 +214,6 @@ function GoogleButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      // Google's own hexes, and the one place a literal is allowed past the
-      // token rule (ticket 206): the button and the mark are prescribed by
-      // Google's branding guidelines and are not ours to repaint.
       className="lift flex w-full items-center justify-center gap-3 rounded-sm border border-[#747775] bg-white px-4 py-2.5 text-sm font-medium text-[#1f1f1f] disabled:pointer-events-none disabled:opacity-50"
     >
       <GoogleG />
@@ -249,7 +222,6 @@ function GoogleButton({
   );
 }
 
-/** Google's official four-colour "G" logo. */
 function GoogleG() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
@@ -273,7 +245,6 @@ function GoogleG() {
   );
 }
 
-/** Sign-up: the collision case named (ticket 06). */
 function mapAuthError(message?: string): string {
   if (!message) return "Something went wrong. Try again.";
   if (/already exists|already registered/i.test(message)) {
@@ -282,12 +253,6 @@ function mapAuthError(message?: string): string {
   return message;
 }
 
-/**
- * Sign-in (#149). A wrong password and an account that only has Google look
- * identical from here, and must stay that way — naming which it was would let
- * anyone test whether an address is registered. So the hint covers both
- * without confirming either.
- */
 function mapSignInError(message: string | undefined, googleEnabled: boolean): string {
   if (message && !/invalid|incorrect|not found|password/i.test(message)) {
     return message;
@@ -297,7 +262,6 @@ function mapSignInError(message: string | undefined, googleEnabled: boolean): st
     : "That email and password don't match.";
 }
 
-/** The linking refusals, which otherwise surface as raw codes (#149). */
 function mapGoogleError(code?: string, message?: string): string {
   if (code === "ACCOUNT_NOT_LINKED" || /not linked/i.test(message ?? "")) {
     return "This email already has an account here. Sign in with your password, then link Google from your account settings.";

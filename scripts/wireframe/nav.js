@@ -1,6 +1,4 @@
-// The wireframe sidebar: the index draws it in place, every prototype opens it as a drawer.
 window.WF = (function () {
-  // Why: the sidebar follows the app's own map, not the alphabet, so you can tell where a screen lives.
   var SECTIONS = [
     ["Signed out", ["Landing", "Sign in"]],
     ["Every page", ["Top bar", "Account menu"]],
@@ -21,7 +19,6 @@ window.WF = (function () {
     var parts = title.split(" · ");
     return cap((parts.length > 1 ? parts.slice(1).join(" · ") : title).replace(/^#\d+\s*/, ""));
   }
-  // "Chosen: E" → Chosen E; "Shipped 0.149.0" → Shipped, with the version as the note.
   function status(raw) {
     var m = (raw || "").match(/^(\w+)[:\s]*(.*)$/);
     if (!m) return { tone: "none", tag: "No status", note: "" };
@@ -29,7 +26,6 @@ window.WF = (function () {
     var pick = (rest.match(/^([A-Z0-9+ ]{1,7})(?:,|$)/) || [])[1];
     if (word === "shipped") return { tone: "shipped", tag: "Shipped", note: rest };
     if (word === "chosen") return { tone: "chosen", tag: "Chosen" + (pick ? " " + pick.trim() : ""), note: pick ? rest.slice(pick.length).replace(/^,\s*/, "") : rest };
-    // Kept to try on real visitors later, as an A/B test: not picked, not dropped.
     if (word === "experiment") return { tone: "experiment", tag: "Experiment", note: rest };
     if (word === "parked" || word === "explored") return { tone: "parked", tag: cap(word) + (pick ? " " + pick.trim() : ""), note: pick ? rest.slice(pick.length).replace(/^,\s*/, "") : rest };
     return { tone: "exploring", tag: "Exploring", note: rest };
@@ -46,7 +42,6 @@ window.WF = (function () {
     });
   }
 
-  // Sections → pages → prototypes, newest first inside a page.
   function group(items) {
     var known = {};
     SECTIONS.forEach(function (s) { s[1].forEach(function (p) { known[p] = s[0]; }); });
@@ -67,7 +62,6 @@ window.WF = (function () {
     return out.filter(function (s) { return s.pages.length; });
   }
 
-  // "exploring" is the default view. "open" adds what is chosen and not yet built. The open prototype always shows.
   function matches(it, q, tone, current) {
     var keep = it.folder === current;
     if (tone === "open" && it.tone !== "exploring" && it.tone !== "chosen" && !keep) return false;
@@ -104,7 +98,6 @@ window.WF = (function () {
           }).join("") + "</ul></details>";
   }
 
-  // Draws the sidebar into el and keeps the tree in step with the filter box.
   function sidebar(el, items, opts) {
     opts = opts || {};
     el.innerHTML = sideHtml(items, opts.current);
@@ -127,7 +120,6 @@ window.WF = (function () {
     return fetch("/_house/list.json").then(function (r) { return r.json(); }).then(shape);
   }
 
-  // Inside a prototype: a bottom-left link back to the index.
   function home() {
     var link = document.createElement("a");
     link.className = "wf-controls wf-home-link";

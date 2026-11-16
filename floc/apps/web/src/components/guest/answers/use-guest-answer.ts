@@ -5,7 +5,6 @@ import { useState, useTransition } from "react";
 export type AnswerPlace = "ideas" | "dates";
 type Outcome = { place: AnswerPlace; error: string | null };
 
-/** One answer at a time, and what came of the last one, said where it was given (#442). */
 export function useGuestAnswer() {
   const [last, setLast] = useState<Outcome | null>(null);
   const [pending, startTransition] = useTransition();

@@ -1,15 +1,3 @@
-/**
- * `note` + `note_reaction` write half (ticket 108); reads are in
- * `server/notes/notes-read.ts` — one aggregate split by direction, not by table.
- *
- * Threads go through the polymorphic `note` table (scope + scope_id) rather
- * than a table per surface, since a note on a day and one on a day event are
- * the same object with the same rules.
- *
- * Owns: soft-delete (rule 8) including the reaction toggle's revive-not-insert
- * behaviour; one-level-deep threading (ticket 06, split across `resolveParent`
- * and `softDeleteNoteAndReplies`); and the body cap.
- */
 import "server-only";
 
 import { and, count, eq, isNull, or } from "drizzle-orm";
@@ -23,10 +11,8 @@ import { tripHref, threadTab } from "@floc/core/notifications/notification-href"
 import { touch } from "@/server/audit";
 import { recordActivity } from "@/server/notifications/activity";
 
-/** Re-exported from `@floc/core/text/text` (ticket 113) — predates the others' move there. */
 export const NOTE_BODY_MAX = TEXT_CAPS.noteBody;
 
-/** One live note of this trip's. Scoped by trip, so a foreign id reads as gone. */
 export async function findNote(tripId: number, noteId: number) {
   return db
     .select({ id: note.id, createdBy: note.createdBy, scope: note.scope, body: note.body })
@@ -35,13 +21,6 @@ export async function findNote(tripId: number, noteId: number) {
     .get();
 }
 
-/**
- * The parent a reply should attach to. Threads are one level deep (ticket 06),
- * so replying to a reply attaches to that reply's own parent. Target is
- * re-read here rather than trusted from the form, which also stops a crafted
- * `replyTo` pointing at another trip's comment. `undefined` means the target
- * has gone — distinct from `null` ("attach at the top level").
- */
 export async function resolveParent(args: {
   tripId: number;
   scope: NoteScope;
@@ -108,7 +87,6 @@ export async function updateNoteBody(noteId: number, body: string): Promise<void
     .where(and(eq(note.id, noteId), isNull(note.deletedAt)));
 }
 
-/** Soft-deletes a comment and its replies in the same stamp — one level deep means no recursion, and a reply left orphaned answers nothing. */
 export async function softDeleteNoteAndReplies(noteId: number): Promise<void> {
   await db
     .update(note)
@@ -116,17 +94,6 @@ export async function softDeleteNoteAndReplies(noteId: number): Promise<void> {
     .where(and(or(eq(note.id, noteId), eq(note.parentId, noteId)), isNull(note.deletedAt)));
 }
 
-/**
- * Toggles one of the three reactions — independent of each other by design
- * (ticket 06), a comment can be both hearted and agreed with.
- *
- * Soft-delete (rule 8) means un-reacting revives the same row rather than
- * inserting a second one. Used to be a read-modify-write with a non-unique
- * index behind it, so two taps landing together double-counted one person's
- * heart (ticket 115); `note_reaction_one_idx` is unique now, turning this into
- * an upsert that can't duplicate. The read stays only to decide which way to
- * flip — a genuine race just settles last-write-wins (rule 7) on one row.
- */
 export async function toggleReaction(
   noteId: number,
   userId: string,

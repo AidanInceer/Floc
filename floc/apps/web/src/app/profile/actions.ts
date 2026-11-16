@@ -1,8 +1,5 @@
 "use server";
 
-// Profile edits — who you are. Privacy flags for who sees them sit in the
-// settings rows under your face. Email isn't here: it's Better Auth's and can't change
-// from this page.
 import { CURRENCIES } from "@/db/schema";
 import type { Currency } from "@/db/schema";
 import { requireUser } from "@/server/access";
@@ -22,7 +19,6 @@ import {
 import { parseVibeTags } from "@floc/core/trip/vibe-tags";
 import { refresh } from "@/server/freshness";
 
-// Why: avatarIcon stays in the contract for older phone builds; the web no longer sends it, so a save returns the face to initials.
 export async function updateFace(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
 
@@ -40,8 +36,6 @@ export async function updateFace(formData: FormData): Promise<{ error?: string }
   return {};
 }
 
-// Its own action since 236 gave it its own row — saving it alongside the name
-// would blank whichever of the two the open editor didn't carry.
 export async function updateCurrency(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
   await ensureProfile(viewer.id);
@@ -57,8 +51,6 @@ export async function updateCurrency(formData: FormData): Promise<{ error?: stri
   return {};
 }
 
-// `parseVibeTags` re-checks every value against the seed list — a
-// hand-crafted POST must not be able to invent a tag.
 export async function updateVibeTags(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
   await ensureProfile(viewer.id);
@@ -71,8 +63,6 @@ export async function updateVibeTags(formData: FormData): Promise<{ error?: stri
   return {};
 }
 
-// Packing defaults, not packing *choices*: a trip with its own tier ignores
-// these, so editing here never disturbs a trip you've already set (ticket 220).
 export async function updatePacking(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
   await ensureProfile(viewer.id);
@@ -89,12 +79,6 @@ export async function updatePacking(formData: FormData): Promise<{ error?: strin
   return {};
 }
 
-// The client sends the state it wants *shown* — blank, yellow or green.
-// "Blank" means two different things: over a country nothing else claims,
-// it's a deletion; over one a trip *is* claiming, it's a rejection (a `none`
-// row saying "no, I didn't go" — without it the app keeps asserting
-// something false). Green/yellow are always written even if a trip already
-// agrees, so a hand mark is never demoted by a trip afterwards.
 export async function setCountryMark(
   code: string,
   next: "green" | "yellow" | "blank",
@@ -106,7 +90,6 @@ export async function setCountryMark(
   if (next === "green" || next === "yellow") {
     await setManualMark(viewer.id, countryCode, next);
   } else if (await derivedStateFor(viewer.id, countryCode)) {
-    // Something still claims this country, so blank means "no, I didn't go".
     await setManualMark(viewer.id, countryCode, "none");
   } else {
     await clearManualMark(viewer.id, countryCode);

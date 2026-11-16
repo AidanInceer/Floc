@@ -1,4 +1,3 @@
-// The live hero's five cards and its clock, rebuilt in plain JS (components/landing/hero/*). Each card is built once; apply(step) sets its beat.
 import { ico, face, group } from "/_house/switcher.js";
 
 const VOTES = [["Priya", "Sicily"], ["Sam", "Lisbon"], ["Jo", "Sicily"], ["Alex", "Croatia"], ["Kit", "Lisbon"], ["Maya", "Sicily"]];
@@ -7,7 +6,6 @@ export const BEATS = [300, 780, 1260, 1740, 2220, 2700, 3400, 4900, 6700, 7175, 
 export const VOTED = 6, DATED = 7, ROUTED = 8, SPENT = 9, SETTLED = 12, SPUN = 13, CLAIMED = 14, DONE = 15;
 export const END_MS = 13500;
 
-// Which card the scene is playing at a step: the layouts that show one card at a time follow it.
 export const playing = (step) => (step === 0 ? null : step >= DONE ? "ticket" : step <= VOTED ? "votes" : step === DATED ? "dates" : step === ROUTED ? "ticket" : step < SPUN ? "money" : "pack");
 export const ORDER = ["votes", "dates", "ticket", "money", "pack"];
 
@@ -117,7 +115,6 @@ export function buildCards() {
   return { votes: votes(), dates: dates(), ticket: ticket(), money: money(), pack: pack() };
 }
 
-// The plane on its dashed trail: one clock moves the plane and uncovers the trail, from the first vote to the end.
 let masks = 0;
 export function flight(shape) {
   const id = `dk-mask-${++masks}`;
@@ -152,7 +149,6 @@ export function flight(shape) {
   } };
 }
 
-// Runs the beats once the scene is in view; onStep gets every new step. Reduced motion jumps to the end.
 export function runScene(root, onStep, onTick) {
   let start = 0, step = -1, raf = 0, stopped = false;
   const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;

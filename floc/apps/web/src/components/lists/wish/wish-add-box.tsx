@@ -15,7 +15,6 @@ const ROW = "flex w-full items-center gap-2 rounded-sm px-2.5 py-2 text-left tex
 
 const looksLikeLink = (typed: string) => !/\s/.test(typed.trim()) && /\./.test(typed) && readWishLink(typed) !== null;
 
-/** Why one field (#623): an idea, a matching country or Explore trip, or a pasted link all go in the same place. */
 export function WishAddBox({ listId, listings }: { listId: number; listings: ListingChoice[] }) {
   const [typed, setTyped] = useState("");
   const [label, setLabel] = useState("");

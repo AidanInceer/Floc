@@ -1,8 +1,3 @@
-/**
- * Why: open while the dates are unset, shut once they are set. The header row
- * stays either way, so a decided trip keeps its ideas without spending a
- * screen on them.
- */
 import { sortIdeas, voteLabel, type IdeaRow, type IdeaSort } from "@floc/core/trip/ideas";
 import { commentTime } from "@floc/core/notes/notes";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -34,7 +29,6 @@ export function IdeasPanel({
   onSort: (sort: IdeaSort) => void;
   onVote: (ideaId: number) => void;
   onRemove: (ideaId: number) => void;
-  /** The add box, drawn by the screen that owns the mutation. */
   children: React.ReactNode;
 }) {
   const { c } = useTheme();

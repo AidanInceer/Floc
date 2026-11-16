@@ -1,25 +1,9 @@
-/**
- * Undo (#no-ticket). Takes out exactly what the seed put in, and nothing else,
- * so testing against a scenario can be a throwaway act you repeat daily.
- *
- * HOW IT KNOWS. Only by the email domain. Seeded people end `.seed.floc.test`;
- * a seeded trip is one a seeded person created *or belongs to*. Membership
- * counts because nothing but `db:seed` can make one of these accounts — a trip
- * with a seed person on the roster is a trip somebody set up to test with,
- * whoever pressed the button. It also keeps the delete possible at all: a trip
- * left standing still points at its payers, and `expense.paid_by` has no
- * cascade to clear itself out of the way.
- *
- * HARD DELETE, not the soft-delete every application read honours: a seed row
- * left tombstoned still holds its email, and the next seed would collide on it.
- */
 import { inArray, like, or } from "drizzle-orm";
 
 import { db } from "../index.ts";
 import { trip, tripMembership, user } from "../schema.ts";
 import { SEED_DOMAIN, type Scenario } from "./identity.ts";
 
-/** Undefined wipes every scenario; a key wipes only that one. */
 export async function resetSeed(scenario?: Scenario): Promise<{
   people: number;
   trips: number;
@@ -55,8 +39,6 @@ export async function resetSeed(scenario?: Scenario): Promise<{
     )
     .all();
 
-  // Trips first: packing lines and expenses point at a user with no cascade of
-  // their own, and only the trip's cascade clears them out of the way.
   if (trips.length > 0) {
     await db.delete(trip).where(
       inArray(

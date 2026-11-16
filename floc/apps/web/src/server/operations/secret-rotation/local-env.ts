@@ -1,4 +1,3 @@
-// Why: local dev shares the Google client and the Stripe sandbox; the webhook secret stays, as `stripe listen` signs locally.
 const SHARED_WITH_DEV = ["GOOGLE_CLIENT_SECRET", "STRIPE_SECRET_KEY"] as const;
 
 export function updateEnvText(text: string, values: Record<string, string | undefined>) {

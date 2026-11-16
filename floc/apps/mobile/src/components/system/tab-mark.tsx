@@ -1,4 +1,3 @@
-// Why no tile: a filled block behind the open tab read as heavy chrome; the open tab now says so in colour and weight only.
 import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 

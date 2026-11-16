@@ -1,13 +1,3 @@
-/**
- * The one way in, drawn wherever it is needed (#330) — in the modal that opens
- * on a share link, and in the bar that stays above every page of it.
- *
- * One component rather than two copies: each state a visitor can be in has
- * one right control, and having them in two places is how the two drift.
- *
- * `compact` is the bar's version: sign-up leads there, and joining carries no
- * explaining sentence. In the sheet, the name comes first and both are second.
- */
 import { ButtonLink } from "@/components/system/ui";
 import { SubmitButton } from "@/components/system/client-ui";
 import { joinTrip } from "@/app/invite/[token]/actions";
@@ -24,7 +14,6 @@ export function JoinControls({
 }: {
   token: string;
   viewer: InviteViewer;
-  /** The last join was refused because the trip is at its member ceiling. */
   full?: boolean;
   compact?: boolean;
 }) {

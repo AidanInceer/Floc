@@ -3,7 +3,6 @@ import type { PresetTrip } from "../preset-trip-types";
 import type { TransportType } from "../../../vocabulary";
 import type { TripTag } from "./tag-groups";
 
-// Why: a day out goes nowhere new, so it says nothing about getting around.
 function movesOf(trip: PresetTrip): TransportType[] {
   return stopsOf(trip).flatMap((stop) => (stop.arrive ? [stop.arrive.mode] : []));
 }
@@ -24,7 +23,6 @@ function paceOf(trip: PresetTrip, moves: number): TripTag {
   return perWeek <= 2.9 ? "Steady" : "On the move";
 }
 
-/** Every tag a listing carries: what it is for, where it goes, how it gets around, its pace and its effort. */
 export function tagsOf(trip: PresetTrip): TripTag[] {
   const moves = movesOf(trip);
   return [...trip.interests, ...trip.landscape, ...travelOf(moves), paceOf(trip, moves.length), trip.effort];

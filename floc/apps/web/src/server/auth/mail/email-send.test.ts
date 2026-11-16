@@ -7,7 +7,6 @@ vi.mock("resend", () => ({
   },
 }));
 
-// The shared setup stubs `sendEmails`; this suite needs the real one.
 const realEmail = await vi.importActual<typeof import("../email")>("../email");
 
 const mail = { to: "hello@floc.live", subject: "Feedback from Priya", lines: ["The map is slow."], replyTo: "priya@a.seed.floc.test" };
