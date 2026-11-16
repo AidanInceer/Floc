@@ -1,0 +1,93 @@
+/*
+ * The landing hero at 900px and narrower (ADR-019): one tall ticket. The hero's
+ * own section becomes the ticket — headline and lede on top, the Sicily trip
+ * between two tear lines, the two actions on the stub — so the page keeps one
+ * headline in one place. Above 900px nothing here applies and the deck plays.
+ * The trip unrolls on load in CSS, so it shows with no script; the headline
+ * never moves, so it paints first.
+ */
+@layer components {
+  .ticket-trip { --soft: cubic-bezier(0.22, 1, 0.36, 1); --bounce: cubic-bezier(0.34, 1.3, 0.6, 1); }
+  .ticket-perf {
+    position: relative;
+    margin: 0 18px;
+    border-top: 1.5px dashed var(--rule-2);
+  }
+  .ticket-perf::before,
+  .ticket-perf::after {
+    content: "";
+    position: absolute;
+    top: -8px;
+    width: 14px;
+    height: 14px;
+    border-radius: var(--radius-pill);
+    background: var(--sheet);
+    border: 1px solid var(--rule);
+  }
+  .ticket-perf::before { left: -26px; }
+  .ticket-perf::after { right: -26px; }
+
+  .ticket-plane {
+    position: absolute;
+    top: -11px;
+    left: -12%;
+    width: 20px;
+    height: 20px;
+    rotate: 90deg;
+    fill: var(--pen);
+    opacity: 0;
+  }
+  .is-flown .ticket-plane { animation: ticket-fly 1.8s var(--ease-even) both; }
+  @keyframes ticket-fly {
+    from { left: -12%; opacity: 1; }
+    to { left: 112%; opacity: 1; }
+  }
+
+  .ticket-body { animation: ticket-unroll 1s var(--soft) 0.15s backwards; }
+  @keyframes ticket-unroll { from { clip-path: inset(0 0 100% 0); } }
+
+  .ticket-stamp {
+    margin-right: 4px;
+    line-height: 1.3;
+    opacity: 0;
+    transform: scale(1.7) rotate(-14deg);
+  }
+  .is-stamped .ticket-stamp { animation: ticket-thump 0.5s var(--bounce) forwards; }
+  @keyframes ticket-thump { to { opacity: 1; transform: rotate(-7deg); } }
+
+  .ticket-fields > div { padding: 9px 0 8px; border-bottom: 1px solid var(--rule); }
+  .ticket-fields > div:nth-child(even) { padding-left: 14px; padding-right: 2px; border-left: 1px solid var(--rule); }
+  .ticket-fields > div:nth-last-child(-n + 2) { border-bottom: 0; padding-bottom: 0; }
+
+  /* The typed headline: on a phone it rests on its last word and only the mark plays. */
+  .typed-phone { display: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ticket-body,
+    .is-flown .ticket-plane { animation: none; }
+    .is-stamped .ticket-stamp { animation-duration: 0s; }
+  }
+}
+
+/* Why: unlayered, so the ticket's sizes beat the hero section's Tailwind utilities, which sit in a later layer. */
+@media (max-width: 900px) {
+  .hero-ticket {
+    width: calc(100% - 32px);
+    max-width: 26rem;
+    margin: 0 auto;
+    padding: 0;
+    text-align: left;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    background: var(--sheet);
+    box-shadow: var(--shadow-lift);
+    overflow: clip;
+  }
+  @media (min-width: 600px) { .hero-ticket { max-width: 34rem; } }
+  .hero-ticket-head { padding: 18px 18px 16px; }
+  .hero-ticket-head > p { max-width: none; margin: 10px 0 0; font-size: var(--text-base); }
+  .hero-ticket-stub { flex-wrap: wrap; margin: 0; padding: 14px 18px 16px; }
+  .hero-ticket-stub > * { flex: 1 1 auto; }
+  .typed-desk { display: none !important; }
+  .typed-phone { display: inline; }
+}
