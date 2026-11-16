@@ -2,19 +2,25 @@
 
 import { useEffect, useRef } from "react";
 
-import { HEADLINE_WORDS, START_DELAY_MS, frameAt, typingScript } from "@/lib/landing/hero/typed-headline";
+import { HEADLINE_WORDS, START_DELAY_MS, frameAt, stillScript, typingScript } from "@/lib/landing/hero/typed-headline";
+import { TICKET_SORTED_MS } from "@/lib/landing/hero/ticket-beats";
 
 import { SCENE_END_MS } from "./beats";
+import "./hero-ticket.css";
 
-const script = typingScript(HEADLINE_WORDS, START_DELAY_MS, SCENE_END_MS);
+const LAST_WORD = HEADLINE_WORDS[HEADLINE_WORDS.length - 1];
+const typed = typingScript(HEADLINE_WORDS, START_DELAY_MS, SCENE_END_MS);
+// Why: the phone ticket is the scene there: the headline rests on its last word and the mark sweeps once the ticket is stamped.
+const still = stillScript(LAST_WORD, TICKET_SORTED_MS);
 
-/** The hero's second line: types each stage of a trip, then marks "sorted." in green. Decorative — the heading carries the words. */
+/** The hero's second line: types each stage of a trip, then marks "sorted." in green; on a phone it shows "sorted." and only marks it. Decorative — the heading carries the words. */
 export function TypedWord() {
   const text = useRef<HTMLElement>(null);
   const caret = useRef<HTMLElement>(null);
   const mark = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
+    const script = matchMedia("(max-width: 900px)").matches ? still : typed;
     const paint = (time: number) => {
       const frame = frameAt(script, time);
       // Why: an empty line box collapses and drops the caret below the line; a zero-width space holds it.
@@ -44,10 +50,11 @@ export function TypedWord() {
   return (
     <span aria-hidden="true" className="block h-[1em]">
       <span className="relative isolate whitespace-nowrap">
-        <b ref={text} className="font-semibold">
+        <b ref={text} className="typed-desk font-semibold">
           {HEADLINE_WORDS[0]}
         </b>
-        <i ref={caret} className="absolute left-full top-[0.2em] ml-[0.05em] h-[0.84em] w-[0.05em] rounded-[0.02em] bg-pen" />
+        <b className="typed-phone font-semibold">{LAST_WORD}</b>
+        <i ref={caret} className="typed-desk absolute left-full top-[0.2em] ml-[0.05em] h-[0.84em] w-[0.05em] rounded-[0.02em] bg-pen" />
         <svg
           ref={mark}
           viewBox="0 0 200 40"

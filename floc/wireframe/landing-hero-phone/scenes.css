@@ -1,0 +1,36 @@
+/* The chosen take, B. It plays once and rests on its end state. */
+
+/* B — one tall ticket. */
+.b-ticket { position: relative; margin-top: 14px; border: 1px solid var(--rule); border-radius: var(--radius-md); background: var(--sheet); box-shadow: var(--shadow-lift); overflow: hidden; clip-path: inset(-30px -30px 100% -30px); transition: clip-path 1s var(--soft); }
+.b-ticket.printed { clip-path: inset(-30px); }
+.b-head { padding: 18px 18px 16px; }
+.b-head .hp-lede { max-width: none; }
+.b-perf { position: relative; margin: 0 18px; border-top: 1.5px dashed var(--rule-2); }
+.b-perf::before, .b-perf::after { content: ""; position: absolute; top: -8px; width: 14px; height: 14px; border-radius: 50%; background: var(--sheet); border: 1px solid var(--rule); }
+.b-perf::before { left: -26px; }
+.b-perf::after { right: -26px; }
+.b-plane { position: absolute; top: -11px; left: -12%; width: 20px; height: 20px; rotate: 90deg; color: var(--pen); opacity: 0; }
+.b-plane svg { display: block; width: 100%; height: 100%; fill: currentColor; }
+.flown .b-plane { animation: b-fly 1.8s var(--ease-even) both; }
+@keyframes b-fly { from { left: -12%; opacity: 1; } to { left: 112%; opacity: 1; } }
+.b-body { padding: 14px 18px 16px; }
+.b-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.b-place { font: 800 39px/1 var(--display); letter-spacing: -0.035em; }
+.b-stamp { margin-right: 4px; padding: 3px 12px; border: 2px solid var(--green); border-radius: var(--radius-sm); color: var(--green); font: 800 20px/1.3 var(--display); opacity: 0; transform: scale(1.7) rotate(-14deg); }
+.stamped .b-stamp { animation: b-thump .5s var(--bounce) forwards; }
+@keyframes b-thump { to { opacity: 1; transform: rotate(-7deg); } }
+.stamped .b-body { animation: b-jolt .4s var(--ease); }
+@keyframes b-jolt { 35% { transform: translateY(1.5px); } }
+.b-fields { display: grid; grid-template-columns: 1.45fr 1fr; margin: 14px 0 0; border-top: 1px solid var(--rule); }
+.b-fields > div { padding: 9px 0 8px; border-bottom: 1px solid var(--rule); }
+.b-fields > div:nth-child(even) { padding-left: 12px; border-left: 1px solid var(--rule); }
+.b-fields > div:nth-last-child(-n+2) { border-bottom: 0; padding-bottom: 0; }
+.b-fields dt { display: block; }
+.b-fields dd { display: flex; align-items: center; min-height: 24px; margin: 2px 0 0; font-size: 15px; font-weight: 600; }
+.b-fields dd .nums { font-size: 13px; font-weight: 500; }
+.b-fields .b-open { color: var(--ink-3); font-weight: 400; }
+.b-faces { display: inline-flex; }
+.b-faces > * + * { margin-left: -4px; box-shadow: 0 0 0 1.5px var(--sheet); }
+.b-stub { padding: 14px 18px 16px; }
+.b-stub .hp-ctas { margin-top: 0; }
+.b-stub .hp-btn { flex: 1; }
