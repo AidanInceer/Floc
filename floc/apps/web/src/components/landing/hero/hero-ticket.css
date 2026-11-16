@@ -33,7 +33,6 @@
     left: -12%;
     width: 20px;
     height: 20px;
-    rotate: 90deg;
     fill: var(--pen);
     opacity: 0;
   }
