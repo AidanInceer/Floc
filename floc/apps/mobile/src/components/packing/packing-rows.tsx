@@ -10,6 +10,7 @@ import { CrossGlyph, MinusGlyph, PlusGlyph } from "../system/glyphs";
 import { InlineRename } from "../system/inline-rename";
 import { useTheme } from "../system/theme";
 import { CheckBox, GhostIcon, LineFrame, TextAction } from "./line-frame";
+import { SuggestedMark } from "./suggested-mark";
 import { sharedSaid } from "@/lib/packing/row-words";
 import { fonts, size, space } from "@/lib/theme";
 
@@ -224,12 +225,12 @@ export function MineRow({
         </View>
       }
     >
-      <View style={{ opacity: line.packed ? 0.5 : 1 }}>
-        <InlineRename value={line.label} maxLength={TEXT_CAPS.packingLabel} onSave={onRename} />
+      <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
+        <View style={{ flexShrink: 1, opacity: line.packed ? 0.5 : 1 }}>
+          <InlineRename value={line.label} maxLength={TEXT_CAPS.packingLabel} onSave={onRename} />
+        </View>
+        {line.suggested ? <SuggestedMark /> : null}
       </View>
-      {line.suggested ? (
-        <Text style={{ color: c["ink-3"], fontFamily: fonts.sans, fontSize: size.small }}>Suggested</Text>
-      ) : null}
     </LineFrame>
   );
 }

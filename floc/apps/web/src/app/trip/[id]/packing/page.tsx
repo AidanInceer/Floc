@@ -2,6 +2,7 @@ import { requireTripAccess } from "@/server/access";
 import { readPackingBoard } from "@/server/packing/packing-board";
 import { packedLineCount, packingCubes } from "@floc/core/packing/packing";
 import { arrangePackingLanes } from "@floc/core/packing/packing-lanes";
+import { suggestedNote } from "@floc/core/packing/packing-words";
 import {
   PackingBulkBar,
   PackingBagMore,
@@ -130,6 +131,7 @@ export default async function PackingPage({
                 total={group.lines.length}
                 packed={group.lines.filter((line) => line.packedAt !== null).length}
                 ideaCount={group.ideas.length}
+                suggested={suggestedNote(group.lines.map((line) => ({ suggested: line.origin === "suggested" })))}
               >
                 {group.lines.map((line) => (
                   <PersonalPackingRow

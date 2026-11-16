@@ -6,3 +6,8 @@ export function cubeCount(packed: number, total: number): { text: string; full: 
   const full = total > 0 && packed === total;
   return { text: full ? "All packed" : `${packed}/${total}`, full };
 }
+
+export function suggestedNote(lines: { suggested: boolean }[]): string | null {
+  const n = lines.filter((line) => line.suggested).length;
+  return n > 0 ? `${n} suggested` : null;
+}
