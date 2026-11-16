@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { recipientsFor } from "./rules";
+import { recipientsFor, skipsLimits } from "./rules";
 
 const members = ["ada", "mo", "zed"];
 
@@ -50,5 +50,14 @@ describe("recipientsFor", () => {
       { userId: "mo", loud: true },
       { userId: "zed", loud: false },
     ]);
+  });
+});
+
+describe("skipsLimits", () => {
+  it("lets reminders and trip invites past the send limits, and nothing else", () => {
+    expect(skipsLimits("trip_starts_week")).toBe(true);
+    expect(skipsLimits("trip_invited")).toBe(true);
+    expect(skipsLimits("nudge_sent")).toBe(false);
+    expect(skipsLimits("friend_requested")).toBe(false);
   });
 });

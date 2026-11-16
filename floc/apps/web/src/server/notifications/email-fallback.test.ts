@@ -7,6 +7,7 @@ import type { OutboundEmail } from "@/server/auth/email";
 import { insertNudge } from "@/server/trips/roster";
 import { sendDueEmails } from "@/server/notifications/email-fallback";
 import { registerPushToken, sendDuePushes } from "@/server/notifications/push";
+import { recordActivity } from "@/server/notifications/activity";
 import { sendDueReminders } from "@/server/notifications/reminders";
 
 let world: Scenario;
@@ -137,6 +138,19 @@ describe("the email fallback", () => {
 
     await sendDueEmails(send, minutes(72));
     expect(sent).toHaveLength(2);
+  });
+
+  it("sends a trip invite inside the hour that holds other mail for the trip", async () => {
+    await nudge();
+    const { sent, send } = mailer();
+    await sendDueEmails(send, minutes(11));
+    await db.transaction((tx) =>
+      recordActivity(tx, { kind: "trip_invited", tripId: world.ours.id, actorId: world.admin, subjectId: null, href: "/trips", affected: [world.member] }),
+    );
+    await db.update(schema.activity).set({ lastModifiedAt: new Date(Date.now() - 60 * 60_000) });
+
+    await sendDueEmails(send, minutes(30));
+    expect(sent.map((m) => m.subject)).toEqual(["Ada nudged you about Ours", "Ada invited you to Ours"]);
   });
 
   it("sends once when two runs overlap", async () => {
