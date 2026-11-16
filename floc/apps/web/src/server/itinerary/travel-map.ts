@@ -1,9 +1,3 @@
-/**
- * The travel map's loaders (ticket 95) — queries behind `@floc/core/itinerary/travel-map`,
- * which holds the shape/merge rules and the "derived on read, never stored"
- * decision. Only places the itinerary actually names count: somewhere merely
- * talked about in the Notes doc is not somewhere the group has been.
- */
 import "server-only";
 
 import { and, eq, inArray, isNull } from "drizzle-orm";
@@ -16,11 +10,6 @@ import { mergeMarks, strongest, type MapState, type TravelMap } from "@floc/core
 import { bounded, LIMITS } from "@/server/limits";
 import type { CountryMarkState } from "@/db/schema";
 
-/**
- * The countries a set of trips puts on the map, and in what colour. Split out
- * from `travelMapFor` since the leave/kick prompt asks the same question about
- * one trip. Archived trips count (filing, not forgetting); soft-deleted ones don't (rule 8).
- */
 async function countriesForTrips(
   trips: TripEnd[],
 ): Promise<Record<string, MapState>> {
@@ -33,7 +22,6 @@ async function countriesForTrips(
   return out;
 }
 
-/** The same read, kept split by trip (ticket 114), so several people's maps merge without one read each. */
 async function countriesByTrip(
   trips: TripEnd[],
 ): Promise<Map<number, Record<string, MapState>>> {
@@ -41,7 +29,6 @@ async function countriesByTrip(
   if (trips.length === 0) return byTrip;
 
   const ids = trips.map((t) => t.id);
-  // Undated is yellow, never green: hasEnded(null) is false (rule 9 — no dates isn't finished).
   const colour = new Map<number, MapState>(
     trips.map((t) => [t.id, hasEnded(t.endDate) ? "green" : "yellow"]),
   );
@@ -70,7 +57,6 @@ async function countriesByTrip(
   ]);
 
   for (const row of [...overnights, ...events]) {
-    // No country (pre-ticket-95 place, or typed during a Nominatim outage) → doesn't reach the map (rule 11).
     const code = readCountryCode(row.countryCode);
     const state = code ? colour.get(row.tripId) : undefined;
     if (!code || !state) continue;
@@ -85,7 +71,6 @@ async function countriesByTrip(
 
 type TripEnd = { id: number; endDate: string | null };
 
-/** The trips whose itineraries currently speak for someone. */
 async function currentTrips(userId: string): Promise<TripEnd[]> {
   const rows = await db
     .select({ id: trip.id, endDate: trip.endDate })
@@ -114,7 +99,6 @@ async function manualMarksFor(
   return out;
 }
 
-/** One person's whole map. The only thing a page should call. */
 export async function travelMapFor(userId: string): Promise<TravelMap> {
   const [trips, manual] = await Promise.all([
     currentTrips(userId),
@@ -124,10 +108,6 @@ export async function travelMapFor(userId: string): Promise<TravelMap> {
   return mergeMarks(derived, manual);
 }
 
-/**
- * Several people's maps in three reads, not three per person (#544). Why: the Saved tab asks for
- * every friend's map at once, and `travelMapFor` in a loop is the N+1 ticket 114 removed.
- */
 export async function travelMapsFor(userIds: string[]): Promise<Map<string, TravelMap>> {
   const maps = new Map<string, TravelMap>();
   if (userIds.length === 0) return maps;
@@ -167,11 +147,6 @@ export async function travelMapsFor(userIds: string[]): Promise<Map<string, Trav
   return maps;
 }
 
-// `user_country_mark` writes (ticket 108) — kept here rather than
-// `profile/actions.ts` since a hand mark permanently overrides a derived one,
-// and paint/reject/take-back only make sense beside the derivation.
-
-/** Paint a country. Always written, even where a trip already says the same. */
 export async function setManualMark(
   userId: string,
   countryCode: string,
@@ -186,7 +161,6 @@ export async function setManualMark(
     });
 }
 
-/** Take a hand mark back entirely, letting the trips speak again. */
 export async function clearManualMark(
   userId: string,
   countryCode: string,
@@ -201,7 +175,6 @@ export async function clearManualMark(
     );
 }
 
-/** What the trips would say about one country with any hand mark ignored. */
 export async function derivedStateFor(
   userId: string,
   countryCode: string,
@@ -210,4 +183,3 @@ export async function derivedStateFor(
   return derived[countryCode];
 }
 
-/** Converts a leaving trip's countries into hand marks (ticket 95). Never overwrites an existing hand mark, including a `none` — that's a decision, not a gap. */

@@ -8,7 +8,6 @@ import { Glyph } from "@/components/system/icons/landing";
 
 type Props = { card: Card; signedIn: boolean; variant: "ghost" | "primary"; className?: string; label?: string };
 
-/** "Start from Japan": the listing on Explore with its copy sheet open, through sign-up for a visitor. */
 export function StartButton({ card, signedIn, variant, className, label }: Props) {
   return (
     <ButtonLink href={listingStartHref(signedIn, card.id)} variant={variant} className={cx("borrow-start", className)}>

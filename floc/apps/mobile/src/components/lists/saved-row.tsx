@@ -1,7 +1,3 @@
-/**
- * One Saved row and its section (#467, A3), shared by your Saved tab and a friend's profile (#544). A row opens from its
- * title and figures; Start trip, in pen, shares the figures' line.
- */
 import { savedTooLabel, type FriendFace } from "@floc/core/people/shared-saves";
 import { whoTone } from "@floc/core/people/who";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -38,7 +34,6 @@ export function SavedRow({
   tags?: React.ReactNode;
   title: string;
   figures: string;
-  /** Friends' faces, or You both (#544). */
   mark?: React.ReactNode;
   heart?: React.ReactNode;
   onOpen: () => void;
@@ -63,7 +58,6 @@ export function SavedRow({
           {tags}
           <Text style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>{title}</Text>
         </Pressable>
-        {/* Why: Start trip shares the figures' line (A3, #467), at full press height and clear of the heart above. */}
         <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
           <Pressable accessible={false} onPress={onOpen} style={{ flex: 1, minHeight: 44, flexDirection: "row", alignItems: "center", gap: space.sm }}>
             <Text style={{ color: c["ink-2"], fontFamily: fonts.type, fontSize: size.small, fontVariant: ["tabular-nums"] }}>{figures}</Text>
@@ -84,7 +78,6 @@ export function SavedRow({
   );
 }
 
-/** The friends who saved this too, as initials (#544). Only friends who share their list with you reach here (ADR-045). */
 export function FriendFaces({ faces }: { faces: FriendFace[] | undefined }) {
   if (!faces?.length) return null;
   return (
@@ -96,7 +89,6 @@ export function FriendFaces({ faces }: { faces: FriendFace[] | undefined }) {
   );
 }
 
-/** A mono word on a friend's row for what you saved too (#544). */
 export function YouBoth() {
   const { c } = useTheme();
   return <Text style={{ color: c.ink, fontFamily: fonts.type, fontSize: size.small }}>You both</Text>;

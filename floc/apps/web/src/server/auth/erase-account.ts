@@ -1,9 +1,3 @@
-/**
- * Deleting an account (ticket 06). The `user` row stays: expenses, splits and
- * notes point at it, and splits are snapshots (rule 2). Everything that made
- * it a person goes — name, address, profile, sign-in methods, sessions, phones,
- * friends, private files — so the row that is left names nobody.
- */
 import "server-only";
 
 import { and, eq, isNull, or } from "drizzle-orm";
@@ -37,14 +31,12 @@ export async function eraseAccount(userId: string): Promise<void> {
   await handOverAndLeaveAllTrips(userId);
 
   const now = new Date();
-  // Why: an erased person's private files leave the disk now, the ones waiting in the archive too (ADR-048).
   const archivedKeys = [...(await archivedKeysOwnedBy(userId, now)), ...(await waitingKeysOwnedBy(userId, now))];
   const privateFiles = await db.transaction(async (tx) => {
     await tx
       .update(user)
       .set({
         name: ERASED_NAME,
-        // Why: unique and unroutable, so the real address is free to sign up again.
         email: `erased-${userId}@erased.invalid`,
         emailVerified: false,
         image: null,

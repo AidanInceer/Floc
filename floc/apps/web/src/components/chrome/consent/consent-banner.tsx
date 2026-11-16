@@ -14,21 +14,14 @@ import { useConsent } from "./use-consent";
 import { useFooterRoom } from "./use-footer-room";
 import "./consent-banner.css";
 
-// Why one look for both: rejecting must be as easy as accepting (design card, consent banner).
 const ANSWER = "min-w-[8rem] flex-1 py-2.5 sm:min-w-[10rem] sm:flex-none";
 
-/**
- * Asked once, then again after a year (#368). Nothing optional is stored or counted until the person answers,
- * and every answer is given here: the Cookie policy only explains.
- */
 export function ConsentBanner({ fromServer }: { fromServer: ConsentChoice | null }) {
   const consent = useConsent(fromServer);
   const [managing, setManaging] = useState(false);
-  // Why: the Cookie policy holds the same switches, and the banner would sit on top of them.
   const onPolicy = usePathname() === "/cookies";
   const roomRef = useFooterRoom();
   if (consent || onPolicy) return null;
-  // Why z-30: under every sheet that asks for input (the invite gate, the name sheet, a dialog), never over one.
   return (
     <section ref={roomRef} aria-labelledby="consent-title" className="consent-banner pointer-events-none fixed inset-x-0 bottom-0 z-30 p-3 sm:p-6">
       <div className="pointer-events-auto mx-auto max-h-[85vh] max-w-[58rem] overflow-y-auto rounded-md border border-rule bg-sheet p-4 shadow-lifted sm:p-7">

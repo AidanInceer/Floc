@@ -1,8 +1,3 @@
-/**
- * Phone push (#345). The cron calls `sendDuePushes` every 5 minutes; all state is
- * on the notification rows, so a restart or a second instance never loses or
- * doubles a push.
- */
 import "server-only";
 
 import { and, eq, inArray, isNull, not } from "drizzle-orm";
@@ -21,7 +16,6 @@ export type PushMessage = {
   data: { href: string; ids: number[] };
 };
 
-/** `failed` are the messages that did not go; a throw means none did. */
 export type PushSender = (messages: PushMessage[]) => Promise<{ deadTokens: string[]; failed?: PushMessage[] }>;
 
 const PUSH: Channel = {
@@ -84,7 +78,6 @@ export async function sendDuePushes(send: PushSender, now = new Date()): Promise
     throw error;
   }
 
-  // A notification with several phones counts as sent once any one of them got it.
   const failed = new Set(result.failed ?? []);
   const reached = new Set(messages.filter((m) => !failed.has(m)).flatMap((m) => m.data.ids));
   await markSent(PUSH, claimed.filter((id) => reached.has(id)), now);

@@ -1,17 +1,3 @@
-/**
- * Someone else's profile (ticket 46; redesigned 201) — what a friend or a
- * co-traveller sees when they click your face anywhere on the site.
- *
- * Everything about who may see what is `requireProfileView`'s job, including
- * the 404 a viewer outside every ring gets. This page renders what it's handed
- * and never re-derives a permission: a hidden attribute arrives as `null`, not
- * as a value with a flag beside it.
- *
- * Deliberately absent: email and home currency (functional attributes,
- * they surface where they do work), and any way into a past trip —
- * that's #52/#53, and the roster would name third parties who never consented
- * to appear here.
- */
 import { wantToGoCountries } from "@floc/core/itinerary/travel-map";
 import { friendSavedPart } from "@floc/core/people/shared-saves";
 import { headers } from "next/headers";
@@ -44,12 +30,8 @@ export default async function PublicProfilePage({
   const { userId } = await params;
   const viewer = await requireUser(`/profile/${userId}`);
 
-  // Your own face goes to the page you can edit, not to a read-only copy of it.
   if (userId === viewer.id) redirect("/profile");
 
-  // Independent of each other, so they go out together (ticket 114). The 404
-  // for a stranger still comes from `requireProfileView` — it throws, and the
-  // other promise is discarded with the render.
   const [profile, friendState, yourTrips, yourMap, rates, askable] = await Promise.all([
     requireProfileView(userId, viewer.id),
     friendStateWith(viewer.id, userId),
@@ -74,8 +56,6 @@ export default async function PublicProfilePage({
         />
       }
     >
-      {/* The floor: name and picture, which anyone inside a ring always sees —
-          a fully private profile still shows exactly these two. */}
       <Panel className="bg-pastel-yellow text-pastel-yellow-ink">
         <div className="flex flex-wrap items-center gap-4">
           <Avatar name={profile.name} size={64} />
@@ -115,8 +95,6 @@ export default async function PublicProfilePage({
           ) : (
             <ul className="flex flex-col gap-2">
               {profile.pastTrips.map((t) => (
-                // Text, not a link: viewing someone else's trip properly is
-                // its own piece of work (#52/#53).
                 <li
                   key={t.id}
                   className="rounded-md bg-sheet-2 px-3 py-2 text-sm"
@@ -134,9 +112,6 @@ export default async function PublicProfilePage({
         </Panel>
       ) : null}
 
-      {/* Friends-of-friends (ticket 145). Absent, not empty, when the ring
-          shuts the viewer out — a panel saying "hidden" would answer the
-          question the ring exists to refuse. */}
       {profile.friends ? (
         <Panel title="Their friends">
           {profile.friends.length === 0 ? (
@@ -146,9 +121,6 @@ export default async function PublicProfilePage({
               {profile.friends.map((f) => (
                 <PersonRow key={f.id}>
                   <div className="flex min-w-0 items-center gap-2">
-                    {/* A link only where it lands somewhere: anyone the viewer
-                        isn't friends with yet may well be outside every ring,
-                        and that profile 404s (ticket 46). */}
                     {f.state === "friends" ? (
                       <PersonLink
                         userId={f.id}

@@ -2,7 +2,6 @@ import { today, type IsoDate } from "../dates/dates";
 
 export type TripListStage = "Archived" | "Needs you" | "Ended" | "Happening now" | "Planning";
 
-/** A trip card's one-word state. Status is never colour alone, so this is the word. */
 export function tripListStage(
   trip: {
     startDate: IsoDate | null;

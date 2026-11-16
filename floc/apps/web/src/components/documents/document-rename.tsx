@@ -8,13 +8,11 @@ import { SubmitButton, useSheetClose } from "@/components/system/client-ui";
 
 type RenameState = { error?: string; saved?: boolean };
 
-/** The inside of the Files page's rename sheet (#364). Only the label changes; the file does not. */
 export function DocumentRenameForm({
   name,
   rename,
 }: {
   name: string;
-  /** `renameDocument`, bound to the trip and the file. */
   rename: (next: string) => Promise<{ error?: string }>;
 }) {
   const sheetClose = useSheetClose();

@@ -4,7 +4,6 @@ import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 
 const STATIC_PUBLIC_PATHS = ["/", "/explore", "/privacy", "/cookies", "/terms", "/legal", "/contact", "/sitemap"] as const;
 
-/** Never in the sitemap, always disallowed: a trip, an invite, sign-in and everything behind it (#550). */
 export const PRIVATE_PREFIXES = [
   "/trip",
   "/trips",
@@ -45,10 +44,8 @@ export function robotsTxt(base: string): string {
 
 type PublicPage = { path: string; title: string; description: string; card?: string };
 
-/** Why named here: a page's own `openGraph` hides the root `opengraph-image`, so each card names it again. */
 const SITE_CARD = { url: "/opengraph-image", width: 1200, height: 630, alt: "Floc — Trip planning, sorted." };
 
-/** Paths are relative: the root layout's `metadataBase` makes them absolute. */
 export function publicMetadata({ path, title, description, card }: PublicPage): Metadata {
   const shared = title.includes("Floc") ? title : `${title} · Floc`;
   const image = card ? { ...SITE_CARD, url: card, alt: shared } : SITE_CARD;

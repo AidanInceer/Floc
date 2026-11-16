@@ -1,16 +1,3 @@
-/**
- * The travel-mode glyph set, drawn from the web app's own paths (ticket 78).
- *
- * THE SAME DRAWINGS, NOT A SECOND SET. These `d` strings are copied from
- * `system/icons/travel-mode.tsx` rather than redrawn, because a ferry that is a
- * different ferry on the phone is two design systems wearing one name. The
- * paths are the only thing shared — the web renders them through `svg`, this
- * through `react-native-svg`, and neither imports the other.
- *
- * `other` HAS NO DRAWING ON PURPOSE. It is what someone picks when none of the
- * four fit, so a picture would be a guess. Callers fall back to the word,
- * which they carry anyway — shape is never the only signal.
- */
 import type { TransportType } from "@floc/core/vocabulary";
 import Svg, { Path } from "react-native-svg";
 

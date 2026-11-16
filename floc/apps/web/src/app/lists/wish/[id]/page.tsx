@@ -19,7 +19,6 @@ export const metadata = { title: "Wish list" };
 const LISTING_CHOICES: ListingChoice[] = PRESET_TRIPS.map((t) => ({ id: t.id, title: t.title, country: t.country }));
 const byId = new Map(PRESET_TRIPS.map((t) => [t.id, t]));
 
-/** One wish list (#623, ADR-049). A non-member and a list that never existed get the same 404. */
 export default async function WishListPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const listId = Number(id);

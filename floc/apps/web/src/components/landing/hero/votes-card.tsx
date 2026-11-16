@@ -6,7 +6,6 @@ import { sampleGroup } from "../sample-trip";
 import { kicker, VOTED } from "./beats";
 import { Roll } from "./swap";
 
-/** Where to, vote by vote: each vote drops one block into its place's row. */
 export function VotesCard({ step }: { step: number }) {
   const cast = Math.min(step, VOTED);
   const count = tally(cast);

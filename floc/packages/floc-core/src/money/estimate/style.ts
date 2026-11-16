@@ -1,5 +1,3 @@
-/** How one person travels, for their own cost estimate (#574, ADR-057). The schema names its columns from these lists. */
-
 export const CABINS = ["economy", "premium", "business", "first"] as const;
 export type Cabin = (typeof CABINS)[number];
 export const STAY_STYLES = ["budget", "mid", "high"] as const;
@@ -21,7 +19,6 @@ export const isCabin = among(CABINS);
 export const isStayStyle = among(STAY_STYLES);
 export const isPace = among(PACES);
 
-/** A choice on the trip wins for that trip only; the profile is the default; nothing chosen is Economy, Mid-range, Balanced. */
 export function resolveStyle(profile: StyleChoice, trip: StyleChoice): TravelStyle & { tripOnly: boolean } {
   return {
     cabin: trip.cabin ?? profile.cabin ?? DEFAULT_STYLE.cabin,

@@ -4,7 +4,6 @@ import { priya } from "./people";
 
 type Finding = { kind: "sideways-scroll" | "clipped" | "overlap"; what: string };
 
-// Why: the visual slips Aidan kept catching by eye (#no-ticket, design card "Layout") — measured, not judged.
 async function layoutFindings(page: Page): Promise<Finding[]> {
   return page.evaluate(() => {
     const out: { kind: "sideways-scroll" | "clipped" | "overlap"; what: string }[] = [];
@@ -37,7 +36,6 @@ async function layoutFindings(page: Page): Promise<Finding[]> {
       return box.width > 2 && box.height > 2;
     };
 
-    // Why: an avatar stack overlaps on purpose (negative margin), and a scaled demo is a picture of the app, not the app.
     const meantToOverlap = (el: Element) =>
       ancestors(el).slice(0, 3).some((at) => {
         const style = getComputedStyle(at);
@@ -62,7 +60,6 @@ async function layoutFindings(page: Page): Promise<Finding[]> {
       }
     }
 
-    // Why: a layer (a card in a deck, a popover, the tour) sits over the page on purpose; only text in one layer can collide.
     const layer = (el: Element) =>
       ancestors(el).find((at) => /absolute|fixed|sticky/.test(getComputedStyle(at).position)) ?? null;
 
@@ -110,7 +107,6 @@ const WIDTHS = [
 
 const TRIP_TABS = ["", "/dates", "/days", "/ideas", "/money", "/packing", "/files", "/notes"];
 
-// Why: the first-trip walkthrough opens only while Priya is on one trip, so whether it shows depends on the order specs ran in.
 async function skipWelcome(page: Page) {
   const welcome = page.getByRole("dialog", { name: "Welcome to Floc" });
   await page.addLocatorHandler(welcome, () => welcome.getByRole("button", { name: "Skip" }).click());
@@ -147,7 +143,6 @@ for (const size of WIDTHS) {
 
     test.describe("signed in", () => {
       test.use({ storageState: priya.state });
-      // Why: a returning member has answered the cookie banner, which would otherwise cover the foot of a 375 screen.
       test.beforeEach(async ({ context, baseURL }) => {
         const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
         await context.addCookies([{ name: "floc_consent", value: `1.f0.a0.${yesterday}`, url: baseURL! }]);

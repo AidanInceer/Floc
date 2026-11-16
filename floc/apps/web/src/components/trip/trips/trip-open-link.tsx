@@ -7,7 +7,6 @@ import type { ReactNode } from "react";
 import { openTrip } from "@/lib/trip-open/trip-open";
 import "@/lib/trip-open/trip-open.css";
 
-/** The link a My trips bar opens from: a plain click plays the open (trip-open.ts); a new tab or window is left alone. */
 export function TripOpenLink({ href, className, children }: { href: string; className?: string; children: ReactNode }) {
   const router = useRouter();
   return (

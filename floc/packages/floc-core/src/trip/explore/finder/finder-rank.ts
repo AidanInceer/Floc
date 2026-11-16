@@ -16,14 +16,11 @@ export type FinderSort = keyof typeof FINDER_SORTS;
 
 export type Ranked = {
   trip: PresetTrip;
-  /** The tags you like that this listing has. */
   hits: TripTag[];
-  /** With "more like this": the tags it shares with that listing. */
   shared: TripTag[] | null;
   score: number;
 };
 
-// Why: cosine over tags plus region, so the region counts towards likeness but is never named as a shared tag.
 function alike(a: PresetTrip, b: PresetTrip): { score: number; shared: TripTag[] } {
   const mine = new Set<string>([...tagsOf(a), a.region]);
   const theirs = [...tagsOf(b), b.region];
@@ -42,7 +39,6 @@ const ORDER: Record<FinderSort, (a: Ranked, b: Ranked) => number> = {
   long: (a, b) => b.trip.nights - a.trip.nights || price(a) - price(b),
 };
 
-// The season order leads with every top pick; best match, with nothing liked, with the first three (#624).
 const LEAD_IN_MATCH = 3;
 function pickLead(picks: readonly string[], sort: FinderSort, open: boolean): (a: Ranked, b: Ranked) => number {
   const count = sort === "season" ? picks.length : sort === "match" && open ? LEAD_IN_MATCH : 0;
@@ -51,10 +47,6 @@ function pickLead(picks: readonly string[], sort: FinderSort, open: boolean): (a
   return (a, b) => rank(a) - rank(b);
 }
 
-/**
- * Every listing that fits, in the order asked. What you like ranks; it never hides. `likeId` ranks by likeness to that listing.
- * In the best-match order, the listings you saved come first. `picks` are this season's top picks, best first.
- */
 export function rankTrips(
   trips: readonly PresetTrip[],
   f: Finder,

@@ -1,13 +1,3 @@
-/**
- * Hand-rolled component inventory (ticket 11) — no shadcn/ui, keeps the
- * white-and-pastel visual language undiluted. Server components unless "use client".
- *
- * Its twin is `floc/apps/mobile/src/components/ui.tsx`. The two are separate
- * files on purpose — this one draws DOM, that one draws native views — but
- * they are one product, so anything visible must stay aligned: a control added
- * or restyled here needs the same move there, or a reason it does not apply on
- * a phone. `docs/design/visual-language.html` rules both.
- */
 import Link from "next/link";
 import { cloneElement, isValidElement, useId, type ComponentProps, type ReactElement, type ReactNode } from "react";
 
@@ -17,16 +7,6 @@ import type { TripColor } from "@floc/core/trip/trip-color";
 import { initials } from "@floc/core/people/initials";
 import { faceOverlap } from "@floc/core/people/faces/face-overlap";
 
-/**
- * The four domain pastels as a rotation, for the places where a pastel is
- * DECORATION rather than meaning — a trip card, an Explore listing, a bed on
- * the day track. Three pages each kept their own copy of these four strings in
- * three different orders (ticket 207); one array means a colour cycle looks the
- * same wherever it appears. Where a pastel does carry meaning — money is mint,
- * dates are blue — write the pair out at the call site instead.
- */
-// Keyed by the colour name so a *chosen* trip colour (ticket 213) maps to its
-// skin, while the values in order are still the decorative rotation below.
 export const PASTEL_BY_KEY = {
   peri: "bg-pastel-blue text-pastel-blue-ink",
   mint: "bg-pastel-green text-pastel-green-ink",
@@ -40,7 +20,6 @@ export function cx(...parts: (string | false | null | undefined)[]) {
   return parts.filter(Boolean).join(" ");
 }
 
-// Flatter than Page on purpose — ruling happens once per screen, not per card.
 export function Card({
   children,
   className,
@@ -74,38 +53,24 @@ export function Stack({
 
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "pro";
 
-// Hover must read without the cursor visible (ticket 120): primary steps to
-// --pen-deep (brightness-110 was too subtle on dark ink); secondary jumps a
-// pen wash with an inner pen ring, no grey, so it reads as clickable at all.
 const variants: Record<Variant, string> = {
   primary: "border-pen bg-pen text-sheet hover:border-pen-deep hover:bg-pen-deep",
   secondary:
     "border-rule-strong bg-sheet text-ink-2 hover:border-pen hover:bg-pen-soft hover:text-pen-deep hover:shadow-[inset_0_0_0_1px_var(--pen)]",
   ghost: "border-transparent bg-transparent text-pen hover:bg-pen-soft hover:text-pen-deep",
   danger: "border-red/30 bg-red-soft text-red hover:border-red/60 hover:bg-red/15",
-  // The only button outside the pastel palette — Pro's ink, so
-  // the one paid action reads as paid wherever it lands.
   pro: "border-pro-edge bg-pro text-pro-mark hover:border-pro-mark hover:bg-pro-2",
 };
 
-// Controls with the shared hover lift (ticket 190). `.lift` owns the
-// transition, so no `transition-colors` here — the colour move rides it too.
 const buttonBase =
   "lift inline-flex items-center justify-center gap-2 rounded-sm border px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.06em] disabled:pointer-events-none disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none";
 
-/**
- * Why: a busy button keeps its own words, so the action stays named, and a disabled button takes no pointer,
- * so a cursor cannot say "busy". The mark is the status, on touch too (#572).
- */
 export const busyMark = (busy: boolean): string | null => (busy ? "…" : null);
 
-/** The house button look, for a control that cannot be a `Button` — a menu trigger, a bare `Link`. */
 export const buttonClass = (variant: Variant = "secondary"): string => cx(buttonBase, variants[variant]);
 
-/** Why: a 26px mark is too small for a thumb, so below sm the press area grows 6px each way and the drawing stays put. */
 export const pressArea = "relative max-sm:after:absolute max-sm:after:-inset-1.5 max-sm:after:content-['']";
 
-/** The bare icon button: no frame until hovered, framed while `on` (a menu open, a star set). 26px, the one size for an icon on its own in a row. */
 export const iconButtonClass = (on: boolean): string =>
   cx(
     pressArea,
@@ -115,13 +80,11 @@ export const iconButtonClass = (on: boolean): string =>
       : "border-transparent text-ink-faint hover:border-pen hover:bg-pen-soft hover:text-pen-deep",
   );
 
-/** The bare icon button on a coloured head, where it takes the head's own ink: a dialog's close. */
 export const iconInkClass = cx(
   pressArea,
   "flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-sm border border-transparent text-current transition-colors hover:border-current",
 );
 
-/** The framed icon button. `button` is as tall as a house button (31px) and lifts with them, for an icon in a row of them; `row` is 26px, for a list row. */
 export const iconFrameClass = (fit: "button" | "row" = "button"): string =>
   cx(
     pressArea,
@@ -129,19 +92,16 @@ export const iconFrameClass = (fit: "button" | "row" = "button"): string =>
     "grid shrink-0 place-items-center rounded-sm border border-rule-strong bg-sheet text-ink-2 disabled:pointer-events-none disabled:opacity-50 hover:border-pen hover:bg-pen-soft hover:text-pen-deep hover:shadow-[inset_0_0_0_1px_var(--pen)] data-[open=true]:border-pen data-[open=true]:bg-pen-soft data-[open=true]:text-pen-deep",
   );
 
-/** The grey groove a row of segments sits in: 12px out from their 8px, 4px apart, so the corners stay concentric. */
 export const segmentTrack = "rounded-md bg-sheet-3 p-1";
 
 const TRACK_SEGMENT = "relative rounded-sm font-medium transition-colors duration-220 ease-(--ease)";
 
-/** One segment in a `SegmentTrack`: ink when chosen, with no blue (Aidan). The white tile is the track's once it has measured. */
 export const trackSegmentClass = (on: boolean): string =>
   cx(
     TRACK_SEGMENT,
     on ? "bg-sheet text-ink shadow-card group-data-[thumb]/track:bg-transparent group-data-[thumb]/track:shadow-none" : "text-ink-soft hover:text-ink",
   );
 
-/** The same segment as the words beside an `sr-only` radio (`peer`). */
 export const trackRadioClass = cx(
   TRACK_SEGMENT,
   "block cursor-pointer select-none text-center text-ink-soft hover:text-ink peer-checked:bg-sheet peer-checked:text-ink peer-checked:shadow-card group-data-[thumb]/track:peer-checked:bg-transparent group-data-[thumb]/track:peer-checked:shadow-none peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-pen",
@@ -170,7 +130,6 @@ export function ButtonLink({
   );
 }
 
-/** A button that leaves Floc: new tab, no referrer, so the other site learns nothing about the trip. */
 export function ExternalButtonLink({
   variant = "secondary",
   className,
@@ -186,17 +145,13 @@ export function ExternalButtonLink({
   );
 }
 
-/** The three-state semantics used identically across every tab. */
 export type Tone = "agreed" | "open" | "action" | "neutral" | "marine";
 
-// paper.html's `.mark` — highlighter/correction-pen vocabulary, not generic pills.
 const tones: Record<Tone, string> = {
   agreed: "border-transparent bg-green-soft text-green",
   open: "border-transparent bg-highlight-soft text-highlight-ink",
   action: "border-transparent bg-red-soft text-red",
   neutral: "border-rule-strong text-ink-soft",
-  // The deep blue, not `--pen`: pen on the soft blue tint is 4.1:1, and a Badge
-  // is 10.5px (ticket 204). pen-deep on the same tint is 8.5:1.
   marine: "border-transparent bg-pen-soft text-pen-deep",
 };
 
@@ -207,7 +162,6 @@ export function Badge({
   className,
 }: {
   tone?: Tone;
-  /** Sentence case, for a status that reads as words, not a label: the cost estimate's (#574). */
   sentence?: boolean;
   children: ReactNode;
   className?: string;
@@ -226,8 +180,6 @@ export function Badge({
   );
 }
 
-// Swatch + word — the visual-over-text convention from the availability
-// calendar (ticket 76), lifted here for the travel map's key (ticket 122).
 export function LegendKey({ swatch, label }: { swatch: string; label: string }) {
   return (
     <span className="flex items-center gap-1.5 text-xs text-ink-soft">
@@ -237,7 +189,6 @@ export function LegendKey({ swatch, label }: { swatch: string; label: string }) 
   );
 }
 
-/** The compact two- or three-way choice (ticket 239): mono words, the chosen one in pen. Each child is a button or a label round an `sr-only` radio, drawn with `segmentClass`. */
 export function Segmented({ children }: { children: ReactNode }) {
   return (
     <div className="flex items-center rounded-md border border-rule-strong bg-sheet p-0.5">
@@ -246,15 +197,12 @@ export function Segmented({ children }: { children: ReactNode }) {
   );
 }
 
-// `focus-within`, not `focus-visible`: a segment is sometimes a label wrapping an
-// `sr-only` radio, and the ring has to land on the shape, not the hidden input.
 export const segmentClass = (on: boolean): string =>
   cx(
     "rounded-sm px-2 py-1 font-mono text-[11px] uppercase tracking-[0.06em] transition-colors sm:px-3 focus-within:outline focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-pen",
     on ? "bg-pen text-sheet" : "text-ink-soft hover:bg-sheet-2 hover:text-ink",
   );
 
-/** One choice in a grid of them — a colour, a mark, a face, a category. The picked one wears a thin, soft pen ring (Aidan), so every picker says "this one" the same way. */
 export function PickOption({
   picked,
   label,
@@ -283,8 +231,6 @@ export function EmptyState({
   children?: ReactNode;
   action?: ReactNode;
 }) {
-  // An invitation, not a report (ticket 202): the action is the point of the
-  // block, so it gets room rather than sitting as a footnote under the copy.
   return (
     <div className="rounded-md bg-sheet-2 px-6 py-12 text-center">
       <p className="font-display text-lg font-semibold">{title}</p>
@@ -305,7 +251,6 @@ export function Avatar({
   name: string;
   size?: number;
   title?: string;
-  /** A `who-*` class — pass a member's own tone to keep it consistent trip-wide; omit to fall back to the name hash. */
   tone?: string;
 }) {
   const style = { width: size, height: size, fontSize: Math.round(size / 2.6) };
@@ -340,7 +285,6 @@ export function AvatarRow({
   const overlap = faceOverlap(size);
   return (
     <span className={cx("flex items-center", spaced && "gap-1")}>
-      {/* inline-flex, not default inline — avoids a 1px leading offset (ticket 133). */}
       {shown.map((p, i) => (
         <span
           key={`${p.name}-${i}`}
@@ -361,7 +305,6 @@ export function AvatarRow({
   );
 }
 
-/** Every text field's frame. Why: no face here, so the mono and sans fields never set two font classes Tailwind would settle by stylesheet order. */
 const fieldFrame =
   "w-full rounded-sm border border-rule-strong bg-sheet px-2.5 text-sm text-ink placeholder:text-ink-faint transition-colors hover:border-ink-faint focus-visible:outline-offset-[-1px]";
 
@@ -398,7 +341,6 @@ export function Field({
   );
 }
 
-/** For several controls under one name — a `<label>` would forward every click to the first. */
 export function FieldGroup({
   label,
   children,
@@ -437,7 +379,6 @@ export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
   );
 }
 
-/** The verb bar along the bottom of a `flush` or `split` Sheet. `note` sits opposite the button. */
 export function SheetFooter({ note, children }: { note?: ReactNode; children: ReactNode }) {
   return (
     <footer className="flex items-center justify-between gap-3 border-t border-rule bg-sheet-2 px-4 py-3">
@@ -460,25 +401,14 @@ export function ErrorText({ children }: { children?: ReactNode }) {
   );
 }
 
-/*
- * Row styling for `Menu` (ticket 125). Lives here, not beside `Menu` itself:
- * a Server Component importing a const from a `"use client"` module gets a
- * client reference rather than the string, and silently renders a stringified
- * function into `class`. `!` throughout to beat buttonBase — Tailwind v4
- * specificity is stylesheet order, not class-list order.
- */
-/** One title style for every part of a panel — a field's name and a section's alike, so they read as one list. */
 export const panelTitleClass = "block text-sm font-medium text-ink";
 
-/** One part of a panel, ruled off edge to edge from the part above. */
 export const panelBandClass = "border-t border-rule px-5 py-4 max-sm:px-4";
 
-/** The house field in the sans face, for prose inside a panel: a place name, a note, a comment. Why 7px: a comment's Post button sits inside it. */
 export const panelFieldClass = `block ${fieldFrame} py-[7px] font-sans leading-[1.45]`;
 
 export const menuItemClass =
   "!block !w-full !rounded-sm !border-none !px-2.5 !py-1.5 !text-left !font-sans !text-sm !normal-case !tracking-normal !text-ink-soft hover:!bg-pen-soft hover:!text-pen-deep";
 
-/** The same row, for the one verb you can't take back. */
 export const menuDangerItemClass =
   "!block !w-full !rounded-sm !border-none !bg-transparent !px-2.5 !py-1.5 !text-left !font-sans !text-sm !normal-case !tracking-normal !text-ink-soft hover:!bg-red-soft hover:!text-red";

@@ -5,7 +5,6 @@ import {
   verifyAppStoreTransaction,
 } from "@/server/billing/store/app-store";
 
-// Why: the real verifier checks Apple's certificate chain, which no test can sign.
 const decoded = vi.hoisted(() => ({
   transactions: new Map<string, Record<string, unknown>>(),
   notifications: new Map<string, Record<string, unknown>>(),

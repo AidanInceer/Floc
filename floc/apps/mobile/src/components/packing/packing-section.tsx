@@ -106,7 +106,6 @@ export function PackingSection<
   aside?: string;
   lines: T[];
   packed: number;
-  /** Null when a line has no tick of its own, so its group shows a total, not a fraction. */
   isPacked: (line: T) => boolean | null;
   selecting: boolean;
   onSelecting: (selecting: boolean) => void;
@@ -114,7 +113,6 @@ export function PackingSection<
   emptyWord: string;
   renderLine: (line: T) => ReactNode;
   groupsOverride?: PackingLineGroup<T>[];
-  /** Auto packing's ideas, drawn faint at the foot of their category's cube (#469). */
   ideas?: { list: I[]; render: (idea: I) => ReactNode };
   headerAction?: ReactNode;
 }) {

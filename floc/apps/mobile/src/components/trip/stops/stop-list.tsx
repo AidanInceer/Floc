@@ -1,4 +1,3 @@
-// Why: the web Overview's Stops, drawn tighter — a card a stop with its days, the journey between them on a dashed line.
 import type { DayEvent } from "@floc/api/port";
 import { formatDate, formatShortRange } from "@floc/core/dates/dates";
 import { nightsLabel } from "@floc/core/itinerary/stops";
@@ -16,8 +15,6 @@ import { fonts, radius, size, space } from "@/lib/theme";
 import { shortPlace } from "@floc/core/itinerary/names/place-name";
 
 type Named = LegFile & { name: string };
-
-/** "Lisbon, Portugal" is "Lisbon" here; the country is on the map. */
 
 export function StopList({ legs, events, onOpen }: { legs: Leg<Named>[]; events: Map<number, DayEvent[]>; onOpen: (date: string) => void }) {
   return (

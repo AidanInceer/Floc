@@ -1,11 +1,3 @@
-/**
- * A link that has run out or been replaced, or belongs to a trip that no longer exists.
- *
- * Its own answer rather than the generic not-found: the token is a random
- * UUID, so saying "this link no longer works" reveals nothing an attacker could
- * enumerate, and a stranger holding a stale link deserves to know which of the
- * two problems they have (#381).
- */
 import { INVITE_LINK_DAYS } from "@floc/core/trip/group/invite-link";
 
 import { ButtonLink, PageTitle } from "@/components/system/ui";

@@ -1,8 +1,3 @@
-/**
- * /explore/[slug] — one listing, laid out so a group can read it and copy it
- * (#335). Public and static in content, like /explore. A listing whose days
- * nobody has written yet still gets its route and figures.
- */
 import { buildPresetPlan } from "@floc/core/trip/explore/detail/preset-plan";
 import { presetDetail } from "@floc/core/trip/explore/detail/preset-details";
 import { tripKnow } from "@floc/core/trip/explore/know/trip-knows";

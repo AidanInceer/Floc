@@ -1,7 +1,3 @@
-/**
- * The port's wish lists half (#623, ADR-049). NOT A TRIP SURFACE: every call goes through `server/wish-lists`, which
- * checks the caller's seat on the list itself, so a list you are not on is not addressable.
- */
 import "server-only";
 
 import type { FlocPort } from "@floc/api/port";

@@ -1,7 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
 
-// Why stand-ins: these tests read the options auth.ts hands Better Auth. A cold import of Better Auth itself
-// passed 30 s on a busy machine, and the options are the same without it.
 vi.mock("better-auth", () => ({ betterAuth: (options: unknown) => ({ options }) }));
 vi.mock("better-auth/adapters/drizzle", () => ({ drizzleAdapter: () => ({}) }));
 vi.mock("better-auth/next-js", () => ({ nextCookies: () => ({}) }));

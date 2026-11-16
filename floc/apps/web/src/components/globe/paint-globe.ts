@@ -8,7 +8,6 @@ import { canvasZoom, pixelRatio } from "./pixel-ratio";
 
 const PLANE_SCALE = 0.92;
 
-// Why: zoomed in, most land is off the canvas; skipping it keeps a 1:50m coast cheap on every frame of a zoom.
 const caps = new WeakMap<number[][], ReturnType<typeof capOf>>();
 function inSight(view: LatLng, ring: number[][], sight: number) {
   let cap = caps.get(ring);
@@ -16,12 +15,10 @@ function inSight(view: LatLng, ring: number[][], sight: number) {
   return arc(view, cap.centre) <= sight + cap.reach;
 }
 
-/** The land that can show on the canvas, with the sphere's middle at (cx, cy): the furthest corner sets how far round it sees. */
 function landInSight(view: LatLng, land: number[][][], R: number, [cx, cy]: number[], { clientWidth: w, clientHeight: h }: HTMLCanvasElement) {
   const sight = sightOf(R, Math.hypot(Math.max(Math.abs(cx!), Math.abs(w - cx!)), Math.max(Math.abs(cy!), Math.abs(h - cy!))));
   return land.filter((ring) => inSight(view, ring, sight));
 }
-/** Countries to fill in a region's colour (`tone`, as in `--tone-red`), faded in by `alpha`. */
 export type Tint = { rings: ReadonlySet<number[][]>; tone: string; alpha: number };
 
 function readInk(canvas: HTMLCanvasElement, ink: Record<"pen" | "sheet" | "sea" | "edge", string>) {
@@ -29,7 +26,6 @@ function readInk(canvas: HTMLCanvasElement, ink: Record<"pen" | "sheet" | "sea" 
   [ink.pen, ink.sheet, ink.sea, ink.edge] = ["--pen", "--sheet", "--pastel-blue", "--pastel-blue-edge"].map((name) => css.getPropertyValue(name));
 }
 
-// Why: Europe's tint is the sea's own blue, so with a trip open the sea greys over, as it is on the outline maps.
 function greySea(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, tint: Tint, sea: () => void) {
   ctx.save();
   ctx.globalAlpha = tint.alpha;
@@ -38,11 +34,6 @@ function greySea(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, tint:
   ctx.restore();
 }
 
-/**
- * The land, through `draw`, which paints one ring: the tinted countries first, then every other ring over them.
- * Why: the outline data draws Western Sahara inside Morocco's own shape as well as on its own, so the tint must
- * stop where the other shape's border is drawn.
- */
 function lands(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, rings: number[][][], tint: Tint | undefined, draw: (ring: number[][]) => void) {
   const own = tint ? rings.filter((ring) => tint.rings.has(ring)) : [];
   for (const ring of own) draw(ring);
@@ -56,7 +47,6 @@ function lands(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, rings: 
   for (const ring of rings) if (!tint?.rings.has(ring)) draw(ring);
 }
 
-/** Draws the paper globe on a canvas, in the theme's tokens. Each call takes the view to draw from. */
 export function globePainter(canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
@@ -145,7 +135,6 @@ export function globePainter(canvas: HTMLCanvasElement) {
       ctx.strokeStyle = ink.pen;
       ctx.stroke();
     },
-    /** The plane at the front of the route line; it shrinks and fades into the pin as it lands. */
     plane(view: LatLng, path: LatLng[], shown: number, landing: number) {
       const i = Math.max(1, Math.round((path.length - 1) * shown));
       const [a, b] = [at(view, path[i - 1]!), at(view, path[i]!)];

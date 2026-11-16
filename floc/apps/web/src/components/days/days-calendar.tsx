@@ -1,12 +1,5 @@
 "use client";
 
-/**
- * Days as a focus day (ticket 103, redrawn as B5): the trip's days grouped by
- * stop on top, then one day drawn wide with the day before and after beside
- * it, and empty hours folded. Owns geometry/gestures only; `days/page.tsx`
- * owns the content (the event modal's panel) as server-rendered nodes.
- */
-
 import {
   useCallback,
   useEffect,
@@ -58,11 +51,9 @@ import type { StayWrite } from "@floc/core/itinerary/stay/overnight-pick";
 
 export type { CalendarDay, CalendarEvent, OvernightPlace } from "@/components/days/days-calendar-shared";
 
-/** Lives in a ref: changes per pointer event. */
 type Drag = {
   eventId: number;
   mode: "move" | "resize";
-  /** So the block doesn't jump under the cursor. */
   grabOffset: number;
   startX: number;
   startY: number;
@@ -71,7 +62,6 @@ type Drag = {
 
 type Adding = { dayId: number; time: string; endTime?: string };
 
-/** A slot past either end of the trip. Negative ids mean nothing beyond "not a row". */
 const cap = (id: number, date: string): CalendarDay => ({
   id,
   date,
@@ -125,7 +115,6 @@ export function DaysCalendar({
     time: string,
     endTime: string | null,
   ) => Promise<void>;
-  /** All-day has no time to drop, so this is a change of day only. */
   moveEventToDay: (eventId: number, fromDayId: number, toDayId: number) => Promise<void>;
   setOvernight: (
     startDate: string,
@@ -133,13 +122,10 @@ export function DaysCalendar({
     place: OvernightPlace | null,
   ) => Promise<void>;
   searchPlaces: PlaceSearch;
-  /** Opened on arrival, from a file's "on [event]" tag (ticket 323). */
   openEventId?: number | null;
-  /** Day to show first when arriving from an Overview day card. */
   initialDate?: string;
   groupSize: number;
   bookingPrefill: boolean;
-  /** The trip's end date, so the stop strip counts nights as the Overview does. */
   tripEnd: string | null;
 }) {
   const router = useRouter();
@@ -160,8 +146,6 @@ export function DaysCalendar({
   const [adding, setAdding] = useState<Adding | null>(null);
   const [announcement, setAnnouncement] = useState("");
 
-  // Held locally until fresh server props confirm it, so the block doesn't
-  // snap back to stale props while the action is in flight (rule 7).
   const [optimistic, setOptimistic] = useState<Map<number, Landing>>(new Map());
   const [landing, setLanding] = useState<Landing | null>(null);
   const drafts = useEventDrafts();
@@ -171,9 +155,6 @@ export function DaysCalendar({
   const scrollerRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<Drag | null>(null);
 
-  // Measured, not guessed — the strip grows with its contents. Feeds
-  // `scroll-padding-top` so focusing a block doesn't scroll it under the
-  // sticky head (the browser aligns focus-scroll to the box's raw top).
   const headRef = useRef<HTMLDivElement>(null);
   const [headHeight, setHeadHeight] = useState(0);
   useEffect(() => {
@@ -185,8 +166,6 @@ export function DaysCalendar({
     return () => observer.disconnect();
   }, []);
 
-  // Once per id, not once per render: after this the selection is the user's,
-  // so re-running would reopen the modal every time they close it.
   const arrivedOn = useRef<number | null>(null);
   useEffect(() => {
     if (openEventId == null) {
@@ -232,9 +211,6 @@ export function DaysCalendar({
     [events, optimistic, drafts],
   );
 
-  // A same-column drag previews live on the block itself. Cross-column isn't:
-  // re-parenting would unmount the node and drop the pointer capture the drag
-  // depends on. Shows a drop line in the target column instead.
   const shown = useMemo(
     () =>
       committed.map((event) =>
@@ -249,15 +225,11 @@ export function DaysCalendar({
   const focus = days[focusIndex];
   const trade = useColumnTrade(focusIndex, gridRef);
   const slotKey = trade.indices.join();
-  // Why: a slot past either end is a cap with its own key; a trade can need two on one side.
   const slots = useMemo(
     () => slotKey.split(",").map(Number).map((i) => days[i] ?? cap(i < 0 ? i : -10 - (i - days.length), addDays(days[focusIndex].date, i - focusIndex))),
     [days, focusIndex, slotKey],
   );
 
-  // Laid out from what is written, not the drag in progress: a fold opening
-  // under the pointer would move the very hour it is aiming at.
-  // The three days at rest: the hours and the all-day row do not change shape under a trade.
   const restIds = useMemo(() => new Set(days.slice(Math.max(0, focusIndex - 1), focusIndex + 2).map((d) => d.id)), [days, focusIndex]);
   const clock = useMemo(() => {
     const ids = restIds;
@@ -271,8 +243,6 @@ export function DaysCalendar({
   const minutesToY = useCallback((m: number) => yAt(clock, m), [clock]);
   const yToMinutes = useCallback((y: number) => minuteAt(clock, y), [clock]);
 
-  // Read after mount, never during render: a time rendered on both sides is a
-  // hydration mismatch waiting for the turn of an hour.
   const [nowMinutes, setNowMinutes] = useState<number | null>(null);
   useEffect(() => {
     const read = () => {
@@ -294,7 +264,6 @@ export function DaysCalendar({
     [rescheduleEvent],
   );
 
-  /** Which day column the pointer is over. Horizontal position decides it. */
   const columnAt = useCallback((x: number) => {
     const columns = gridRef.current?.querySelectorAll<HTMLElement>("[data-day-column]");
     if (!columns) return null;
@@ -307,7 +276,6 @@ export function DaysCalendar({
     return null;
   }, []);
 
-  // Why: a step mid-move would start the next move from a half-drawn shape (ADR-051).
   const moving = trade.phase !== undefined;
   const step = useCallback(
     (by: -1 | 1) => { if (!moving) setAnchor((a) => clamp(a + by, 0, days.length - 1)); },
@@ -318,7 +286,6 @@ export function DaysCalendar({
     if (index >= 0 && !moving) setAnchor(index);
   };
 
-  /** The stay the overnight dialog is open on; the stop strip opens it. */
   const [banding, setBanding] = useState<BandSpan | null>(null);
   const saveOvernight = (writes: StayWrite[], place: OvernightPlace | null) => {
     startTransition(async () => {
@@ -327,9 +294,6 @@ export function DaysCalendar({
   };
   const card = useHeightFloor<HTMLDivElement>();
 
-  // The pane is the selection, not a switch of its own (ticket 138).
-  // `keptSelection` is how the click that made the selection survives the
-  // deselect handler it bubbles into.
   const keptSelection = useRef(false);
 
   const select = (id: number) => {
@@ -358,7 +322,6 @@ export function DaysCalendar({
   const openAdd = (dayId: number, minutes: number, endMinutes?: number) => {
     setAdding({
       dayId,
-      // Why: a click lands to the minute, and nobody plans for 09:33. A drag keeps its exact ends.
       time: toHhmm(clamp(snap(minutes, endMinutes === undefined ? 15 : 1), 0, LAST_START_MINUTE)),
       endTime: endMinutes === undefined ? undefined : toHhmm(endMinutes),
     });
@@ -377,8 +340,6 @@ export function DaysCalendar({
     if (ev.button !== 0) return;
     const span = spanOf(event);
     if (!span) return;
-    // Measured against the column, not the block: with hours folded, a
-    // height inside the block no longer maps to minutes on its own.
     const column = columnAt(ev.clientX);
     dragRef.current = {
       eventId: event.id,
@@ -397,7 +358,6 @@ export function DaysCalendar({
   ) => {
     const drag = dragRef.current;
     if (!drag || drag.eventId !== event.id) return;
-    // A few pixels of slop, so a click with an unsteady hand stays a click.
     if (!drag.moved && !draggedPast(ev.clientX - drag.startX, ev.clientY - drag.startY)) {
       return;
     }
@@ -432,16 +392,12 @@ export function DaysCalendar({
     setLanding(null);
     if (!drag) return;
 
-    // A press that never moved is a click: open the event rather than write it.
     if (!drag.moved || !dropped) {
       select(event.id);
       return;
     }
 
     commit(dropped);
-    // A drag moves the event and nothing else (ticket 141): it must not open
-    // the pane, which is what a plain click is for. `keptSelection` still goes
-    // up, so the release's click doesn't clear a selection made before it.
     keptSelection.current = true;
     const day = days.find((d) => d.id === dropped.dayId);
     say(
@@ -450,7 +406,6 @@ export function DaysCalendar({
     );
   };
 
-  /** The keyboard's equal of the drag: ↑/↓ a quarter hour, shift+←/→ a day. */
   const onBlockKeyDown = (
     ev: ReactKeyboardEvent<HTMLElement>,
     event: CalendarEvent,
@@ -469,7 +424,6 @@ export function DaysCalendar({
 
     const from = days.findIndex((d) => d.id === event.dayId);
     const to = days[from + gesture.step];
-    // Off the end of the trip: there is no day there, so it simply refuses.
     if (!to) return;
     commit({ eventId: event.id, dayId: to.id, time: gesture.time, endTime: gesture.endTime });
     say(`${event.title} moved to ${to.longLabel}.`);
@@ -483,7 +437,6 @@ export function DaysCalendar({
   };
 
   const selectedEvent = selected === null ? null : events.find((e) => e.id === selected);
-  // Why: a deleted event leaves the modal from under it, and the address must stop pointing at it too.
   useEffect(() => {
     if (selected !== null && selectedEvent === undefined) closeEvent();
   }, [selected, selectedEvent, closeEvent]);
@@ -573,8 +526,6 @@ export function DaysCalendar({
           rest={panel && panel.eventId === selected ? panel.content : null}
         />
 
-        {/* Every gesture says what it did: a drag that reports itself only
-            visually reports itself to some of the group. */}
         <p role="status" aria-live="polite" className="sr-only">
           {announcement}
         </p>

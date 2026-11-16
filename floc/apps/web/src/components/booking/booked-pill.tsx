@@ -5,7 +5,6 @@ import type { BookedHotel } from "@floc/core/trip/booking/booking-links";
 import { BedIcon } from "@/components/system/icons/days";
 import { cx } from "@/components/system/ui";
 
-/** Stands where the Booking.com and Trip.com links were: this stop already has its hotel. */
 export function BookedPill({ tripId, hotel }: { tripId: number; hotel: BookedHotel }) {
   return (
     <Link

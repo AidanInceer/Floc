@@ -1,4 +1,3 @@
-// The web Overview's postcard, cut back. Why no name: the header above already says it; the stamp opens every edit.
 import { countdownLabel, formatDateRange } from "@floc/core/dates/dates";
 import { tripListStage } from "@floc/core/trip/list-stage";
 import { pastelOf } from "@floc/core/design/pastels";
@@ -47,14 +46,11 @@ export function OverviewCard({
 }: {
   trip: CardTrip;
   nights: number;
-  /** Where the viewer stands with the group; null while nothing is logged. */
   position: Position | null;
   onEdit: () => void;
   onDates: () => void;
-  /** The group and Files lines, drawn by the screen so each loads on its own. */
   children?: ReactNode;
   files?: ReactNode;
-  /** The recap foot, once the end date has passed (#443). */
   recap?: ReactNode;
   onMoney: () => void;
 }) {

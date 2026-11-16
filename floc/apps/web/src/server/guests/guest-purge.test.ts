@@ -1,8 +1,3 @@
-/**
- * A guest who has not made an account a week after their first answer is deleted
- * for good with their answers (#442, ADR-029), however often they came back.
- * A real person is never touched.
- */
 import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

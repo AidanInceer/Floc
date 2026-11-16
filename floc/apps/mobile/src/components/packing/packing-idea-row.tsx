@@ -1,7 +1,3 @@
-/**
- * One auto packing idea at the foot of a cube (#469). Faint, so it never reads
- * as packed or owned; the + takes it into your bag, marked suggested.
- */
 import { Text } from "react-native";
 
 import { PlusGlyph } from "../system/glyphs";

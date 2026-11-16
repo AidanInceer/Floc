@@ -20,12 +20,10 @@ export function readFriendQuery(input: string): FriendQuery | null {
       ? { kind: "code", code: `${name}#${suffix.toUpperCase()}` }
       : null;
   }
-  // Why: no lookup by address, ever (#360) — it would test which ones are accounts.
   if (trimmed.includes("@")) return null;
   return trimmed.length >= 2 ? { kind: "name", name: trimmed } : null;
 }
 
-/** 248 = 8 × 31: a byte at or above it is dropped, so no letter is likelier than another. */
 export function generateFriendTagSuffix(randomBytes: (size: number) => Uint8Array): string {
   const chars: string[] = [];
   while (chars.length < 4) {

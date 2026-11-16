@@ -1,7 +1,3 @@
-/**
- * The ideas aggregate's rules: an idea is scoped to its trip, a vote is one per
- * person and toggles on the same row, and a removed idea leaves every read.
- */
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";

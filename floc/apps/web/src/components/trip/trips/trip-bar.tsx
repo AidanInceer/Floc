@@ -1,8 +1,3 @@
-/**
- * A trip on My trips as one bar: the date, the name and who is going on the left, the route on its right as the
- * Overview draws it (smaller, no names). Every bar is the same size; the soonest one's status says Next up. Opens from
- * anywhere on it (trip-open.ts).
- */
 import { formatDateRange, fromIsoDate } from "@floc/core/dates/dates";
 import { tripPastel } from "@floc/core/trip/trip-color";
 
@@ -14,7 +9,6 @@ import { tripBarStatus } from "@/lib/trips/trip-bar-status";
 import { BarMap } from "./bar-map";
 import { TripOpenLink } from "./trip-open-link";
 
-// Why: on a narrow card the line breaks after the dot ("Next up ·" / "in 38 days"), never leaving one word alone.
 function StatusLine({ trip, next }: { trip: TripCardData; next: boolean }) {
   const [lead, rest] = tripBarStatus(trip, next).split(" · ");
   return (
@@ -30,7 +24,6 @@ function DateTile({ trip, tone }: { trip: TripCardData; tone: string }) {
   const size = "size-14 sm:size-[4.5rem]";
   if (!trip.startDate) {
     return (
-      // The words are beside it ("Dates not set"), so the tile keeps only the calendar.
       <div aria-hidden="true" className={cx(size, "flex items-center justify-center rounded-sm border border-rule-strong bg-sheet-2 text-ink-faint")}>
         <NavGlyph name="dates" />
       </div>
@@ -49,7 +42,6 @@ export function TripBar({ trip, next = false }: { trip: TripCardData; next?: boo
   const colour = tripPastel(trip.color ?? null, trip.id);
   const href = `/trip/${trip.id}/overview`;
 
-  // Why: the card must not clip, or its … menu is cut off at the edge; the map pane clips and rounds itself.
   return (
     <li
       className="lift relative grid rounded-md border border-rule bg-sheet hover:shadow-none! has-[[data-open=true]]:z-20 sm:min-h-[8.5rem] sm:grid-cols-[minmax(0,1fr)_44%]"
@@ -61,7 +53,6 @@ export function TripBar({ trip, next = false }: { trip: TripCardData; next?: boo
           <TripOpenLink href={href} className="mt-1 inline-block text-ink after:absolute after:inset-0 after:content-['']">
             <h3 className="text-lg leading-tight sm:text-xl">{trip.name}</h3>
           </TripOpenLink>
-          {/* Why: the dot hangs in the gap before the place, so a place that wraps to its own line leaves the dot cut off, not stranded. */}
           <p className="nums mt-1 flex flex-wrap items-baseline gap-x-4 overflow-x-clip text-xs text-ink-soft">
             <span>{formatDateRange(trip.startDate, trip.endDate)}</span>
             <span className="relative before:absolute before:-left-2.5 before:content-['·']">{trip.where ?? "Place not set"}</span>

@@ -17,11 +17,6 @@ import { savedTripIds } from "./explore-saves";
 
 type Shared = { face: FriendFace; trips: boolean; countries: boolean };
 
-/**
- * Accepted friends who saved a trip you saved or want a country you want (#544). Each friend
- * counts only through the ring they set: their Saved ring for trips, their Travel map ring for
- * countries (ADR-045). A co-traveller who is not a friend never shows here.
- */
 export async function friendsWhoSaved(viewerId: string): Promise<FriendSaves> {
   const friends = await sharingFriends(viewerId);
   if (friends.length === 0) return { trips: {}, countries: {} };
@@ -52,7 +47,6 @@ async function sharingFriends(viewerId: string): Promise<Shared[]> {
     .limit(LIMITS.members * LIMITS.tripsPerUser)
     .all();
 
-  // Why: no profile row reads the column defaults, so a friend who never opened settings stays private.
   return rows
     .filter((r) => !r.isPrivate)
     .map((r) => ({

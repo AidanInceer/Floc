@@ -115,7 +115,6 @@ describe("limbRing", () => {
   it("closes land that crosses the edge along the edge", () => {
     const ring = limbRing({ lat: 0, lng: 0 }, square(90))!;
     const onEdge = ring.filter((p) => "a" in p);
-    // Two crossings and the two hidden corners.
     expect(onEdge).toHaveLength(4);
     expect(ring.filter((p) => "x" in p)).toHaveLength(2);
   });

@@ -1,17 +1,3 @@
-/**
- * The web/app parity gate (see `floc/packages/floc-api/src/parity.ts`).
- *
- * Runs from the repo root, not through turbo: turbo's CI filter only builds
- * packages the diff touched *plus their dependents*, and a mobile-only change
- * touches neither `@floc/api` nor `floc-web` — exactly the change most likely
- * to move parity. So this is its own always-on job, like the migration check.
- *
- *   pnpm parity            fail on any disagreement
- *   pnpm parity --fix      rewrite parity.json from what the code says
- *
- * `--fix` is for the boring half (a new procedure, a shipped one). It writes
- * `planned` with no `why`, which still fails — the reason is yours to give.
- */
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -23,7 +9,6 @@ const routersDir = join(root, "floc/packages/floc-api/src/routers");
 const mobileDir = join(root, "floc/apps/mobile");
 const manifestPath = join(root, "scripts/parity/parity.json");
 
-/** Every `name: xProcedure` at the top level of a router file, prefixed by the file it lives in, in any subfolder. */
 function declaredProcedures() {
   const names = [];
   for (const file of readdirSync(routersDir, { recursive: true }).filter((f) => f.endsWith(".ts") && !f.includes(".test."))) {
@@ -37,7 +22,6 @@ function declaredProcedures() {
   return names.sort();
 }
 
-/** Every `trpc.<router>.<procedure>` or plain `client.<router>.<procedure>` the phone app mentions, wherever it mentions it. */
 function mobileCalls() {
   const found = new Set();
   const skip = new Set(["node_modules", ".expo", "android", "ios", "dist", "coverage"]);
@@ -78,7 +62,6 @@ if (process.argv.includes("--fix")) {
 const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
 const failures = diffParity(procedures, calls, manifest);
 
-// A web-only entry is a claim about a path; when the path goes, so should the entry.
 for (const feature of manifest.webOnly) {
   if (!existsSync(join(root, feature.path))) {
     failures.push(`webOnly "${feature.id}": ${feature.path} no longer exists — remove or repoint it`);

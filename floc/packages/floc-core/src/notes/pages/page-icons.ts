@@ -1,12 +1,7 @@
-/**
- * The icon a notes page may wear (#408): travel objects plus the trip-link
- * kinds, in the app's own hand. Never emoji. Both surfaces draw from here.
- */
 import type { IconArt } from "../../people/avatar-icon-art";
 
 const art = (...paths: string[]): IconArt => ({ paths, circles: [] });
 
-// Order is picker order: six travel objects, six marks, the six trip-link kinds.
 export const PAGE_ICON_ART = {
   plane: art("M7 1.8c.6 0 .9.6.9 1.3v2.6l4.3 2.5v1.3L7.9 8.3v2.4l1.4 1v1L7 12.1l-2.3.6v-1l1.4-1V8.3L1.8 9.5V8.2l4.3-2.5V3.1c0-.7.3-1.3.9-1.3Z"),
   train: art("M5.2 1.8h3.6a2 2 0 0 1 2 2v4.4a2 2 0 0 1-2 2H5.2a2 2 0 0 1-2-2V3.8a2 2 0 0 1 2-2Z", "M3.2 6.4h7.6M5.2 8.4h.01M8.8 8.4h.01M4.8 10.2 3.6 12.4M9.2 10.2l1.2 2.2"),
@@ -53,7 +48,6 @@ export const PAGE_ICON_LABELS: Record<PageIcon, string> = {
 
 export const PAGE_ICONS = Object.keys(PAGE_ICON_ART) as readonly PageIcon[] as readonly [PageIcon, ...PageIcon[]];
 
-// Why: null is the default, not a fallback — an icon dropped later degrades to no icon, never a hole.
 export function readPageIcon(value: unknown): PageIcon | null {
   return typeof value === "string" && value in PAGE_ICON_ART ? (value as PageIcon) : null;
 }

@@ -1,8 +1,3 @@
-/**
- * The editor's own line icons (#408): 14x14, no fill, drawn in the current
- * colour. Page and trip-link icons come from `@floc/core`, so a chip and the
- * phone draw the same hand.
- */
 import { PAGE_ICON_ART, type PageIcon } from "@floc/core/notes/pages/page-icons";
 
 const PATHS = {
@@ -44,7 +39,6 @@ export function Icon({ name, size = 13 }: { name: IconName; size?: number }) {
   );
 }
 
-/** A page icon or a trip-link kind, from the shared art. Drawn thinner when large, as the other big marks are. */
 export function Glyph({ name, size = 13 }: { name: PageIcon; size?: number }) {
   const art = PAGE_ICON_ART[name];
   return (
@@ -55,7 +49,6 @@ export function Glyph({ name, size = 13 }: { name: PageIcon; size?: number }) {
   );
 }
 
-/** The same art as a string, for a chip drawn outside React. */
 export function glyphMarkup(name: PageIcon, size = 12): string {
   const art = PAGE_ICON_ART[name];
   const shapes = [...art.paths.map((d) => `<path d="${d}"/>`), ...art.circles.map((c) => `<circle cx="${c.cx}" cy="${c.cy}" r="${c.r}"/>`)].join("");

@@ -11,7 +11,6 @@ const CHEVRON = (
   </svg>
 );
 
-/** Your own range for the trip and how it sits against your budget (#574). Pro only, and only you see it. */
 export function EstimateBanner({ tripId, view }: { tripId: number; view: EstimateView }) {
   const { plan, currency } = view;
   return (

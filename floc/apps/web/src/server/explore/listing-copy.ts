@@ -1,8 +1,3 @@
-/**
- * A copy of an Explore listing (ADR-025): a new trip, its highlights page, and — with a start day — its dates, days,
- * stops, travel, events and Ideas page. One transaction, so a half-copied trip never shows. A snapshot: nothing points
- * back at the listing.
- */
 import "server-only";
 
 import { today as todayIso, type IsoDate } from "@floc/core/dates/dates";
@@ -44,12 +39,10 @@ async function insertPlan(tx: Tx, tripId: number, plan: CopyPlan): Promise<void>
   if (events.length) await tx.insert(dayEvent).values(events);
 }
 
-/** The new trip's id, or null when the listing has gone since it was drawn (rule 11). */
 export async function copyListing(viewerId: string, choice: CopyChoice, today: IsoDate = todayIso()): Promise<number | null> {
   const listing = PRESET_TRIPS.find((p) => p.id === choice.presetId);
   if (!listing) return null;
   const detail = presetDetail(listing.id);
-  // A day gone, or a month the listing does not name, only comes from a stale or hand-made request: copy it undated rather than refuse.
   const window = windowOf(listing, choice, today);
 
   return db.transaction(async (tx) => {

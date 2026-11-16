@@ -8,7 +8,6 @@ import { startWishListWithAction } from "@/app/lists/wish/actions";
 import { PlusIcon } from "@/components/system/icons";
 import { Button, ErrorText, busyMark } from "@/components/system/ui";
 
-/** On a friend's Saved part (#623): a wish list with them, filled with what you both saved. They get an invite. */
 export function StartWishWith({ friendId, name }: { friendId: string; name: string }) {
   const router = useRouter();
   const [pending, start] = useTransition();

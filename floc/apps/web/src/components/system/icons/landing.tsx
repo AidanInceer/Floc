@@ -2,9 +2,6 @@ import type { ReactNode } from "react";
 
 import { FLIGHT_PATH } from "@/components/system/icons/travel-mode";
 
-// ── icons ────────────────────────────────────────────────────────────────
-// Line-art in the app's own hand (CLAUDE.md: no emoji, no icon fonts). 14×14
-// viewBox, fill none, currentColor, hairline stroke.
 export type GlyphName =
   | "dates"
   | "money"
@@ -25,7 +22,6 @@ export type GlyphName =
   | "link"
   | "weather"
   | "mail"
-  | "receipt"
   | "tag"
   | "offline"
   | "keep"
@@ -117,12 +113,6 @@ const PATHS: Record<GlyphName, ReactNode> = {
     <>
       <rect x="1.8" y="3" width="10.4" height="8" rx="1.4" />
       <path d="M2.2 3.6 7 7.6l4.8-4" />
-    </>
-  ),
-  receipt: (
-    <>
-      <path d="M3 1.8h8v10.4l-1.6-1-1.2 1-1.2-1-1.2 1-1.2-1L3 12.2Z" />
-      <path d="M5 5h4M5 7.2h4M5 9.2h2" />
     </>
   ),
   tag: (

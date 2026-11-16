@@ -1,19 +1,3 @@
-/**
- * The pieces every shape of the expense form is built from (#302).
- *
- * WHY A PARTS FILE. `expense-form.tsx` is the drawing; this is what the drawing
- * is made of and what it must obey. Splitting them started as a way to compare
- * three shapes fairly and earned its keep afterwards: money, splits and
- * rejections are read here without markup around them, and the screen is read
- * without the rules in the way (single responsibility).
- *
- * MONEY AND SPLITS (rule 1, rule 2). The amount and the split come from
- * `splitFromForm` in `@floc/core`, the same rule the web's save runs, so a
- * bill saved here and one saved on the web hold the same rows.
- *
- * NO TIMEZONES (rule 10). The day is a `dayId`; its label is the itinerary's
- * own date string, shown exactly as stored.
- */
 import type { Currency } from "@floc/core/money/currency";
 import { SPLIT_MODES, splitBox, splitFromForm, type SplitMode } from "@floc/core/money/expense/expense-form";
 import { useState, type ReactNode } from "react";
@@ -37,7 +21,6 @@ import { fonts, radius, size, space } from "@/lib/theme";
 
 export type ExpenseDraft = {
   description: string;
-  /** Filed under one of the fixed twelve; the glyph is the rendering, never the value. */
   category: ExpenseCategory;
   amountMinor: number;
   currency: Currency;
@@ -51,12 +34,10 @@ export type ExpenseDraft = {
 export type Person = { userId: string; name: string };
 export type DayOption = { id: number; label: string };
 
-/** How the amount is divided. Two of the three write `shares`. */
 export type Mode = SplitMode;
 
 export const MODES = SPLIT_MODES.map((mode) => ({ value: mode.key, label: mode.label }));
 
-/** What an edit starts from. Absent means a new expense. */
 export type Initial = {
   description: string;
   category: ExpenseCategory;
@@ -69,14 +50,10 @@ export type Initial = {
   weights: Record<string, string>;
 };
 
-/** Everything the form is handed. */
 export type ExpenseFormProps = {
   people: Person[];
-  /** The trip's days, for "which day". Empty on an undated trip — not an error (rule 9). */
   days: DayOption[];
-  /** What the form starts in: the expense's own on an edit, the trip's on an add. */
   currency: Currency;
-  /** Who the payer defaults to on a new expense: whoever is holding the phone. */
   viewerId: string;
   initial?: Initial;
   busy: boolean;
@@ -85,7 +62,6 @@ export type ExpenseFormProps = {
   onDelete?: () => void;
 };
 
-/** One pill in a row of choices. Used for the payer, the day and the split mode. */
 function Choice({
   label,
   on,
@@ -118,7 +94,6 @@ function Choice({
   );
 }
 
-/** A row of pills that scrolls. The payer, the day and the mode ask the same shape of question. */
 export function Pills({
   label,
   options,
@@ -126,7 +101,6 @@ export function Pills({
   small,
   onChange,
 }: {
-  /** Absent draws no heading — a shape that labels its row another way says so by omitting it. */
   label?: string;
   options: { key: string; label: string }[];
   value: string;
@@ -153,13 +127,6 @@ export function Pills({
   );
 }
 
-/**
- * The amount typed against one person, in Exact.
- *
- * The currency is said to the LEFT of the box and the box has a real edge
- * (#317): a hairline field holding a greyed "GBP" read as a filled-in amount
- * rather than as somewhere to type one.
- */
 function MoneyInput({
   person,
   value,
@@ -194,7 +161,6 @@ function MoneyInput({
   );
 }
 
-/** Minus and plus, because a share is counted, not typed (#317). */
 function Stepper({
   person,
   value,
@@ -242,7 +208,6 @@ function Stepper({
   );
 }
 
-/** Ticked or empty. An empty box is the one shape everybody reads as "turn me on". */
 function Tick({ on }: { on: boolean }) {
   const { c } = useTheme();
   return (
@@ -250,8 +215,6 @@ function Tick({ on }: { on: boolean }) {
       style={{
         width: 20,
         height: 20,
-        // Half of `radius.sm` — at 20 points the small radius is a full circle,
-        // and a circle reads as a radio button, one of many.
         borderRadius: radius.sm / 2,
         borderWidth: 1.5,
         borderColor: on ? c.pen : c["rule-2"],
@@ -265,14 +228,6 @@ function Tick({ on }: { on: boolean }) {
   );
 }
 
-/**
- * One person, tapped to put them in or out, with whatever the mode asks of them
- * on the right. A row each, not wrapped chips (#317): names are different
- * lengths, so chips left a ragged block nobody could scan down.
- *
- * THE BOX IS WHY THE ROW LOOKS PRESSABLE. "Dev user · in" was the whole row and
- * read as a statement, so nobody found the tap that takes a person out (#317).
- */
 function PersonRow({
   person,
   on,
@@ -306,7 +261,6 @@ function PersonRow({
         }}
       >
         <Tick on={on} />
-        {/* Out is the odd state, so it says so — a tick alone is an icon (#204). */}
         <Body tone={on ? "ink" : "ink-3"}>
           {on ? person.name : `${person.name} · out`}
         </Body>
@@ -316,12 +270,6 @@ function PersonRow({
   );
 }
 
-/**
- * Equally asks a yes or no, and answers with the cost.
- *
- * The share sits on the right of the row it belongs to, so ticking somebody out
- * is seen in the figure it changes rather than in a total further down.
- */
 export function TickList({
   people,
   inOn,
@@ -331,7 +279,6 @@ export function TickList({
   people: Person[];
   inOn: Set<string>;
   onToggle: (userId: string) => void;
-  /** What this person is down for, or "" while the amount is unusable. */
   shareFor: (userId: string) => string;
 }) {
   return (
@@ -350,7 +297,6 @@ export function TickList({
   );
 }
 
-/** Exact asks for a figure each, in the trip's currency. */
 export function ExactList({
   people,
   inOn,
@@ -387,7 +333,6 @@ export function ExactList({
   );
 }
 
-/** Shares counts up and down, and says what each count comes to. */
 export function ShareList({
   people,
   inOn,
@@ -401,7 +346,6 @@ export function ShareList({
   weights: Record<string, string>;
   onToggle: (userId: string) => void;
   onWeight: (userId: string, value: string) => void;
-  /** What this person's shares come to, or "" while the amount is unusable. */
   shareFor: (userId: string) => string;
 }) {
   return (
@@ -427,16 +371,9 @@ export function ShareList({
   );
 }
 
-/** What the form produced, or what to tell the person instead. A rejection is a message. */
 export type Attempt =
   { ok: true; draft: ExpenseDraft } | { ok: false; problem: string };
 
-/**
- * Everything that can be wrong with a filled-in form, in one place.
- *
- * Pure, and outside every component, so the rules can be read without markup
- * around them — and so all three shapes reject exactly the same things.
- */
 export function buildDraft(
   fields: {
     description: string;
@@ -475,18 +412,10 @@ export function buildDraft(
   };
 }
 
-/** Why: the phone keeps one box a person, read as a share count in Shares and an amount in Exact. */
 function typedRow(typed: string): { shares: number; pin: string } {
   return { shares: typed.trim() === "" ? 1 : Number(typed), pin: typed };
 }
 
-/**
- * Every field the form holds, in one hook.
- *
- * Not an abstraction for its own sake: eleven `useState` lines each with their
- * own `?? fallback` put a shape over both the length and the complexity
- * ceilings, and none of that branching is about drawing anything.
- */
 export function useFields(
   initial: Initial | undefined,
   viewerId: string,
@@ -550,7 +479,6 @@ export function useFields(
   };
 }
 
-/** The one save path, so a shape cannot accidentally validate differently. */
 export function trySave(
   f: ReturnType<typeof useFields>,
   people: Person[],
@@ -579,7 +507,6 @@ export function trySave(
   onSave(attempt.draft);
 }
 
-/** The name a chosen key answers with, for a shape that shows the answer rather than the choices. */
 export function labelOf(
   options: { key: string; label: string }[],
   value: string,
@@ -587,12 +514,10 @@ export function labelOf(
   return options.find((option) => option.key === value)?.label ?? "";
 }
 
-/** Payer options. Every shape asks this the same way. */
 export function payerOptions(people: Person[]) {
   return people.map((person) => ({ key: person.userId, label: person.name }));
 }
 
-/** Day options, with "No day" first — an expense need not belong to one (rule 9). */
 export function dayOptions(days: DayOption[]) {
   return [
     { key: "none", label: "No day" },

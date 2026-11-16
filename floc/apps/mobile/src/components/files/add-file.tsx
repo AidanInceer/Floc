@@ -1,17 +1,3 @@
-/**
- * Putting a new file up, from wherever it is being added (ticket 325).
- *
- * SPLIT OUT BECAUSE THE PICKER IS ITS OWN JOB. The section around it lists and
- * unlists; this asks two questions, reads a file off the disk and hands back
- * the answer. Keeping them apart is also what keeps either readable.
- *
- * SHARED OR PRIVATE RIDES THE LINE THE FILE GOES UP WITH, the same question
- * the Files screen asks in the same place — a question with a right default
- * does not deserve a labelled row of its own.
- *
- * CANCELLING IS NOT AN ERROR. Backing out of the picker answers null and this
- * says nothing.
- */
 import { DOC_CATEGORIES, DOC_CATEGORY_LABELS, type DocCategory } from "@floc/core/documents/documents";
 import { useState } from "react";
 import { View } from "react-native";
@@ -32,7 +18,6 @@ export function AddFile({
   onUnreadable,
   onCancel,
 }: {
-  /** What a file added here is usually for — tickets, on an event. */
   filedUnder: DocCategory;
   busy: boolean;
   onPicked: (file: PickedFile & { category: DocCategory; shared: boolean }) => void;
@@ -63,9 +48,6 @@ export function AddFile({
         value={category}
         onChange={setCategory}
       />
-      {/* Asked as "make private", not "everyone on the trip": the default is
-          shared, so the switch names the thing you would turn on (#325
-          feedback). */}
       <Toggle label="Make private" value={!shared} onChange={(on) => setShared(!on)} />
       <View style={{ flexDirection: "row", gap: space.sm }}>
         <View style={{ flex: 1 }}>

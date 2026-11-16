@@ -1,9 +1,3 @@
-/**
- * The live side of Notes on the phone (#394, #408): one socket per Notes
- * screen, carrying the open page's doc and the trip's page-list channel. The
- * open page is saved on the phone as it changes, so an edit made offline
- * outlives the app being closed and merges on reconnect.
- */
 import { HocuspocusProvider, HocuspocusProviderWebsocket } from "@hocuspocus/provider";
 import { pageDocumentName, pagesDocumentName } from "@floc/core/notes/live/live-names";
 import { type PresentPerson } from "@floc/core/notes/live/live-presence";
@@ -19,7 +13,6 @@ import { liveNotesUrl } from "@/lib/notes/live-url";
 
 const TOKEN = "session";
 
-// Why the cast: the DOM typings know two arguments; React Native takes headers as a third.
 const NativeSocket = WebSocket as unknown as new (
   url: string,
   protocols: string | string[] | undefined,
@@ -29,9 +22,6 @@ const NativeSocket = WebSocket as unknown as new (
 export function useNotesSocket(): HocuspocusProviderWebsocket | null {
   const [socket, setSocket] = useState<HocuspocusProviderWebsocket | null>(null);
   useEffect(() => {
-    // Why a subclass: the server reads the session cookie, and the provider builds its own socket.
-    // The keychain read is async and a constructor is not, so the cookie is read again on every
-    // close: the reconnect waits out its back-off, and by then it sends the renewed session.
     let cookie = "";
     let made: HocuspocusProviderWebsocket | null = null;
     let gone = false;
@@ -62,7 +52,6 @@ const attach = (provider: HocuspocusProvider) => {
   return provider;
 };
 
-/** Who has which page open, and a call whenever anyone changes the list or its comments. */
 export function usePageList(socket: HocuspocusProviderWebsocket | null, tripId: number, openPage: number | null, viewer: Viewer, onChanged: () => void) {
   const [session, setSession] = useState<PageListSession | null>(null);
   const [byPage, setByPage] = useState(new Map<number, PresentPerson[]>());
@@ -99,7 +88,6 @@ export function useLivePage(socket: HocuspocusProviderWebsocket | null, tripId: 
     const name = pageDocumentName(tripId, pageId);
     const session = openLivePage({
       name,
-      // Why the name: the phone cannot learn the page's epoch before it connects, so it keeps one cache per page.
       cacheKey: name,
       socket,
       cache: fileCache,

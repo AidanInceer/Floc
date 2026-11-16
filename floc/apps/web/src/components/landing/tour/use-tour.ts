@@ -6,11 +6,6 @@ import { stepSlide, swipeStep, wipeOrigin, wipeReach } from "@/lib/landing/tour"
 const EASE = "cubic-bezier(0.2, 0.85, 0.3, 1)";
 const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/**
- * One trip page, seven features. A press (arrow, tab, key or swipe) sets `index` at once and plays the move:
- * a colour wipe grows from the control, the copy and page slide out, `shown` swaps to the new slide, the page slides back in.
- * `rested` is the colour the stage holds still once the wipe lands. No timer ever moves it on its own.
- */
 export function useTour(count: number) {
   const stage = useRef<HTMLDivElement>(null);
   const wipe = useRef<HTMLSpanElement>(null);

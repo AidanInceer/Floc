@@ -1,11 +1,3 @@
-/**
- * Reading discussion threads — shared by every surface that has one. Days and
- * Days used to run and group the same join by hand, which is how they drifted
- * apart once replies and reactions arrived; one reader, two callers now
- * (ticket 06). Shape/formatting for the Client Component lives in
- * `@floc/core/notes/notes`. Threads are one level deep, so this assembles the tree in
- * two passes and never recurses.
- */
 import "server-only";
 
 import { and, asc, count, eq, isNull } from "drizzle-orm";
@@ -31,19 +23,11 @@ export async function loadThreads({
   tripId: number;
   scope: NoteScope;
   viewerId: string;
-  /** Trip roster tones, so one person is one colour across every tab. */
   toneOf: Map<string, string | undefined>;
   scopeId?: number;
 }): Promise<Map<number, NoteRow[]>> {
   const byScope = new Map<number, NoteRow[]>();
 
-  // Scoped by (trip_id, scope), not a list of ids the caller just fetched —
-  // that made this a serial read, the third round trip on the busiest tabs.
-  // (trip_id, scope) leads the note_scope_idx index and matches what a page
-  // can display; extra rows from a soft-deleted day/event are just dropped.
-  // Reactions join through `note` and reuse the same scope, so they don't
-  // wait on note ids either.
-  // A resolved page comment (#408) has left its page; nothing else resolves.
   const scoped = and(
     eq(note.tripId, tripId),
     eq(note.scope, scope),
@@ -109,9 +93,6 @@ export async function loadThreads({
     });
   }
 
-  // A run's position is its parent's time, not its latest reply's — a
-  // two-week-old comment with a fresh reply shouldn't jump the queue. Both
-  // passes walk `rows`, already oldest-first, so no second sort is needed.
   for (const r of rows) {
     if (r.parentId === null) continue;
     nodes.get(r.parentId)?.replies.push(nodes.get(r.id)!);

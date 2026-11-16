@@ -5,7 +5,6 @@ import { nadia } from "./people";
 test.use({ storageState: nadia.state });
 
 test("Your data changes the cookie choice and advertising email in place", async ({ page, context, baseURL }) => {
-  // Why: a member who rejected everything on the banner, and now changes their mind in Settings.
   const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
   await context.addCookies([{ name: "floc_consent", value: `1.f0.a0.${yesterday}`, url: baseURL! }]);
   await page.goto("/profile?section=data");

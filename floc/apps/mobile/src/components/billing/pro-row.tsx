@@ -1,4 +1,3 @@
-/** Why for everyone: the row showed only to Pro members, so a Free member had no way to find the offer from You. */
 import type { BillingStatus } from "@floc/api/port";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 

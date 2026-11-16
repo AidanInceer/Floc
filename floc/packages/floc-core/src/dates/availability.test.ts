@@ -12,7 +12,6 @@ import {
   type AvailabilityRow,
 } from "./availability";
 
-/** Terse row builder: "a" free on each of the given dates. */
 function free(userId: string, ...dates: string[]): AvailabilityRow[] {
   return dates.map((date) => ({ userId, date, available: true }));
 }
@@ -33,7 +32,6 @@ describe("month arithmetic", () => {
 
 describe("monthGrid", () => {
   it("pads to whole Monday-first weeks", () => {
-    // 1 Sep 2026 is a Tuesday, so the first row leads with one blank.
     const weeks = monthGrid("2026-09");
     expect(weeks.every((w) => w.length === 7)).toBe(true);
     expect(weeks[0][0]).toBeNull();
@@ -42,7 +40,6 @@ describe("monthGrid", () => {
   });
 
   it("needs no lead padding when the month starts on a Monday", () => {
-    // 1 Jun 2026 is a Monday.
     expect(monthGrid("2026-06")[0][0]).toBe("2026-06-01");
   });
 });
@@ -71,11 +68,9 @@ describe("bestWindow", () => {
 
   it("prefers a window everyone can do over a longer thinner one", () => {
     const rows = [
-      // Three people all free 10–12 Sept.
       ...free("a", "2026-09-10", "2026-09-11", "2026-09-12"),
       ...free("b", "2026-09-10", "2026-09-11", "2026-09-12"),
       ...free("c", "2026-09-10", "2026-09-11", "2026-09-12"),
-      // Only "a" is free for the whole of the following week.
       ...free(
         "a",
         "2026-09-20",
@@ -96,7 +91,6 @@ describe("bestWindow", () => {
     const rows = [
       ...free("a", "2026-09-01", "2026-09-02", "2026-09-03"),
       ...free("b", "2026-09-01", "2026-09-02", "2026-09-03"),
-      // "c" has only answered for one day, so no 2+ day run is unanimous.
       ...free("c", "2026-09-01"),
     ];
     expect(bestWindow(rows)).toEqual({
@@ -145,7 +139,6 @@ describe("bestWindow", () => {
 
   it("honours a longer minimum length", () => {
     const rows = [
-      // A unanimous pair, and a longer run only "a" can do.
       ...free("a", "2026-09-01", "2026-09-02"),
       ...free("b", "2026-09-01", "2026-09-02"),
       ...free("a", "2026-09-10", "2026-09-11", "2026-09-12", "2026-09-13"),

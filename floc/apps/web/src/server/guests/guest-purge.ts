@@ -1,9 +1,3 @@
-/**
- * The sweep (#442, ADR-029): a guest who has not made an account a week after
- * they started is deleted for good, with their votes and date marks, however
- * often they came back. Reaches only `is_anonymous` rows — never a person with
- * an account. Run by the Railway cron.
- */
 import "server-only";
 
 import { and, eq, inArray, lte } from "drizzle-orm";

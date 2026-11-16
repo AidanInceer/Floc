@@ -3,11 +3,6 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-/**
- * Claude Code PreToolUse hook. The main checkout only shapes work; a tracked
- * file edited there strands the edit, blocks the next pull and leaks into
- * every session that starts there.
- */
 export function guardVerdict({ flocCommon, fileCommon, fileGitDir, ignored }) {
   if (!fileCommon || resolve(fileCommon).toLowerCase() !== resolve(flocCommon).toLowerCase()) return { allow: true };
   if (resolve(fileGitDir).toLowerCase() !== resolve(fileCommon).toLowerCase()) return { allow: true };
@@ -15,10 +10,6 @@ export function guardVerdict({ flocCommon, fileCommon, fileGitDir, ignored }) {
   return { allow: false };
 }
 
-/**
- * Why: scratch files and throwaway preview routes made inside a checkout were left behind,
- * could not be deleted under auto mode, and a deleted preview route broke Next's route types.
- */
 export function scratchVerdict(rel) {
   const parts = rel.split("/");
   if (parts.some((part) => /^\.?tmp/i.test(part))) return { allow: false };

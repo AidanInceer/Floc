@@ -1,10 +1,5 @@
 "use dom";
 
-/**
- * A notes page on the phone (#408, ADR-014): the same editor as the website,
- * run in a web view. It keeps its own copy of the page; the app holds the live
- * one and the two trade changes through `relay`.
- */
 import "@floc/editor/editor.css";
 
 import { useDOMImperativeHandle, type DOMImperativeFactory, type DOMProps } from "expo/dom";
@@ -25,7 +20,6 @@ import { RedHatText_600SemiBold } from "@expo-google-fonts/red-hat-text/600SemiB
 import { pageCss, type FontFiles } from "@/lib/notes/page-css";
 import { FROM_APP, sendChanges, takeChange, takeOthers } from "@/lib/notes/relay";
 
-// Why the unwrap: in a web bundle a font module is its URL, or an object that holds it.
 const url = (asset: unknown): string | undefined => {
   if (typeof asset === "string") return asset;
   const held = asset as { uri?: unknown; default?: unknown } | null;
@@ -39,7 +33,6 @@ const FONTS: FontFiles = {
   type: url(RedHatMono_400Regular),
 };
 
-/** `change` takes a page update, `others` an awareness update, each as base64. */
 export type PageHandle = DOMImperativeFactory;
 
 type Props = {
@@ -53,7 +46,6 @@ type Props = {
   icon: PageIcon | null;
   links: TripLinkItem[];
   threads: PageThread[];
-  /** Once, when the page can take the app's changes. */
   onReady: () => Promise<{ page: string; others: string | null } | null>;
   onChange: (update: string) => Promise<void>;
   onPresence: (state: string) => Promise<void>;
@@ -70,7 +62,6 @@ export default function PageDom(props: Props) {
     const made = new Y.Doc();
     takeChange(made, props.start, FROM_APP);
     return made;
-    // Why once: later changes arrive through `change`, and a new doc would drop the page from under the caret.
   }, []);
   const awareness = useMemo(() => new Awareness(doc), [doc]);
   const handle = useRef<{ focusStart: () => void } | null>(null);
@@ -89,7 +80,6 @@ export default function PageDom(props: Props) {
       takeChange(doc, start.page, FROM_APP);
       if (start.others) takeOthers(awareness, start.others);
     });
-    // Why once: the app answers with the whole page, and again would only repeat it.
   }, []);
 
   useEffect(() => {

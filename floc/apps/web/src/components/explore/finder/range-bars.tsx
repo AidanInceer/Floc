@@ -6,7 +6,6 @@ import "./range-bars.css";
 export type Bar = { count: number; on: boolean };
 type Bounds = { min: number; max: number; step: number };
 
-/** How many listings sit at each point of a scale, as bars, with two thumbs under them. Bars inside the range are dark. */
 export function RangeBars({
   label,
   bars,
@@ -22,7 +21,6 @@ export function RangeBars({
   value: [number, number];
   valueText: string;
   onChange: (value: [number, number]) => void;
-  /** The line under the thumbs. */
   children: ReactNode;
 }) {
   const most = Math.max(1, ...bars.map((b) => b.count));
@@ -44,7 +42,6 @@ export function RangeBars({
           type="range"
           aria-label={`${label}, from`}
           value={low}
-          // Why: with both thumbs at the top the upper input covers the lower; lift it so it can move back.
           style={{ zIndex: low > (bounds.min + bounds.max) / 2 ? 1 : undefined }}
           onChange={(e) => onChange([Math.min(Number(e.target.value), high), high])}
           {...common}

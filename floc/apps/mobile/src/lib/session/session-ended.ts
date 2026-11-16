@@ -1,8 +1,3 @@
-/**
- * Why: a read refused with 401 left every screen on "That didn't load" with no way back to sign-in.
- * A refusal while signed in ends the session once and leaves the sign-in screen a notice; a late
- * refusal after you signed out yourself says nothing.
- */
 type Listener = () => void;
 
 const listeners = new Set<Listener>();

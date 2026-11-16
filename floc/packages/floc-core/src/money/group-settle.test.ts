@@ -4,7 +4,6 @@ import type { Currency } from "./currency";
 import { groupSettleUp, paidIn, type SettleRow } from "./group-settle";
 import { computeBalances, isAllSettled, type Balances, type LedgerLine } from "./money";
 
-// Euros per one of each currency, as frankfurter quotes them against the euro.
 const eurBase = (c: Currency) => (c === "EUR" ? 1 : c === "GBP" ? 1.2 : null);
 const homes: Record<string, Currency> = { me: "GBP", priya: "GBP", sofia: "EUR", tom: "GBP" };
 const homeOf = (id: string) => homes[id] ?? "GBP";
@@ -16,13 +15,11 @@ const owes = (from: string, to: string, amountMinor: number, currency: Currency)
   splits: [{ userId: from, owedAmountMinor: amountMinor }],
 });
 
-/** Portugal: you owe Priya £117.15; Sofia owes you €96.40. */
 const portugal = (): Balances => computeBalances([owes("me", "priya", 11715, "GBP"), owes("sofia", "me", 9640, "EUR")]);
 
 const settle = (balances: Balances, viewerId = "me", rateFor = eurBase) =>
   groupSettleUp({ balances, viewerId, homeOf, base: "EUR", rateFor });
 
-/** Records every row's parts as settlements and reads the books again. */
 function afterPaying(lines: LedgerLine[], rows: SettleRow[]): Balances {
   const settlements = rows.flatMap((r) =>
     r.parts.map((p) => ({ from: p.fromUserId, to: p.toUserId, currency: p.currency, amountMinor: p.amountMinor, clearsCurrency: p.clearsCurrency ?? null, clearsAmountMinor: p.clearsAmountMinor ?? null })),
@@ -86,7 +83,6 @@ describe("groupSettleUp", () => {
   });
 
   it("falls back to one payment per pair when converted payments cannot clear each currency", () => {
-    // Why: Bo is owed a penny in one currency and owes one in the other, so the converted plan leaves Bo out.
     const lines = [owes("sam", "ana", 1, "EUR"), owes("bo", "sam", 1, "EUR"), owes("sam", "bo", 1, "GBP"), owes("ana", "cy", 2, "GBP")];
     const rate = (c: Currency) => (c === "EUR" || c === "GBP" ? 1 : null);
     const rows = groupSettleUp({ balances: computeBalances(lines), viewerId: "sam", homeOf: () => "EUR", base: "EUR", rateFor: rate });

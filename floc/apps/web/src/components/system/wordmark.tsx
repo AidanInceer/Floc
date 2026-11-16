@@ -1,10 +1,3 @@
-/**
- * The wordmark: three chevrons in a V — the flock, and the "who's coming" of a
- * trip — then the display face lowercase with the one blue dot that carries
- * through the product as "yours". The chevrons are the only part that can leave
- * the bar, so they carry the favicon and the app icon too. Shared by the top
- * chrome and the site footer.
- */
 export function FlocWordmark() {
   return (
     <span className="inline-flex items-center gap-1.5 font-display text-[15px] font-bold leading-none tracking-tight text-ink sm:text-[22px]">

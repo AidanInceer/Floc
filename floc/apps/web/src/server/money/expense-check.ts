@@ -1,8 +1,3 @@
-/**
- * The one check an expense write passes, from the web form or the phone. Who
- * it may name is the live roster plus anyone already on the expense: a former
- * member's share survives an edit, since splits are snapshots (rule 2).
- */
 import "server-only";
 
 import { and, eq, isNull } from "drizzle-orm";

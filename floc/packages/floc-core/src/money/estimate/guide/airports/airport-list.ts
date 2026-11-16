@@ -1,9 +1,3 @@
-/**
- * Airports a member can pick as home (#574, ADR-057), from OurAirports (public domain), read 15 Nov 2026.
- * Why this cut: large and medium airports with scheduled flights and an IATA code, about 3200.
- * Aidan's pick for now; widen to small airports later if members ask for one that is missing.
- * Each country holds `CODE|Name|City` entries split by `;`, with `|L` on a large airport. Read only by `airports.ts`.
- */
 export const AIRPORTS_BY_COUNTRY: Readonly<Record<string, string>> = {
   AE: "AAN|Al Ain International|Al Ain|L;DWC|Al Maktoum International|Dubai (Jebel Ali)|L;DXB|Dubai International|Dubai|L;FJR|Fujairah International|Fujairah|L;RKT|Ras Al Khaimah International|Ras Al Khaimah|L;SHJ|Sharjah International|Sharjah|L;AUH|Zayed International|Abu Dhabi|L",
   AF: "KDH|Ahmad Shah Baba International|Kandahar|L;HEA|Herat - Khwaja Abdullah Ansari International|Guzara|L;KBL|Kabul International|Kabul|L;MZR|Mazar-i-Sharif International|Mazar-i-Sharif|L;KHT|Khost International|Khost",

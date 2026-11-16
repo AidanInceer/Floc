@@ -1,11 +1,5 @@
-/**
- * A reset link is a bearer credential (#149): whoever holds it can take the
- * account. With no mail provider the send falls back to the console, so the
- * fallback must not be the leak.
- */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// The shared setup stubs `sendEmails`; this suite needs the real one.
 const realEmail = await vi.importActual<typeof import("./email")>("./email");
 
 let logged: string[] = [];

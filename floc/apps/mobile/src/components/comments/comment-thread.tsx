@@ -1,16 +1,3 @@
-/**
- * Talk about one event, on a phone (ticket 325), drawn as the web's (event comments D).
- *
- * ONE LEVEL DEEP, LIKE THE WEB'S. A reply to a reply attaches to the same
- * parent — the server decides that, not this file — so a run is a comment and
- * a flat list under it, folded until asked for. Nothing here recurses.
- *
- * ONE HEART. The table still holds agree and disagree; neither is drawn or
- * counted, the same on both surfaces (`likes` in `@floc/core/notes/notes`).
- *
- * REFUSALS ARE SENTENCES. An empty body and a comment that has gone are
- * ordinary mistakes; they read under the composer rather than crashing it.
- */
 import type { Comment } from "@floc/api/port";
 import { repliesLabel, threadCount } from "@floc/core/notes/notes";
 import type { ReactionKind } from "@floc/core/vocabulary";
@@ -24,22 +11,18 @@ import { Body, SectionTitle } from "../system/ui";
 import { fonts, radius, size, space } from "@/lib/theme";
 
 export type ThreadActions = {
-  /** Null `replyTo` starts a run. `landed` runs once the server took it, not on a refusal. */
   onAdd: (replyTo: number | null, body: string, landed: () => void) => void;
   onEdit: (commentId: number, body: string, landed: () => void) => void;
   onDelete: (commentId: number) => void;
   onReact: (commentId: number, kind: ReactionKind) => void;
-  /** A refusal belongs to the box that sent it; opening or closing a box drops it. */
   onClearProblem: () => void;
 };
 
-/** Nothing open, answering a run, or rewriting your own. One state, so two cannot both be true. */
 type Open =
   | { kind: "none" }
   | { kind: "reply"; id: number }
   | { kind: "edit"; id: number };
 
-/** Whether the open box belongs to this run: its own comment or one of its replies. */
 function runHolds(run: Comment, id: number): boolean {
   return run.id === id || run.replies.some((reply) => reply.id === id);
 }
@@ -102,7 +85,6 @@ function Run({
   open: Open;
   setOpen: (next: Open) => void;
   actions: ThreadActions;
-  /** A refusal for the box open in this run, drawn under that box. */
   problem: string | null;
 }) {
   const [unfolded, setUnfolded] = useState(false);
@@ -186,12 +168,9 @@ export function CommentThread({
     actions.onClearProblem();
     setOpenBox(next);
   };
-  // Why: the composer keeps its own words; a new key once they are sent is what empties it.
   const [sent, setSent] = useState(0);
   const count = threadCount(comments);
 
-  // Whatever landed closes every composer: a reply that has landed is not still
-  // being written, and a stale box invites it to be sent twice. A refusal keeps the words.
   const settled: ThreadActions = {
     onAdd: (replyTo, body) =>
       actions.onAdd(replyTo, body, () => {

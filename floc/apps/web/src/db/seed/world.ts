@@ -1,8 +1,3 @@
-/**
- * The bits of a trip both scenarios build (#no-ticket) — a trip with a roster,
- * a bag with claims on it, an expense with its splits. Scenario files stay a
- * readable list of what happened; the SQL to make it happen lives here once.
- */
 import { randomUUID } from "node:crypto";
 
 import { db } from "../index.ts";
@@ -18,7 +13,6 @@ import type { PackCategory } from "@floc/core/packing/packing";
 import type { WritableSplitType } from "@floc/core/money/money";
 import { computeSplits } from "@floc/core/money/money";
 
-/** Dates are always relative to today, so a scenario seeded in March still reads as upcoming in June. */
 export function isoIn(days: number): string {
   const d = new Date();
   d.setUTCDate(d.getUTCDate() + days);
@@ -54,13 +48,6 @@ export async function makeTrip(args: {
   return row.id;
 }
 
-/**
- * One shared packing line and everyone who put their hand up for it.
- *
- * `packed` is per claimer, not per line — a line is packed only when every
- * live claim on it is ticked, so a half-ticked line is the state worth having
- * in a seed and the reason this takes a list rather than a boolean.
- */
 export async function addPackingLine(args: {
   tripId: number;
   createdBy: string;
@@ -91,7 +78,6 @@ export async function addPackingLine(args: {
   );
 }
 
-/** A line in one person's own bag — never shown to anybody else. */
 export async function addPersonalPackingLine(args: {
   tripId: number;
   ownerId: string;

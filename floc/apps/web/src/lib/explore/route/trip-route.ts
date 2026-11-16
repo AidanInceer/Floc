@@ -2,13 +2,9 @@ import { stopsOf } from "@floc/core/trip/explore/listing-stops";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import type { TransportType } from "@floc/core/vocabulary";
 
-/** `nights` is written on the stop's name; a stop with none has no nights end. */
 export type RouteStop = { place: string; lat: number; lng: number; nights?: number };
-/** How the group gets from one stop to the next; null when the listing does not say. A group's own leg with no mode yet says so in `time`. */
 type Move = { mode: TransportType | null; time: string } | null;
-/** A day out from stop `at`, and back the same day; `lat` and `lng` are its own place, where the listing gives one. */
 type DayOut = { at: number; place: string; mode: TransportType; lat?: number; lng?: number };
-/** A route as a map draws it: `moves[k]` goes from `stops[k]` to `stops[k + 1]`. A group's own route has no day outs. */
 export type TripRoute = { stops: RouteStop[]; moves: Move[]; outs?: DayOut[] };
 
 export function tripRoute(trip: PresetTrip): TripRoute {

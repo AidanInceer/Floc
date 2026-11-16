@@ -8,7 +8,6 @@ import { ExploreGlobe, type AtlasRoute } from "@/components/explore/globe/explor
 import { ExplorePostcard } from "@/components/explore/explore-postcard";
 import { ExploreFinder } from "@/components/explore/finder/explore-finder";
 
-/** Explore, top to bottom: the map and its postcard, then every trip with the finder beside it. */
 export function ExploreFront({
   signedIn,
   initialFinder,
@@ -33,7 +32,6 @@ export function ExploreFront({
   return (
     <>
       <h1 className="sr-only">Explore</h1>
-      {/* The globe runs up behind the top bar's beads; -mt-15 is the bar's height. */}
       <section className="relative -mt-15">
         <div className="h-[25.75rem] lg:absolute lg:inset-0 lg:h-auto">
           <ExploreGlobe picked={trip.id} route={route} card={card} onPick={pickOnMap} onWorld={() => setRoute(null)} />

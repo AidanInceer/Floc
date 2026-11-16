@@ -1,9 +1,3 @@
-/**
- * Pasted HTML, reshaped for a flat page (#408): nested lists become lines with
- * an indent, table cells keep one line each, pictures and styles go. What is
- * left the schema reads — headings, lists, checklists, bold, italic, links,
- * tables — and fonts and colours fall away because nothing reads them.
- */
 import { MAX_INDENT } from "@floc/core/notes/pages/page-blocks";
 
 const LISTS = new Set(["UL", "OL"]);

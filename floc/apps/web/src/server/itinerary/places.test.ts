@@ -1,4 +1,3 @@
-/** Place search: cached, never caching a failure, and one person cannot hold the queue. */
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { db, schema } from "@/db";
@@ -47,6 +46,27 @@ describe("searching for a place", () => {
     const { result, lines } = await capturedLogAsync(() => searchPlaces("Sintra"));
     expect(result).toEqual([]);
     expect(lines).toEqual([expect.objectContaining({ message: "geocoding.unreachable", errorType: "TypeError" })]);
+  });
+});
+
+describe("a provider hit with missing parts", () => {
+  it("takes its name from the full label and keeps no country without an address", async () => {
+    answer([{ place_id: 7, display_name: "Sintra, Lisboa, Portugal", lat: "38.8", lon: "-9.4" }]);
+    expect(await searchPlaces("Sintra town")).toEqual([
+      { providerId: "nominatim:7", name: "Sintra", label: "Sintra, Lisboa, Portugal", lat: 38.8, lng: -9.4, countryCode: null },
+    ]);
+  });
+
+  it("drops a hit with neither a name nor a label", async () => {
+    answer([{ place_id: 8, lat: "38.8", lon: "-9.4" }]);
+    expect(await searchPlaces("Nowhere at all")).toEqual([]);
+  });
+
+  it("uses the name as the label when the provider sends no label", async () => {
+    answer([{ osm_type: "node", osm_id: 9, name: "Cascais", lat: "38.7", lon: "-9.4", address: { country_code: "pt" } }]);
+    const [hit] = await searchPlaces("Cascais");
+    expect(hit.label).toBe("Cascais");
+    expect(hit.countryCode).toBe("PT");
   });
 });
 

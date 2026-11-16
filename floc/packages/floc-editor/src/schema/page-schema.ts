@@ -1,4 +1,3 @@
-/** Every node and mark a notes page is made of (#408). The editor adds behaviour on top. */
 import { getSchema, type AnyExtension } from "@tiptap/core";
 
 import { Bullet, Check, Divider, Heading, Numbered, PageDocument, Paragraph, Quote, Text } from "./blocks";

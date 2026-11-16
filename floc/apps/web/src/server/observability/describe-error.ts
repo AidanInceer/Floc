@@ -3,7 +3,6 @@ import { scrubText, type LogFields } from "./redact";
 const MAX_MESSAGE = 300;
 const STACK_FRAMES = 6;
 
-// Why: a Drizzle query error ends with "params: <values>", and those values are what the user typed.
 function withoutParams(message: string): string {
   return scrubText(message.split(/\s*params:/)[0] ?? "").slice(0, MAX_MESSAGE);
 }
@@ -22,7 +21,6 @@ function stringProp(err: Error, key: "digest" | "code"): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
-/** The parts of a thrown value safe to log: type, a cut and scrubbed message, the top of the stack. */
 export function describeError(err: unknown): LogFields {
   if (!(err instanceof Error)) return { errorType: typeof err };
   return {

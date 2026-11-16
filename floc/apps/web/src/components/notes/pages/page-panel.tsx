@@ -1,4 +1,3 @@
-/** The open notes page (#408): where it sits, who is on it, whether it is live, then the page itself. */
 "use client";
 
 import type { HocuspocusProviderWebsocket } from "@hocuspocus/provider";

@@ -1,21 +1,13 @@
-/**
- * The Overview route as lines a tiled map can draw: the same bends the web paints on its canvas (`legCurves`),
- * worked out on the flat Mercator sheet a north-up map shows, then handed back as [lng, lat].
- */
 import type { TransportType } from "../../vocabulary";
 import type { OverviewRoute } from "../overview/route";
 import { legCurves, type Point } from "./curves";
 
 export type RouteLine = {
   mode: TransportType | null;
-  /** The tag's words: a journey's length, "Not set", or nothing. */
   time: string;
   coords: [number, number][];
-  /** The line's middle: its arrow sits on it, its tag beside it. */
   mid: [number, number];
-  /** The way the line runs at its middle on a north-up screen, in degrees: 0 is east, 90 is south. */
   angle: number;
-  /** A unit step on screen (x east, y south) to the outside of the bend, where the tag goes so it never hides the line. */
   bulge: [number, number];
 };
 
@@ -29,7 +21,6 @@ const unit = (x: number, y: number): [number, number] => {
   return [x / l, y / l];
 };
 
-/** As the web's `bulgeOf`: away from the chord where the line bends, else square to it. */
 function bulgeOf(pts: Point[], half: number): [number, number] {
   const [a, b, m] = [pts[0], pts[pts.length - 1], pts[half]];
   const [ox, oy] = [m.x - (a.x + b.x) / 2, m.y - (a.y + b.y) / 2];
@@ -58,7 +49,6 @@ export function routeLines(route: Pick<OverviewRoute, "stops" | "moves">, sample
 
 const key = (s: { lat: number; lng: number }) => `${s.lat},${s.lng}`;
 
-/** As the web's `rolesOf`: the first stop starts and the last ends; a route back to where it began does both at the start. A place seen before is not named again. */
 export function stopRoles(stops: { lat: number; lng: number }[]): { role: StopRole; named: boolean }[] {
   const last = stops.length - 1;
   const round = last === 0 || (last > 0 && key(stops[0]) === key(stops[last]));

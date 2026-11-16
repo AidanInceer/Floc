@@ -11,12 +11,10 @@ export function sectionCount(total: number, packed: number): string {
   return thingCount(total);
 }
 
-/** The quiet second line of a shared row. The tick already says packed, so it is never repeated here. */
 export function sharedSaid({ others }: { others: string[] }): string {
   return others.length > 0 ? `with ${others.join(", ")}` : "";
 }
 
-/** Why: the API does not say who added a shared line, so another person holding it stands in. */
 export function needsRemoveConfirm(claims: { userId: string }[], viewerId: string | undefined): boolean {
   return claims.some((claim) => claim.userId !== viewerId);
 }

@@ -1,8 +1,3 @@
-/**
- * The notifications half of the port (#344, #403). The queries are proved in
- * `inbox.test.ts`; what matters here is that the phone's door carries the same
- * rules — seeing and reading are separate, and neither reaches past the viewer.
- */
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";

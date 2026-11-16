@@ -1,7 +1,3 @@
-/**
- * Why (#613, ADR-046): spans go to Railway's tracing only when its Traced switch sets the OTLP endpoint; with no
- * endpoint nothing starts and nothing costs. Outbound calls keep host and a masked path, never the query.
- */
 import { context, propagation, trace } from "@opentelemetry/api";
 import { AsyncLocalStorageContextManager } from "@opentelemetry/context-async-hooks";
 import { W3CTraceContextPropagator } from "@opentelemetry/core";
@@ -47,7 +43,6 @@ export function startTracing(env: Env): boolean {
   return true;
 }
 
-/** For tests and shutdown: drops the provider so a later start begins clean. */
 export function stopTracing(): void {
   if (!running) return;
   running.stop();

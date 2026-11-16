@@ -1,8 +1,3 @@
-/**
- * Why: `/floc:scenario` hands you one link that drops you at the start of a dev scenario, in any
- * browser. A GET that signs in is only safe behind the same gate as the dev sign-in door, and
- * `as` is a user id so no address goes in a URL. No `as` signs you out.
- */
 import { auth } from "@/server/auth/auth";
 import { devAccountEmail, passwordFor } from "@/server/auth/dev-accounts";
 import { devSignInEnabled } from "@/server/auth/dev-sign-in";

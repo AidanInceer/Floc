@@ -1,4 +1,3 @@
-/** The recap foot under a finished trip's card (#443), as on the web: Share and Plan the next one, side by side. */
 import { useState } from "react";
 import { View } from "react-native";
 

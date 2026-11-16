@@ -1,4 +1,3 @@
-// Days: the stop strip one trip week at a time (A) and the overnight dialog's nights picked on a month calendar (F).
 import { variants } from "/_house/switcher.js";
 import { tripFrame, ico, esc, addDays, dow, dom, weekday, shortDate, dateRange, formatRange, monthName, monthGrid } from "/_house/kit/trip-frame.mjs";
 
@@ -20,7 +19,6 @@ function freshNights() {
 
 const state = { variant: "A", night: freshNights(), focus: START, week: 0, dlg: null };
 
-// Stops are runs of the same place (rule 3). The last day is the day home, so it is no night.
 function stops(night = state.night) {
   const out = [];
   DAYS.forEach((d) => {
@@ -113,7 +111,6 @@ function ghostGrid() {
     `<div class="blk b1">Breakfast</div><div class="blk b2">Walking tour</div><div class="blk b3">Dinner</div></div>`;
 }
 
-// The run each in-trip night belongs to, shown as a labelled bar under the numbers.
 function runsIn(week, placeOf) {
   const out = [];
   week.forEach((d, i) => {

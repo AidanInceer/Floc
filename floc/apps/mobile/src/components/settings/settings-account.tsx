@@ -1,22 +1,3 @@
-/**
- * The account itself — email, sign-in methods, and deleting it (ticket 07).
- *
- * EMAIL IS SHOWN, NOT EDITED. It comes from whichever provider signed you in,
- * so it is a fact rather than a field. Drawing it as a disabled input would be
- * a dead control with a sentence explaining why.
- *
- * SIGNING OUT IS NOT HERE. It lives at the foot of You (#no-ticket) — it is
- * the end of a session, not a preference, and burying it under a screen of
- * switches made it the hardest ordinary thing in the app to find.
- *
- * THE LAST METHOD CANNOT BE UNLINKED. The host refuses; this greys the press
- * when there is one left, so the refusal is visible before it happens rather
- * than arriving as an error.
- *
- * DELETE ASKS FIRST, AND SAYS WHAT SURVIVES. Trip content stays, attributed to
- * a deleted user, and trips you solely admin hand over. Somebody deciding
- * deserves to know that before, not after.
- */
 import { Alert, View } from "react-native";
 
 import { GoogleCalendarMark } from "@/components/auth/google-button";
@@ -42,7 +23,6 @@ export function SettingsAccount({
   methods: SignInMethod[];
   busy: boolean;
   onUnlink: (accountId: string) => void;
-  /** Set while Floc may read the person's Google Calendar (#444); null otherwise, and with no Google key. */
   calendar?: { busy: boolean; problem: string | null; onRemove: () => void } | null;
 }) {
   const last = methods.length <= 1;

@@ -26,7 +26,6 @@ export type Plan = {
   fit: BudgetFit | null;
 };
 
-/** One member's estimate, all in their home currency: Floc's guide, their own figures over it, what they spent, their budget (#574). */
 export function planFor(args: {
   guide: GuideLine[];
   own: Partial<Record<EstimateLine, OwnLine>>;

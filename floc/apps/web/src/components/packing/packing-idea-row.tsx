@@ -1,12 +1,6 @@
 import { PlusIcon } from "@/components/system/icons";
 import { iconFrameClass } from "@/components/system/ui";
 
-/**
- * One idea at the foot of a cube (#469, prototype A): a tinted row under a
- * dashed rule, so it never reads as packed or owned. The + takes it into the
- * bag; the host re-derives the count and the category from the catalogue, so
- * the form carries the label only.
- */
 export function PackingIdeaRow({
   label,
   quantity,

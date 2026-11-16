@@ -1,8 +1,3 @@
-/**
- * The top of Money (#463): the group's fewest payments, in your currency, on one surface. Yours first,
- * each settled in one payment; then a grey band with the payments between other people, which only
- * those two can mark paid.
- */
 import { formatMoney } from "@floc/core/money/money";
 import type { SettleRow } from "@floc/core/money/group-settle";
 import { whoTone } from "@floc/core/people/who";

@@ -8,21 +8,53 @@ export function git(root, args, options = {}) {
   return result.stdout;
 }
 
+const codeOf = (line) => line.replace(/\r$/, "").replace(/\s+\/\/.*$/, "").replace(/\s*\/\*.*?\*\/\s*$/, "").trimEnd();
+
+function flush(hunk, lines) {
+  if (!hunk) return;
+  const removed = hunk.removed.map((line) => [line, codeOf(line)]);
+  hunk.added.forEach((line, index) => {
+    const code = codeOf(line);
+    const onlyComment = removed.some(([old, oldCode]) => old !== line && oldCode === code);
+    if (!onlyComment) lines.add(hunk.start + index);
+  });
+}
+
+export function changedLines(diff) {
+  const changes = new Map();
+  let file = null;
+  let hunk = null;
+  let inHeader = false;
+  for (const line of diff.split("\n")) {
+    if (line.startsWith("diff --git ")) {
+      flush(hunk, changes.get(file));
+      hunk = null;
+      inHeader = true;
+      continue;
+    }
+    const target = inHeader && /^\+\+\+ b\/(.+?)\r?$/.exec(line);
+    if (target) {
+      file = target[1];
+      changes.set(file, new Set());
+      continue;
+    }
+    const header = /^@@ -\S+ \+(\d+)(?:,\d+)? @@/.exec(line);
+    if (header) {
+      flush(hunk, changes.get(file));
+      inHeader = false;
+      hunk = { start: Number(header[1]), removed: [], added: [] };
+    } else if (hunk && line.startsWith("-")) hunk.removed.push(line.slice(1));
+    else if (hunk && line.startsWith("+")) hunk.added.push(line.slice(1));
+  }
+  flush(hunk, changes.get(file));
+  for (const [name, set] of changes) if (!set.size) changes.delete(name);
+  return changes;
+}
+
 export function collectChanges(root, base = process.env.FLOC_CHECK_BASE ?? "origin/main") {
   const sha = git(root, ["rev-parse", "--verify", base + "^{commit}"]).trim();
-  const changes = new Map();
-  const files = git(root, ["diff", "--no-ext-diff", "--no-renames", "--name-only", "--diff-filter=ACM", "-z", sha, "--"]).split("\0").filter(Boolean);
-  for (const file of files) {
-    if (!existsSync(join(root, file))) continue;
-    const diff = git(root, ["diff", "--no-ext-diff", "--no-textconv", "--no-renames", "-U0", sha, "--", file]);
-    const lines = new Set();
-    for (const match of diff.matchAll(/^@@ -\S+ \+(\d+)(?:,(\d+))? @@/gm)) {
-      const start = Number(match[1]);
-      const count = Number(match[2] ?? 1);
-      for (let i = 0; i < count; i++) lines.add(start + i);
-    }
-    if (lines.size) changes.set(file, lines);
-  }
+  const diff = git(root, ["-c", "core.quotepath=false", "diff", "--no-ext-diff", "--no-textconv", "--no-renames", "--diff-filter=ACM", "-U0", sha, "--"], { maxBuffer: 1 << 28 });
+  const changes = new Map([...changedLines(diff)].filter(([file]) => existsSync(join(root, file))));
   const untracked = git(root, ["ls-files", "--others", "--exclude-standard", "-z"]).split("\0").filter(Boolean);
   for (const file of untracked) {
     if (!existsSync(join(root, file))) continue;
@@ -32,23 +64,6 @@ export function collectChanges(root, base = process.env.FLOC_CHECK_BASE ?? "orig
   return changes;
 }
 
-/** Lines added or changed in the index, from one diff — the hook lints what the commit will hold. */
 export function collectStaged(root) {
-  const diff = git(root, ["-c", "core.quotepath=false", "diff", "--cached", "--no-ext-diff", "--no-textconv", "--no-renames", "--diff-filter=ACM", "-U0"]);
-  const changes = new Map();
-  let lines = null;
-  for (const line of diff.split("\n")) {
-    const file = /^\+\+\+ b\/(.+?)\r?$/.exec(line);
-    if (file) {
-      lines = new Set();
-      changes.set(file[1], lines);
-      continue;
-    }
-    const hunk = /^@@ -\S+ \+(\d+)(?:,(\d+))? @@/.exec(line);
-    if (!hunk || !lines) continue;
-    const start = Number(hunk[1]);
-    for (let i = 0; i < Number(hunk[2] ?? 1); i++) lines.add(start + i);
-  }
-  for (const [file, set] of changes) if (!set.size) changes.delete(file);
-  return changes;
+  return changedLines(git(root, ["-c", "core.quotepath=false", "diff", "--cached", "--no-ext-diff", "--no-textconv", "--no-renames", "--diff-filter=ACM", "-U0"], { maxBuffer: 1 << 28 }));
 }

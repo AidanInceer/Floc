@@ -1,4 +1,3 @@
-/** The phone's copy of an Explore listing from a wish list asks the list's people along (#623), as the web's does. */
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

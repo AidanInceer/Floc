@@ -1,7 +1,3 @@
-/**
- * Wish lists, write side (#623, ADR-049). Every member is equal: any accepted member adds, removes, renames and
- * invites. Nobody removes a member; the last one out ends the list. Everything is soft-deleted (rule 8).
- */
 import "server-only";
 
 import { Refusal } from "@floc/core/errors/refusal";
@@ -39,7 +35,6 @@ async function seatCount(tx: Tx | typeof db, userId: string): Promise<number> {
   return n;
 }
 
-/** Everyone asked must be someone you could ask onto a trip: a friend or a live co-member, never a guest (ADR-029). */
 async function askable(userId: string, ids: string[]): Promise<string[]> {
   const wanted = [...new Set(ids)].filter((id) => id !== userId);
   if (wanted.length === 0) return [];
@@ -122,7 +117,6 @@ function dedupe(items: WishItemInput[]): WishItemInput[] {
   });
 }
 
-/** Asks more people. Anyone already on it or already asked is left as they are. */
 export async function inviteToWishList(userId: string, listId: number, ids: string[]): Promise<number> {
   const wanted = await askable(userId, ids);
   return db.transaction(async (tx) => {
@@ -158,7 +152,6 @@ export async function respondToWishInvite(userId: string, listId: number, accept
   });
 }
 
-/** Takes you off. When nobody accepted is left, the list goes too, and its open invites with it. */
 export async function leaveWishList(userId: string, listId: number): Promise<void> {
   await db.transaction(async (tx) => {
     await assertSeat(userId, listId, "accepted", tx);
@@ -179,7 +172,6 @@ export async function renameWishList(userId: string, listId: number, name: unkno
   await db.update(wishList).set({ name: readWishListName(name), ...touch() }).where(eq(wishList.id, listId));
 }
 
-/** Adds one thing. A listing or country already on the list is not added twice. */
 export async function addWishItem(userId: string, listId: number, raw: unknown): Promise<number> {
   return db.transaction(async (tx) => {
     await assertSeat(userId, listId, "accepted", tx);

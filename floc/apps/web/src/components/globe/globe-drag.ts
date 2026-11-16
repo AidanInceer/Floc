@@ -5,13 +5,11 @@ type Grip = {
   view: () => LatLng;
   turnTo: (view: LatLng) => void;
   onGrab: () => void;
-  /** `coast` is the flick's speed in degrees a millisecond; 0 when the globe was let go at rest. */
   onRelease: (coast: number) => void;
 };
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
-/** Drag turns the globe; letting go mid-move hands back the speed of the flick. */
 export function globeDrag(canvas: HTMLCanvasElement, grip: Grip) {
   let drag: (LatLng & { x: number; y: number }) | null = null;
   let last = { x: 0, t: 0 };

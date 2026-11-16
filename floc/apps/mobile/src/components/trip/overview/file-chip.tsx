@@ -4,7 +4,6 @@ import { Pressable, StyleSheet, Text } from "react-native";
 import { useTheme } from "../../system/theme";
 import { fonts, radius, size, space } from "@/lib/theme";
 
-/** A file, or a kind of file with its count, in the colour of its category (travel blue, hotel green, tickets yellow, admin red, other grey). */
 export function FileChip({
   category,
   text,

@@ -1,9 +1,3 @@
-/**
- * Why: React's `cache()` only remembers inside a Server Component render. A
- * route handler has none, so every API call loaded trip access twice. This is
- * the same memo for code run inside `withRequestScope`, and a no-op outside it.
- * Any write forgets it (`refresh`), so a read after a write is fresh.
- */
 import "server-only";
 
 import { AsyncLocalStorage } from "node:async_hooks";

@@ -1,7 +1,3 @@
-/**
- * Why: ids, never prices — the stores own and localise the figures. One Play
- * subscription per interval with a single base plan, the same id as Apple's.
- */
 import type { BillingInterval } from "./plans";
 
 export const STORE_PRODUCT_IDS: Record<BillingInterval, string> = {

@@ -1,4 +1,3 @@
-// Why: nights are picked on the month calendar, with where the group sleeps under each week (days-week F).
 import { WEEKDAY_LABELS, formatMonth, monthGrid, monthOf } from "@floc/core/dates/availability";
 import { formatDate, type IsoDate } from "@floc/core/dates/dates";
 import { shortPlace } from "@floc/core/itinerary/names/place-name";
@@ -16,10 +15,8 @@ export function NightCalendar({
   placeOf,
   onTap,
 }: {
-  /** The trip's nights, in order: every day but the last. */
   nights: IsoDate[];
   pick: Range;
-  /** Where the group sleeps on a night after the save; null is not set. */
   placeOf: (date: IsoDate) => string | null;
   onTap: (date: IsoDate) => void;
 }) {

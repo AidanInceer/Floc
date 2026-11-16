@@ -1,4 +1,3 @@
-// Why: Explore's stop-by-stop, kept short — the Days tab owns the day; here a day says what comes first and links there.
 import { Fragment, type ReactNode } from "react";
 
 import type { Leg } from "@floc/core/trip/overview/legs";
@@ -15,7 +14,6 @@ export function OverviewStops({
   tripId: number;
   legs: Leg<TripDocument>[];
   events: Map<number, DayEventRow[]>;
-  /** The bookings beside the stops; none once the trip has ended or with no file storage. */
   bookings: ReactNode;
 }) {
   if (legs.length === 0) return null;

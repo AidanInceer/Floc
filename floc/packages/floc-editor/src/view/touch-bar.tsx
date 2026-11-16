@@ -1,7 +1,3 @@
-/**
- * The phone's formatting bar (#408), above the keyboard while a page is being
- * typed in: the block menu, the common line kinds, indent, and bold and italic.
- */
 "use client";
 
 import { useEditorState, type Editor } from "@tiptap/react";

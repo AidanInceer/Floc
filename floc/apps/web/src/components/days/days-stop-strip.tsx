@@ -1,9 +1,5 @@
 "use client";
 
-/**
- * Why: one trip week at a time (wireframe/days-week A), so a long trip never
- * scrolls sideways. Stops come from the nights, never stored (rule 3).
- */
 import { cx, Button } from "@/components/system/ui";
 import { BedIcon } from "@/components/system/icons/days";
 import { ChevronIcon, MoonIcon } from "@/components/system/icons";

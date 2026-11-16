@@ -1,4 +1,3 @@
-/** A member's writes stop at the same ceilings the pages read to, so one script cannot fill a trip for everyone. */
 import { isRefusal } from "@floc/core/errors/refusal";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

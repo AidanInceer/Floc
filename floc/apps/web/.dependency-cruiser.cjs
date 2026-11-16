@@ -1,10 +1,3 @@
-/**
- * Layer rules, installed while the layering is already clean (#212) — this is
- * a ratchet, not a repair.
- *
- * Type-only imports stay legal everywhere: they vanish at build time, so they
- * cost nothing at runtime and the code already relies on them.
- */
 module.exports = {
   forbidden: [
     {
@@ -79,8 +72,6 @@ module.exports = {
     },
   ],
   options: {
-    // Follow the workspace package's real source rather than stopping at the
-    // node_modules symlink, or the rule above has nothing to look at (#286).
     doNotFollow: { path: "node_modules/(?!@floc/)" },
     exclude: { path: "(^|/)(\.next|\.next-verify|coverage|drizzle)/" },
     tsPreCompilationDeps: "specify",

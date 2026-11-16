@@ -9,7 +9,6 @@ async function answer(request, url) {
   } catch { return null; }
 }
 
-/** Live means production itself reports the merge commit, not that GitHub saw a deployment start. */
 export async function deploymentStatus(sha, { url = DEPLOY_URL, request = fetch, github = () => null } = {}) {
   const health = await answer(request, new URL("/api/health", url));
   const healthSha = health ? (await health.json()).sha : null;

@@ -10,7 +10,6 @@ export function TripMapSection({ route, tone }: { route: OverviewRoute; tone: Pa
   return (
     <Card>
       {route.stops.length > 0 ? <StopsMap route={route} tone={tone} /> : null}
-      {/* The one thing the map cannot show: what is not on it (rule 11). */}
       {route.missing.length > 0 ? <Body tone="ink-2">Not on the map, no coordinates: {route.missing.join(", ")}.</Body> : null}
     </Card>
   );

@@ -4,7 +4,6 @@ import { clientKey, isLimitedWrite, writeLimiter } from "./write-limiter";
 
 type Listener = (req: IncomingMessage, res: ServerResponse) => unknown;
 
-/** Answers 429 before Next sees a write from a caller past the write limiter. */
 export function limitWrites(handle: Listener, writes = writeLimiter()): Listener {
   return (req, res) => {
     const caller = isLimitedWrite(req.method, req.url) ? clientKey(req.headers["x-real-ip"], req.socket.remoteAddress) : null;

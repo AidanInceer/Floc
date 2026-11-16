@@ -12,7 +12,6 @@ import { useDeal } from "./sort/use-deal";
 const hrefOf = (tripId: number, gap: Gap): string =>
   gap.tab === "overview" ? `#${gap.anchor ?? ""}` : `/trip/${tripId}/${gap.tab}${gap.anchor ? `#${gap.anchor}` : ""}`;
 
-/** Above the map (#460, round 2 E2): one soft cube per thing, sorted ones from the left; the strip deals its stack of cards down. */
 export function LeftToSort({ tripId, list }: { tripId: number; list: SortList }) {
   const { open, toggle, drawer, list: stack, chevron } = useDeal();
   const id = useId();
@@ -20,7 +19,6 @@ export function LeftToSort({ tripId, list }: { tripId: number; list: SortList })
   if (!next) return null;
   const sorted = list.done.length;
   const total = sorted + list.left;
-  // Why: the whole strip opens on a click, but its own link must still go where it says.
   const toggleFromStrip = (e: MouseEvent) => {
     if (!(e.target as HTMLElement).closest("a, button")) toggle();
   };
@@ -65,7 +63,6 @@ export function LeftToSort({ tripId, list }: { tripId: number; list: SortList })
   );
 }
 
-/** The same deal as the strip above: the sorted cards start under this band and drop down from it. */
 function SortedDeck({ done }: { done: Sorted[] }) {
   const { open, toggle, drawer, list, chevron } = useDeal();
   const id = useId();
@@ -95,7 +92,6 @@ function SortedDeck({ done }: { done: Sorted[] }) {
   );
 }
 
-/** Two paper edges under the closed strip: there is a stack behind it. The first two cards start on them as it opens. */
 function StackEdges() {
   return (
     <>

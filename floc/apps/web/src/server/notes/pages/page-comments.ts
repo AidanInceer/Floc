@@ -1,8 +1,3 @@
-/**
- * Comments on a notes page (#408): `note` rows of the "page" scope, pinned to
- * a text range by a mark in the page itself. Any member may post, reply and
- * resolve (rule 6); editing and deleting stay the author's, as everywhere.
- */
 import "server-only";
 import { and, eq, isNull } from "drizzle-orm";
 
@@ -19,7 +14,6 @@ import { findPage } from "./pages-read";
 
 type ThreadsArgs = { tripId: number; viewerId: string; toneOf: Map<string, string | undefined> };
 
-/** Every page's threads at once, by page id — a caller that does not know the page yet can still start the read. */
 export async function pageThreads(args: ThreadsArgs): Promise<Map<number, NoteRow[]>> {
   return loadThreads({ tripId: args.tripId, scope: "page", viewerId: args.viewerId, toneOf: args.toneOf });
 }
@@ -28,7 +22,6 @@ export async function loadPageComments(args: ThreadsArgs & { pageId: number }): 
   return (await pageThreads(args)).get(args.pageId) ?? [];
 }
 
-/** A new thread when `replyTo` is null, else a reply to it. Answers the new comment's id. */
 export async function addPageComment(args: {
   tripId: number;
   pageId: number;

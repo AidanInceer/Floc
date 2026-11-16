@@ -1,8 +1,3 @@
-/**
- * The ideas half of the port: the rules a phone gets are the web's own —
- * one vote per person, any member may remove, and another trip is not
- * addressable.
- */
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { webPort } from "@/server/api-port/api-port";
@@ -26,7 +21,6 @@ describe("reading", () => {
 
     expect(idea.title).toBe("Lisbon");
     expect(idea.authorName).toBe("Ada");
-    // A time crosses as a string, because a Date does not survive JSON.
     expect(typeof idea.createdAt).toBe("string");
     expect(idea).toMatchObject({ votes: 0, mine: false });
   });

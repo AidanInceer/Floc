@@ -1,7 +1,3 @@
-/**
- * Why: tags are set by hand at each step, and a missed step left picks reading "Chosen"
- * long after they shipped. Main's version says a pick is live, so `--write` sweeps every pick.
- */
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -30,7 +26,6 @@ const older = (a, b) => {
 };
 
 const STATUS = /(<meta name="wf-status" content=")([^"]*)(">)/;
-// Why a commit as well as a version: versions are set once per release, so a push records the commit it landed.
 const ON_DEVELOP = /^Chosen: (.+), on develop (\d+\.\d+\.\d+|[0-9a-f]{7,40})$/;
 const VERSION = /^\d+\.\d+\.\d+$/;
 

@@ -1,10 +1,3 @@
-/**
- * Every trip has at least one notes page (#408): a blank "Notes", made the first
- * time anyone opens Notes on a trip with none.
- *
- * Why a write on read: the same as `ensureDays` — the page must exist before
- * the list can show it.
- */
 import "server-only";
 import { and, eq, isNull } from "drizzle-orm";
 
@@ -20,8 +13,6 @@ export async function insertFirstPage(tx: Pick<typeof db, "insert">, tripId: num
 
 const livePages = (tripId: number) => and(eq(tripPage.tripId, tripId), isNull(tripPage.deletedAt), isNull(tripPage.archivedAt));
 
-// Why a lock, not a transaction (#408): two libSQL write transactions fail SQLITE_BUSY rather
-// than queue. One process serves the app, so first openers wait here; globalThis as `live-kick`.
 const KEY = Symbol.for("floc.notesPages.firstPageLocks");
 const locks = ((globalThis as Record<symbol, Map<number, Promise<void>>>)[KEY] ??= new Map());
 

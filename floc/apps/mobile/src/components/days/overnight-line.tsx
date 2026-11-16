@@ -1,9 +1,3 @@
-/**
- * The overnight form, opened from a stop's label on the day strip (ticket 308).
- *
- * DAY-FIRST (rule 3). `deriveStops` reads the run that starts on `openAt`;
- * saving writes `overnight_place_id` across that run's days. No stop is stored.
- */
 import { deriveStops } from "@floc/core/itinerary/stops";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -40,9 +34,7 @@ export function OvernightLine({
   onClose,
 }: {
   tripId: number;
-  /** Every day of the trip, date ascending — a run can reach past this one. */
   days: OvernightDay[];
-  /** First date of the stop being edited; null when the form is closed. */
   openAt: string | null;
   onClose: () => void;
 }) {
@@ -55,7 +47,6 @@ export function OvernightLine({
   const saveStay = async (writes: StayWrite[], place: OvernightChoice | null) => {
     setBusy(true);
     try {
-      // Why: one write at a time, in order — parallel writes hit SQLITE_BUSY, and the set must land before the clears.
       for (const w of writes) {
         await save.mutateAsync({ tripId, startDate: w.start, endDate: w.end, place: w.clear ? null : place });
       }
@@ -95,8 +86,6 @@ export function OvernightLine({
         placeName: stop?.placeName ?? null,
         days: days.map((row) => ({ date: row.date, placeId: row.overnightPlaceId, placeName: row.overnightPlaceName })),
       }}
-      // Sending an id back keeps the pin the map draws from; re-typing the
-      // name would mint a second, coordinate-less place row.
       known={knownPlaces(days)}
       busy={busy}
       problem={problem}

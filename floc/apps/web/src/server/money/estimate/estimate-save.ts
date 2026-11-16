@@ -1,8 +1,3 @@
-/**
- * The write side of a member's own cost estimate (#574, ADR-057), shared by the web's Server Actions and the
- * phone's API port. Pro is the member's own (`money.estimate` is user-scoped), so another member's plan never
- * opens it. Amounts are stored in the member's home currency.
- */
 import "server-only";
 
 import type { TripAccess } from "@/server/access";

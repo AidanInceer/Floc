@@ -5,7 +5,6 @@ import { ONE_STOP, OUT_FIRST, RAIL, UNSAID } from "@/test/route-listings";
 
 import { borrowCards, hopWords, leadFirst, placeWords } from "./borrow";
 
-// Listings made for the test, so the cards do not move when the real listings change.
 const PRESET_TRIPS = [
   { ...RAIL, id: "rail", country: "Japan", priceFromMinor: 185000, currency: "GBP" as const },
   { ...ONE_STOP, id: "one-stop" },

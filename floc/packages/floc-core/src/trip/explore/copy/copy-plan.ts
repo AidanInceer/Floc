@@ -7,10 +7,8 @@ import { stopsOf } from "../listing-stops";
 import type { PresetTrip } from "../preset-trip-types";
 import { stopCountry } from "./stop-country";
 
-/** `time` null means all day: a move whose day has no line saying when. */
 export type CopyEvent = { type: DayEventType; title: string; time: string | null; transportType: TransportType | null; note: string | null };
 export type CopyPlace = { name: string; lat: number; lng: number; countryCode: string | null };
-/** `place` indexes `CopyPlan.places`: where the group sleeps that night (rule 3). */
 export type CopyDay = { date: IsoDate; place: number; events: CopyEvent[] };
 export type CopyPlan = { places: CopyPlace[]; days: CopyDay[] };
 
@@ -21,7 +19,6 @@ function lineEvent(item: PresetDayItem): CopyEvent {
   return { type, title: item.text, time: item.time, transportType: null, note: null };
 }
 
-/** The move into a stop. It takes its time from the day's first line of the same kind, and that line folds into it. */
 function moveEvent(stop: PlanStop, items: PresetDayItem[]): { event: CopyEvent; line: PresetDayItem | undefined } | null {
   if (!stop.arrive) return null;
   const kind = LINE_KIND[stop.arrive.mode];
@@ -38,10 +35,6 @@ function dayEvents(stop: PlanStop, items: PresetDayItem[], firstDay: boolean, wi
   return events.sort((a, b) => (a.time ?? "").localeCompare(b.time ?? ""));
 }
 
-/**
- * What a copy of a listing writes (ADR-025): one day per date from `startDate`, each sleeping at its stop, the moves
- * between stops as transport events, and — with `events` — the listing's timed lines. Free time is left free.
- */
 export function copyPlan(trip: PresetTrip, detail: PresetDetail | null, startDate: IsoDate, { events }: { events: boolean }): CopyPlan {
   const legs = stopsOf(trip);
   const places: CopyPlace[] = [];

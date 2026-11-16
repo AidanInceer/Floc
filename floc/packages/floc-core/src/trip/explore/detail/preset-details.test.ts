@@ -4,7 +4,6 @@ import { PRESET_TRIPS } from "../preset-trips";
 import { checkPresetDetail } from "./check-preset-detail";
 import { PRESET_DETAIL_IDS, presetDetail } from "./preset-details";
 
-// Hand-written pages drift from their listings silently unless something checks.
 describe("written listing pages", () => {
   it.each(PRESET_DETAIL_IDS)("%s fits its listing", (id) => {
     const trip = PRESET_TRIPS.find((t) => t.id === id);

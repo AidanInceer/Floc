@@ -1,8 +1,3 @@
-/**
- * `user_profile` is our extension of Better Auth's user table (ticket 06) —
- * created lazily so a user who signed up before a column existed still works.
- */
-
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import "server-only";
 
@@ -35,12 +30,6 @@ export async function ensureProfile(
   return created;
 }
 
-/**
- * Writes a patch of profile fields (ticket 108) — one function rather than one
- * per form section, since the shared `last_modified_at` stamp is the only rule
- * they share. Validation (`parseVibeTags`, currency) is pure
- * and lives in `lib/`; the action calls it before this ever sees a value.
- */
 export async function updateProfileFields(
   userId: string,
   patch: Partial<Omit<UserProfile, "userId" | "createdAt" | "lastModifiedAt">>,
@@ -51,12 +40,6 @@ export async function updateProfileFields(
     .where(eq(userProfile.userId, userId));
 }
 
-/**
- * Name, email and picture for one person — the account row and its profile
- * extension read as one (ticket 302). The display name wins over the signup
- * name because that is the whole point of curating one; `undefined` means the
- * account itself has gone, which is not the same as having no profile row.
- */
 export async function loadIdentity(
   userId: string,
 ): Promise<
@@ -88,7 +71,6 @@ export async function loadIdentity(
   };
 }
 
-/** Each person's home currency; a person with no profile yet reads as GBP, as their own pages do. */
 export async function homeCurrenciesFor(userIds: string[]): Promise<Map<string, Currency>> {
   if (userIds.length === 0) return new Map();
   const rows = await db

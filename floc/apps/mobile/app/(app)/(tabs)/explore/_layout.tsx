@@ -1,4 +1,3 @@
-// Why: a stack, so a listing is a push with a back arrow; under the tab layout, so the bottom bar stays reachable.
 import { Stack } from "expo-router";
 
 import { Bell } from "@/components/notifications/bell";

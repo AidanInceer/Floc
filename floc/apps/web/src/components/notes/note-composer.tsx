@@ -11,7 +11,6 @@ export type Face = { name: string; icon: AvatarIcon | null; tone?: string };
 
 function grow(el: HTMLTextAreaElement) {
   el.style.height = "auto";
-  // Why: scrollHeight leaves out the border, so without it the box is 2px short and shows a scrollbar.
   el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`;
 }
 
@@ -29,10 +28,6 @@ function PostButton({ empty }: { empty: boolean }) {
   );
 }
 
-/**
- * One line that grows as you type, with Post inside it (event comments D). Enter posts,
- * Shift+Enter breaks the line. Keeps the words on a refusal, clears them once posted.
- */
 export function NoteComposer({
   me,
   label,
@@ -41,7 +36,6 @@ export function NoteComposer({
   onDone,
 }: {
   me: Face;
-  /** Names the field for a screen reader; the field itself starts empty. */
   label: string;
   post: (formData: FormData) => Promise<{ error?: string } | void>;
   reply?: boolean;
@@ -69,7 +63,6 @@ export function NoteComposer({
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key !== "Enter" || e.shiftKey || e.nativeEvent.isComposing) return;
     e.preventDefault();
-    // Why: the words stay in the field until the post lands, so a second Enter would post them twice.
     if (sending.current || !e.currentTarget.value.trim()) return;
     e.currentTarget.form?.requestSubmit();
   };

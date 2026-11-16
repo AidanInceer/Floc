@@ -1,4 +1,3 @@
-// Why copied, not redrawn: the web's `EventGlyph` paths (`system/icons/days.tsx`), so a day's first thing is one picture on both.
 import type { Pastel } from "@floc/core/design/pastels";
 import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
 import type { DayEventType, TransportType } from "@floc/core/vocabulary";
@@ -25,24 +24,18 @@ function pathFor(type: DayEventType, transportType: TransportType | null) {
   return transportType && transportType !== "other" ? PATHS[transportType] : PATHS.transport;
 }
 
-/**
- * The ground each category sits on, on Days and the Overview alike. `EVENT_CATEGORIES` names it in Tailwind
- * classes the browser resolves; there is no cascade here, so the token is named again.
- */
 const GROUND: Record<Exclude<DayEventType, "other">, Pastel> = {
   transport: "pastel-red",
   activity: "pastel-blue",
   food: "pastel-yellow",
 };
 
-// Other is grey, not a pastel: the recess it sits in, its edge and the softer ink.
 export function groundOf(type: DayEventType, c: ReturnType<typeof useTheme>["c"]) {
   if (type === "other") return { fill: c["sheet-3"], edge: c["rule-2"], ink: c["ink-2"] };
   const g = GROUND[type];
   return { fill: c[g], edge: c[`${g}-edge`], ink: c[`${g}-ink`] };
 }
 
-/** A day's event as a small tile in its category's colour; the row beside it says what it is in words (#204). */
 export function KindTile({ type, transportType }: { type: DayEventType; transportType: TransportType | null }) {
   const { c } = useTheme();
   const { fill, ink } = groundOf(type, c);
@@ -58,7 +51,6 @@ export function KindTile({ type, transportType }: { type: DayEventType; transpor
   );
 }
 
-/** The category's line mark alone, for a block that already wears the category's ground. */
 export function EventMark({ type, transportType, color }: { type: DayEventType; transportType: TransportType | null; color: string }) {
   return (
     <Svg width={12} height={12} viewBox="0 0 14 14" fill="none">

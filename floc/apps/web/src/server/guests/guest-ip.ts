@@ -1,8 +1,3 @@
-/**
- * New guests per IP address (#442, ADR-029). Counted after the guest is made,
- * from the address Better Auth itself stamped on the session, so the limit and
- * the session never disagree about who the caller is.
- */
 import "server-only";
 
 import { and, count, eq, gt } from "drizzle-orm";

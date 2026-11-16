@@ -1,7 +1,6 @@
 import { fromIsoDate, today, type IsoDate } from "@floc/core/dates/dates";
 import { tripListStage } from "@floc/core/trip/list-stage";
 
-/** Why: the web card's word — "In 33 days" says more than "Planning" once there are dates. */
 export function tripCardStatus(
   trip: { startDate: IsoDate | null; endDate: IsoDate | null; needsYou: boolean },
   on: IsoDate = today(),

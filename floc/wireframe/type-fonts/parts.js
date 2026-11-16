@@ -1,4 +1,3 @@
-// The mock-up sections every view shares. Only the faces change, through --display, --sans and --type.
 const PEOPLE = [
   { name: "Priya Raman", tone: 1 },
   { name: "You", tone: 5 },

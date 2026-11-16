@@ -1,6 +1,5 @@
 import type { DayEventType, TransportType } from "@floc/core/vocabulary";
 
-/** The fields of a calendar block the open event's form can change before its save lands. */
 export type EventDraft = Partial<{
   type: DayEventType;
   transportType: TransportType | null;
@@ -20,7 +19,6 @@ export function holdDraft(held: HeldDrafts, eventId: number, draft: EventDraft, 
   return new Map(held).set(eventId, { draft: { ...held.get(eventId)?.draft, ...draft }, rev });
 }
 
-/** The save carrying `rev` landed. A later change keeps its draft until its own save lands. */
 export function settleDraft(held: HeldDrafts, eventId: number, rev: number): HeldDrafts {
   const kept = held.get(eventId);
   if (!kept || kept.rev > rev) return held;
@@ -37,7 +35,6 @@ export function withDrafts<T extends { id: number }>(events: T[], held: HeldDraf
   });
 }
 
-/** A form field's value as the block draws it; null while the block has nothing new to show. */
 export function draftOfField(name: string, value: string): EventDraft | null {
   switch (name) {
     case "title":

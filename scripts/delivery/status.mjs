@@ -1,7 +1,6 @@
 const done = (check) => ["completed", "COMPLETED"].includes(check.status) || Boolean(check.conclusion && !check.status);
 const passedCheck = (check) => ["success", "SUCCESS"].includes(check.conclusion ?? check.state);
 
-/** Cancelled, skipped, neutral and missing required checks never count as passed. */
 export function requiredStatus(checks, required) {
   const pending = [], failed = [];
   for (const name of required) {

@@ -1,6 +1,5 @@
 "use client";
 
-// Why: nights are picked on the month calendar, with where the group sleeps under each week (days-week F).
 import { cx } from "@/components/system/ui";
 import type { CalendarDay } from "@/components/days/days-calendar-shared";
 import { formatMonth, monthGrid, monthOf } from "@floc/core/dates/availability";
@@ -16,10 +15,8 @@ export function OvernightCalendar({
   placeOf,
   onTap,
 }: {
-  /** The trip's own days, in order. */
   trip: CalendarDay[];
   pick: { start: IsoDate; end: IsoDate };
-  /** Where the group sleeps on a trip night after the save; null is not set. */
   placeOf: (date: IsoDate) => string | null;
   onTap: (date: IsoDate) => void;
 }) {

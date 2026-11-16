@@ -27,7 +27,6 @@ function docsClone(main) {
   return docs;
 }
 
-// Why: every worktree's docs/ is this one clone, so its .git is the one place all sessions can read.
 const claimsFile = (docs) => join(docs, ".git", "floc-doc-claims.json");
 
 function readClaims(docs) {
@@ -37,10 +36,6 @@ function readClaims(docs) {
 
 const branchAlive = (main) => (branch) => Boolean(git(main, "branch", "--list", branch));
 
-/**
- * Records that this branch edited these pages, and names any other live branch
- * that edited them too: Git commits a whole page, so the first to push carries both.
- */
 export function claimDocs(main, branch, pages) {
   const docs = docsClone(main);
   const paths = docsPaths(pages);
@@ -56,17 +51,11 @@ const pause = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 
 function retry(action) {
   try { return action(); }
   catch {
-    // Why: sessions share one docs clone, so a second commit can meet the first one's index lock.
     pause(2000);
     return action();
   }
 }
 
-/**
- * Lands a task's own docs branch on floc-docs main: commit what changed, merge
- * main in (never rebase), push. Returns the pages it carried; none when nothing
- * is left to land. A page conflict stops it for a person.
- */
 export function landDocs(docs, subject) {
   git(docs, "add", "-A");
   if (git(docs, "diff", "--cached", "--name-only")) git(docs, "commit", "--quiet", "-m", subject);
@@ -80,16 +69,11 @@ export function landDocs(docs, subject) {
       git(docs, "merge", "--abort");
       throw new Error(`Docs conflict with floc-docs main in ${files || error.message}. Merge origin/main in ${docs} by hand, then finish again.`);
     }
-    // Why the retry: another session can land between this fetch and this push.
-    try { git(docs, "push", "--quiet", "origin", "HEAD:main"); return pages; } catch { /* fetch, merge and push again */ }
+    try { git(docs, "push", "--quiet", "origin", "HEAD:main"); return pages; } catch {}
   }
   throw new Error(`Could not push ${docs} to floc-docs main after three tries.`);
 }
 
-/**
- * Commits only the pages this task changed, so two sessions never commit each
- * other's half-done edits to other pages from the shared clone.
- */
 export function commitDocs(main, pages, subject) {
   const docs = docsClone(main);
   const paths = docsPaths(pages);

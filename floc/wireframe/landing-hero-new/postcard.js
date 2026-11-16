@@ -1,4 +1,3 @@
-// H1 — A postcard from Priya. The front is the trip as an Explore postcard, its route drawn in Explore's style; the back says who's going, when, the route, and keeps a line for you.
 import { fineSicily, calmHeadline, lede, ctas, clock, reduce, onView, face, group, people, you, ico, STOPS } from "./common.js";
 import { exploreSicily } from "./explore.js";
 

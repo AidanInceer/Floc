@@ -36,8 +36,6 @@ async function allocate(root, common) {
   } finally { closeSync(handle); unlinkSync(lock); }
 }
 
-// Why: the main checkout is the user's own loop — the emulator, adb reverse and
-// the existing local.db expect these ports and that database.
 const PRIMARY_PORTS = { web: 3000, metro: 8081, docs: 4173, wireframes: 4100, e2e: 3100, marketing: 4200 };
 
 export async function prepareConfig(directory, common, { primary = false } = {}) {
@@ -75,7 +73,6 @@ export async function prepareConfig(directory, common, { primary = false } = {})
   return { ...config, created };
 }
 
-// Why: a worktree that was moved keeps an .env pointing at the old folder's database. Only lines setup wrote are touched.
 function repointEnv(env, managed) {
   const text = readFileSync(env, "utf8");
   if (!/^TURSO_DATABASE_URL=file:.*\/\.floc\/data\/local\.db$/m.test(text)) return;
@@ -85,7 +82,6 @@ function repointEnv(env, managed) {
 
 const DEV_ACCOUNT = ["FLOC_DEV_USER_EMAIL", "FLOC_DEV_USER_PASSWORD"];
 
-// Why: the seed hangs its trips off your local dev account, so a worktree reuses the main checkout's. Nothing else is copied.
 export function copyDevAccount(root, main) {
   const from = join(main, "floc/apps/web/.env");
   const to = join(root, "floc/apps/web/.env");

@@ -2,8 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { PRESET_TRIPS, REGIONS } from "./preset-trips";
 
-// The card shows nights per base *and* a total (ticket 194) — hand-written
-// editorial data, so the two drift apart silently unless something checks.
 describe("preset trip shape", () => {
   it("base nights add up to the listing's total", () => {
     for (const preset of PRESET_TRIPS) {
@@ -28,7 +26,6 @@ describe("preset trip shape", () => {
     }
   });
 
-  // The map draws each leg by how you travel it, so a stop reached with no hop before it would have no way to draw.
   it("reaches every stop after the first by a hop", () => {
     for (const preset of PRESET_TRIPS) {
       preset.legs.forEach((leg, i) => {
@@ -47,7 +44,6 @@ describe("preset trip shape", () => {
     }
   });
 
-  // Why: `pnpm explore:new` writes a blank template; these catch one left half filled in.
   it("fills in every field the template leaves blank", () => {
     for (const preset of PRESET_TRIPS) {
       expect([preset.title, preset.country, preset.summary, preset.bestMonths].every(Boolean), preset.id).toBe(true);

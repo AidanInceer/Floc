@@ -1,7 +1,3 @@
-/**
- * Notes pages (#408): the list a trip's Notes is made of — made, named, moved,
- * archived and restored by any member, within the limits.
- */
 import { and, eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

@@ -12,7 +12,6 @@ const inside = (dir, path) => {
 
 const onDevelopOrMain = (root, ref) => isAncestor(root, ref, "origin/develop") || isAncestor(root, ref, "origin/main");
 
-/** Hours since git last touched the worktree's index, HEAD or reflog. */
 export function idleHours(path, now = Date.now()) {
   const gitDir = resolve(path, git(path, "rev-parse", "--git-dir"));
   const times = ["index", "HEAD", "logs/HEAD"].map((name) => join(gitDir, name)).filter(existsSync).map((file) => statSync(file).mtimeMs);
@@ -54,7 +53,6 @@ function sweepBranches(main) {
   return report;
 }
 
-/** Removes every managed worktree whose work has landed or that never held any, then branches with nothing to lose. Reports the rest. */
 export function sweep(main, current) {
   git(main, "fetch", "--quiet", "origin", "develop", "main");
   const report = [];

@@ -1,8 +1,3 @@
-/**
- * What push and the email fallback share (#345, #346): which loud rows are
- * due, the limits history, and the claim lease that stops two runs sending
- * one row twice. Each channel says only who it reaches and how it words it.
- */
 import "server-only";
 
 import { and, eq, exists, gte, inArray, isNotNull, isNull, lt, lte, notInArray, or, type SQL } from "drizzle-orm";
@@ -11,7 +6,7 @@ import { alias } from "drizzle-orm/sqlite-core";
 import { db } from "@/db";
 import { activity, notification, pushToken, tripMembership, user, userProfile } from "@/db/schema";
 import { planPushes, type Limits, type PendingPush, type PlannedPush } from "@floc/core/notifications/push-plan";
-import { REMINDER_KINDS, isReminder, type ActivityKind } from "@floc/core/notifications/rules";
+import { LIMIT_FREE_KINDS, isReminder, skipsLimits, type ActivityKind } from "@floc/core/notifications/rules";
 import { touch } from "@/server/audit";
 import { notificationRows, stillVisible } from "@/server/notifications/visible";
 
@@ -29,7 +24,6 @@ export type Channel = {
 
 const recipientProfile = alias(userProfile, "recipient_profile");
 
-/** A switch the person turned off. No profile row means every switch is still on. */
 export const switchedOff = (key: "notifyPush" | "notifyEmail") =>
   exists(
     db
@@ -40,7 +34,6 @@ export const switchedOff = (key: "notifyPush" | "notifyEmail") =>
 
 const recipient = alias(user, "recipient");
 
-/** Why: sign-up does not wait for confirmation (#149), so an unconfirmed address may belong to someone who never signed up. */
 export const addressConfirmed = () =>
   exists(
     db
@@ -49,7 +42,6 @@ export const addressConfirmed = () =>
       .where(and(eq(recipient.id, notification.userId), eq(recipient.emailVerified, true))),
   );
 
-/** Why: only notifications from after the phone registered reach it, so a new install is not handed the backlog (#345). */
 export const hasPhone = () =>
   exists(
     db
@@ -91,7 +83,9 @@ async function due(channel: Channel, now: Date): Promise<PendingPush[]> {
     tripName: r.tripName,
     text: channel.words(r.kind, { actor: r.actorDisplayName ?? r.actorName, trip: r.tripName, detail: r.detail }),
     href: r.href,
-    ...(isReminder(r.kind) ? { exempt: true } : {}),
+    kind: r.kind,
+    actor: isReminder(r.kind) ? null : (r.actorDisplayName ?? r.actorName),
+    ...(skipsLimits(r.kind) ? { exempt: true } : {}),
   }));
 }
 
@@ -102,7 +96,7 @@ async function sentToday(channel: Channel, now: Date) {
     .from(notification)
     .innerJoin(activity, eq(activity.id, notification.activityId))
     .where(
-      and(isNotNull(sent), gte(sent, new Date(now.getTime() - 86_400_000)), notInArray(activity.kind, REMINDER_KINDS)),
+      and(isNotNull(sent), gte(sent, new Date(now.getTime() - 86_400_000)), notInArray(activity.kind, LIMIT_FREE_KINDS)),
     )
     .all();
   return rows.map((r) => ({ userId: r.userId, tripId: r.tripId, sentAt: r.sentAt! }));
@@ -112,7 +106,6 @@ export async function planDue(channel: Channel, now: Date): Promise<PlannedPush[
   return planPushes(await due(channel, now), await sentToday(channel, now), now, channel.limits);
 }
 
-/** Only rows this run wins are sent; a run that loses the race sends nothing for them. */
 export async function claim(channel: Channel, ids: number[], now: Date): Promise<number[]> {
   const won = await db
     .update(notification)

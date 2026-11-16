@@ -1,8 +1,3 @@
-/**
- * Explore — the map and a deck of its listings, then every trip as rows on one sheet. Filters and
- * the order open in sheets. The listings are static `@floc/core` data; only the finder and starting
- * a trip reach the server.
- */
 import { EMPTY_FINDER, finderCounts, type Finder } from "@floc/core/trip/explore/finder/finder";
 import { rankTrips, type FinderSort } from "@floc/core/trip/explore/finder/finder-rank";
 import { finderPills } from "@floc/core/trip/explore/finder/finder-words";
@@ -29,7 +24,6 @@ import { fonts, radius, size, space } from "@/lib/theme";
 import { countWord } from "@floc/core/text/count-word";
 
 const ROW_LIMIT = 10;
-// Why: the UTC month, as the web reads it on the server, so one person sees the same picks on both (#624).
 function useTopPicks() {
   const month = new Date().getUTCMonth() + 1;
   return useMemo(() => {
@@ -47,7 +41,6 @@ export default function Explore() {
   const state = useQuery(trpc.explore.get.queryOptions());
   const saves = useQuery(trpc.explore.saves.queryOptions());
   const [picked, setPicked] = useState(MAP_PICKS[0].id);
-  // Why: a want-to-go country on Lists opens Explore searched for it (#467), over the remembered finder.
   const asked = readCountryCode(useLocalSearchParams<{ country?: string }>().country);
   const [finder, setFinder] = useState<Finder>(asked ? { ...EMPTY_FINDER, q: countryName(asked) } : EMPTY_FINDER);
   const [sort, setSort] = useState<FinderSort>("match");
@@ -71,7 +64,6 @@ export default function Explore() {
   });
 
   const trip = PRESET_TRIPS.find((t) => t.id === picked) ?? PRESET_TRIPS[0];
-  // Why: saved trips are read when the list loads or the finder or sort changes, never on a heart press, so the list holds still.
   const rows = useMemo(() => rankTrips(PRESET_TRIPS, finder, sort, null, new Set(saves.data ?? []), top.ids), [finder, sort, saves.isSuccess, top.ids]);
   const counts = useMemo(() => finderCounts(PRESET_TRIPS, finder), [finder]);
   const pills = finderPills(finder, state.data?.rates ?? null);
@@ -80,7 +72,6 @@ export default function Explore() {
   const change = (next: Finder) => {
     setFinder(next);
     setShowAll(false);
-    // Why: a dragged thumb fires on every step; save the last one only.
     clearTimeout(pendingSave.current);
     pendingSave.current = setTimeout(() => remember.mutate(next), 400);
   };

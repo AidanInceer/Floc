@@ -5,7 +5,6 @@ import { useTheme } from "../system/theme";
 import { REGION_TINT } from "@/lib/region-tint";
 import { fonts, radius, size, space } from "@/lib/theme";
 
-/** A listing's countries, one tag each in the region's colour: the region tints them, the words name them. */
 export function RegionTags({ region, countries }: { region: Region; countries: string }) {
   const { c } = useTheme();
   const tint = REGION_TINT[region];

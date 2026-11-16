@@ -1,11 +1,3 @@
-/**
- * Reads the schema.org reservation some booking mails carry (#559): JSON-LD blocks and microdata.
- *
- * Why the limits: the HTML is a forwarded mail, so it is hostile input. The reader looks at a
- * capped slice, a capped number of blocks and nodes, never runs or fetches anything, and skips
- * what it cannot read rather than throwing. Every value it finds goes through
- * `cleanBookingDetails` before it is used.
- */
 import { cleanBookingDetails, type BookingDetails } from "./booking-details";
 
 const MAX_HTML = 400_000;
@@ -28,7 +20,6 @@ function typeOf(node: Node): string {
   return typeof name === "string" ? (name.split("/").pop() ?? "") : "";
 }
 
-/** The first node under a property, when a mail gives a list where one thing is meant. */
 function child(node: Node | null, key: string): Node | null {
   const value: unknown = node?.[key];
   const first: unknown = Array.isArray(value) ? value[0] : value;
@@ -71,7 +62,6 @@ function reservationOf(node: Node): BookingDetails | null {
 
 type Queued = { value: unknown; depth: number };
 
-/** What to look at under a value: a list's items, or a node's `@graph`. Nothing past the depth limit. */
 function under({ value, depth }: Queued): Queued[] {
   if (depth >= MAX_DEPTH) return [];
   const next: unknown = Array.isArray(value) ? value.slice(0, 50) : isNode(value) ? value["@graph"] : null;
@@ -93,11 +83,6 @@ function reservationIn(roots: unknown[]): BookingDetails | null {
 
 const JSON_LD_TYPE = /type\s*=\s*["']?application\/ld\+json/i;
 
-/**
- * Why `indexOf` and no pattern over the whole mail: a pattern that looks for a tag's end from every tag's start
- * takes seconds on a mail made of unclosed tags, and the server answers nobody while it runs. Each step here
- * moves forward and never looks at the same text twice.
- */
 function jsonLdBlocks(html: string): unknown[] {
   const lower = html.toLowerCase();
   const blocks: unknown[] = [];
@@ -113,7 +98,6 @@ function jsonLdBlocks(html: string): unknown[] {
     try {
       blocks.push(JSON.parse(body) as unknown);
     } catch {
-      // A broken block is skipped: the mail may carry another, or a barcode.
     }
   }
   return blocks;
@@ -126,7 +110,6 @@ function attribute(attrs: string, name: string): string | null {
   return match ? (match[1] ?? match[2] ?? match[3] ?? "") : null;
 }
 
-/** The words between an element's tags, with any tags inside dropped. One pass, capped. */
 function plainText(fragment: string): string {
   let text = "";
   let inTag = false;
@@ -141,7 +124,6 @@ function plainText(fragment: string): string {
 
 type Open = { tag: string; scope: Node | null; textProp: string | null; owner: Node | null; textFrom: number };
 
-/** Microdata as the same tree JSON-LD gives, so one reader serves both. */
 class Microdata {
   readonly roots: Node[] = [];
   private readonly stack: Open[] = [];
@@ -156,7 +138,6 @@ class Microdata {
     return null;
   }
 
-  /** A closing tag ends its element; an element that was a plain property takes its text as the value. */
   close(tag: string, at: number): void {
     const index = this.stack.map((open) => open.tag).lastIndexOf(tag);
     if (index < 0) return;
@@ -165,7 +146,6 @@ class Microdata {
     if (open.textProp && open.owner) open.owner[open.textProp] ??= plainText(this.html.slice(open.textFrom, at));
   }
 
-  /** Files a new scope under its property, or as a root when it hangs off nothing. */
   private place(scope: Node, prop: string | null, owner: Node | null): void {
     if (prop && owner) owner[prop] ??= scope;
     else this.roots.push(scope);
@@ -189,7 +169,6 @@ class Microdata {
 
 const TAG_NAME = /^\/?([a-zA-Z][a-zA-Z0-9]*)/;
 
-/** Walks the tags left to right with `indexOf`, for the reason given at `jsonLdBlocks`. A tag past the cap is skipped. */
 function microdataRoots(html: string): Node[] {
   const reader = new Microdata(html);
   let at = 0;
@@ -209,7 +188,6 @@ function microdataRoots(html: string): Node[] {
   return reader.roots;
 }
 
-/** The first flight or hotel reservation in a mail's HTML, or null. Never throws. */
 export function readSchemaOrg(html: unknown): BookingDetails | null {
   if (typeof html !== "string" || !html) return null;
   const slice = html.slice(0, MAX_HTML);

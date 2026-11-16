@@ -1,6 +1,5 @@
 import type { Region } from "./preset-trips";
 
-// Why: the Caucasus and Turkey sit with Europe because Explore's own Georgia and Turkey trips do; the tests hold the two together.
 const CODES: Record<Region, string> = {
   Europe:
     "AX AL AD AM AT AZ BY BE BA BG HR CY CZ DK EE FO FI FR GE DE GR GG HU IS IE IM IT JE XK LV LI LT LU MT MD MC ME NL MK NO PL PT RO RU SM RS SK SI ES SE CH TR UA GB VA",
@@ -17,5 +16,4 @@ const REGION_OF = new Map(
   (Object.entries(CODES) as [Region, string][]).flatMap(([region, codes]) => codes.split(" ").map((code) => [code, region] as const)),
 );
 
-/** A country's continent, as Explore colours it; null for Antarctica. */
 export const countryRegion = (code: string): Region | null => REGION_OF.get(code) ?? null;

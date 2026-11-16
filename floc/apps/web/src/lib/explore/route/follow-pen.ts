@@ -2,11 +2,6 @@ import { easeInOut, easeOut } from "@/lib/landing/globe/flight";
 
 import { glide, type Pose, type Space } from "./glide";
 
-/**
- * One move of the map, on one clock. Why: the camera, the line and the route it leaves all read the same `t`,
- * so they move as one and cannot drift apart.
- * `drawn` is how much of the new route shows, `old` how much of the one it leaves, `passes` when the pen gets to a point.
- */
 export type Timeline<C> = {
   ms: number;
   skip: number;
@@ -16,14 +11,11 @@ export type Timeline<C> = {
   old: (t: number) => number;
 };
 
-/** How much closer than the whole trip the camera rides with the pen. */
 const CLOSE = 2.1;
-/** The pen's speed, in px a ms at that zoom. */
 const PACE = 0.36;
 const FLY = { per: 820, least: 1000, most: 2000 };
 const DRAW = { least: 2200, most: 5600 };
 const BACK_MS = 1300;
-// Why: the pen sets off just before the camera lands, so the arrival and the first stroke read as one move.
 const LEAD = 0.86;
 const RUB = 0.55;
 const WINDOW = 0.09;
@@ -31,7 +23,6 @@ const WINDOW = 0.09;
 const clamp = (v: number, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, v));
 const sine = (t: number) => (1 - Math.cos(Math.PI * t)) / 2;
 
-/** Where the camera looks while it follows the pen: the pen's point, averaged over a stretch either side so it never jerks. */
 export function penLook<C>(space: Space<C>, points: readonly C[], window = WINDOW): (g: number) => C {
   const n = points.length - 1;
   const span = Math.round(n * window);
@@ -44,10 +35,6 @@ export function penLook<C>(space: Space<C>, points: readonly C[], window = WINDO
   };
 }
 
-/**
- * Follow the pen: fly in close to the start, ride along the route as it draws, then ease out to the whole trip.
- * `length` is the route's length in px at `to`; the old route rubs out while the map flies.
- */
 export function followPen<C>(space: Space<C>, { from, to, look, length, slow = 1 }: { from: Pose<C>; to: Pose<C>; look: (g: number) => C; length: number; slow?: number }): Timeline<C> {
   const near: Pose<C> = { centre: look(0), w: to.w / CLOSE, at: to.at };
   const fly = glide(space, from, near);
@@ -73,7 +60,6 @@ export function followPen<C>(space: Space<C>, { from, to, look, length, slow = 1
   };
 }
 
-/** A plain move with no route to draw, as back out to every trip: the route it leaves fades first. */
 export function glideTo<C>(space: Space<C>, from: Pose<C>, to: Pose<C>): Timeline<C> {
   const path = glide(space, from, to);
   const ms = clamp(Math.abs(path.S) * FLY.per, 900, 1800);
@@ -89,7 +75,6 @@ export function glideTo<C>(space: Space<C>, from: Pose<C>, to: Pose<C>): Timelin
 
 const FADE_MS = 300;
 
-/** How far in each mark is at `t`: a stop, a tag or a name fades in over 300 ms once the pen has passed it. */
 export function markFade(tl: Pick<Timeline<unknown>, "passes">, t: number): (at: number) => number {
   return (at) => easeOut(clamp((t - tl.passes(at)) / FADE_MS));
 }

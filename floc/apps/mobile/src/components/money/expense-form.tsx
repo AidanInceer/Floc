@@ -1,25 +1,3 @@
-/**
- * Add or edit one expense (ticket 300, reshaped #302).
- *
- * WHAT IT LOOKS LIKE AND WHY. The form asks the seven things the web modal
- * asks and used to be drawn the way the web modal draws them: a labelled block
- * per question, stacked. On a desk that is a modal; on a phone it was a page
- * and a half of scrolling for an expense that is usually "lunch, £24, split
- * four ways". Three compressions were drawn and looked at on the device — rows,
- * a sentence, and this. This one won.
- *
- * THE TWO THINGS NOBODY CAN GUESS ARE UP. What it was for and how much: those
- * have to be typed, so they open the card, one line each. The split follows,
- * because it is the thing groups actually disagree about.
- *
- * THE THREE THAT ARE USUALLY RIGHT FOLD. The payer is whoever is holding the
- * phone, the day is none, the note is empty. What is folded is still *said*
- * while it is folded — "Aidan paid · No day" — so the fold hides controls and
- * never facts (#126).
- *
- * THE RULES ARE NOT HERE. `expense-form-parts` holds every one of them, so
- * money, splits and rejections cannot drift from the drawing.
- */
 import { CURRENCIES } from "@floc/core/money/currency";
 import { formatMoney } from "@floc/core/money/money";
 import { useState, type ReactNode } from "react";
@@ -46,14 +24,6 @@ import { fonts, radius, size, space } from "@/lib/theme";
 
 export type { DayOption, ExpenseDraft } from "./expense-form-parts";
 
-/**
- * What is being asked, then the field under it.
- *
- * IT USED TO BE ONE ROW, label left and field right. A phone has no room for
- * that: "Description" and a typed sentence fought for the same 200 points and
- * the label was clipped by the field beside it (#317). Stacked, both get the
- * full width and a long description stops colliding with its own label.
- */
 function Asked({
   label,
   children,
@@ -79,15 +49,6 @@ function Asked({
   );
 }
 
-/**
- * The input on a line, boxed.
- *
- * IT WAS BARE, AND THAT WAS THE BUG. Right-aligned text with no border and a
- * grey placeholder read as a value already filled in — people saw "Lunch" and
- * "0.00" as this expense's description and amount rather than as the shape of
- * an answer. A field has to look like a field: its own ground, its own edge,
- * and ink dark enough to tell typed text from a hint.
- */
 function Plain({
   value,
   onChangeText,
@@ -100,7 +61,6 @@ function Plain({
   onChangeText: (value: string) => void;
   accessibilityLabel: string;
   autoFocus?: boolean;
-  /** Numbers are tabular and right-aligned; words read from the left. */
   numeric?: boolean;
   big?: boolean;
 }) {
@@ -131,7 +91,6 @@ function Plain({
   );
 }
 
-/** Save and Cancel on one row. Three stacked full-width buttons is a wall. */
 function Actions({
   busy,
   onSave,
@@ -145,7 +104,6 @@ function Actions({
 }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
-      {/* Deleting is not one of the two equals: it stays a word, not a slab. */}
       {onDelete ? (
         <Pressable
           accessibilityRole="button"
@@ -163,7 +121,6 @@ function Actions({
   );
 }
 
-/** How the amount is divided, and between whom. */
 function Split({
   f,
   people,
@@ -214,7 +171,6 @@ function Split({
   );
 }
 
-/** What each person's shares currently come to, or "" while the sum cannot be worked out. */
 function shareOf(
   f: ReturnType<typeof useFields>,
   people: ExpenseFormProps["people"],
@@ -242,7 +198,6 @@ function shareOf(
   };
 }
 
-/** How many are in. Each person's own figure is on their own row. */
 function Each({
   f,
   people,
@@ -259,7 +214,6 @@ function Each({
 
 const CURRENCY_OPTIONS = CURRENCIES.map((code) => ({ value: code, label: code }));
 
-/** The payer, the day and the note, behind one line that says what they currently are. */
 function Folded({
   f,
   people,
@@ -276,8 +230,6 @@ function Folded({
   const dayValue = f.dayId === null ? "none" : String(f.dayId);
   const said = [
     `${labelOf(payers, f.paidBy)} paid`,
-    // An undated trip has no days, and that is normal (rule 9) — the question
-    // is simply not asked, and nothing is said about it either.
     days.length > 0 ? labelOf(whichDay, dayValue) : null,
     f.notes.trim() === "" ? null : "a note",
   ]
@@ -359,7 +311,6 @@ export function ExpenseForm({
     <Card>
       <View style={{ gap: space.md }}>
         <View>
-          {/* Why amount first, keypad open: the figure is the one answer every cost needs. */}
           <Asked label={`Amount (${f.currency})`} first>
             <Plain
               accessibilityLabel="Amount"
@@ -370,7 +321,6 @@ export function ExpenseForm({
               autoFocus={!initial}
             />
           </Asked>
-          {/* Why: the category rides the description line — it has a right default, so it gets no row of its own. */}
           <Asked label="Description">
             <View
               style={{

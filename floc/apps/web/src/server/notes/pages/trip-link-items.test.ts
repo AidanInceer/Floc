@@ -1,4 +1,3 @@
-/** What a notes page can link to (#408). */
 import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

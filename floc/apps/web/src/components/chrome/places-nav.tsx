@@ -17,7 +17,6 @@ export type PlaceItem = {
   badge?: ReactNode;
 };
 
-// A trip lives at `/trip/…`, but it is one of your Trips — the tile stays on Trips inside one.
 const UNDER = { "/trip/": "/trips" };
 
 export function PlacesNav({ label, items }: { label: string; items: PlaceItem[] }) {

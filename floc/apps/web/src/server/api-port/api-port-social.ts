@@ -1,19 +1,3 @@
-/**
- * The port's social half — friends, other people's profiles, and being asked
- * onto a trip (tickets 18, 46, 146; split out of `api-port.ts`).
- *
- * ONE PERMISSION MODEL, NOT TWO. Every decision about who may see or ask what
- * is delegated: `relationTo` and `requireProfileView` for profiles,
- * `scoped` for inviting (any member, #312), `listFriendsFor` for who may be offered,
- * `invitableIdsOf` (inside `server/social/groups`) for who may be in a group (#545). Restating
- * any of them here is how the phone quietly grows a looser set of rules than
- * the browser has.
- *
- * SILENCE IS THE REFUSAL. A request to somebody outside every ring, a profile
- * that is none of the viewer's business, and an id that was never an account
- * all answer the same way — nothing, or null. A refusal that named its reason
- * would turn these into a way to test whether an account exists (ticket 46).
- */
 import "server-only";
 
 import type {
@@ -94,7 +78,6 @@ type SocialPort = Pick<
   | "previewInvite"
 >;
 
-/** A row whose person has since gone still has to draw as something. */
 const UNKNOWN = (id: string): Person => ({ id, name: "Someone", avatarIcon: null });
 
 function toPerson(p: Person): FriendPerson {
@@ -103,8 +86,6 @@ function toPerson(p: Person): FriendPerson {
 
 export const socialPort: SocialPort = {
   async loadFriends(viewerId): Promise<FriendsBoard> {
-    // Lazy reconciliation, exactly as the web page does it: v1 has no cron, so
-    // a finished co-trip becomes a friendship the next time either end looks.
     await syncCompletedCoTripFriendships(viewerId);
 
     const [rows, code] = await Promise.all([
@@ -114,8 +95,6 @@ export const socialPort: SocialPort = {
     const otherIdOf = (r: (typeof rows)[number]) =>
       r.userId === viewerId ? r.friendId : r.userId;
 
-    // Every face in one query — this was an await inside a map, so a hundred
-    // friends was a hundred serial round trips (ticket 118).
     const people = await peopleByIds(rows.map(otherIdOf));
     const personFor = (id: string) => toPerson(people.get(id) ?? UNKNOWN(id));
     const { accepted, incoming, outgoing } = splitFriendships(rows, viewerId);
@@ -129,13 +108,10 @@ export const socialPort: SocialPort = {
   },
 
   async requestFriend(viewerId, targetId) {
-    // The id is never trusted alone (ticket 46): without this, posting any id
-    // answers "is that a real account?" through the side effect.
     if (!(await mayAskToBeFriends(viewerId, targetId))) return;
 
     const target = await findUserById(targetId);
     if (!target) return;
-    // Already friends, or a request already sitting one way — refuse quietly.
     if (await friendshipBetween(viewerId, target.id)) return;
 
     await openPendingRequest(viewerId, target.id);
@@ -163,7 +139,6 @@ export const socialPort: SocialPort = {
   },
 
   async cancelFriendRequest(viewerId, targetId) {
-    // The same write as declining, from the other end of the pair.
     await dropPendingRequest(viewerId, targetId);
     refresh({ kind: "friendship", otherId: targetId });
   },
@@ -205,12 +180,8 @@ export const socialPort: SocialPort = {
   },
 
   async loadProfileOf(viewerId, userId): Promise<PublicProfileView | null> {
-    // Your own face is not this endpoint's job — `me.profile` is, and that one
-    // is writable where this is not.
     if (userId === viewerId) return null;
 
-    // Asked first so a stranger comes back as null rather than as a
-    // `notFound()` thrown out of a route handler that cannot catch it.
     const relation = await relationTo(viewerId, userId);
     if (!relation || relation === "self") return null;
 
@@ -226,8 +197,6 @@ export const socialPort: SocialPort = {
       relation: profile.relation === "friend" ? "friend" : "co_traveller",
       isPrivate: profile.isPrivate,
       vibeTags: profile.vibeTags,
-      // Codes and states only — both clients hold `@floc/core/countries`, so
-      // the names would be sending what the reader already has.
       map: profile.travelMap
         ? Object.entries(profile.travelMap.states).map(([code, state]) => ({
             code,
@@ -237,8 +206,6 @@ export const socialPort: SocialPort = {
       been: profile.travelMap ? profile.travelMap.visited : null,
       wantToGo: profile.travelMap ? profile.travelMap.wantToGo : null,
       saved: profile.saved,
-      // `place` is dropped: the phone draws a name and a date range, and a
-      // field nothing draws is a field that goes stale unnoticed.
       pastTrips:
         profile.pastTrips?.map((t) => ({
           id: t.id,
@@ -254,8 +221,6 @@ export const socialPort: SocialPort = {
     const access = await scoped(viewerId, tripId);
 
     const [friends, pending] = await Promise.all([
-      // Accepted friends only: offering somebody who has not agreed to know you
-      // would make a trip invite a backdoor friend request (ticket 146).
       listFriendsFor(viewerId),
       listPendingInvitees(tripId),
     ]);
@@ -279,8 +244,6 @@ export const socialPort: SocialPort = {
   async inviteToTrip(viewerId, tripId, userIds): Promise<number> {
     await scoped(viewerId, tripId);
 
-    // In-app only, like the web (ticket 146): the invitee sees it on their next
-    // trips load. No mail, so nothing here is a way to email a stranger.
     const sent = await inviteToTrip({
       tripId,
       fromUserId: viewerId,
@@ -304,8 +267,6 @@ export const socialPort: SocialPort = {
   },
 
   async acceptTripInvite(viewerId, tripId) {
-    // Accepting is one operation, not a sequence each caller gets right: it
-    // revives a kicked row, lazily makes a profile, and answers the invite.
     await acceptInvite(tripId, viewerId);
     refresh({ kind: "tripList" }, { kind: "invites" });
   },
@@ -316,8 +277,6 @@ export const socialPort: SocialPort = {
   },
 
   async previewInvite(token): Promise<InvitePreview | null> {
-    // No viewer: the point of a share link is that it reads before you are
-    // anybody. Nothing in it is a member's to know (ticket 147).
     const found = await findTripByShareLink(token);
     if (!found) return null;
     return {

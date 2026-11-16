@@ -1,10 +1,3 @@
-/**
- * What somebody on a share link may read (#330, #442).
- *
- * These are the privacy boundary, not a feature: every assertion here is about
- * something a member can see that a non-member must not. A field added to a
- * projection without a test is exactly how one leaks.
- */
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";

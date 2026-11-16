@@ -14,10 +14,6 @@ import { fitOf, poseOf, tripLayer, type TripTint } from "./trip-layer";
 type Scene = { home: LatLng; places: LatLng[]; flags: HTMLElement; clear: () => Box };
 const LANDED = { route: 1, landing: 1, done: true };
 
-/**
- * Explore's map with no tiles: the top of a paper globe with a pin on every trip. A pick turns the trip
- * to the top and flies the plane there from home. Opening a trip follows the pen along its route.
- */
 export function atlasGlobe(canvas: HTMLCanvasElement, { home, places, flags, clear }: Scene) {
   const paint = globePainter(canvas);
   if (!paint || places.length === 0) return null;
@@ -40,7 +36,6 @@ export function atlasGlobe(canvas: HTMLCanvasElement, { home, places, flags, cle
   const drag = globeDrag(canvas, {
     radius: paint.radius,
     view: face.view,
-    // Why: a drag during a move would fight the camera; it takes hold once the map has arrived.
     turnTo(view) {
       if (!trips.running()) face.turnTo(view);
     },
@@ -80,26 +75,22 @@ export function atlasGlobe(canvas: HTMLCanvasElement, { home, places, flags, cle
   }
 
   return {
-    /** Turns the trip to the top of the dome; the plane then flies to it from home. */
     show(i: number) {
       if (i === at) return;
       [at, takeoff, path] = [i, 0, greatCircle(home, places[i]!)];
       if (!trips.isOpen()) face.glide(over(places[i]!), still ? 0 : 1500);
       wake();
     },
-    /** Flies in to one trip and draws its route, with the camera on the pen. */
     open(route: TripRoute, tint: TripTint) {
       face.halt();
       trips.open(route, tint, poseOf(fitNow(), face.view(), width()), clear());
       wake();
     },
-    /** Back to every trip. */
     close() {
       if (!trips.isOpen()) return;
       trips.close(poseOf(fitNow(), face.view(), width()), poseOf(dome(), over(places[at]!), width()));
       wake();
     },
-    /** Brings the dome nearer or further: 1 is every trip, as it opens. */
     zoom(level: number) {
       zoomTo = level;
       wake();

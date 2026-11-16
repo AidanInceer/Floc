@@ -6,17 +6,6 @@ import { useState } from "react";
 import { Button, Select } from "@/components/system/ui";
 import type { DevAccount } from "@/server/auth/dev-accounts";
 
-/**
- * The web half of the dev door (#no-ticket), the twin of the phone's.
- *
- * POST is the browser verb: Better Auth's own response carries the
- * `Set-Cookie`, so the session is the one a typed sign-in would produce. The
- * login page only renders this when the server says the door is open, and it
- * passes the roster in rather than letting this fetch it — the list is a
- * server read, and a client that could ask for it could ask on production.
- *
- * The picker only appears once `pnpm db:seed` has made somebody to pick.
- */
 export function DevSignInButton({ accounts }: { accounts: DevAccount[] }) {
   const router = useRouter();
   const [email, setEmail] = useState(accounts[0]?.email ?? "");

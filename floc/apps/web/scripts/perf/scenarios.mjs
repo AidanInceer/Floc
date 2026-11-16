@@ -1,7 +1,3 @@
-// The clicks the benchmark times. `run` returns ms from pointerdown to `done`.
-// Writes alternate between two values, so every round starts from the seeded state.
-
-/** A tab's page is in: its address, no loading skeleton, and the mark only it draws. */
 const tabIn = ({ path, mark, text }) =>
   location.pathname.endsWith(path) &&
   !document.querySelector('[aria-busy="true"]') &&
@@ -45,7 +41,6 @@ function tabSwitch(from, to) {
   };
 }
 
-/** A person's pointer rests on a tab a moment before pressing; Playwright's own click does not. */
 function tabAfterHover(from, to) {
   return {
     id: `tab.hover-${from}-${to}`,
@@ -84,7 +79,6 @@ let socksRun = 0;
 const socks = (ctx) => `Perf socks ${ctx.tag} ${socksRun}`;
 const tickName = (ctx) => new RegExp(`^(Mark ${socks(ctx)} packed|Unpack ${socks(ctx)})$`);
 
-/** The calendar block, not the dialog: its aria-label starts with the title. */
 const blockHas = ({ title, cls }) =>
   [...document.querySelectorAll("[data-day-column] button[aria-label]")].some(
     (b) => b.getAttribute("aria-label").startsWith(`${title},`) && b.className.includes(cls),
@@ -101,7 +95,6 @@ async function openEvent(ctx) {
   await ctx.page.waitForFunction(dialogOpen, EVENT);
 }
 
-/** Lets the debounced autosave land, so the next sample starts with nothing in flight. */
 async function settleSave(ctx) {
   await ctx.page.waitForFunction(() => {
     const status = document.querySelector('dialog[open] [role="status"]');
@@ -111,7 +104,6 @@ async function settleSave(ctx) {
   await ctx.page.waitForLoadState("networkidle");
 }
 
-/** Food ↔ Activity, from whatever the dialog shows now. */
 async function nextType(ctx) {
   const head = await ctx.page.locator("dialog[open] form > div").first().getAttribute("class");
   return head.includes("bg-pastel-yellow") ? { tile: "Activity", cls: "bg-pastel-blue" } : { tile: "Food", cls: "bg-pastel-yellow" };
@@ -288,7 +280,6 @@ export const SCENARIOS = [
     label: "Add to your bag → row shown",
     setup: async (ctx, step, i) => {
       if (step === 0) await openTab(ctx, "packing");
-      // Why: the field clears itself when the last add settles; typing before that loses the words.
       await ctx.page.getByRole("button", { name: "Add", exact: true }).waitFor();
       await ctx.page.waitForFunction(() => document.querySelector('input[name="label"]')?.value === "");
       await ctx.page.getByRole("textbox", { name: "Add to your bag" }).fill(`Perf ${ctx.tag} ${i}`);

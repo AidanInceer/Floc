@@ -1,11 +1,3 @@
-/**
- * The port's saved-lists half (ticket 230; split out of `api-port.ts`).
- *
- * NOT A TRIP SURFACE. There is no `requireTripAccess` here because a kit
- * belongs to a person, not a trip — `server/packing-kits` carries the owner on
- * every write rather than trusting a resolved id, so somebody else's list is
- * not addressable rather than merely refused.
- */
 import "server-only";
 
 import type { FlocPort, SavedKit } from "@floc/api/port";
@@ -51,7 +43,6 @@ export const kitsPort: KitsPort = {
   async createKit(viewerId, name) {
     const id = await insertPackingKit(viewerId, name);
     refresh({ kind: "packingKits" });
-    // Null is the ceiling, not a failure — the caller draws the cap.
     return id === null ? null : { id };
   },
 

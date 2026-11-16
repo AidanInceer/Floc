@@ -1,8 +1,3 @@
-/**
- * Guests on an invite link (#442, ADR-029). The rules worth failing on: a guest
- * counts only on the trip they voted on, the 13th is refused, a member's row is
- * never taken for a guest's, and removing one leaves nothing behind.
- */
 import { and, eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

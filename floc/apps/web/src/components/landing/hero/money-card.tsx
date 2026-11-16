@@ -3,14 +3,12 @@ import { cx } from "@/components/system/ui";
 import { kicker, SETTLED, SPENT } from "./beats";
 import { Roll } from "./swap";
 
-// Each share is the running total over the six going: £960, then £1,062, then £1,200.
 const EXPENSES = [
   { what: "Flat, Palermo", cost: "£960.00", each: "£160.00" },
   { what: "Car hire", cost: "£102.00", each: "£177.00" },
   { what: "Dinner, Ortigia", cost: "£138.00", each: "£200.00" },
 ];
 
-/** Three expenses land one by one, then the group settles up. */
 export function MoneyCard({ step }: { step: number }) {
   const landed = Math.max(0, Math.min(step - SPENT + 1, EXPENSES.length));
   const settled = step >= SETTLED;

@@ -13,10 +13,6 @@ import { watchRedraw } from "@/components/globe/watch-redraw";
 import { clearArea } from "./clear-area";
 import { drawStillRoute, TONE } from "./still-route";
 
-/**
- * The trip's route on Explore's tile-free globe, still: no fly-in on a page the group opens again and again.
- * It is drawn from the days each time the page loads, so a change on Days is simply there.
- */
 export function OverviewGlobe({
   route,
   tone,
@@ -26,7 +22,6 @@ export function OverviewGlobe({
   route: OverviewRoute;
   tone: TripColor;
   label: string;
-  /** No names or leg tags: the small map on a My trips bar. */
   quiet?: boolean;
 }) {
   const host = useRef<HTMLDivElement>(null);
@@ -38,7 +33,6 @@ export function OverviewGlobe({
     const [box, node] = [host.current, canvas.current];
     const paint = node ? globePainter(node) : null;
     if (!box || !node || !paint) return;
-    // Why: a place saved before ticket 95 has no country stored, so the outline says where it stands.
     const codes = new Set([...route.countries, ...codesAt(fine, route.uncoded)]);
     const tint = { rings: ringsIn(world, fine, codes), tone: TONE[tone], alpha: 1 };
     const land = { world: world.map((p) => p.ring), fine: fine.map((p) => p.ring) };
@@ -50,7 +44,6 @@ export function OverviewGlobe({
     };
     draw();
     void document.fonts.ready.then(draw);
-    // Why: a page that zooms the canvas (the landing tour) says so here, since the box itself does not change size.
     window.addEventListener(CANVAS_ZOOM_EVENT, draw);
     const stop = watchRedraw(box, draw);
     return () => {

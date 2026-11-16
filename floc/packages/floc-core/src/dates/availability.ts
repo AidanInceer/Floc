@@ -1,12 +1,3 @@
-/**
- * Availability maths for the Dates tab — turning "who can do which days" into
- * a calendar grid and a suggested window.
- *
- * Pure and dependency-free on purpose, like `money.ts`: this is the only real
- * logic on the tab, so it's the part worth unit-testing rather than clicking
- * through. Dates are `YYYY-MM-DD` strings throughout — no `Date` crosses a
- * boundary, and there is no timezone anywhere (non-negotiable 9).
- */
 import { addDays, dateRange, fromIsoDate, toIsoDate, type IsoDate } from "./dates";
 
 export type AvailabilityRow = {
@@ -15,7 +6,6 @@ export type AvailabilityRow = {
   available: boolean;
 };
 
-/** `YYYY-MM`. The unit the calendar pages by. */
 export type IsoMonth = string;
 
 export function monthOf(date: IsoDate): IsoMonth {
@@ -28,8 +18,6 @@ export function thisMonth(): IsoMonth {
 
 export function addMonths(month: IsoMonth, delta: number): IsoMonth {
   const [y, m] = month.split("-").map(Number);
-  // Months are 1-based here but 0-based in the arithmetic, so normalise, shift,
-  // and let the modulo carry the year — no Date object needed.
   const zero = y * 12 + (m - 1) + delta;
   return `${String(Math.floor(zero / 12)).padStart(4, "0")}-${String((zero % 12) + 1).padStart(2, "0")}`;
 }
@@ -50,13 +38,8 @@ export function daysInMonth(month: IsoMonth): IsoDate[] {
   return out;
 }
 
-/**
- * The month as weeks of seven cells, Monday-first, padded with `null` either
- * side so every row is a full week and the columns line up under one header.
- */
 export function monthGrid(month: IsoMonth): (IsoDate | null)[][] {
   const days = daysInMonth(month);
-  // getUTCDay() is Sunday-0; we want Monday-0, so rotate.
   const lead = (fromIsoDate(days[0]).getUTCDay() + 6) % 7;
   const cells: (IsoDate | null)[] = [
     ...Array.from({ length: lead }, () => null),
@@ -72,13 +55,10 @@ export function monthGrid(month: IsoMonth): (IsoDate | null)[][] {
 export const WEEKDAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"] as const;
 
 export type Tally = {
-  /** How many members have said yes to this date. */
   free: number;
-  /** User ids that said yes, for the avatar row on a cell. */
   freeUserIds: string[];
 };
 
-/** Only `available: true` rows count — a `false` row reads the same as unanswered for the maths. */
 export function tally(rows: AvailabilityRow[]): Map<IsoDate, Tally> {
   const out = new Map<IsoDate, Tally>();
   for (const row of rows) {
@@ -94,18 +74,10 @@ export function tally(rows: AvailabilityRow[]): Map<IsoDate, Tally> {
 
 export type Window = { start: IsoDate; end: IsoDate; free: number };
 
-/**
- * The window to suggest as the trip's dates. Deliberately doesn't wait for
- * everyone: walks thresholds downwards (everyone marked, then all-but-one,
- * ...) and takes the longest run at the highest threshold reaching
- * `minLength`. Ties go to the earlier window. Null only when nobody has
- * marked anything.
- */
 export function bestWindow(
   rows: AvailabilityRow[],
   minLength = 2,
 ): Window | null {
-  // Entries, not keys: the tally travels with its date, so no lookup can miss.
   const dated = [...tally(rows).entries()].sort(([a], [b]) => (a < b ? -1 : 1));
   if (dated.length === 0) return null;
 
@@ -118,7 +90,6 @@ export function bestWindow(
     }
   }
 
-  // Nothing reaches minLength: fall back to the single best-attended day.
   const [bestDay, bestTally] = dated.reduce((a, b) => (b[1].free > a[1].free ? b : a), dated[0]);
   return { start: bestDay, end: bestDay, free: bestTally.free };
 }
@@ -129,7 +100,6 @@ function runLength(w: { start: IsoDate; end: IsoDate }): number {
   return n;
 }
 
-/** Longest run of consecutive dates whose tally is at or above `threshold`. */
 function longestRun(
   dated: [IsoDate, Tally][],
   threshold: number,
@@ -141,7 +111,6 @@ function longestRun(
   let bestLen = 0;
 
   for (const start of [...eligible].sort((a, b) => a.localeCompare(b))) {
-    // Only start a run at its first day, or every day would seed a duplicate.
     if (eligible.has(addDays(start, -1))) continue;
     let end = start;
     let len = 1;
@@ -158,7 +127,6 @@ function longestRun(
   return best;
 }
 
-/** How much of the trip one person can do, and which days they can't. Null when undated (rule 9). */
 export function tripCoverage(
   isFree: (date: IsoDate) => boolean,
   start: IsoDate | null,
@@ -170,12 +138,10 @@ export function tripCoverage(
   return { free: days.length - missing.length, total: days.length, missing };
 }
 
-/** Why: "I can't do any of these" is an answer. Counting only free days asked that person again (#572). */
 export function markedUserIds(rows: AvailabilityRow[]): string[] {
   return [...new Set(rows.map((row) => row.userId))];
 }
 
-/** Free days per person who has answered; someone who only said no is there with 0. */
 export function freeDaysByUser(rows: AvailabilityRow[]): Partial<Record<string, number>> {
   const out: Partial<Record<string, number>> = {};
   for (const row of rows) out[row.userId] = (out[row.userId] ?? 0) + (row.available ? 1 : 0);

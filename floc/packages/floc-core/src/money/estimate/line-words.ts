@@ -12,7 +12,6 @@ const MISSING: Record<Missing, string> = {
 
 const count = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
-/** The small line under each estimate line's name, the same on web and phone (#574). */
 export function lineDetail(
   line: { line: EstimateLine; range: Range | null; missing?: Missing; route?: FlightRoute },
   ctx: { style: TravelStyle; nights: number },
@@ -30,7 +29,6 @@ export function lineDetail(
   }
 }
 
-/** The closed Settings row's one line, the same on web and phone. */
 export function estimateSummary(homeAirport: string | null, style: TravelStyle): string {
   const lower = (s: string) => s.toLowerCase();
   return `${homeAirport ?? "No home airport"}, ${CABIN_LABELS[style.cabin]}, ${lower(STAY_LABELS[style.stay])}, ${lower(PACE_LABELS[style.pace])}`;

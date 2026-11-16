@@ -1,7 +1,3 @@
-/**
- * #345: loud notifications reach a phone once, after a wait, grouped, inside
- * the limits — and a failed or doubled run never loses or repeats one.
- */
 import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 

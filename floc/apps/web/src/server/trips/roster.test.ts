@@ -1,8 +1,3 @@
-/**
- * The roster's rules (ticket 242, split out of membership.test.ts) — succession,
- * the soft-delete filter, and the map prompt a departure leaves behind. Tested
- * against the module directly: they should fail if moved back into a caller.
- */
 import { and, eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -66,7 +61,7 @@ describe("the roster", () => {
 
     const row = await membership(world.ours.id, world.member);
     expect(row?.deletedAt).toBeNull();
-    expect(row?.mapPromptAt).toBeNull(); // rejoining makes the travel-map question moot (ticket 95)
+    expect(row?.mapPromptAt).toBeNull();
   });
 
   it("brings a removed admin back as a member", async () => {
@@ -102,7 +97,7 @@ describe("leaving", () => {
 
     expect((await membership(world.ours.id, world.admin))?.deletedAt).not.toBeNull();
     expect((await membership(world.ours.id, world.member))?.role).toBe("admin");
-    expect((await tripRow(world.ours.id))?.archivedAt).toBeNull(); // succession, not archiving
+    expect((await tripRow(world.ours.id))?.archivedAt).toBeNull();
   });
 
   it("archives the trip when the last member goes, without deleting it", async () => {
@@ -158,7 +153,7 @@ describe("deleting an account", () => {
 
     expect((await membership(world.ours.id, world.admin))?.deletedAt).not.toBeNull();
     expect((await membership(world.ours.id, world.member))?.role).toBe("admin");
-    expect((await tripRow(world.ours.id))?.deletedAt).toBeNull(); // trip untouched, rows stay attributed to a placeholder
+    expect((await tripRow(world.ours.id))?.deletedAt).toBeNull();
     expect((await tripRow(world.ours.id))?.archivedAt).toBeNull();
   });
 });

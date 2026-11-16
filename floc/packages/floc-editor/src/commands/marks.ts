@@ -1,4 +1,3 @@
-/** The selection bar's marks, comment anchors, and the checklist tick (#408). */
 import type { Node } from "@tiptap/pm/model";
 import type { Command } from "@tiptap/pm/state";
 import { safeHref } from "@floc/core/text/safe-href";
@@ -12,7 +11,6 @@ export function addComment(id: number): Command {
   };
 }
 
-/** Takes a resolved thread's mark off every word it covered. */
 export function removeComment(id: number): Command {
   return (state, dispatch) => {
     const tr = state.tr;
@@ -27,7 +25,6 @@ export function removeComment(id: number): Command {
   };
 }
 
-/** Where each comment starts, in page order: its margin bubble sits level with it. */
 export function commentAnchors(doc: Node): Map<number, number> {
   const anchors = new Map<number, number>();
   doc.descendants((node, pos) => {

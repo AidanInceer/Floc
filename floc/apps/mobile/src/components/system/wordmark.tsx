@@ -1,18 +1,3 @@
-/**
- * Why: the wordmark, drawn natively (#no-ticket; the web's `wordmark.tsx`).
- *
- * THE SAME MARK, NOT A SIMILAR ONE. Three chevrons in a V — the flock, and the
- * "who's coming" of a trip — then the display face lowercase with the one pen
- * dot that carries through the product as "yours". Same 28×22 viewBox and the
- * same three paths as the browser draws, so the two surfaces cannot drift.
- *
- * IT IS THE BIGGEST THING ON THE SIGN-IN SCREEN, a third over the browser's
- * size. On a phone the header is the whole top of the screen rather than one
- * end of a bar, so the mark at the web's 22px read as a caption.
- *
- * IT REPLACES THE WORD "Floc" IN THE HEADER. A stack title is a label; the
- * first thing somebody sees on opening the app should be the mark itself.
- */
 import { Text, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 

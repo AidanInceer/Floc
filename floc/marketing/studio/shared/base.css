@@ -1,6 +1,6 @@
-@font-face { font-family: "Red Hat Display"; font-weight: 800; src: url("/floc/apps/web/src/app/fonts/red-hat-display-latin.woff2") format("woff2"); }
-@font-face { font-family: "Red Hat Text"; font-weight: 300 700; src: url("/floc/apps/web/src/app/fonts/red-hat-text-latin.woff2") format("woff2"); }
-@font-face { font-family: "Red Hat Mono"; font-weight: 300 700; src: url("/floc/apps/web/src/app/fonts/red-hat-mono-latin.woff2") format("woff2"); }
+@font-face { font-family: "Red Hat Display"; font-weight: 800; src: url("/floc/apps/web/public/fonts/red-hat-display-latin.woff2") format("woff2"); }
+@font-face { font-family: "Red Hat Text"; font-weight: 300 700; src: url("/floc/apps/web/public/fonts/red-hat-text-latin.woff2") format("woff2"); }
+@font-face { font-family: "Red Hat Mono"; font-weight: 300 700; src: url("/floc/apps/web/public/fonts/red-hat-mono-latin.woff2") format("woff2"); }
 
 * { box-sizing: border-box; margin: 0; }
 html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--paper); }

@@ -1,7 +1,3 @@
-/**
- * What is left to sort on a trip, for the person reading (#460). Read from the data (rule 4): nothing is
- * stored, and a gap closes the moment the data that fills it lands.
- */
 import { formatDate, formatShortRange, type IsoDate } from "../../dates/dates";
 import type { DatesMoment } from "../../dates/dates-moment";
 import { nightsLabel } from "../../itinerary/stops";
@@ -12,19 +8,15 @@ import { countWord } from "../../text/count-word";
 
 export type GapTab = "dates" | "money" | "packing" | "overview" | "days";
 
-/** What a check is about, so a surface can draw its icon. */
 export type GapKind = "days" | "ideas" | "money" | "packing" | "stay" | "travel";
 
 export type Gap = {
   key: string;
   kind: GapKind;
-  /** The viewer's own to do; these lead within a step. */
   mine: boolean;
   text: string;
-  /** Parts, not one string: a list lines each part up under the one above. */
   sub?: string[];
   tab: GapTab;
-  /** Where on the page, when the page is long. */
   anchor?: string;
   action: string;
 };
@@ -36,16 +28,13 @@ export type LeftToSortInput = {
   members: { userId: string; name: string }[];
   markedUserIds: string[];
   ideas: { mine: boolean }[];
-  /** What the viewer owes, one row per person and currency. */
   owe: { to: string; amountMinor: number; currency: Currency }[];
   shared: { label: string; claimed: boolean }[];
   legs: { no: number; placeName: string; arrive: IsoDate; leave: IsoDate; nights: number; hasStay: boolean; hasTravel: boolean }[];
 };
 
-/** Something already sorted, in words, for the list behind the sorted count. */
 export type Sorted = { key: string; kind: GapKind; text: string; sub?: string[] };
 
-/** One thing Floc checks. An open check with no gap of its own counts towards the meter but shares a line. */
 type Check = { done: true; item: Sorted } | { done: false; gap?: Gap };
 
 const check = (done: boolean, item: Sorted, gap: Gap): Check => (done ? { done, item } : { done, gap });
@@ -109,14 +98,11 @@ function legChecks(input: LeftToSortInput): Check[] {
 }
 
 export type LeftToSort = {
-  /** One line each; a few checks can share a line. */
   open: Gap[];
-  /** How many checks are open, for the meter. */
   left: number;
   done: Sorted[];
 };
 
-/** The order a trip gets planned in: dates, then booking, packing, money, and anything else. */
 const STEP: Record<GapKind, number> = { days: 0, stay: 1, travel: 1, packing: 2, money: 3, ideas: 4 };
 
 const byStep = (a: Gap, b: Gap) => STEP[a.kind] - STEP[b.kind] || Number(b.mine) - Number(a.mine);
@@ -131,5 +117,4 @@ export function leftToSort(input: LeftToSortInput): LeftToSort {
   };
 }
 
-/** Columns for the meter's cubes: one row up to 12, then two, so a long trip's strip stays one line tall. */
 export const cubeColumns = (total: number): number => (total > 12 ? Math.ceil(total / 2) : total);

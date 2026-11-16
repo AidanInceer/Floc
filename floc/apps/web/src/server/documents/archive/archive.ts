@@ -1,7 +1,3 @@
-/**
- * Why: removing a file used to delete its bytes at once, with no backup, so one member could wipe a trip's
- * bookings (ADR-048). A removed file now waits a week here, restorable by anyone who could see it.
- */
 import "server-only";
 
 import { filesToTrim } from "@floc/core/documents/archive";
@@ -26,14 +22,12 @@ export type ArchivedFile = {
   category: DocCategory;
   uploadedBy: string;
   uploaderName: string;
-  /** Null = shared with the trip. Set = private, and only ever the viewer's. */
   ownerId: string | null;
   archivedAt: Date;
 };
 
 const GONE = "That file is no longer in the archive.";
 
-/** Why: a row outlives its bytes — files removed before ADR-048, and ones trimmed early — and those cannot come back. */
 async function withBytes(rows: ArchivedRow[]): Promise<ArchivedRow[]> {
   const held = await Promise.all(rows.map((row) => hasDocument(row.storageKey)));
   return rows.filter((_, i) => held[i]);
@@ -55,7 +49,6 @@ export async function archivedFiles(access: Access, now = new Date()): Promise<A
   }));
 }
 
-/** Null when it is back on the trip, else the refusal in the words a form shows. */
 export async function restoreDocument(access: Access, documentId: number, now = new Date()): Promise<string | null> {
   const tripId = access.trip.id;
   const [row] = await withBytes(await archivedRows(tripId, now, { viewerId: access.viewer.id, documentId }));
@@ -71,13 +64,11 @@ export async function restoreDocument(access: Access, documentId: number, now = 
   return null;
 }
 
-/** Run after every removal: the archive may hold as much as the trip's own space, and no more. */
 export async function trimArchive(tripId: number, now = new Date()): Promise<void> {
   const [rows, space] = await Promise.all([archivedRows(tripId, now).then(withBytes), storageUsage(tripId)]);
   await Promise.all(filesToTrim(rows, space.quotaBytes).map((row) => dropDocument(row.storageKey)));
 }
 
-/** The cron's sweep: the bytes of every file whose week is up. Returns how many files it swept. */
 export async function purgeArchivedFiles(now = new Date()): Promise<number> {
   if (!documentsEnabled()) return 0;
   const keys = await keysPastTheWeek(now);

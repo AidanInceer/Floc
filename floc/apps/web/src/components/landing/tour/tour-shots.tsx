@@ -15,7 +15,6 @@ const SHOTS: Record<string, () => ReactNode> = {
   notes: NotesScreen,
 };
 
-/** Drawn on the server, so the carousel ships no screen markup in its bundle. */
 export function shotFor(key: string): ReactNode {
   const Shot = SHOTS[key];
   return Shot ? <Shot /> : null;

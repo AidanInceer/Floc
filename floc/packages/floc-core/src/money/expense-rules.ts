@@ -1,4 +1,3 @@
-/** The rules every expense write meets, whichever door it came through. */
 import { Refusal } from "../errors/refusal";
 import { CURRENCIES, type Currency } from "./currency";
 import { formatMoney, maxExpenseMinor } from "./money";
@@ -15,7 +14,6 @@ export const NO_AMOUNT = "Enter an amount above zero.";
 export const NO_PAYER = "Say who paid.";
 export const NO_SHARES = "Somebody has to owe something.";
 
-/** Null when the expense may be written; otherwise the sentence that says why not. `people` is who it may name. */
 export function expenseProblem(draft: ExpenseDraft, people: ReadonlySet<string>): string | null {
   const { amountMinor, currency, splits } = draft;
   if (!Number.isInteger(amountMinor) || amountMinor <= 0) return NO_AMOUNT;
@@ -40,7 +38,6 @@ export function expenseProblem(draft: ExpenseDraft, people: ReadonlySet<string>)
   return null;
 }
 
-/** What a person typed into the expense's own boxes, before any maths. */
 export function expenseFieldsProblem(fields: { description: string; paidBy: string; currency: string }): string | null {
   if (!fields.description) return NO_DESCRIPTION;
   if (!fields.paidBy) return NO_PAYER;
@@ -48,7 +45,6 @@ export function expenseFieldsProblem(fields: { description: string; paidBy: stri
   return null;
 }
 
-/** Two different people, both on the trip, and the viewer one of them. */
 export function transferPartiesProblem(
   people: ReadonlySet<string>,
   viewerId: string,

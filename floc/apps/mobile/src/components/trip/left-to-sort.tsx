@@ -1,4 +1,3 @@
-// #460, round 2 E2: soft cubes count what is sorted; Show all opens the stack, one card a thing. Same list as the web.
 import { cubeColumns, type Gap, type GapKind, type LeftToSort as SortList, type Sorted } from "@floc/core/trip/overview/left-to-sort";
 import { SORT_COLOURS } from "@floc/core/design/section-colours";
 import { useState } from "react";
@@ -12,7 +11,6 @@ import { fonts, radius, size, space } from "@/lib/theme";
 
 const CUBE = 11;
 const GAP = 3;
-/** Two lines of text and the card's padding: a card with dates and one without stand the same height. */
 const CARD = 56;
 
 function SortMark({ kind, done }: { kind: GapKind; done: boolean }) {
@@ -82,7 +80,6 @@ function StackCard({ item, onPress }: { item: Gap | Sorted; onPress?: () => void
       }}
     >
       <SortMark kind={item.kind} done={done} />
-      {/* The dates sit under the words they belong to; a card is never shorter than two lines, so short ones match. */}
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={{ color: done ? c["ink-3"] : c.ink, fontFamily: fonts.sans, fontSize: size.small }}>
           {item.text}

@@ -1,7 +1,3 @@
-/**
- * Fill from Google Calendar, through the Server Action (#444): who may call it (rule 5) and that a
- * refusal comes back as a result, never a throw.
- */
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { expectNotFound, migrateTestDb, resetDb, seedScenario, signIn, type Scenario } from "@/test/db";

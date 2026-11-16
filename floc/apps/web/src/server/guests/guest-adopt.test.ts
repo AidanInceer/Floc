@@ -1,8 +1,3 @@
-/**
- * A guest signs up or signs in (#442, ADR-029): their answers become the
- * account's, once, and the account joins the trip. The account's own answer
- * wins over the guest's, and a full trip drops the guest's answers.
- */
 import { and, eq, isNull } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

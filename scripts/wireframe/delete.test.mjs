@@ -5,7 +5,6 @@ import { test } from "node:test";
 
 import { wireframeTarget } from "./delete.mjs";
 
-// Why: an absolute root on whatever platform runs the test; CI is Linux, where "C:" is not absolute.
 const root = resolve(tmpdir(), "worktrees", "some-task");
 const wireframe = join(root, "floc", "wireframe");
 

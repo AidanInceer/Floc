@@ -5,10 +5,8 @@ import { ScrollView, useWindowDimensions, type NativeScrollEvent, type NativeSyn
 import { ExploreCard } from "./explore-card";
 import { space } from "@/lib/theme";
 
-// Why: the next card shows its edge, so the row reads as one you can swipe.
 const PEEK = 28;
 
-/** The map's listings as a row of cards: swiping picks the next pin, and tapping a pin brings its card. */
 export function ExploreDeck({
   trips,
   picked,

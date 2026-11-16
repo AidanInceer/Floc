@@ -1,9 +1,3 @@
-/**
- * Date reminders (#346, #626): a week before, on the day, money still owed a
- * week and a month after, a year on, and the "next trip?" prompt. Written
- * straight into the inbox as loud notifications, so push and email carry
- * them — past the limits, obeying mute.
- */
 import "server-only";
 
 import { and, eq, inArray, isNull, or } from "drizzle-orm";
@@ -52,7 +46,6 @@ async function listeners(tripId: number): Promise<string[]> {
   return rows.filter((r) => r.on !== false).map((r) => r.userId);
 }
 
-/** Who still owes, and "Sam £40.00, Ada €12.00" for each of them: Money's payments, in the payer's currency (#463). */
 async function debtors(tripId: number): Promise<Target[]> {
   const [expenses, splits, settlements] = await Promise.all([
     listExpenses(tripId),
@@ -60,7 +53,6 @@ async function debtors(tripId: number): Promise<Target[]> {
     listSettlements(tripId),
   ]);
   if (expenses.length === 0) return [];
-  // Why: what a payer hands over does not depend on who looks, so any viewer will do.
   const { rows } = await settleUpFrom({ ledger: { expenses, splits, settlements }, viewerId: expenses[0].paidBy });
   const names = new Map((await namesForUsers([...new Set(rows.map((r) => r.payee))])).map((n) => [n.id, n.name]));
   const owed = new Map<string, string[]>();

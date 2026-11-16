@@ -7,7 +7,6 @@ import { toggleBookingSiteAction } from "@/app/settings/actions";
 
 type Shared = {
   sites: BookingSites;
-  /** The site just added, so its new buttons can wash once. */
   fresh: BookingSite | null;
   toggle: (kind: SiteKind, site: BookingSite) => void;
 };
@@ -16,7 +15,6 @@ const SitesContext = createContext<Shared | null>(null);
 
 const FRESH_MS = 1800;
 
-/** One choice for every row on the page: a tick in one menu changes them all at once. */
 export function BookingSitesProvider({ initial, children }: { initial: BookingSites; children: ReactNode }) {
   const [sites, setSites] = useState(initial);
   const [fresh, setFresh] = useState<BookingSite | null>(null);
@@ -32,7 +30,6 @@ export function BookingSitesProvider({ initial, children }: { initial: BookingSi
       clearTimeout(timer.current);
       timer.current = setTimeout(() => setFresh(null), FRESH_MS);
     }
-    // Why: the server's answer wins, so a refused write puts the row back.
     startTransition(async () => setSites(await toggleBookingSiteAction(kind, site)));
   };
 

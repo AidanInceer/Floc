@@ -7,10 +7,6 @@ import { watchRedraw } from "@/components/globe/watch-redraw";
 import { worldDots } from "@/components/explore/outline/world-dots";
 import { TargetIcon } from "@/components/system/icons";
 
-/**
- * A trip with no stops on the map yet still shows a map: the world as blue dots (blue is Where), with a pill that
- * says what is missing. Blue whatever the trip's own colour, so it reads as "no places yet".
- */
 export function DotMap({ label }: { label: string }) {
   const host = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -28,7 +24,6 @@ export function DotMap({ label }: { label: string }) {
       ctx.clearRect(0, 0, w, h);
       const step = Math.max(6, Math.min(9, w / 90));
       ctx.fillStyle = getComputedStyle(node).getPropertyValue("--pastel-blue-ink").trim();
-      // Why: dark's blue ink is pale, so at the light theme's strength the dots read grey, not Where blue.
       ctx.globalAlpha = document.documentElement.dataset.theme === "dark" ? 1 : 0.62;
       for (const d of worldDots(world, w, h, step)) {
         ctx.beginPath();

@@ -1,18 +1,9 @@
-/**
- * The secret in a member's calendar feed URL (#334).
- *
- * A calendar app polls the feed with no session, so the permission rides in the
- * URL. It names one member on one trip and the link's number. It never runs out,
- * but "Reset link" raises the member's number, which ends every older link;
- * leaving the trip ends it too. Signed with `linkKey("calendar-feed")`.
- */
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { linkKey } from "@/server/auth/links/link-key";
 
 export type CalendarHolder = { tripId: number; userId: string; epoch: number };
 
-// Why two: links minted before reset existed carry no number and are signed as `calendar:`; they read as number 0.
 const CURRENT = "calendar-feed";
 const LEGACY = "calendar";
 

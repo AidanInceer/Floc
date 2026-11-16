@@ -44,7 +44,6 @@ describe("placeTags", () => {
   });
 
   it("slides a tag inside the map when no spot is clear, so it never clips", () => {
-    // Swakopmund on the landing Borrow map at 375: boxed in by its neighbours, its name ran off the left edge.
     const view = { left: 0, top: 0, right: 300, bottom: 300 };
     const pins = [{ x: 30, y: 150 }, { x: 70, y: 150 }, { x: 30, y: 110 }, { x: 30, y: 190 }];
     const sizes = [{ width: 80, height: 28 }];
@@ -55,7 +54,6 @@ describe("placeTags", () => {
   });
 
   it("never slides a tag onto a tag placed before it", () => {
-    // Chobe and Victoria Falls on the landing Borrow map at 375: the second name slid in from the edge onto the first.
     const view = { left: 0, top: 0, right: 300, bottom: 200 };
     const pins = [{ x: 191, y: 184 }, { x: 6, y: 180 }, { x: 56, y: 194 }, { x: 170, y: 136 }];
     const sizes = [61, 58, 57, 85].map((width) => ({ width, height: 28 }));
@@ -77,7 +75,6 @@ describe("placeTags", () => {
   });
 
   it("never hangs a tag nearer another stop than its own", () => {
-    // Lisbon, Barcelona, Lagos on the Overview map at 375: Lisbon's name fell beside Lagos and Lagos's beside Lisbon.
     const view = { left: 24, top: 24, right: 319, bottom: 200 };
     const pins = [{ x: 69.805, y: 124.574 }, { x: 274.121, y: 61.503 }, { x: 76.274, y: 163.294 }];
     const sizes = [{ width: 96.367, height: 28 }, { width: 60.929, height: 28 }, { width: 92.071, height: 28 }];
@@ -109,7 +106,6 @@ describe("placeTags", () => {
   });
 
   it("drops the nights line before it hangs a name far from its stop", () => {
-    // Queenstown on the landing Borrow map at 375: boxed in, its name floated 70px off.
     const view = { left: -60, top: -60, right: 60, bottom: 60 };
     const pins = [{ x: 0, y: 0 }, { x: 0, y: 40 }];
     const [at] = placeTags(pins, [{ width: 40, height: 28, short: { width: 40, height: 15 } }], view, pins, [

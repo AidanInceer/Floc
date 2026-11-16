@@ -15,7 +15,6 @@ export async function saveEvent(access: Access, target: Target, fields: EventFie
     const row = await access.event(target.eventId);
     await updateEventFields(row.id, await withPlace());
   } else {
-    // Why: the count only sizes the new event's slot, so it is read beside the day check, not after it.
     const [row, countSoFar] = await Promise.all([access.day(target.dayId), eventCount(target.dayId)]);
     await insertEvent(row.id, await withPlace(), countSoFar);
   }

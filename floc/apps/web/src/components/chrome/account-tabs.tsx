@@ -23,7 +23,6 @@ function iconFor(key: AccountTabKey, open: boolean): ReactNode {
   }
 }
 
-// Why: these pages are not a feature area, so the open tab takes the plain selected wash; Saved and Wish lists wear their own marks' colours (#637).
 const SELECTED = { "--section-wash": "var(--pen-2)", "--section-ink": "var(--pen-deep)" } as CSSProperties;
 const WASH: Partial<Record<AccountTabKey, CSSProperties>> = {
   saved: { "--section-wash": "var(--pastel-red)", "--section-ink": "var(--pastel-red-ink)" } as CSSProperties,
@@ -32,7 +31,6 @@ const WASH: Partial<Record<AccountTabKey, CSSProperties>> = {
 
 const pipClass = `${COUNT_PIP} -right-1.5 border-paper`;
 
-/** The bar under the header on every account page: one level, four clusters, the same on each (#467, #623, #637). */
 export async function AccountTabs({ current, userId }: { current: AccountTabKey; userId: string }) {
   const { friendRequestCount, bookings } = await topBarFor(userId, TOP_BAR_PREVIEW);
   const counts = accountTabCounts({ friendRequestCount, bookingCount: bookings.files.length });
@@ -61,7 +59,6 @@ export async function AccountTabs({ current, userId }: { current: AccountTabKey;
                       {iconFor(tab.key, isOpen)}
                       {count ? <span aria-hidden className={pipClass}>{count > 99 ? "99+" : count}</span> : null}
                     </span>
-                    {/* Why: seven names do not fit a phone's width; the glyphs stay, and the open page is named below. */}
                     <span aria-hidden className="max-sm:hidden">{tab.label}</span>
                   </Link>
                 );

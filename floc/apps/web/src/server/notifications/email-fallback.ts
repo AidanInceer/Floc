@@ -1,17 +1,13 @@
-/**
- * Email for whoever push cannot reach (#346): no phone, or push switched off.
- * The reach rule is the exact opposite of push's, so one notification is never
- * both pushed and emailed — and only to an address its owner has confirmed.
- */
 import "server-only";
 
 import { and, inArray, not, or } from "drizzle-orm";
 
 import { db } from "@/db";
-import { user } from "@/db/schema";
+import { trip, user } from "@/db/schema";
 import { notificationText } from "@floc/core/notifications/notification-text";
 import { EMAIL_LIMITS, EMAIL_WAIT_MS, type PlannedPush } from "@floc/core/notifications/push-plan";
-import { absoluteUrl, type OutboundEmail } from "@/server/auth/email";
+import type { OutboundEmail } from "@/server/auth/email";
+import { noticeEmail, type NoticeTrip } from "@/server/notifications/notice-email";
 import { addressConfirmed, claim, hasPhone, markSent, planDue, release, switchedOff, type Channel } from "@/server/notifications/outbox";
 
 export type EmailSender = (emails: OutboundEmail[]) => Promise<unknown>;
@@ -26,13 +22,15 @@ const EMAIL: Channel = {
   words: (kind, parts) => notificationText(kind, parts),
 };
 
-function emailFor(to: string, planned: PlannedPush, lines: string[]): OutboundEmail {
-  return {
-    to,
-    subject: lines.length === 1 ? lines[0] : `${lines.length} new things on ${planned.title}`,
-    lines,
-    cta: { label: "Open in Floc", url: absoluteUrl(planned.href) },
-  };
+async function tripsFor(plan: PlannedPush[]): Promise<Map<number, NoticeTrip>> {
+  const ids = [...new Set(plan.flatMap((p) => (p.tripId === null ? [] : [p.tripId])))];
+  if (ids.length === 0) return new Map();
+  const rows = await db
+    .select({ id: trip.id, name: trip.name, startDate: trip.startDate, endDate: trip.endDate, colorKey: trip.colorKey })
+    .from(trip)
+    .where(inArray(trip.id, ids))
+    .all();
+  return new Map(rows.map((r) => [r.id, r]));
 }
 
 export async function sendDueEmails(send: EmailSender, now = new Date()): Promise<number> {
@@ -49,6 +47,7 @@ export async function sendDueEmails(send: EmailSender, now = new Date()): Promis
     ).map((u) => [u.id, u.email]),
   );
 
+  const trips = await tripsFor(plan);
   const claimed: number[] = [];
   const emails: OutboundEmail[] = [];
   for (const planned of plan) {
@@ -57,7 +56,17 @@ export async function sendDueEmails(send: EmailSender, now = new Date()): Promis
     const ids = await claim(EMAIL, planned.notificationIds, now);
     if (ids.length === 0) continue;
     claimed.push(...ids);
-    emails.push(emailFor(to, planned, planned.lines.filter((_, i) => ids.includes(planned.notificationIds[i]))));
+    const kept = planned.notificationIds.map((id) => ids.includes(id));
+    emails.push(
+      noticeEmail({
+        to,
+        title: planned.title,
+        href: planned.href,
+        lines: planned.lines.filter((_, i) => kept[i]),
+        parts: planned.parts.filter((_, i) => kept[i]),
+        trip: planned.tripId === null ? null : (trips.get(planned.tripId) ?? null),
+      }),
+    );
   }
   if (emails.length === 0) return 0;
 

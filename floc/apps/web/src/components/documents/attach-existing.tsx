@@ -1,15 +1,9 @@
 "use client";
 
-/**
- * Link a file already on the trip onto this event (ticket 322). A select, not
- * a search: an event's candidates are the trip's loose files, which is a short
- * list by the time anyone opens this.
- */
 import { attachToEvent } from "@/app/trip/[id]/files/actions";
 import { ActionForm, Sheet, SubmitButton } from "@/components/system/client-ui";
 import { Select } from "@/components/system/ui";
 
-/** Structural, so the client bundle never pulls the server's document type. */
 export type FileChoice = { id: number; name: string };
 
 export function AttachExistingFile({

@@ -1,7 +1,3 @@
-/**
- * What a person reads out of the activity log (#344): their notifications,
- * newest first, minus anything whose thing is gone or whose trip they left.
- */
 import "server-only";
 
 import { and, eq, isNull, lt, or } from "drizzle-orm";
@@ -27,7 +23,6 @@ export type InboxPage = { items: InboxItem[]; next: string | null };
 
 const visibleTo = (userId: string) => and(eq(notification.userId, userId), stillVisible());
 
-/** `<ms>-<id>`: the time alone is not unique, so the id breaks the tie. */
 function parseCursor(cursor: string | null) {
   const match = cursor?.match(/^(\d+)-(\d+)$/);
   if (!match) return undefined;
@@ -62,22 +57,15 @@ export async function listInbox(userId: string, cursor: string | null): Promise<
   };
 }
 
-/**
- * What the bell shows. Unseen, not unread: landing on the inbox answers the
- * bell, while each row keeps its own "New" mark until you open it (#403).
- * Capped: past 99 the bell says "99+", so counting further is wasted work.
- */
 export async function countUnread(userId: string): Promise<number> {
   return countNotifications(and(visibleTo(userId), isNull(notification.seenAt)), 100);
 }
 
-/** The account menu's preview: the same set the count on the avatar counts, newest first. */
 export async function listUnseen(userId: string, limit: number): Promise<InboxItem[]> {
   const rows = await notificationRows(and(visibleTo(userId), isNull(notification.seenAt)), limit);
   return rows.map(toItem);
 }
 
-/** Landing on the inbox: every row on screen has now been seen. */
 export async function markInboxSeen(userId: string): Promise<void> {
   await db
     .update(notification)
@@ -86,7 +74,6 @@ export async function markInboxSeen(userId: string): Promise<void> {
     .run();
 }
 
-/** The "Mark all as read" control: clears both marks at once. */
 export async function markAllRead(userId: string): Promise<void> {
   const now = new Date();
   await db
@@ -96,7 +83,6 @@ export async function markAllRead(userId: string): Promise<void> {
     .run();
 }
 
-/** Marks one of your own notifications read and says where it points. Null for anyone else's id. */
 export async function openNotification(userId: string, notificationId: number): Promise<string | null> {
   const opened = await db
     .update(notification)

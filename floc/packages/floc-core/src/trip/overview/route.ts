@@ -1,33 +1,22 @@
-/**
- * The Overview's route as a map draws it: the legs that have a pin, in order, and how the group gets from each to the next.
- * Pure: the page hands in the legs, each day's pin and the times of each day's first transport event.
- */
 import { toMinutes } from "../../dates/calendar";
 import type { TransportType } from "../../vocabulary";
 
 export type RouteDayPin = { overnightPlaceId: number | null; lat: number | null; lng: number | null; countryCode: string | null };
-/** The start and end of a day's first transport event, `HH:MM`, each nullable. */
 export type HopTimes = { time: string | null; endTime: string | null };
 
 type RouteLeg = { placeId: number; placeName: string; days: { dayId: number }[]; nights: number; mode: TransportType | null };
 type Spot = { lat: number; lng: number };
 
 export type OverviewRoute = {
-  /** `nights` as the leg counts them: the trip's last day is the day home, not a night (rule 3). */
   stops: (Spot & { place: string; nights: number })[];
-  /** `moves[k]` goes from `stops[k]` to `stops[k + 1]`. A leg with no transport event has no mode and says so. */
   moves: { mode: TransportType | null; time: string }[];
-  /** ISO codes of the countries the stops stand in, first seen first. */
   countries: string[];
-  /** Stops whose place has no country stored, for the map to look up from the land outline. */
   uncoded: Spot[];
-  /** Legs with no pin, named so their absence is never silent (rule 11). */
   missing: string[];
 };
 
 const NOT_SET = "Not set";
 
-/** How long a journey takes, as a tag writes it: "45 min", "3h", "2h 55", "4h 05". A journey that ends before it starts ends the next day. */
 export function hopLength(time: string | null, endTime: string | null): string {
   const [a, b] = [toMinutes(time), toMinutes(endTime)];
   if (a === null || b === null || a === b) return "";

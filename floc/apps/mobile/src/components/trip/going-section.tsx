@@ -1,4 +1,3 @@
-// Why one line: the web's "B One line" — faces, count and names; the line opens the roster, and Invite is the one verb (#312).
 import { goingNames, goingNotes } from "@floc/core/trip/overview/going";
 import { Pressable, Text, View } from "react-native";
 
@@ -15,7 +14,6 @@ export function GoingLine({
   onInvite,
 }: {
   people: Face[];
-  /** userId → what they still owe the group, in words (`groupStatuses`). */
   statuses: Map<string, string[]>;
   onOpen: () => void;
   onInvite: () => void;

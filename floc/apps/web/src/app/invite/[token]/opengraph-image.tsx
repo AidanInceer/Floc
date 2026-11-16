@@ -1,15 +1,3 @@
-/**
- * Why: the link-preview card a shared invite unfurls to — WhatsApp, iMessage, Slack
- * (ticket: rich invite embed). The page already carries the OG title and
- * description; Next wires this file in as `og:image`/`twitter:image`
- * automatically, so a bare link becomes an inviting card.
- *
- * On brand: the off-white ground, the chevrons and ink wordmark with the one blue dot, the
- * trip's name large. No custom font is loaded — ImageResponse's default keeps
- * this robust (rule 11): a card that always renders beats a prettier one that
- * can fail on a font fetch. A dead or unknown token falls back to a plain
- * Floc card rather than throwing.
- */
 import { ImageResponse } from "next/og";
 
 import { findTripByShareLink } from "@/server/trips/invites";

@@ -1,4 +1,3 @@
-// Every frame is a pure function of time: seek(t) sets the whole stage. render.mjs steps t by 1/30 s.
 const FPS = 30;
 const DURATION = 23;
 const CTA_URL = "floc.app";
@@ -32,7 +31,6 @@ const caption = (parent, kicker, words) => {
   return (lt) => spans.forEach((s, i) => rise(s, lt, 0.05 + i * 0.07, 0.35, 40));
 };
 
-/* 1 · wordmark and headline */
 const s1 = scene(0, 3.5, 0.6);
 s1.node.append(el(`<div class="abs" style="left:0;right:0;top:700px;display:flex;justify-content:center">
   <span class="mark" style="font-size:210px">
@@ -62,7 +60,6 @@ s1.update = (lt) => {
   s1Words.forEach((w, i) => rise(w, lt, 0.95 + i * 0.1, 0.4, 50));
 };
 
-/* 2 · pitch and vote */
 const s2 = scene(3.5, 8, 0.55);
 const s2Cap = caption(s2.node, "01 &nbsp;Where", [["Vote", 0], ["on", 0], ["a", 1], ["place.", 1]]);
 const places = [
@@ -102,7 +99,6 @@ s2.update = (lt) => {
   cards[0].tag.style.transform = `scale(${back(p(lt, 1.62, 1.9))})`;
 };
 
-/* 3 · dates */
 const s3 = scene(8, 12.5, 0.55);
 const s3Cap = caption(s3.node, "02 &nbsp;When", [["Find", 0], ["dates", 0], ["that", 1], ["work.", 1]]);
 const MEMBERS = [["M", "who-a"], ["S", "who-b"], ["J", "who-c"], ["A", "who-d"]];
@@ -154,7 +150,6 @@ s3.update = (lt) => {
   s3Tag.style.transformOrigin = "0 50%";
 };
 
-/* 4 · route */
 const s4 = scene(12.5, 17, 0.55);
 const s4Cap = caption(s4.node, "03 &nbsp;What to do", [["Plan", 0], ["it", 0], ["day", 1], ["by", 1], ["day.", 1]]);
 const stops = [
@@ -199,7 +194,6 @@ s4.update = (lt) => {
   dayRows.forEach((r, i) => { const k = out3(p(lt, stops[i].at + 0.15, stops[i].at + 0.5)); pose(r, { o: k, x: (1 - k) * -120 }); });
 };
 
-/* 5 · money */
 const s5 = scene(17, 20.5, 0.45);
 const s5Cap = caption(s5.node, "04 &nbsp;Who pays", [["Split", 0], ["the", 1], ["costs.", 1]]);
 const bal = [["Maya", "who-a", "M", 4250], ["Sam", "who-b", "S", -1800], ["Jo", "who-c", "J", -2450], ["Alex", "who-d", "A", 0]];
@@ -228,7 +222,6 @@ s5.update = (lt) => {
   owes.forEach((o, i) => { const k = back(p(lt, 0.42 + i * 0.14, 0.7 + i * 0.14)); pose(o, { o: p(lt, 0.42 + i * 0.14, 0.55 + i * 0.14), y: (1 - Math.min(k, 1)) * 40, s: Math.min(k, 1.05) }); });
 };
 
-/* 6 · call to action */
 const s6 = scene(20.5, 23, 0.6);
 s6.node.append(el(`<div class="abs" style="left:0;right:0;top:700px;display:flex;justify-content:center">
   <span class="mark" style="font-size:190px">

@@ -20,7 +20,6 @@ export async function openNotification(formData: FormData): Promise<void> {
   redirect(href ?? "/inbox");
 }
 
-/** Landing on the page answers the bell, not the rows (#403). */
 export async function seeInbox(): Promise<void> {
   const viewer = await requireUser("/inbox");
   await markInboxSeen(viewer.id);

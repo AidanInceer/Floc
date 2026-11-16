@@ -1,10 +1,3 @@
-/**
- * The whole API in one tree (ticket 287).
- *
- * `AppRouter` is the only thing a client imports from this package, and it is
- * a *type* — no runtime code crosses to the phone, so nothing server-side can
- * end up in a bundle that ships to a device.
- */
 import { analyticsRouter } from "./routers/analytics/analytics";
 import { availabilityRouter } from "./routers/itinerary/availability";
 import { billingRouter } from "./routers/billing";
@@ -34,7 +27,6 @@ import { tripsRouter } from "./routers/trips";
 import { publicProcedure, router } from "./trpc";
 
 export const appRouter = router({
-  /** Reachable unauthenticated, so a client can tell "server down" from "signed out". */
   health: publicProcedure.query(() => ({ ok: true as const })),
   me: meRouter,
   settings: settingsRouter,

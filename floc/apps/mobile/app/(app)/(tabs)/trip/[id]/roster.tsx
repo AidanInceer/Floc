@@ -1,13 +1,3 @@
-/**
- * Who is on the trip (ticket 291), the web's "Who's going" list.
- *
- * Two admin powers live here — remove and promote — hidden from a member and
- * refused again by the API if the screen is wrong (rule 6). Leaving and
- * inviting are open to every member (#312).
- *
- * A name opens a menu; View profile is how you meet somebody well enough to
- * ask them to be a friend (ticket 46).
- */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
@@ -26,8 +16,6 @@ import { fonts, size, space } from "@/lib/theme";
 export default function Roster() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
-  // A screen keeps rendering for a frame while it leaves, and `id` is gone by
-  // then: NaN goes down the wire as null and the server rightly refuses it.
   const ready = Number.isFinite(tripId);
   const router = useRouter();
   const { c } = useTheme();

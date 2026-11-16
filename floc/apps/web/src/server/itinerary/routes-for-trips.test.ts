@@ -1,4 +1,3 @@
-// The one read behind every bar's map on My trips: each trip's own route, from one query for the whole list.
 import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 

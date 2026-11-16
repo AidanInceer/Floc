@@ -1,4 +1,3 @@
-// Why: a hub, not a copy of Days — legs per stop replaced the day track, whose five-night stop drew five identical cards.
 import { Suspense } from "react";
 
 import { requireTripAccess } from "@/server/access";
@@ -52,7 +51,6 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
   const tripId = trip.id;
   const files = documentsEnabled();
 
-  // Why: the group streams in under Suspense, so its reads start now but never hold the page.
   const groupExtras = Promise.all([
     friendStatesFor(viewer.id, members.map((m) => m.userId)),
     listPendingInvitees(tripId),
@@ -78,7 +76,6 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
       transportByDay(tripId),
       walkthroughDue(viewer.id),
       listIdeas(tripId, viewer.id),
-      // Rule 11: no storage volume, no files — and no query for them.
       files ? listDocuments(tripId, viewer.id) : Promise.resolve([]),
       homeCurrenciesFor([...new Set([viewer.id, ...members.map((m) => m.userId)])]),
     ]);
@@ -98,7 +95,6 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
   const modes = new Map([...transport].map(([dayId, t]) => [dayId, t.mode]));
   const { legs, wholeTrip } = tripLegs({ days: routeDays, modes, files: docs, tripEnd: trip.endDate });
   const route = overviewRoute({ legs, days: routeDays, hops: transport });
-  // Why: streamed, so the banner's reads never hold the page; it reuses the ledger and days read above (#574).
   const estimate = canUseFeature("money.estimate", viewer.id).then((pro) =>
     pro ? readEstimate(trip, viewer.id, { expenses: expenseRows, splits: splitRows, days: routeDays }) : null,
   );
@@ -121,7 +117,6 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
   return (
     <div className="mx-auto flex w-full max-w-[84rem] flex-col gap-7 px-4 pb-20 pt-6 sm:px-6">
       <LeftToSort tripId={tripId} list={sortList} />
-      {/* Why: the card floats over the globe on a wide screen, as on Explore; the map keeps its route clear of it (clear-area.ts). */}
       <section className="rounded-md bg-sheet shadow-raised ring-1 ring-rule">
         <TripArrival href={`/trip/${tripId}/overview`} />
         <div data-overview-band className="relative grid rounded-t-md bg-sheet-2 lg:min-h-[34rem] lg:grid-cols-[minmax(0,1fr)_23.5rem]">

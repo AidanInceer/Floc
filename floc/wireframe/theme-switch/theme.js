@@ -1,4 +1,3 @@
-// Theme switch: B chosen (2026-11-14) — your face opens a card with the theme. State in memory.
 import { variants } from "/_house/switcher.js";
 
 const G = {
@@ -33,7 +32,6 @@ function choose(next) {
   render();
 }
 
-/* ——— Shared chrome ——— */
 const item = (inner, attrs = "", cls = "") => `<button class="it ${cls}" ${attrs}>${inner}</button>`;
 const bell = () => item(`<span class="tile">${g("bell")}<span class="count">2</span></span>`, 'aria-label="Inbox, 2 new"', "only");
 const you = (attrs = "") => item(`${face(26)}<span class="label">${ME.first}</span>`, attrs);
@@ -59,7 +57,6 @@ const ROWS2 = [["Notifications", "Push, Email, Reminders"], ["Account", ME.email
 const sheet = (rows) => `<section class="card">${rows.map(([t, s]) => `<div class="row"><span class="m"><span class="t">${t}</span><span class="s">${s}</span></span>${g("chev")}</div>`).join("")}</section>`;
 const footSheet = (withTheme) => `<section class="card"><div class="foot">${withTheme ? segments(false) : "<span></span>"}<button class="it">${g("out")}<span>Sign out</span></button></div></section>`;
 
-/* B · your face opens a small card: you (to Profile), the theme, sign out. Two clicks. */
 function B() {
   const pop = state.open
     ? `<div class="scrim" data-close></div><div class="pop" role="dialog" aria-label="You">
@@ -90,7 +87,6 @@ document.addEventListener("keydown", (e) => {
   }
 });
 dark.addEventListener("change", () => state.choice === "system" && choose("system"));
-// The house Light/Dark switch on the right moves the page too; follow it so the controls never disagree.
 new MutationObserver(() => {
   const now = document.documentElement.dataset.theme;
   if (now !== resolved()) {

@@ -1,4 +1,3 @@
-/** Your home airport, found by code, name or city (#574, ADR-057), as on the web. A pick saves at once; the list loads with the picker. */
 import { airportLabel, airportPlace, findAirport, loadAirports, searchAirports, type Airport } from "@floc/core/money/estimate/guide/airports/airports";
 import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";

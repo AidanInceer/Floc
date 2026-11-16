@@ -5,7 +5,6 @@ import { useTheme } from "../../system/theme";
 import { Toggle } from "../../system/ui";
 import { fonts, radius, size, space } from "@/lib/theme";
 
-/** Step three (ADR-025), as on the web: the dates as picked, then the two switches. */
 export function ExtrasStep({ start, nights, ideas, events, onIdeas, onEvents, onChange }: {
   start: IsoDate;
   nights: number;

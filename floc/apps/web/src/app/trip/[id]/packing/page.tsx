@@ -55,13 +55,10 @@ export default async function PackingPage({
   const sharedSelecting = query.sharedPick === "1";
   const selectHref = (select: boolean) => (select ? `${path}?sharedPick=1` : path);
 
-  // A prefetch can't trigger the first-open fill: the tab renders behind
-  // `loading.tsx`, which is as far as Next prefetches a dynamic segment.
   const bagCubes = packingCubes(mine, ideas);
   const suggestedCount = mine.filter((l) => l.origin === "suggested" && l.packedAt === null).length;
   const takeIdea = takePackingIdea.bind(null, tripId);
 
-  // One person, one avatar colour across every tab.
   const toneOf = new Map(access.members.map((m) => [m.userId, m.tone]));
 
   const claimsByLine = new Map<number, PackingClaimant[]>();

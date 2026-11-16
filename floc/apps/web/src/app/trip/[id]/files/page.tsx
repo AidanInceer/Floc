@@ -1,9 +1,3 @@
-/**
- * The Documents page (ticket 239; workspace choices C). Shared and Yours side
- * by side on a desk, stacked on a phone, under one filter row — a documents
- * list is a dozen rows, not hundreds, so per-list controls would cost more
- * than they organise.
- */
 import Link from "next/link";
 
 import { requireTripAccess } from "@/server/access";
@@ -57,7 +51,6 @@ export default async function FilesPage({
 
   const inbox = bookingsInboxAddress();
   const days: DayChoice[] = tripDays.map((day) => ({ id: day.id, date: day.date }));
-  // Why: reading a booking is Pro (#559). On Free the form opens for the member to fill in.
   const plan = { days, reads };
   const keep = (d: { category: DocCategory }) => category === "all" || d.category === category;
   const shared = docs.filter((d) => d.ownerId === null && keep(d));
@@ -71,16 +64,12 @@ export default async function FilesPage({
       <PageTitle className="sr-only">Files</PageTitle>
 
       {!documentsEnabled() ? (
-        // Rule 11: say what is missing rather than offering an upload that
-        // cannot land anywhere.
         <p className="mt-6 rounded-md border border-rule bg-sheet px-4 py-8 text-center text-sm text-ink-soft">
           File storage isn&rsquo;t set up yet, so there is nowhere to put a document. Nothing else
           on the trip is affected.
         </p>
       ) : (
         <>
-          {/* The pills scroll rather than wrap: wrapping dropped Upload onto a
-              second line at phone width, where it read as a stray button. */}
           <div className="mt-5 flex items-center justify-between gap-3">
             <div className="scroll-x-bare flex min-w-0 flex-1 items-center gap-1">
               {docs.length > 0 || category !== "all" ? (
@@ -90,8 +79,6 @@ export default async function FilesPage({
               ) : null}
               {DOC_CATEGORIES.map((c) => {
                 const n = docs.filter((d) => d.category === c).length;
-                // A heading nothing is filed under is a control that does
-                // nothing — it appears when something lands there.
                 if (n === 0 && category !== c) return null;
                 return (
                   <FilterPill key={c} href={href(c)} on={category === c}>
@@ -160,8 +147,6 @@ function FileCard({
   viewerId: string;
   plan: { days: DayChoice[]; reads: boolean };
 }) {
-  // No `overflow-hidden` on the card: a row's re-file menu opens inside it,
-  // and clipping the frame clips the menu.
   return (
     <section className="min-w-0">
       <header className="mb-2 flex items-baseline gap-2.5">

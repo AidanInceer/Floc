@@ -1,7 +1,3 @@
-/**
- * /reset-password — public (#149; redesigned 200). Better Auth sends people
- * here with a one-hour, single-use token in the query.
- */
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 

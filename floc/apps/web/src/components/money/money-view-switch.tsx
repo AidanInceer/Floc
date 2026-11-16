@@ -5,7 +5,6 @@ import { cx, trackSegmentClass } from "@/components/system/ui";
 
 export type MoneyView = "expenses" | "budget";
 
-/** Expenses or your own Budget (#574): one switch, so Money stays one tab. */
 export function MoneyViewSwitch({ tripId, view }: { tripId: number; view: MoneyView }) {
   const item = (key: MoneyView, label: string, href: string) => (
     <Link

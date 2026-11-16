@@ -7,7 +7,6 @@ const RECEIPTS: Record<ReceiptKind, (trip: string) => string> = {
   booking_waiting: () => "A booking is waiting for you to choose its trip",
 };
 
-/** What the person did, and the word that joins it to the trip — null when there is no trip to name. */
 const LINES: Record<Change, { did: string; joins: string | null }> = {
   comment_added: { did: "commented", joins: "on" },
   comment_replied: { did: "replied to a comment", joins: "on" },
@@ -43,7 +42,6 @@ const REMINDERS: Record<ReminderKind, { inbox: (trip: string, detail: string) =>
 
 type Parts = { actor: string; trip: string | null; detail?: string | null };
 
-/** One line for the inbox and email, the same on web and phone. */
 export function notificationText(kind: ActivityKind, { actor, trip, detail }: Parts): string {
   const tripName = trip ?? "a trip";
   if (isReminder(kind)) return REMINDERS[kind].inbox(tripName, detail ?? "");
@@ -53,7 +51,6 @@ export function notificationText(kind: ActivityKind, { actor, trip, detail }: Pa
   return [actor, did, joins, tripName].filter(Boolean).join(" ");
 }
 
-/** The push body: its title is already the trip, so the trip is not said twice (#345). */
 export function pushText(kind: ActivityKind, { actor, detail }: Omit<Parts, "trip">): string {
   if (isReminder(kind)) return REMINDERS[kind].push(detail ?? "");
   if (isReceipt(kind)) return RECEIPTS[kind]("your trip");

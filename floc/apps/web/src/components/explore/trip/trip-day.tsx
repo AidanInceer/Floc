@@ -90,7 +90,6 @@ export function DayRow({ day, open, onToggle }: { day: PlanDay; open: boolean; o
         <span className="nums hidden text-xs text-ink-faint sm:block">{span}</span>
         <ChevronIcon direction="down" size={14} className={cx("text-ink-faint transition-transform duration-220 ease-(--ease)", open && "rotate-180")} />
       </button>
-      {/* Why: the day grows to its height as it opens, as a stop does on the Overview (Aidan, ADR-061). */}
       <div
         id={`day-${day.n}-plan`}
         inert={!open}

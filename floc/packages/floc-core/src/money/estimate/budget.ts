@@ -1,9 +1,7 @@
-/** Integer minor units throughout (rule 1). A range is [low, high]. */
 export type Range = readonly [number, number];
 
 export type BudgetFit = { kind: "fits" } | { kind: "tight"; short: number } | { kind: "over"; by: number };
 
-/** How a budget sits against an estimate: covers the top, covers only the low end, or not even that. */
 export function budgetFit(budget: number | null, plan: Range): BudgetFit | null {
   if (budget == null) return null;
   if (budget >= plan[1]) return { kind: "fits" };

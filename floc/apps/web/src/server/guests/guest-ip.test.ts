@@ -1,4 +1,3 @@
-/** The per-IP limit on new guests (#442, ADR-029): counted from the session rows Better Auth stamps. */
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";

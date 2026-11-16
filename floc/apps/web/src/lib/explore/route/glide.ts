@@ -1,13 +1,10 @@
 import type { LatLng } from "@floc/globe/sphere";
 
 export type Point = { x: number; y: number };
-/** Where a map can look: a flat drawing, or the globe. `apart` is in the same units as a pose's `w`. */
 export type Space<C> = { apart(a: C, b: C): number; mix(a: C, b: C, u: number): C; mean(cs: readonly C[]): C };
-/** A view of the map: the place at `at` on the canvas, and how wide the clear part of the canvas is in the map's own units. */
 export type Pose<C> = { centre: C; w: number; at: Point };
 
 const RAD = Math.PI / 180;
-// Why: how far a long move pulls out. d3's interpolateZoom uses √2; a little more reads as a flight rather than a pan.
 const RHO = 1.35;
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const clamp = (v: number) => Math.min(1, Math.max(0, v));
@@ -23,7 +20,6 @@ const vec = ({ lat, lng }: LatLng): Vec => [Math.cos(lat * RAD) * Math.cos(lng *
 const place = ([x, y, z]: Vec): LatLng => ({ lat: Math.asin(Math.max(-1, Math.min(1, z / (Math.hypot(x, y, z) || 1)))) / RAD, lng: Math.atan2(y, x) / RAD });
 const angle = (p: Vec, q: Vec) => Math.acos(Math.max(-1, Math.min(1, p[0] * q[0] + p[1] * q[1] + p[2] * q[2])));
 
-/** The globe: distance is the angle between two places, in radians, so a pose's `w` is the clear width over the sphere's radius. */
 export const sphere: Space<LatLng> = {
   apart: (a, b) => angle(vec(a), vec(b)),
   mix(a, b, u) {
@@ -36,10 +32,6 @@ export const sphere: Space<LatLng> = {
   mean: (cs) => place(cs.map(vec).reduce((s, v) => [s[0] + v[0], s[1] + v[1], s[2] + v[2]], [0, 0, 0])),
 };
 
-/**
- * The smooth zoom between two views (van Wijk and Nuij): out a little, across, and in, so a long move never smears.
- * `S` is the length of the path; `pose(t)` the view at fraction `t` of it, which the caller eases.
- */
 export function glide<C>(space: Space<C>, a: Pose<C>, b: Pose<C>) {
   const d = space.apart(a.centre, b.centre);
   const [w0, w1] = [a.w, b.w];

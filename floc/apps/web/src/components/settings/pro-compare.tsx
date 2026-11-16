@@ -36,7 +36,6 @@ function Mark({ on }: { on: boolean }) {
   );
 }
 
-/** Why: Free beside Pro, so what Pro adds is read before its price; one Get Pro for the period picked (#250's two price buttons read as unclear). */
 export function ProCompare({ prices }: { prices: Price[] }) {
   const [picked, setPicked] = useState<BillingInterval>(prices.some((p) => p.interval === "yearly") ? "yearly" : "monthly");
   const price = prices.find((p) => p.interval === picked);
@@ -70,7 +69,6 @@ export function ProCompare({ prices }: { prices: Price[] }) {
       ))}
       <div className="grid gap-x-0 gap-y-2 border-t border-rule pt-3.5 sm:grid-cols-[minmax(0,1fr)_11rem]">
         <p className="text-xs text-ink-faint max-sm:order-2">One of you paying covers the whole trip.</p>
-        {/* Why: with no price to quote (a Stripe read failed), Pro is still on sale; the checkout says what went wrong. */}
         <div className="flex items-center justify-between gap-2 rounded-sm bg-sheet-2 p-2.5 sm:flex-col sm:rounded-t-none sm:pb-3">
             {prices.length > 1 ? (
               <SegmentTrack role="group" aria-label="Billing period" className="flex gap-0.5">

@@ -1,7 +1,3 @@
-/**
- * Why: Nominatim geocoding and the `place` table in one server-only module (#110). Nominatim permits storing
- * results but requires a real User-Agent and ≤1 req/s, which only holds if every request funnels through this queue.
- */
 import "server-only";
 
 import { and, eq, isNull, or } from "drizzle-orm";
@@ -15,43 +11,26 @@ import { readCountryCode } from "@floc/core/people/countries";
 import { bounded, LIMITS } from "@/server/limits";
 import { shortPlace } from "@floc/core/itinerary/names/place-name";
 
-/** Nominatim requires an identifying UA with a contact address — not a secret, no key to leak. */
 const USER_AGENT = "Floc (aidaninceer0@gmail.com)";
 
 const NOMINATIM_SEARCH = "https://nominatim.openstreetmap.org/search";
 
-/**
- * Result language (ticket 80) — left unset, Nominatim names places in their
- * own script (e.g. 서울 for Seoul), unreadable against what was typed. i18n is
- * out of scope for v1 so this is a constant, not a setting.
- */
 const SITE_LANGUAGE = "en";
 
-/** Nominatim's absolute cap: 1 request per second. */
 const MIN_INTERVAL_MS = 1000;
 
 export type PlaceSearchResult = {
-  /** Provider-scoped stable id, e.g. `osm:relation:65606`. */
   providerId: string;
-  /** Short form shown on the Route tab ("Porto"). */
   name: string;
-  /** Full display name, for disambiguating in the dropdown only. */
   label: string;
   lat: number;
   lng: number;
-  /** ISO 3166-1 alpha-2 or null (ticket 95) — stored fact, not a geo inference. */
   countryCode: string | null;
 };
 
-/**
- * Serialises geocode calls into a single ≥1s-spaced queue (chain of promises,
- * not a timer). `queue`/`lastCall` are per-process (ticket 110), which holds
- * while floc-web runs as one instance.
- */
 let queue: Promise<unknown> = Promise.resolve();
 let lastCall = 0;
 
-/** Why caps: at 1/s, one person typing fast would otherwise hold everyone else's search. */
 const MAX_WAITING = 10;
 const MAX_WAITING_EACH = 2;
 let waiting = 0;
@@ -64,11 +43,10 @@ function throttle<T>(fn: () => Promise<T>): Promise<T> {
     lastCall = Date.now();
     return fn();
   });
-  queue = run.catch(() => {}); // keep the chain alive if this call rejects
+  queue = run.catch(() => {});
   return run;
 }
 
-/** Nominatim's policy asks for caching; a place's name does not move within a day. */
 const CACHE_MS = 24 * 60 * 60 * 1000;
 const CACHE_SIZE = 500;
 const cache = new Map<string, { at: number; hits: PlaceSearchResult[] }>();
@@ -95,12 +73,7 @@ type NominatimHit = {
   address?: { country_code?: string };
 };
 
-/**
- * Unreachable/rate-limited/malformed → [] + warning, so the picker degrades to
- * a typed name (rule 11) instead of throwing. A full queue answers [] at once.
- */
 export async function searchPlaces(raw: unknown, who = "anyone"): Promise<PlaceSearchResult[]> {
-  // Why the cap: a page of pasted text is no place name, and every search waits its turn in Nominatim's 1 req/s queue.
   const query = capRequiredText(raw, "placeName");
   const key = query.toLowerCase();
   if (!key) return [];
@@ -122,15 +95,14 @@ export async function searchPlaces(raw: unknown, who = "anyone"): Promise<PlaceS
   }
 }
 
-/** Null when the provider could not answer, so a failure is never cached. */
 async function geocode(query: string): Promise<PlaceSearchResult[] | null> {
 
   const url = new URL(NOMINATIM_SEARCH);
   url.searchParams.set("q", query);
   url.searchParams.set("format", "jsonv2");
   url.searchParams.set("limit", "5");
-  url.searchParams.set("addressdetails", "1"); // needed for country_code (ticket 95)
-  url.searchParams.set("accept-language", SITE_LANGUAGE); // else defaults to the server's (nobody's) locale
+  url.searchParams.set("addressdetails", "1");
+  url.searchParams.set("accept-language", SITE_LANGUAGE);
 
   let hits: NominatimHit[];
   try {
@@ -161,7 +133,7 @@ async function geocode(query: string): Promise<PlaceSearchResult[] | null> {
       const lat = Number(h.lat);
       const lng = Number(h.lon);
       const label = h.display_name ?? h.name ?? "";
-      const name = h.name || shortPlace(label) || ""; // display_name is a full address chain
+      const name = h.name || shortPlace(label) || "";
       const providerId =
         h.osm_type && h.osm_id !== undefined
           ? `osm:${h.osm_type}:${h.osm_id}`
@@ -169,13 +141,12 @@ async function geocode(query: string): Promise<PlaceSearchResult[] | null> {
             ? `nominatim:${h.place_id}`
             : null;
       if (!providerId || !name || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-      const countryCode = readCountryCode(h.address?.country_code); // validated here so an unsupported code never reaches the column
+      const countryCode = readCountryCode(h.address?.country_code);
       return { providerId, name, label: label || name, lat, lng, countryCode };
     })
     .filter((r): r is PlaceSearchResult => r !== null);
 }
 
-/** Inserts a `place`, reusing an existing non-deleted row with the same providerId. */
 export async function upsertPlace(input: {
   providerId: string | null;
   name: string;
@@ -184,9 +155,8 @@ export async function upsertPlace(input: {
   countryCode?: string | null;
 }): Promise<number> {
   const countryCode = readCountryCode(input.countryCode);
-  const name = capRequiredText(input.name, "placeName"); // capped here: name may be Nominatim's or hand-typed (ticket 113)
+  const name = capRequiredText(input.name, "placeName");
 
-  // Why: the event sheet saves the place with every autosave, so a typed name made a new row each time.
   if (!input.providerId && input.lat == null && input.lng == null) {
     const same = await db
       .select({ id: place.id })
@@ -203,7 +173,6 @@ export async function upsertPlace(input: {
       .where(and(eq(place.providerId, input.providerId), isNull(place.deletedAt)))
       .get();
     if (existing) {
-      // Backfills a pre-ticket-95 row's country on next pick; never overwrites an existing code.
       if (countryCode && !existing.countryCode) {
         await db
           .update(place)
@@ -229,7 +198,6 @@ export async function upsertPlace(input: {
   return inserted.id;
 }
 
-/** One place as the map needs it — the row plus nothing derived (ticket 296). */
 export type TripPlaceRow = {
   id: number;
   name: string;
@@ -238,17 +206,6 @@ export type TripPlaceRow = {
   countryCode: string | null;
 };
 
-/**
- * Every place a trip's days point at, once each (ticket 296).
- *
- * Two ways a day reaches a place: it is where the group sleeps
- * (`day.overnightPlaceId`) or it is where an event happens
- * (`day_event.place_id`). Both count for the map.
- *
- * This says nothing about stops. A stop is consecutive days sharing an
- * overnight place and is derived from the days themselves (rule 3) — this is
- * the flat set, and the only thing it adds is coordinates.
- */
 export async function listTripPlaces(tripId: number): Promise<TripPlaceRow[]> {
   const rows = await db
     .selectDistinct({
@@ -268,8 +225,6 @@ export async function listTripPlaces(tripId: number): Promise<TripPlaceRow[]> {
       ),
     )
     .where(and(eq(day.tripId, tripId), isNull(day.deletedAt)))
-    // Bounded by the day cap: a place only reaches this result by way of a
-    // day, so there can never be more places than days.
     .limit(LIMITS.days)
     .all();
 

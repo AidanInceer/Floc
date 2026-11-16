@@ -1,8 +1,3 @@
-/**
- * #442: a guest on an invite link holds a real session, but the door treats it
- * as signed out — every page and action behind `requireUser` and
- * `requireTripAccess` answers a guest as it answers nobody (rule 5).
- */
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";

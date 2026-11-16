@@ -1,19 +1,3 @@
-/**
- * The fallback shown while a tab's own content loads. Scoped to the tab body
- * only — the trip header and the tab bar live in `layout.tsx`, so they stay
- * put and the clicked tab stays highlighted while this swaps in underneath.
- *
- * Two reasons this exists rather than letting the page block:
- *  - Every tab is a server render over the database, so there is always a
- *    real wait. Without a boundary the whole trip screen (header included)
- *    freezes on the old tab, and the click reads as having been ignored.
- *  - It gives Next.js a prefetchable boundary for these dynamic routes, so a
- *    hovered tab has something ready before it is clicked.
- *
- * It holds the shape every tab arrives in (ticket 202) — a heading, a row of
- * tiles, then a body — so the page settles into the skeleton instead of
- * jumping past it.
- */
 export default function TripTabLoading() {
   return (
     <div

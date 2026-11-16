@@ -1,7 +1,3 @@
-/**
- * Filing, ordering and filtering a packing list (ticket 229). Pure, so the page
- * and these agree by construction — the page does no ordering of its own.
- */
 import { describe, expect, it } from "vitest";
 
 import {
@@ -120,7 +116,6 @@ describe("the rendered view", () => {
     );
     expect(view.at(-1)?.heading).toBe("Photography");
     expect(labels(view.at(-1)!.lines)).toEqual(["tripod", "ND filter"]);
-    // and it hasn't leaked into the heading it would otherwise have filed under
     expect(labels(view[3].lines)).toEqual(["water bottle"]);
   });
 });

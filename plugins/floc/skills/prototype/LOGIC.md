@@ -15,7 +15,7 @@ If the question is "what should this look like" — wrong branch. Use [UI.md](UI
 
 ### 1. State the question
 
-Before writing code, write down what state model and what question you're prototyping. One paragraph, in the prototype's README or a comment at the top of the file. A logic prototype that answers the wrong question is pure waste — make the question explicit so it can be checked later, whether the user is watching now or returning to it AFK.
+Before writing code, write down what state model and what question you're prototyping. One paragraph, in the prototype's README — never a code comment. A logic prototype that answers the wrong question is pure waste — make the question explicit so it can be checked later, whether the user is watching now or returning to it AFK.
 
 ### 2. Pick the language
 

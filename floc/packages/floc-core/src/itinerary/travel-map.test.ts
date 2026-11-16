@@ -1,8 +1,3 @@
-/**
- * The travel map's merge rules (ticket 95) — the pure half of @floc/core/itinerary/travel-map.
- * Everything contentious about this feature is decided in `mergeMarks`, so it
- * is worth pinning down without a database.
- */
 import { describe, expect, it } from "vitest";
 
 import { readCountryCode } from "../people/countries";
@@ -17,15 +12,11 @@ describe("mergeMarks", () => {
   });
 
   it("keeps a hand-green country green through an upcoming trip", () => {
-    // The case the maintainer raised: been to Japan, going again next month.
-    // A trip may not demote you.
     const map = mergeMarks({ JP: "yellow" }, { JP: "green" });
     expect(map.states.JP).toBe("green");
   });
 
   it("treats `none` as a rejection, not as a gap", () => {
-    // The trip's dates passed, so it claims green — and it's wrong, because
-    // the trip was cancelled. The map has to be able to say so.
     const map = mergeMarks({ ES: "green" }, { ES: "none" });
     expect(map.states.ES).toBeUndefined();
     expect(map.visited).toBe(0);
@@ -59,8 +50,6 @@ describe("readCountryCode", () => {
   });
 
   it("refuses anything the map has no shape for", () => {
-    // Nominatim returns codes for territories Natural Earth doesn't draw, and
-    // a code with no polygon would paint nothing while counting as marked.
     expect(readCountryCode("XX")).toBeNull();
     expect(readCountryCode("")).toBeNull();
     expect(readCountryCode(null)).toBeNull();
@@ -68,7 +57,6 @@ describe("readCountryCode", () => {
   });
 
   it("has the small states the 1:110m outlines drop", () => {
-    // They come in as points rather than polygons — see build-countries.mjs.
     expect(readCountryCode("sg")).toBe("SG");
     expect(readCountryCode("mt")).toBe("MT");
   });

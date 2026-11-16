@@ -22,7 +22,6 @@ function Choice({ tile, label, hint, onPick }: { tile: ReactNode; label: string;
 
 const tile = "grid size-[30px] shrink-0 place-items-center rounded-sm";
 
-/** Step one (ADR-025): the trip's dates decide what can come across, so they are asked first. */
 export function AskStep({ nights, onAnswer }: { nights: number; onAnswer: (has: boolean) => void }) {
   return (
     <div className="grid gap-4">

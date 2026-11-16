@@ -1,8 +1,3 @@
-/**
- * The link-preview cards a shared link unfurls to: the wordmark as `wordmark.tsx` draws it, in the
- * light tokens, because the image renderer cannot read CSS variables. No custom font is loaded, so
- * a card always renders (rule 11).
- */
 import { resolveColours, type Theme } from "@floc/core/design/tokens";
 
 const colours = resolveColours("light");
@@ -17,7 +12,6 @@ export const OG_COLOURS = {
   butter: colours["pastel-yellow"],
 };
 
-/** Light by default; the recap picture can be sent in dark too (#443). */
 export function OgWordmark({ theme = "light" }: { theme?: Theme }) {
   const ink = theme === "light" ? OG_COLOURS.ink : resolveColours(theme).ink;
   return (
@@ -42,7 +36,6 @@ export function OgWordmark({ theme = "light" }: { theme?: Theme }) {
   );
 }
 
-/** A public page's card: the wordmark, the page's heading large, one line under it. */
 export function OgPageCard({ heading, line }: { heading: string; line: string }) {
   return (
     <div

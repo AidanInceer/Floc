@@ -1,8 +1,3 @@
-/**
- * Deep links out to flight and stay search. Flight booking is out of scope
- * (CLAUDE.md) — Floc only prefills a search on another site. Only places,
- * dates and a head count go into a URL: never a name or an email.
- */
 import { addDays } from "../../dates/dates";
 import { deriveStops, type StopDayInput } from "../../itinerary/stops";
 import type { BookingSite } from "./booking-sites";
@@ -12,7 +7,6 @@ export type { BookingSite } from "./booking-sites";
 
 export type BookingLink = { site: BookingSite; url: string };
 
-/** The file that books a stay: what its Booked pill names. */
 export type BookedHotel = { id: number; name: string };
 
 export type StayRow =
@@ -22,7 +16,6 @@ export type StayRow =
       checkIn: string;
       checkOut: string;
       links: BookingLink[];
-      /** The stop's first day: where a booking uploaded from this row is filed. */
       dayId: number;
       hotel: BookedHotel | null;
     }
@@ -37,7 +30,6 @@ const GOOGLE_FLIGHTS = "https://www.google.com/travel/flights";
 
 const googleFlights = (q: string) => `${GOOGLE_FLIGHTS}?q=${encodeURIComponent(q)}`;
 
-// Why: Kayak and Kiwi.com search by airport or their own place ids, which a place has none of, so they open their own search.
 const FLIGHT_HOMES: BookingLink[] = [
   { site: "Kayak", url: "https://www.kayak.co.uk/flights" },
   { site: "Kiwi.com", url: "https://www.kiwi.com/en/" },
@@ -45,14 +37,12 @@ const FLIGHT_HOMES: BookingLink[] = [
 const SKYSCANNER_HOME = "https://www.skyscanner.net/flights";
 
 function skyscannerDays(outbound: string, inbound?: string): string {
-  // Why: Skyscanner's prefill wants airport codes, which a place has none of; dates are what it can take.
   const url = new URL("https://www.skyscanner.net/g/referrals/v1/flights/day-view");
   url.searchParams.set("outboundDate", outbound);
   if (inbound) url.searchParams.set("inboundDate", inbound);
   return url.toString();
 }
 
-/** Filling in the place, dates and head count is Pro (`booking.prefill`); free opens each site's own search. */
 type Prefill = { prefill: boolean };
 
 export function flightLinks({
@@ -130,10 +120,8 @@ export function stayLinks({
   ];
 }
 
-// Why: Hostelworld searches by its own city ids, which a place has none of, so it opens its own search.
 const HOSTELWORLD: BookingLink = { site: "Hostelworld", url: "https://www.hostelworld.com/" };
 
-/** One flight leg on a transport event (ticket 10), on every flight site. */
 export function eventFlightLinks({
   origin,
   destination,
@@ -153,12 +141,10 @@ export function eventFlightLinks({
   ];
 }
 
-/** Check-out after a stay's last day: the morning after, unless that day is the trip's last, the day home (rule 3). */
 export function stayCheckOut(lastDay: string, tripLastDay: string | null): string {
   return lastDay === tripLastDay ? lastDay : addDays(lastDay, 1);
 }
 
-/** What the group can book: only while the dates are set and the trip is still ahead. Days sorted by date. */
 export function bookingPlan({
   trip,
   days,
@@ -171,7 +157,6 @@ export function bookingPlan({
   days: StopDayInput[];
   today: string;
   adults: number;
-  /** The files this person can see; a hotel file on a stop books it. */
   files?: (LegFile & { id: number; name: string })[];
 } & Prefill): BookingPlan | null {
   const { startDate, endDate } = trip;

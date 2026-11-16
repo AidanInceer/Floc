@@ -1,7 +1,3 @@
-/**
- * Lists (#467): what you keep, one level under You. Saved holds your Explore trips and want-to-go
- * countries; Wish lists are kept with other people (#623); Packing holds your saved packing lists (#230). The web's Lists pages.
- */
 import { useState } from "react";
 import { View } from "react-native";
 

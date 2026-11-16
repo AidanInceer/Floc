@@ -1,8 +1,6 @@
-// The Explore page around the picks, drawn by eye from the live site: top bar, the globe, All trips with its rail and tiles.
 import { esc } from "/_house/kit/trip-frame.mjs";
 import { LISTINGS as RAW } from "./listings.js";
 
-// Explore lists Asia first, as the live page does.
 const ORDER = ["Asia", "Europe", "Africa", "Americas", "Oceania"];
 export const LISTINGS = [...RAW].sort((a, b) => ORDER.indexOf(a.region) - ORDER.indexOf(b.region));
 
@@ -16,7 +14,6 @@ export const windowName = (ms) => (ms.length === 1 ? MONTH[ms[0]] : `${MONTH[ms[
 const REGION_TONE = { Europe: "blue", Africa: "yellow", Asia: "red", Americas: "green", Oceania: "pen" };
 export const toneOf = (t) => REGION_TONE[t.region];
 
-/** Every top pick for the window, regions taken in turn, shortest season first; at most two a region, nine in all. */
 export function allPicksFor(months, cap = 9, perRegion = 2) {
   const fit = LISTINGS.filter((t) => months.every((m) => t.months.includes(m)))
     .sort((a, b) => a.months.length - b.months.length || a.id.localeCompare(b.id));
@@ -60,7 +57,6 @@ export const saved = new Set(["mexico-yucatan-loop", "hanoi-to-bangkok"]);
 export const heart = (t, cls = "heart") =>
   `<button type="button" class="${cls}" data-save="${t.id}" aria-pressed="${saved.has(t.id)}" aria-label="${saved.has(t.id) ? "Saved" : "Save"}: ${esc(t.title)}">${g(GLYPH.heart)}</button>`;
 
-// A seeded blob of land under the route, standing in for the live tile's country outline.
 function rand(seed) {
   let h = 2166136261;
   for (const c of seed) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
@@ -82,7 +78,6 @@ function blob(cx, cy, r, seed, n = 9) {
   return d + "Z";
 }
 
-/** The tile's map: land in the region's pastel, the route in ink. */
 export function tileMap(t, w = 240, h = 170) {
   const lat0 = t.stops.reduce((a, s) => a + s[1], 0) / t.stops.length;
   const k = Math.cos((lat0 * Math.PI) / 180);
@@ -98,7 +93,6 @@ export function tileMap(t, w = 240, h = 170) {
     <path class="land" d="${blob(w / 2, h / 2 + 6, w * 0.46, t.id)}"/><path class="route" d="${line}"/><g class="stops">${dots}</g></svg>`;
 }
 
-/** One listing as the live tile: map, country tag, title, figures, tags, More like this. */
 export function tile(t, { mark = "", extra = "", cls = "", lite = false } = {}) {
   if (lite) {
     return `<li class="tile ${cls}"><a class="tile-link" href="#${t.id}"><span class="tile-art">${tileMap(t)}</span>
@@ -125,7 +119,6 @@ export function topBar() {
     <span class="pill acct"><span class="avatar who-3" style="width:24px;height:24px;font-size:10px">Ai</span><span class="acct-name">Aidan</span>${g(GLYPH.chev)}</span></header>`;
 }
 
-// Orthographic globe, as the live one: a pastel sphere, every listing a pin.
 export function globe({ lon0 = 40, lat0 = 8, r = 520, w = 1280, h = 360, cx = w / 2, cy = 360, highlight = [], arc = null } = {}) {
   const rad = (d) => (d * Math.PI) / 180;
   const project = (lat, lon) => {
@@ -164,7 +157,6 @@ export function globe({ lon0 = 40, lat0 = 8, r = 520, w = 1280, h = 360, cx = w 
 const monthCounts = () => Array.from({ length: 12 }, (_, i) => LISTINGS.filter((t) => t.months.includes(i + 1)).length);
 const regionCounts = () => ["Europe", "Africa", "Asia", "Americas", "Oceania"].map((r) => [r, LISTINGS.filter((t) => t.region === r).length]);
 
-/** The filter rail as on the live site; `months` ticks the Dates facet. */
 export function rail(months = []) {
   const counts = monthCounts();
   const bars = [2, 9, 12, 3, 0, 1, 2, 2, 3, 2, 2, 1, 1, 0, 1].map((n) => `<i style="height:${4 + n * 3}px"></i>`).join("");

@@ -1,4 +1,3 @@
-/** From a booking file to the plan (#559): the member's own save makes the event, and rule 5 holds. */
 import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
@@ -26,7 +25,6 @@ async function file(tripId: number, ownerId: string | null, uploadedBy: string, 
   return row.id;
 }
 
-/** The API's access answers "not on this trip" for a row it will not hand over, whatever the reason (rule 5). */
 const expectRefused = (work: () => Promise<unknown>) => expect(work()).rejects.toThrow("That is not on this trip.");
 const access = async (userId: string, tripId = world.ours.id) => (await findTripAccess(tripId, userId))!;
 const flight = (dayId: number) => ({ dayId, title: " FR 8347 · STN to OPO ", transportType: "flight", time: "06:25", endTime: "08:55" });

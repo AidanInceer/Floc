@@ -65,7 +65,6 @@ function StopRow({ tripId, row, first }: { tripId: number; row: Stop; first: boo
         onClose={() => setFind(false)}
         onAdd={() => {
           setFind(false);
-          // Why: iOS drops a Modal presented while another is still dismissing.
           timer.current = setTimeout(() => setUpload(true), 450);
         }}
       />
@@ -95,7 +94,6 @@ function GapRow({ row, first, onOpenDays }: { row: StayRow; first: boolean; onOp
   );
 }
 
-/** One card, one hairline row a stop (wireframe/booking-sites J). */
 export function StayRows({ tripId, rows, onOpenDays }: { tripId: number; rows: StayRow[]; onOpenDays: () => void }) {
   return (
     <Card style={{ padding: 0, gap: 0, overflow: "hidden" }}>

@@ -1,7 +1,3 @@
-/**
- * Money's Budget view on the phone (#574, ADR-057): your own estimate for a Pro member, the honest lock for
- * everyone else. Amounts are typed through `parseMoney`, so the phone rounds exactly as the web does (rule 1).
- */
 import { LINE_LABELS } from "@floc/core/money/estimate/lines";
 import type { PlanLine } from "@floc/core/money/estimate/plan";
 import type { EstimateView } from "@floc/core/money/estimate/view";
@@ -93,7 +89,6 @@ export function BudgetTab({ tripId }: { tripId: number }) {
   const view = estimate.data.view;
   if (!view) return <Lock />;
 
-  // Why: parsed here, once, so a bad amount says so instead of saving nothing.
   const parsed = (raw: string): number | null | undefined => {
     if (!raw.trim()) return null;
     try {

@@ -1,4 +1,3 @@
-/** Why a map, not runs: costs arrive in logged order, so runs repeated a day's heading further down. */
 export function groupByDay<T extends { dayId?: number | null }>(
   expenses: readonly T[],
   dayLabel: (dayId: number | null) => string,

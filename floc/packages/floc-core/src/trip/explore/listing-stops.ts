@@ -2,23 +2,18 @@ import type { TransportType } from "../../vocabulary";
 import type { PresetTrip } from "./preset-trip-types";
 
 export type ListingMove = { place: string; mode: TransportType; detail: string };
-/** A day out, with its own place on the map where the listing gives one. */
 type DayOut = ListingMove & { lat?: number; lng?: number };
 
-/** One base of a listing: where you sleep, how you got there, and the day outs made from it. */
 export type ListingStop = {
   place: string;
   nights: number;
   lat: number;
   lng: number;
-  /** Set only where the listing crosses borders. */
   country?: string;
-  /** The hop right before this base. On the first stop it is how the trip starts, if the listing says. */
   arrive: ListingMove | null;
   dayOuts: DayOut[];
 };
 
-/** The one reading of a listing's legs: a hop before a base is the way in; any other hop is a day out from the stop before it. */
 export function stopsOf(trip: PresetTrip): ListingStop[] {
   const stops: ListingStop[] = [];
   trip.legs.forEach((leg, i) => {

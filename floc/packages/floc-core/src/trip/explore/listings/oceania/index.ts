@@ -16,7 +16,6 @@ import { portDouglasAndDaintree } from "./port-douglas-and-daintree";
 import { fijiCoralCoast } from "./fiji-coral-coast";
 import { sydneyAndBlueMountains } from "./sydney-and-blue-mountains";
 
-// Order is the order on Explore; the first few lead the map. `pnpm explore:new` adds a line here.
 export const OCEANIA: PresetTrip[] = [
   newZealandSouthIsland,
   newZealandNorthIsland,

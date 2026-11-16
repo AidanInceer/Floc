@@ -1,6 +1,3 @@
-/**
- * Fill from Google Calendar (#444, ADR-031). Google's API is mocked: no test signs in to Google.
- */
 import { and, eq } from "drizzle-orm";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 

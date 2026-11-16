@@ -11,7 +11,6 @@ import { useListingRates } from "./use-listing-rates";
 import { fonts, radius, size, space } from "@/lib/theme";
 import { countWord } from "@floc/core/text/count-word";
 
-/** One listing on the map's deck: its pin number and length, where, the route, then the price beside the one action. Tap anywhere else to read it. */
 export function ExploreCard({
   trip,
   pin,

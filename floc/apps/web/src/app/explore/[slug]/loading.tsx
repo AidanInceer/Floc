@@ -1,7 +1,3 @@
-/**
- * Why: the listing page reads your currency and the day's rates before it can draw, so without a boundary
- * a tile click on Explore looked ignored. This also gives Next a prefetchable shell for the route.
- */
 export default function ExploreTripLoading() {
   return (
     <div aria-busy="true" aria-live="polite" className="mx-auto w-full max-w-[84rem] px-4 pb-32 pt-6 sm:px-6">

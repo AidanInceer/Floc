@@ -4,7 +4,6 @@ import { buttonClass, cx } from "@/components/system/ui";
 
 const LOCK = <path d="M2.8 6.2h8.4v6H2.8zM4.8 6.2V4.6a2.2 2.2 0 0 1 4.4 0v1.6" />;
 
-/** The honest Pro lock (#574): what the budget does, and where Pro is. Nothing else on Money changes. */
 export function EstimateLock() {
   return (
     <section className="grid grid-cols-[26px_1fr_auto] items-center gap-3 rounded-md border border-rule bg-sheet px-4 py-3.5 max-sm:grid-cols-[26px_1fr]">

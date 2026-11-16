@@ -1,4 +1,3 @@
-// Why a fold, as the web's `stop-day.tsx`: a day opens in place to show what is on it; Days stays one tap further.
 import type { DayEvent } from "@floc/api/port";
 import { dayParts } from "@floc/core/dates/dates";
 import { useState } from "react";

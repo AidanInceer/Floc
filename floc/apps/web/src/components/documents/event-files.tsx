@@ -1,11 +1,3 @@
-/**
- * The files on one event, inside its modal (ticket 322). The boarding pass
- * sits on the ferry, not in a folder with eleven others.
- *
- * Private files are the group's own rows and nobody else's: the read is
- * already scoped, so anything arriving here is the viewer's to see — the tag
- * says which of them the rest of the trip cannot.
- */
 import { detachFromEvent } from "@/app/trip/[id]/files/actions";
 import {
   AttachExistingFile,
@@ -27,7 +19,6 @@ export function EventFiles({
   tripId: number;
   dayEventId: number;
   files: TripDocument[];
-  /** The trip's files sitting on no event — what "Link a file" may offer. */
   loose: FileChoice[];
   viewerId: string;
 }) {
@@ -48,13 +39,11 @@ export function EventFiles({
       </div>
 
       {files.length === 0 ? null : (
-        // Why: *:px-0 drops the Files page row inset, so chips and rules sit on the panel's content edge.
         <ul className="mt-1 divide-y divide-rule *:px-0">
           {files.map((doc) => (
             <DocumentRow
               key={doc.id}
               tripId={tripId}
-              // No "on …" tag in here: the modal is already the event.
               doc={{ ...doc, dayEventId: null }}
               mine={doc.uploadedBy === viewerId}
             >
@@ -63,8 +52,6 @@ export function EventFiles({
                   Just you
                 </span>
               ) : null}
-              {/* Not a confirm: the file stays on the Files page, so there is
-                  nothing to lose by pressing it. */}
               <form action={detachFromEvent.bind(null, tripId, doc.id)}>
                 <SubmitButton variant="ghost">
                   Detach

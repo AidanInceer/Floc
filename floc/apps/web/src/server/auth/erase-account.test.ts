@@ -1,7 +1,3 @@
-/**
- * Deleting an account. The row stays, so every expense, split and note that
- * points at it stays valid (rule 2); what made it a person goes.
- */
 import { and, eq, isNull } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 

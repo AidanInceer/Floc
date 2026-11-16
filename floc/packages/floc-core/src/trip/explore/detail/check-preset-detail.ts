@@ -28,7 +28,6 @@ function highlightProblems(day: PresetDay, n: number): string[] {
   return marked > 1 ? [`day ${n}: highlight is on ${marked} lines, mark one`] : [];
 }
 
-/** What is wrong with a hand-written detail, in words its author can act on. Empty when it fits the listing. */
 export function checkPresetDetail(trip: PresetTrip, detail: PresetDetail): string[] {
   const bases = stopsOf(trip);
   if (detail.stops.length !== bases.length) return [`${bases.length} bases in the listing, ${detail.stops.length} stops written`];

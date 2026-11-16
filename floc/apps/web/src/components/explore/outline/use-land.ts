@@ -6,7 +6,6 @@ import type { Packed } from "@/lib/land/pack-land";
 
 import { landFrom, landFromPacked, type Geo, type Piece } from "./land";
 
-/** `world` is the coarse 1:110m outline for the whole globe; `fine` is 1:50m, for a country up close. */
 export type Detail = "world" | "fine";
 
 const NONE: readonly Piece[] = [];
@@ -17,7 +16,6 @@ const SOURCES = {
 const loaded: Partial<Record<Detail, readonly Piece[]>> = {};
 const pending: Partial<Record<Detail, Promise<readonly Piece[]>>> = {};
 
-// Why: every map and globe on the site draws from the same file, so each is fetched once and shared.
 export function loadLand(detail: Detail): Promise<readonly Piece[]> {
   const { url, read } = SOURCES[detail];
   pending[detail] ??= fetch(url)
@@ -27,7 +25,6 @@ export function loadLand(detail: Detail): Promise<readonly Piece[]> {
   return pending[detail];
 }
 
-/** The land outlines; empty until the file arrives, and for good if it never does (rule 11: the route still draws). */
 export function useLand(detail: Detail): readonly Piece[] {
   const [land, setLand] = useState(loaded[detail] ?? NONE);
   useEffect(() => {

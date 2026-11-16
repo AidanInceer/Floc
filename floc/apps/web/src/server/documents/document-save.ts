@@ -25,7 +25,6 @@ type Upload = {
   shared: boolean;
   dayId?: number | null;
   dayEventId?: number | null;
-  /** What Floc read from a forwarded booking (#559), already stored form. */
   bookingDetails?: string | null;
 };
 

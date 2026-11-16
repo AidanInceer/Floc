@@ -1,7 +1,3 @@
-/**
- * The phone's page views (#368). The phone calls this only after a yes to analytics in its Settings; the web
- * counts through its own route, which reads the consent cookie. The caller's id is not passed on.
- */
 import { ANALYTICS_EVENTS } from "@floc/core/analytics/events";
 import { z } from "zod";
 

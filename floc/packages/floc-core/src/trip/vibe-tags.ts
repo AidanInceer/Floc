@@ -1,17 +1,5 @@
-/**
- * Vibe tags (ticket 46) — profile chips, picked like dating-app interests.
- * Seed-only, unlike free-text trip tags (ticket 71): future matching compares
- * tags across accounts, and free text would give "slow travel"/"slow
- * traveller"/"slow" to reconcile. Custom tags are deferred, not refused.
- */
 import { normaliseTag } from "./tags";
 
-/**
- * Lower-case, as stored. Cut from thirty to five (ticket 201 follow-up)
- * because the wall read as a survey, then back up to ten (ticket 236) — five
- * was too few to say anything about a person, and matching across accounts
- * still works while the list is short enough to read at a glance.
- */
 export const VIBE_TAGS = [
   "early starts",
   "late nights",
@@ -27,14 +15,12 @@ export const VIBE_TAGS = [
 
 type VibeTag = (typeof VIBE_TAGS)[number];
 
-/** Settings shows the tags as a travel style, sorted by what each one is about. */
 export const VIBE_TAG_GROUPS: { name: string; tags: VibeTag[] }[] = [
   { name: "Pace", tags: ["early starts", "slow mornings", "late nights"] },
   { name: "Places", tags: ["city breaks", "beaches", "hiking", "road trips"] },
   { name: "Things to do", tags: ["food first", "museums", "festivals"] },
 ];
 
-/** Form input → the column. Seed-only enforced here too, not just in the UI — a hand-crafted POST must not invent a tag. */
 export function parseVibeTags(input: (string | null | undefined)[]): string[] {
   const allowed = new Set<string>(VIBE_TAGS);
   const out: string[] = [];
@@ -47,7 +33,6 @@ export function parseVibeTags(input: (string | null | undefined)[]): string[] {
   return out;
 }
 
-/** Same degrade-don't-crash contract as `readTags` (rule 11), plus the seed filter — a retired tag just stops rendering. */
 export function readVibeTags(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   const allowed = new Set<string>(VIBE_TAGS);

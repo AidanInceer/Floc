@@ -1,20 +1,3 @@
-/**
- * The foot of the trip sheet: archive and delete, on one line (ticket 05, 17).
- *
- * THERE IS NO SAVE. The sheet writes what you typed when it shuts, so a Save
- * button would only ask you to confirm a thing you had already done. What is
- * left are the two that end the trip, and they share the line the way the web
- * shares a dialog's footer.
- *
- * TWO PRESSES, NEVER ONE, and the guard is the label. Neither archive nor
- * delete has an undo, and a sheet is a place a thumb lands by accident. The
- * first press turns the word into "Sure?", the second does it — no dialog,
- * because a dialog here is a second window over a window, and no extra row,
- * because an extra row is what this was fixing.
- *
- * ADMIN-ONLY, AND SAID SO (rule 6). A member gets a sentence naming who can
- * do these, never a dead button.
- */
 import { useState } from "react";
 import { View } from "react-native";
 

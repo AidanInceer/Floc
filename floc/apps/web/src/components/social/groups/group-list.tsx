@@ -11,7 +11,6 @@ import type { Group } from "@/server/social/groups";
 import { useGroupData } from "./group-data";
 import type { GroupSheetMode } from "./group-sheet";
 
-/** The group rows; the list around them, and the empty card, are the board's. */
 export function GroupList({ onOpen }: { onOpen: (mode: GroupSheetMode) => void }) {
   const { groups } = useGroupData();
   return groups.map((group) => <GroupRow key={group.id} group={group} onEdit={() => onOpen({ kind: "edit", group })} />);

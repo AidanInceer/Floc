@@ -2,7 +2,6 @@ export type AccountTabKey = "profile" | "friends" | "groups" | "wish" | "saved" 
 
 export type AccountTab = { key: AccountTabKey; href: string; label: string };
 
-/** Why: every account page sits on one level, so nothing hides in a segment inside a tab (#637). You, your people, what you keep, your bookings. Settings live on Profile. */
 export const ACCOUNT_CLUSTERS: readonly (readonly AccountTab[])[] = [
   [{ key: "profile", href: "/profile", label: "Profile" }],
   [
@@ -17,7 +16,6 @@ export const ACCOUNT_CLUSTERS: readonly (readonly AccountTab[])[] = [
   [{ key: "bookings", href: "/bookings", label: "Bookings" }],
 ];
 
-/** The card behind your face opens the first page of each cluster after Profile; the lists cluster goes by its name, Lists. */
 export const CARD_SHORTCUTS: readonly AccountTab[] = ACCOUNT_CLUSTERS.slice(1).map(([first]) =>
   first.key === "saved" ? { ...first, label: "Lists" } : first,
 );

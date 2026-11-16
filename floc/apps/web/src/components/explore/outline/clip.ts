@@ -25,10 +25,6 @@ function cut(points: Point[], { inside, cross }: Edge): Point[] {
   return out;
 }
 
-/**
- * The part of a closed ring inside `view`, closed again; empty when none of it is.
- * Why: a neighbour as big as Russia would otherwise draw its whole coast, off the drawing, into every small map.
- */
 export function clipRing(ring: readonly Point[], view: View): Point[] {
   let open = ring.slice(0, -1);
   for (const edge of edgesOf(view)) {

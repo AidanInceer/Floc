@@ -81,7 +81,6 @@ function stopsProblems(trip: PresetTrip, stops: { place: string; tips: unknown[]
   return problems;
 }
 
-/** What is wrong with a hand-written Good to know, in words its author can act on. Empty when it fits the listing. */
 export function checkTripKnow(trip: PresetTrip, know: TripKnow): string[] {
   const problems = stageOrderProblems(know);
   if (!ISO_DAY.test(know.checked)) problems.push(`checked "${know.checked}" is not YYYY-MM-DD`);

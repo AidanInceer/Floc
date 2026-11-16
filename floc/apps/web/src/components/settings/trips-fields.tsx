@@ -1,4 +1,3 @@
-/** Packing and currency defaults: one question a row, the words left and the control right. */
 import { updateCurrency, updatePacking } from "@/app/profile/actions";
 import { ToggleRow } from "@/components/auth/account-ui";
 import { SegmentTrack } from "@/components/system/segment-track";

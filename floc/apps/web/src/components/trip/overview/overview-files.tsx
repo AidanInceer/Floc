@@ -1,4 +1,3 @@
-// Why: the legs already show each file; this counts them by kind and points at the Files tab.
 import Link from "next/link";
 
 import { DOC_CATEGORY_LABELS, DOC_CATEGORY_SKINS, type DocCategory } from "@floc/core/documents/documents";

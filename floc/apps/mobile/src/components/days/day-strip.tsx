@@ -1,7 +1,3 @@
-/**
- * Why: one trip week at a time, as on the web (wireframe/days-week A), so a long trip never
- * scrolls sideways. Stops come from the `day` rows, never stored (rule 3); today is marked, not centred on (rule 4).
- */
 import { dayParts } from "@floc/core/dates/dates";
 import { deriveStops, nightsLabel } from "@floc/core/itinerary/stops";
 import { stopWeek, type WeekSegment } from "@floc/core/itinerary/stop-weeks";
@@ -104,7 +100,6 @@ function StopPill({ segment, column, onPress }: { segment: WeekSegment; column: 
   );
 }
 
-// Why: React Native cannot dash one side of a border, so a stop that runs on into the next week draws its cut side as dashes.
 function CutEdge({ side, color }: { side: "left" | "right"; color: string }) {
   return (
     <View pointerEvents="none" style={{ position: "absolute", top: 0, bottom: 0, [side]: 0, width: 1, justifyContent: "space-between", paddingVertical: 1 }}>
@@ -136,13 +131,10 @@ export function DayStrip({
   onStop,
 }: {
   days: StripDay[];
-  /** The trip's end date, so the strip counts nights as the Overview does. */
   tripEnd?: string | null;
   selected: string;
-  /** The real today, passed in so the component itself reads no clock. */
   todayDate: string;
   onSelect: (date: string) => void;
-  /** The first date of the pressed stop, so the overnight editor opens on that run. */
   onStop: (startDate: string) => void;
 }) {
   const { c } = useTheme();

@@ -4,7 +4,6 @@ import { TickGlyph } from "../../system/glyphs";
 import { useTheme } from "../../system/theme";
 import { fonts, radius, size, space } from "@/lib/theme";
 
-/** Not yet (ADR-025), as on the web: an undated copy brings the highlights page only. */
 export function UndatedStep({ highlights }: { highlights: string[] }) {
   const { c } = useTheme();
   return (

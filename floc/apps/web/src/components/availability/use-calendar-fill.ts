@@ -18,10 +18,8 @@ export type CalendarFillState =
 const CALENDAR_REFUSED = "Google didn't give access. Nothing changed.";
 const CALENDAR_FAILED = "Couldn't reach Google Calendar. Nothing changed.";
 
-/** What the page was sent back with after Google's consent screen: it filled, or the person said no. */
 export type CalendarReturn = "fill" | "refused" | null;
 
-/** What the Dates page hands the import: the read, how Google sent the person back, and their all-day choice. */
 export type CalendarSource = {
   fill: (month: string) => Promise<CalendarFillResult>;
   returned: CalendarReturn;
@@ -29,11 +27,6 @@ export type CalendarSource = {
   keepAllDayOnly: (on: boolean) => Promise<void>;
 };
 
-/**
- * The one read of the person's calendar, on their tap (ADR-031). First time, the server says it
- * has no access; the browser then goes to Google's consent and comes back to this page with
- * `?calendar=fill`, which reads straight away. A refusal comes back as `?calendar=refused`.
- */
 export function useCalendarFill(opts: {
   tripId: number;
   month: string;
@@ -54,7 +47,6 @@ export function useCalendarFill(opts: {
       if (result.status === "error") return setState({ kind: "error", message: result.message });
       const back = `/trip/${tripId}/dates`;
       const started = await askGoogleForCalendar(`${back}?calendar=fill&from=${month}`, `${back}?calendar=refused&from=${month}`);
-      // On success the browser is already leaving for Google; only a failure to start gets here.
       if (!started) setState({ kind: "error", message: CALENDAR_REFUSED });
     } catch {
       setState({ kind: "error", message: CALENDAR_FAILED });
@@ -67,7 +59,6 @@ export function useCalendarFill(opts: {
       void run();
     }
     if (returned) window.history.replaceState(null, "", `/trip/${tripId}/dates`);
-    // Once, on arrival: `run` closes over the month the page opened on.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
