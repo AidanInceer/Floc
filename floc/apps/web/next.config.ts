@@ -50,6 +50,8 @@ const config: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         ],
       },
+      // Why (#653): a mail client loads the email faces from another origin, and a font needs CORS to draw.
+      { source: "/fonts/:file*", headers: [{ key: "Access-Control-Allow-Origin", value: "*" }] },
     ];
   },
   images: {

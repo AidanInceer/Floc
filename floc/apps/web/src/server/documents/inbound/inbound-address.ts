@@ -17,6 +17,11 @@ export function bookingsInboxAddress(): string | null {
   return process.env.RESEND_WEBHOOK_SECRET && documentsEnabled() ? bookingsAddress(domain()) : null;
 }
 
+/** The shared address as a reply names it: words, never null, so a reply always reads (rule 11). */
+export function bookingsAddressForReply(): string {
+  return bookingsAddress(domain()) ?? "Floc's bookings address";
+}
+
 /** Whether a recipient line is the shared address. An old per-trip address is not, so it saves nothing. */
 export function isBookingsAddress(raw: string): boolean {
   const expected = bookingsAddress(domain());

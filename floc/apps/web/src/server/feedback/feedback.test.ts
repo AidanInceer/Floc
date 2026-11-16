@@ -22,11 +22,12 @@ describe("feedback", () => {
     expect(mail.to).toBe("hello@floc.live");
     expect(mail.replyTo).toBe("priya@a.seed.floc.test");
     expect(mail.subject).toBe("Feedback from Priya Shah");
-    expect(mail.lines).toEqual([
-      "The Money tab total looks wrong.",
-      "From Priya Shah, priya@a.seed.floc.test, user u_priya",
-      "Page /trip/12/money",
-      "web 0.233.1",
+    expect(mail.quote).toEqual(["The Money tab total looks wrong."]);
+    expect(mail.facts).toEqual([
+      ["From", "Priya Shah, priya@a.seed.floc.test"],
+      ["User", "u_priya"],
+      ["Page", "/trip/12/money"],
+      ["Surface", "web 0.233.1"],
     ]);
   });
 
@@ -40,9 +41,9 @@ describe("feedback", () => {
   it("keeps each line of a longer message, and cuts it at the cap", async () => {
     const d = deps();
     await sendFeedback(priya, { ...words, message: `One.\n\nTwo.\n${"x".repeat(3000)}` }, d);
-    const { lines } = d.send.mock.calls[0][0][0];
-    expect(lines.slice(0, 2)).toEqual(["One.", "Two."]);
-    expect(lines.slice(0, -3).join("\n").length).toBeLessThanOrEqual(2000);
+    const quote = d.send.mock.calls[0][0][0].quote ?? [];
+    expect(quote.slice(0, 2)).toEqual(["One.", "Two."]);
+    expect(quote.join("\n").length).toBeLessThanOrEqual(2000);
   });
 
   it("sends nothing for an empty message", async () => {

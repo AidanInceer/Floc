@@ -34,7 +34,7 @@ const SIGNED_OUT: Awaited<ReturnType<typeof topBarFor>> = {
 // Why: the display file is variable, and a face declared at 800 alone clamps every heading
 // to 800 whatever its weight class, so the heading weight lives here (type-fonts pick W4).
 const display = localFont({
-  src: "./fonts/red-hat-display-latin.woff2",
+  src: "../../public/fonts/red-hat-display-latin.woff2",
   variable: "--font-display-face",
   weight: "800",
   style: "normal",
@@ -42,7 +42,7 @@ const display = localFont({
 });
 
 const body = localFont({
-  src: "./fonts/red-hat-text-latin.woff2",
+  src: "../../public/fonts/red-hat-text-latin.woff2",
   variable: "--font-body-face",
   weight: "300 700",
   style: "normal",
@@ -50,7 +50,7 @@ const body = localFont({
 });
 
 const mono = localFont({
-  src: "./fonts/red-hat-mono-latin.woff2",
+  src: "../../public/fonts/red-hat-mono-latin.woff2",
   variable: "--font-data-face",
   weight: "300 700",
   style: "normal",

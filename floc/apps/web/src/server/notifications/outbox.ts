@@ -91,6 +91,8 @@ async function due(channel: Channel, now: Date): Promise<PendingPush[]> {
     tripName: r.tripName,
     text: channel.words(r.kind, { actor: r.actorDisplayName ?? r.actorName, trip: r.tripName, detail: r.detail }),
     href: r.href,
+    kind: r.kind,
+    actor: isReminder(r.kind) ? null : (r.actorDisplayName ?? r.actorName),
     ...(isReminder(r.kind) ? { exempt: true } : {}),
   }));
 }

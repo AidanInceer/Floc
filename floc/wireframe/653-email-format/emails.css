@@ -1,0 +1,132 @@
+/* #653 email prototype. The page is the reviewer's desk; .mail is the email itself. */
+
+.desk { max-width: 1240px; margin: 0 auto; padding: 72px 24px 96px; }
+.desk-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; margin-bottom: 16px; }
+.desk-head h1 { margin: 0; font-size: var(--text-xl); font-weight: 800; }
+.desk-head p { margin: 0; color: var(--ink-2); font-size: var(--text-sm); }
+
+.picker { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.picker button, .faces button {
+  height: 31px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--rule-2);
+  background: var(--sheet); color: var(--ink-2); font: 500 var(--text-sm)/1 var(--sans); cursor: pointer;
+}
+.picker button:hover, .faces button:hover { background: var(--pen-2); color: var(--pen-deep); }
+.picker button[aria-pressed="true"], .faces button[aria-pressed="true"] { background: var(--pen-2); color: var(--pen-deep); border-color: transparent; }
+.faces { display: flex; align-items: center; gap: 6px; margin-bottom: 28px; }
+.faces .typed { color: var(--ink-2); margin-right: 4px; }
+
+.pair { display: grid; grid-template-columns: minmax(0, 1fr) 375px; gap: 24px; align-items: start; margin-bottom: 48px; }
+.pair-name { grid-column: 1 / -1; margin: 0; font: 800 var(--text-md)/1.2 var(--display); }
+
+/* Reading pane: a stand-in for a desktop mail client. */
+.client { background: var(--sheet); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+.client-head { padding: 14px 20px; border-bottom: 1px solid var(--rule); }
+.client-subject { margin: 0 0 6px; font: 600 var(--text-md)/1.3 var(--sans); }
+.client-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; color: var(--ink-2); font-size: var(--text-xs); }
+.client-body { padding: 0; }
+.phone { border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; background: var(--sheet); }
+.phone .client-head { padding: 12px 14px; }
+.phone-label, .desk-label { margin: 0 0 6px; color: var(--ink-2); }
+
+@media (max-width: 899px) {
+  .desk { padding: 64px 12px 72px; }
+  .pair { grid-template-columns: minmax(0, 1fr); }
+  .pair > .desk-col { display: none; }
+  .phone { border-radius: 8px; }
+}
+
+/* Why: the email uses tokens only, so the light/dark switch stands in for prefers-color-scheme. */
+
+.mail { --m-pad: 32px; background: var(--paper); color: var(--ink); font: 400 15px/1.55 var(--sans); padding: 24px 16px 28px; }
+.phone .mail { --m-pad: 20px; padding: 12px 0 20px; }
+.mail.fallback { --m-display: "Trebuchet MS", system-ui, sans-serif; --m-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; --m-type: Consolas, "Courier New", monospace; }
+.mail.fallback, .mail.fallback * { font-family: var(--m-sans) !important; }
+.mail.fallback .m-display, .mail.fallback .m-display * { font-family: var(--m-display) !important; }
+.mail.fallback .typed, .mail.fallback .nums, .mail.fallback .typed *, .mail.fallback .nums * { font-family: var(--m-type) !important; }
+.mail p { margin: 0 0 12px; }
+.mail a { color: var(--pen); }
+
+.m-display { font-family: var(--display); font-weight: 800; letter-spacing: -0.01em; }
+.m-word { display: inline-flex; align-items: center; gap: 6px; font: 800 18px/1 var(--display); color: var(--ink); letter-spacing: -0.02em; }
+.m-word svg { width: 20px; height: 16px; stroke: var(--pen); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.m-word i { font-style: normal; color: var(--pen); }
+.m-btn {
+  display: inline-block; background: var(--pen); color: var(--sheet) !important; text-decoration: none;
+  border-radius: 8px; padding: 0 18px; line-height: 40px; font: 600 15px/40px var(--sans);
+}
+.m-note { color: var(--ink-2); font-size: 13px; }
+.m-foot { color: var(--ink-2); font-size: 13px; line-height: 1.5; }
+.m-foot a { color: var(--ink-2); }
+.m-foot .typed { font-size: 11px; }
+.m-faces { display: inline-flex; gap: 4px; vertical-align: middle; }
+.m-face { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 8px; font: 600 10px/1 var(--type); }
+.m-mark { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 8px; flex: none; }
+.m-mark svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
+
+.tone-blue { background: var(--pastel-blue); color: var(--pastel-blue-ink); }
+.tone-green { background: var(--pastel-green); color: var(--pastel-green-ink); }
+.tone-yellow { background: var(--pastel-yellow); color: var(--pastel-yellow-ink); }
+.tone-red { background: var(--pastel-red); color: var(--pastel-red-ink); }
+.tone-pen { background: var(--pen-2); color: var(--pen-deep); }
+.tone-ink { background: var(--sheet-2); color: var(--ink); }
+
+.m-rows { margin: 4px 0 16px; padding: 0; list-style: none; border-top: 1px solid var(--rule); }
+.m-rows li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--rule); font-size: 14px; }
+.m-rows li .grow { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.m-rows li .typed { color: var(--ink-2); font-size: 11px; white-space: nowrap; }
+.m-tag { font: 500 11px/1 var(--type); padding: 4px 6px; border-radius: 999px; white-space: nowrap; }
+
+.m-quote { margin: 0 0 16px; padding: 12px 14px; background: var(--sheet-2); border-radius: 8px; }
+.m-quote p:last-child { margin: 0; }
+
+
+
+/* C — Letter: no card, no band. Reads like a note; the trip is a tile in the text. */
+.v-C { background: var(--sheet); }
+.v-C .page { max-width: 520px; margin: 0 auto; padding: 8px var(--m-pad) 0; }
+.v-C .m-word { margin-bottom: 28px; }
+.v-C .lede { font-size: 17px; line-height: 1.5; margin-bottom: 16px; }
+.v-C .tile { display: flex; align-items: center; gap: 12px; padding: 12px; margin: 4px 0 20px; border: 1px solid var(--rule); border-radius: 12px; }
+.v-C .tile .name { font: 800 17px/1.2 var(--display); }
+.v-C .tile .typed { color: var(--ink-2); font-size: 11px; display: block; margin-top: 4px; }
+.v-C .tile .m-faces { margin-left: auto; }
+.v-C .sign { margin-top: 24px; color: var(--ink-2); }
+.v-C .m-foot { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--rule); }
+
+/* D — Facts: the heading, then a stub of mono labels and values, then the button. */
+.v-D .card { max-width: 560px; margin: 0 auto; background: var(--sheet); border: 1px solid var(--rule); border-radius: 12px; padding: var(--m-pad); }
+.phone .v-D .card { border-radius: 0; border-left: 0; border-right: 0; }
+.v-D .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.v-D .head .typed { color: var(--ink-2); font-size: 11px; }
+.v-D h2 { margin: 0 0 16px; font-size: 25px; line-height: 1.2; }
+.v-D .stub { border-radius: 8px; padding: 4px 16px; margin: 0 0 20px; }
+.v-D .stub dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; }
+.v-D .stub dt, .v-D .stub dd { padding: 10px 0; border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent); }
+.v-D .stub dt { font: 500 11px/1.6 var(--type); text-transform: uppercase; letter-spacing: .06em; padding-right: 16px; opacity: .85; }
+.v-D .stub dd { margin: 0; font: 500 14px/1.45 var(--type); color: var(--ink); overflow-wrap: anywhere; }
+.v-D .stub dt:nth-last-child(2), .v-D .stub dd:last-child { border-bottom: 0; }
+.v-D .stub.tone-ink dd { color: var(--ink); }
+.v-D .cta { margin: 0 0 8px; }
+.v-D .m-foot { max-width: 560px; margin: 16px auto 0; padding: 0 var(--m-pad); }
+
+.pair-layout { margin-left: 8px; font-size: 11px; font-weight: 500; color: var(--pen-deep); }
+
+
+
+/* D3 — the D card with an outlined box and no fill. */
+.v-D .status { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 8px; color: var(--pastel-red-ink); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+.v-D .status svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; }
+.v-D3 .outline { border: 1px solid var(--rule-2); border-radius: 12px; margin: 0 0 20px; overflow: hidden; }
+.v-D3 .outline-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--rule); }
+.v-D3 .outline-head > .nums { font-size: 14px; font-weight: 500; }
+.v-D3 .outline-head .status { margin: 0; }
+.v-D3 .outline dl { display: grid; grid-template-columns: max-content 1fr; margin: 0; padding: 0 16px; }
+.v-D3 .outline dt, .v-D3 .outline dd { padding: 10px 0; border-bottom: 1px solid var(--rule); }
+.v-D3 .outline dt:nth-last-child(2), .v-D3 .outline dd:last-child { border-bottom: 0; }
+.v-D3 .outline dt { padding-right: 16px; color: var(--ink-2); font: 500 11px/1.6 var(--type); text-transform: uppercase; letter-spacing: .06em; }
+.v-D3 .outline dd { margin: 0; font: 500 14px/1.45 var(--type); overflow-wrap: anywhere; }
+.v-D3 .next-head { margin: 20px 0 8px; font-size: 17px; }
+.v-D3 .steps { margin: 0 0 20px; padding: 0; list-style: none; counter-reset: s; }
+.v-D3 .steps li { counter-increment: s; display: flex; gap: 10px; align-items: baseline; padding: 6px 0; }
+.v-D3 .steps li::before { content: counter(s); flex: none; display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 8px; border: 1px solid var(--rule-2); font: 500 11px/1 var(--type); color: var(--ink-2); }
+

@@ -57,6 +57,17 @@ describe("the email fallback", () => {
     expect(sent).toHaveLength(1);
   });
 
+  it("draws it as a letter about its trip, linking to the setting that stops it (#653)", async () => {
+    await nudge();
+    const { sent, send } = mailer();
+    await sendDueEmails(send, minutes(11));
+    expect(sent[0]).toMatchObject({
+      layout: "letter",
+      trip: { name: "Ours" },
+      settingsUrl: expect.stringContaining("#settings-notifications"),
+    });
+  });
+
   it("never emails an address its account has not confirmed: anyone can sign up with someone else's", async () => {
     await db.update(schema.user).set({ emailVerified: false }).where(eq(schema.user.id, world.member));
     await nudge();
