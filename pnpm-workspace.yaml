@@ -79,3 +79,6 @@ auditConfig:
     # 2026-10-23: zod 3 has no patched release — the fix starts at 4.6.6. The one zod 3
     # left is @expo/cli's own, a developer-machine tool; every zod 4 copy is pinned above.
     - GHSA-mrhx-c7xc-m3w5 # zod 3, via @expo/cli
+    # 2026-11-17: no patched version ('<0.0.0'), not in the built web app. picomatch
+    # comes only through lint-staged, typescript-eslint and eslint-config-next. Delete when it fixes.
+    - GHSA-fc5q-39xc-vjpf # picomatch, via lint-staged, typescript-eslint, eslint-config-next

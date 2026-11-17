@@ -371,6 +371,16 @@ export function UploadGlyph({ color }: { color: string }) {
   );
 }
 
+export function SlidersGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Path d="M2.2 4.4h1.4M6.4 4.4h5.4M2.2 9.6h5.4M10.4 9.6h1.4" stroke={color} strokeWidth={STROKE} strokeLinecap="round" />
+      <Circle cx={5} cy={4.4} r={1.4} stroke={color} strokeWidth={STROKE} />
+      <Circle cx={9} cy={9.6} r={1.4} stroke={color} strokeWidth={STROKE} />
+    </Svg>
+  );
+}
+
 export function FileGlyph({ color }: { color: string }) {
   return (
     <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
@@ -379,6 +389,19 @@ export function FileGlyph({ color }: { color: string }) {
         stroke={color}
         strokeWidth={STROKE}
         strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function SparkGlyph({ color, size = 14 }: { color: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 14 14" fill="none">
+      <Path
+        d="M7 1.8c.4 2.8 1.4 4 4.2 5.2-2.8 1.2-3.8 2.4-4.2 5.2-.4-2.8-1.4-4-4.2-5.2C5.6 5.8 6.6 4.6 7 1.8Z"
+        stroke={color}
+        strokeWidth={STROKE}
         strokeLinejoin="round"
       />
     </Svg>

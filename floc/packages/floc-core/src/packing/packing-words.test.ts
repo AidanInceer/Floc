@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { cubeCount, thingCount } from "./packing-words";
+import { cubeCount, suggestedNote, thingCount } from "./packing-words";
 
 describe("thingCount", () => {
   it("says one thing, or how many things", () => {
@@ -20,5 +20,15 @@ describe("cubeCount", () => {
 
   it("is never full when the cube is empty", () => {
     expect(cubeCount(0, 0)).toEqual({ text: "0/0", full: false });
+  });
+});
+
+describe("suggestedNote", () => {
+  it("says how many lines Floc suggested", () => {
+    expect(suggestedNote([{ suggested: true }, { suggested: false }, { suggested: true }])).toBe("2 suggested");
+  });
+
+  it("says nothing when no line was suggested", () => {
+    expect(suggestedNote([{ suggested: false }])).toBeNull();
   });
 });

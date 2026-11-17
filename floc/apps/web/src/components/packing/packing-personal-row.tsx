@@ -59,22 +59,20 @@ export function PersonalPackingRow({
       <span
         className={cx("flex min-w-0 flex-1 items-baseline whitespace-pre text-sm transition-colors duration-[0.22s] ease-(--ease)", packed && "text-ink-soft")}
       >
-        <span className="font-mono tabular-nums text-ink-faint">{shown}</span>
-        <span className="text-ink-faint">{" — "}</span>
+        <span className="shrink-0 font-mono tabular-nums text-ink-faint">{shown}</span>
+        <span className="shrink-0 text-ink-faint">{" — "}</span>
         <InlineRename
           value={label}
           label={`Rename ${label}`}
           maxLength={TEXT_CAPS.packingLabel}
           save={(next) => rename(tripId, lineId, next)}
         />
+        {suggested ? (
+          <span role="img" aria-label="Suggested" title="Suggested" className="ml-1.5 inline-flex shrink-0 self-center text-pen/60">
+            <SparkIcon size={10} />
+          </span>
+        ) : null}
       </span>
-
-      {suggested ? (
-        <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-ink-faint">
-          <SparkIcon size={10} />
-          Suggested
-        </span>
-      ) : null}
 
       {!compact ? (
         <span className="hidden shrink-0 sm:block">
