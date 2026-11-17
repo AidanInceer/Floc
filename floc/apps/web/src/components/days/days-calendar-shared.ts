@@ -1,15 +1,23 @@
 import type { DayEventType, TransportType } from "@/db/schema";
+import type { SlotOnly } from "@/lib/days/day-slots";
 
 export const HOUR_PX = 56;
 
 export const FOLD_PX = 30;
 
 export const FOCUS_COLUMNS =
-  "[--days-gutter:56px] [--days-side:38px] sm:[--days-gutter:60px] sm:[--days-side:11rem] [--days-tracks:var(--days-side)_minmax(0,1fr)_var(--days-side)]";
+  "[--days-gutter:56px] [--days-side:38px] sm:[--days-gutter:60px] sm:[--days-side:11rem] [--days-tracks:var(--days-side)_minmax(0,1fr)_var(--days-side)] lg:[--days-tracks:var(--days-week)]";
 export const FOCUS_TEMPLATE = "var(--days-gutter) var(--days-tracks)";
 
-export const OUTSIDE_DAY_CLASS =
-  "bg-[repeating-linear-gradient(135deg,var(--color-sheet-2)_0_6px,var(--color-sheet)_6px_12px)]";
+export const OUTSIDE_DAY_CLASS = "bg-paper";
+
+export const WIDE_QUERY = "(min-width: 64rem)";
+
+export function onlyClass(only: SlotOnly | undefined): string | undefined {
+  if (only === "wide") return "max-lg:hidden";
+  if (only === "narrow") return "lg:hidden";
+  return undefined;
+}
 
 export type CalendarDay = {
   id: number;
@@ -22,6 +30,7 @@ export type CalendarDay = {
   overnightPlaceId: number | null;
   outside: boolean;
   isToday: boolean;
+  only?: SlotOnly;
 };
 
 export type CalendarEvent = {

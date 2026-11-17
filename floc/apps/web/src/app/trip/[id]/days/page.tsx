@@ -144,7 +144,7 @@ export default async function DaysPage({
   );
 
   return (
-    <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
+    <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6 lg:max-w-[160rem] lg:px-8">
       <header className="flex flex-wrap items-end justify-end gap-6">
         <PageTitle className="sr-only">Days</PageTitle>
         <CalendarMenu

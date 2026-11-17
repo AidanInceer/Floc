@@ -8,6 +8,7 @@ import { ChatIcon, EventGlyph, NoteIcon } from "@/components/system/icons/days";
 import { EventMarkers } from "@/components/days/event-markers";
 import {
   OUTSIDE_DAY_CLASS,
+  onlyClass,
   type CalendarDay,
   type CalendarEvent,
   type Landing,
@@ -68,7 +69,7 @@ export function DayColumn({
     landing && landing.dayId === day.id && !byId.has(landing.eventId) ? landing : null;
 
   if (day.outside) {
-    return <div aria-hidden className={cx("relative border-l border-rule", OUTSIDE_DAY_CLASS)} style={{ height: clock.height }} />;
+    return <div aria-hidden className={cx("relative border-l border-rule", OUTSIDE_DAY_CLASS, onlyClass(day.only))} style={{ height: clock.height }} />;
   }
 
   const stretches = variant === "focus" ? freeStretches(packed, clock) : [];
@@ -76,9 +77,11 @@ export function DayColumn({
   return (
     <div
       data-day-column={day.id}
+      data-days-focus={variant === "focus" ? "" : undefined}
       className={cx(
         "relative border-l border-rule",
-        variant === "side" && "bg-sheet-2",
+        onlyClass(day.only),
+        variant === "side" && "bg-sheet-2 lg:bg-sheet",
         landing?.dayId === day.id && "bg-pen-soft/30",
       )}
       style={{ height: clock.height }}
@@ -86,7 +89,7 @@ export function DayColumn({
       <button
         type="button"
         aria-label={`Add an event on ${day.longLabel}`}
-        className="absolute inset-0 cursor-copy transition-colors hover:bg-sheet-2/60"
+        className="absolute inset-0 cursor-copy transition-colors hover:bg-pen-soft/30"
         onPointerMove={(ev) => {
           const rect = ev.currentTarget.getBoundingClientRect();
           setHover(clamp(snap(yToMinutes(ev.clientY - rect.top)), 0, 24 * 60));

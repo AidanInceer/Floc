@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 
 import { slotIndices, tradeFor, tradeTracks, type Trade } from "@/lib/days/column-trade";
+import { WIDE_QUERY } from "@/components/days/days-calendar-shared";
 import "./days-trade.css";
 
 const MOVE_MS = 650;
@@ -17,8 +18,8 @@ export function useColumnTrade(focusIndex: number, gridRef: RefObject<HTMLDivEle
     const from = last.current;
     last.current = focusIndex;
     const trade = tradeFor(from, focusIndex);
-    const focus = gridRef.current?.children[2];
-    if (!trade || !focus || matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const focus = gridRef.current?.querySelector("[data-days-focus]");
+    if (!trade || !focus || matchMedia("(prefers-reduced-motion: reduce)").matches || matchMedia(WIDE_QUERY).matches) {
       setPlaying(null);
       return;
     }

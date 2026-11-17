@@ -28,6 +28,8 @@ import type { ColumnVariant } from "@/components/days/days-calendar-column";
 import { FocusHeads, type FocusFacts } from "@/components/days/days-focus-heads";
 import { OvernightDialog } from "@/components/days/days-overnight-dialog";
 import { StopStrip } from "@/components/days/days-stop-strip";
+import { WeekStops } from "@/components/days/days-week-stops";
+import { useDaySlots } from "@/components/days/use-day-slots";
 import { dayStay } from "@/lib/days/day-stay";
 import { useHeightFloor } from "@/components/days/use-height-floor";
 import { useColumnTrade } from "@/components/days/use-column-trade";
@@ -45,7 +47,8 @@ import {
 import { LAST_START_MINUTE, clamp, formatSpan, snap, spanOf, toHhmm } from "@floc/core/dates/calendar";
 import { draggedPast, eventKeyGesture, eventLanding } from "@floc/core/dates/calendar-gestures";
 import { foldedClock, minuteAt, yAt } from "@floc/core/dates/clock-fold";
-import { addDays } from "@floc/core/dates/dates";
+import { weekStep } from "@floc/core/dates/calendar-week";
+import { spanLabel } from "@floc/core/dates/dates-tabs";
 import type { BandSpan } from "@floc/core/itinerary/overnight-band";
 import type { StayWrite } from "@floc/core/itinerary/stay/overnight-pick";
 
@@ -61,19 +64,6 @@ type Drag = {
 };
 
 type Adding = { dayId: number; time: string; endTime?: string };
-
-const cap = (id: number, date: string): CalendarDay => ({
-  id,
-  date,
-  weekday: "",
-  dayOfMonth: "",
-  longLabel: "",
-  shortLabel: "",
-  overnightPlaceName: null,
-  overnightPlaceId: null,
-  outside: true,
-  isToday: false,
-});
 
 function focusFacts(days: CalendarDay[], index: number, events: CalendarEvent[], tripEnd: string | null): FocusFacts {
   const day = days[index];
@@ -224,21 +214,21 @@ export function DaysCalendar({
   const focusIndex = clamp(anchor, 0, days.length - 1);
   const focus = days[focusIndex];
   const trade = useColumnTrade(focusIndex, gridRef);
-  const slotKey = trade.indices.join();
-  const slots = useMemo(
-    () => slotKey.split(",").map(Number).map((i) => days[i] ?? cap(i < 0 ? i : -10 - (i - days.length), addDays(days[focusIndex].date, i - focusIndex))),
-    [days, focusIndex, slotKey],
-  );
+  const { slots, week, shownIds, glide, style: weekStyle } = useDaySlots(days, focusIndex, trade.indices);
 
   const restIds = useMemo(() => new Set(days.slice(Math.max(0, focusIndex - 1), focusIndex + 2).map((d) => d.id)), [days, focusIndex]);
   const clock = useMemo(() => {
-    const ids = restIds;
     const spans = committed.flatMap((e) => {
-      const span = ids.has(e.dayId) ? spanOf(e) : null;
+      const span = shownIds.has(e.dayId) ? spanOf(e) : null;
       return span ? [span] : [];
     });
     return foldedClock(spans, { hourPx: HOUR_PX, foldPx: FOLD_PX, unfold });
-  }, [committed, restIds, unfold]);
+  }, [committed, shownIds, unfold]);
+  const counts = useMemo(() => {
+    const byDay = new Map<number, number>();
+    for (const e of committed) byDay.set(e.dayId, (byDay.get(e.dayId) ?? 0) + 1);
+    return byDay;
+  }, [committed]);
 
   const minutesToY = useCallback((m: number) => yAt(clock, m), [clock]);
   const yToMinutes = useCallback((y: number) => minuteAt(clock, y), [clock]);
@@ -464,7 +454,7 @@ export function DaysCalendar({
   return (
     <EventDraftProvider value={drafts.api}>
     <div style={{ minHeight: card.floor }}>
-      <div ref={card.ref} data-days-trade={trade.phase} style={trade.style} className={cx("overflow-hidden rounded-md bg-sheet", FOCUS_COLUMNS)}>
+      <div ref={card.ref} data-days-trade={trade.phase} data-days-glide={glide ? "" : undefined} style={{ ...weekStyle, ...trade.style }} className={cx("overflow-hidden rounded-md bg-sheet", FOCUS_COLUMNS)}>
         <StopStrip days={days} tripEnd={tripEnd} focusId={focus.id} onGoTo={goTo} onStop={openBandDialog} />
 
         <CalendarToolbar
@@ -476,6 +466,13 @@ export function DaysCalendar({
             canPrev: focusIndex > 0,
             canNext: focusIndex < days.length - 1,
           }}
+          week={{
+            label: spanLabel(week.monday, week.sunday),
+            goPrev: () => setAnchor(weekStep(focusIndex, days.length, -1)),
+            goNext: () => setAnchor(weekStep(focusIndex, days.length, 1)),
+            canPrev: week.canPrev,
+            canNext: week.canNext,
+          }}
           rangeLabel={focus.longLabel}
           unfold={unfold}
           onToggleFold={() => setUnfold((v) => !v)}
@@ -483,14 +480,15 @@ export function DaysCalendar({
         />
 
         <div role="presentation" onClick={onCalendarClick} className="min-w-0">
-          <div ref={scrollerRef} className="max-h-[70vh] overflow-y-auto" style={{ scrollPaddingTop: headHeight }}>
+          <div ref={scrollerRef} className="max-h-[70vh] overflow-y-auto lg:max-h-[calc(100dvh-15rem)]" style={{ scrollPaddingTop: headHeight }}>
             <div ref={headRef} className="sticky top-0 z-30 shadow-raised">
+              <WeekStops days={days} tripEnd={tripEnd} indices={week.indices} onStop={openBandDialog} />
               <FocusHeads
                 slots={slots}
-                focus={focusFacts(days, focusIndex, events, tripEnd)}
+                focus={focusFacts(days, focusIndex, committed, tripEnd)}
+                counts={counts}
                 rowStyle={rowStyle}
                 onGoTo={goTo}
-                onAdd={() => openAdd(focus.id, 9 * 60)}
                 removeControl={removeDayControls[focus.id]}
               />
 
