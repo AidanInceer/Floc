@@ -17,7 +17,7 @@ const IDEAS = {
 
 const LIST = [
   { key: "2A", name: "Row opens · height", spec: "The row grows to its height and the chevron turns. 0.22s." },
-  { key: "4A", name: "Tick · draws", spec: "The tick draws itself as the box turns green and the words go quiet. 0.22s." },
+  { key: "4A", name: "Tick · draws", spec: "The tick draws itself as the box turns green and the words go quiet: the box in 0.22s, the tick drawn over 0.5s." },
   { key: "7A", name: "Copy · button washes pen", spec: "The button washes pen for a second: 0.22s in, hold, 0.22s out. Its words stay; a tick stands in for its icon while it holds." },
 ];
 const specOf = (key) => LIST.find((v) => v.key === key);
