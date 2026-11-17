@@ -16,6 +16,7 @@ import { ChevronIcon, PlusIcon } from "@/components/system/icons";
 import { Button, cx, iconFrameClass } from "@/components/system/ui";
 import {
   OUTSIDE_DAY_CLASS,
+  onlyClass,
   type CalendarDay,
   type CalendarEvent,
 } from "@/components/days/days-calendar-shared";
@@ -32,14 +33,24 @@ export type DayStepper = {
   canNext: boolean;
 };
 
+export type WeekStepper = {
+  label: string;
+  goPrev: () => void;
+  goNext: () => void;
+  canPrev: boolean;
+  canNext: boolean;
+};
+
 export function CalendarToolbar({
   nav,
+  week,
   rangeLabel,
   unfold,
   onToggleFold,
   onAdd,
 }: {
   nav: DayStepper;
+  week: WeekStepper;
   rangeLabel: string;
   unfold: boolean;
   onToggleFold: () => void;
@@ -48,12 +59,19 @@ export function CalendarToolbar({
   return (
     <div className="flex flex-wrap items-center gap-2 border-b border-rule px-3 py-2.5">
       {nav.hasToday ? <Button onClick={nav.onToday}>Today</Button> : null}
-      <button type="button" onClick={nav.goPrev} disabled={!nav.canPrev} aria-label="Day before" title={nav.canPrev ? "Day before" : "The trip starts here"} className={iconFrameClass()}>
+      <button type="button" onClick={nav.goPrev} disabled={!nav.canPrev} aria-label="Day before" title={nav.canPrev ? "Day before" : "The trip starts here"} className={cx(iconFrameClass(), "lg:hidden")}>
         <ChevronIcon direction="left" />
       </button>
-      <button type="button" onClick={nav.goNext} disabled={!nav.canNext} aria-label="Day after" title={nav.canNext ? "Day after" : "The trip ends here"} className={iconFrameClass()}>
+      <button type="button" onClick={nav.goNext} disabled={!nav.canNext} aria-label="Day after" title={nav.canNext ? "Day after" : "The trip ends here"} className={cx(iconFrameClass(), "lg:hidden")}>
         <ChevronIcon direction="right" />
       </button>
+      <button type="button" onClick={week.goPrev} disabled={!week.canPrev} aria-label="Week before" title={week.canPrev ? "Week before" : "The trip starts this week"} className={cx(iconFrameClass(), "max-lg:hidden")}>
+        <ChevronIcon direction="left" />
+      </button>
+      <button type="button" onClick={week.goNext} disabled={!week.canNext} aria-label="Week after" title={week.canNext ? "Week after" : "The trip ends this week"} className={cx(iconFrameClass(), "max-lg:hidden")}>
+        <ChevronIcon direction="right" />
+      </button>
+      <p className="nums ml-1 text-[13px] text-ink-soft max-lg:hidden">{week.label}</p>
       <p className="sr-only" aria-live="polite">
         {rangeLabel}
       </p>
@@ -118,7 +136,8 @@ export function AllDayStrip({
           }}
           className={cx(
             "grid min-h-8 min-w-0 content-start gap-1 border-l border-rule p-1",
-            day.outside ? OUTSIDE_DAY_CLASS : day.id === focusId && "bg-sheet",
+            onlyClass(day.only),
+            day.outside ? OUTSIDE_DAY_CLASS : day.id === focusId ? "bg-sheet" : "lg:bg-sheet",
             overDay === day.id && "bg-pen-soft",
           )}
         >
@@ -226,7 +245,7 @@ function FoldGround({ slots, focusId }: { slots: CalendarDay[]; focusId: number 
   return (
     <span aria-hidden data-days-row className="absolute inset-0 grid grid-cols-[var(--days-tracks)]">
       {slots.map((day) => (
-        <span key={day.id} className={cx("border-l border-rule", !day.outside && (day.id === focusId ? "bg-sheet" : "bg-sheet-2"))} />
+        <span key={day.id} className={cx("border-l border-rule", onlyClass(day.only), !day.outside && (day.id === focusId ? "bg-sheet" : "bg-sheet-2 lg:bg-sheet"))} />
       ))}
     </span>
   );

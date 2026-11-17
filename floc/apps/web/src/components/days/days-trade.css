@@ -1,4 +1,4 @@
-/* The columns trading places on a step of one day (ADR-051, use-column-trade.ts). */
+/* The columns trading places on a change of day (ADR-051, use-column-trade.ts). */
 @layer components {
   /* A track heading for 0px must not be held open by its words. Not the gutter: its first and last hours hang past it. */
   [data-days-trade] [data-days-row] > :not(:first-child, [data-days-overlay]) {
@@ -6,6 +6,12 @@
     overflow: hidden;
   }
   [data-days-trade="moving"] [data-days-row] {
-    transition: grid-template-columns 0.45s var(--ease-even);
+    transition: grid-template-columns 0.65s var(--ease-even);
+  }
+  /* In the week, the day you go to widens in place (ADR-066); a new week arrives plainly. */
+  @media (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
+    [data-days-glide] [data-days-row] {
+      transition: grid-template-columns 0.65s var(--ease-even);
+    }
   }
 }

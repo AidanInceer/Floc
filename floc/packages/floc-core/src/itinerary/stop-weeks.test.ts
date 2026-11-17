@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { stopWeek } from "./stop-weeks";
+import { stopSegments, stopWeek } from "./stop-weeks";
 import { deriveStops, type StopDayInput } from "./stops";
 
 function trip(places: (string | null)[], start = "2026-06-01"): StopDayInput[] {
@@ -72,5 +72,25 @@ describe("stopWeek", () => {
     expect(week(SEVENTEEN, 9)).toMatchObject({ before: 0, after: 14 });
     expect(week(SEVENTEEN, 2)).toMatchObject({ before: null, after: 7 });
     expect(week(SEVENTEEN, 15)).toMatchObject({ before: 7, after: null });
+  });
+});
+
+describe("stopSegments", () => {
+  const PORTUGAL: (string | null)[] = ["Lisbon", "Lisbon", "Lisbon", "Lagos", "Lagos", "Lagos", "Lagos", "Lagos"];
+  const stops = deriveStops(trip(PORTUGAL));
+
+  it("places stops in a calendar week that starts before the trip, leaving its first columns empty", () => {
+    const segments = stopSegments(stops, -3, 3);
+    expect(segments.map(({ column, span, cutLeft, cutRight }) => ({ column, span, cutLeft, cutRight }))).toEqual([
+      { column: 3, span: 3, cutLeft: false, cutRight: false },
+      { column: 6, span: 1, cutLeft: false, cutRight: true },
+    ]);
+  });
+
+  it("cuts a stop on the left when it began in the week before", () => {
+    const segments = stopSegments(stops, 4, 10);
+    expect(segments.map(({ column, span, cutLeft, cutRight }) => ({ column, span, cutLeft, cutRight }))).toEqual([
+      { column: 0, span: 4, cutLeft: true, cutRight: false },
+    ]);
   });
 });

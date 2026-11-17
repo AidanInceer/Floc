@@ -10,6 +10,18 @@ import type { BandSpan } from "@floc/core/itinerary/overnight-band";
 import { shortPlace } from "@floc/core/itinerary/names/place-name";
 import { dayParts } from "@floc/core/dates/dates";
 
+export function tripStops(days: CalendarDay[], tripEnd: string | null): Stop[] {
+  return deriveStops(
+    days.map((d) => ({
+      dayId: d.id,
+      date: d.date,
+      overnightPlaceId: d.overnightPlaceId,
+      overnightPlaceName: d.overnightPlaceName,
+    })),
+    tripEnd,
+  );
+}
+
 export function StopStrip({
   days,
   tripEnd,
@@ -23,15 +35,7 @@ export function StopStrip({
   onGoTo: (dayId: number) => void;
   onStop: (span: BandSpan) => void;
 }) {
-  const stops = deriveStops(
-    days.map((d) => ({
-      dayId: d.id,
-      date: d.date,
-      overnightPlaceId: d.overnightPlaceId,
-      overnightPlaceName: d.overnightPlaceName,
-    })),
-    tripEnd,
-  );
+  const stops = tripStops(days, tripEnd);
   const week = stopWeek(
     days.map((d) => d.date),
     stops,
@@ -42,7 +46,7 @@ export function StopStrip({
   const step = (to: number | null) => (to === null ? undefined : () => onGoTo(days[to]!.id));
 
   return (
-    <div className="border-b border-rule bg-sheet-2 px-2 py-2 sm:px-3 sm:py-2.5">
+    <div className="border-b border-rule bg-sheet-2 px-2 py-2 sm:px-3 sm:py-2.5 lg:hidden">
       {many ? (
         <p className="nums mb-1.5 text-center text-[11px] text-ink-faint sm:ml-10 sm:text-left">{week.note}</p>
       ) : null}
@@ -124,7 +128,7 @@ function pillClass({ cutLeft, cutRight, span }: WeekSegment, named: boolean): st
   );
 }
 
-function StopPill({ segment, onStop }: { segment: WeekSegment; onStop: (span: BandSpan) => void }) {
+export function StopPill({ segment, onStop, className }: { segment: WeekSegment; onStop: (span: BandSpan) => void; className?: string }) {
   const { stop, column, span, cutLeft, cutRight } = segment;
   const name = stop.placeName ? shortPlace(stop.placeName) : null;
   return (
@@ -139,7 +143,7 @@ function StopPill({ segment, onStop }: { segment: WeekSegment; onStop: (span: Ba
         borderLeftStyle: cutLeft ? "dashed" : undefined,
         borderRightStyle: cutRight ? "dashed" : undefined,
       }}
-      className={pillClass(segment, name !== null)}
+      className={cx(pillClass(segment, name !== null), className)}
     >
       {cutLeft ? <ChevronIcon direction="left" size={11} className="shrink-0 opacity-70 max-sm:hidden" /> : null}
       <BedIcon size={12} className="shrink-0" />
