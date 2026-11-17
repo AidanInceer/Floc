@@ -482,12 +482,12 @@
 
   /* A packed thing's tick draws itself as its box turns green (ADR-053); only on the press, never at load. */
   .tick-draw path {
-    stroke-dasharray: 16;
-    animation: tick-draw 0.22s var(--ease);
+    stroke-dasharray: 14;
+    animation: tick-draw 0.5s var(--ease-even);
   }
   @keyframes tick-draw {
     from {
-      stroke-dashoffset: 16;
+      stroke-dashoffset: 14;
     }
   }
 
