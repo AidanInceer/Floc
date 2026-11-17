@@ -8,4 +8,10 @@
   [data-days-trade="moving"] [data-days-row] {
     transition: grid-template-columns 0.65s var(--ease-even);
   }
+  /* In the week, the day you go to widens in place (ADR-066); a new week arrives plainly. */
+  @media (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
+    [data-days-glide] [data-days-row] {
+      transition: grid-template-columns 0.65s var(--ease-even);
+    }
+  }
 }

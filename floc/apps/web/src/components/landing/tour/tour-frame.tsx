@@ -1,16 +1,17 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { Fragment, useLayoutEffect, useRef } from "react";
 import type { ReactNode, RefObject } from "react";
 
 import { SECTION_COLOURS, type SectionColour } from "@floc/core/design/section-colours";
 import { NavGlyph } from "@/components/system/icons/nav";
 import { AvatarRow, cx } from "@/components/system/ui";
-import { TABS } from "@/lib/tabs";
+import { TABS, TRIP_TAB_CLUSTERS } from "@/lib/tabs";
 import { sampleGroup } from "../sample-trip";
 import type { TourSlide } from "./tour-slides";
 
 const RISE = "tour-rise";
+const CLUSTER_STARTS = new Set(TRIP_TAB_CLUSTERS.slice(1).map(([first]) => first.key));
 const WASH: Record<SectionColour, string> = { blue: "bg-pastel-blue", yellow: "bg-pastel-yellow", red: "bg-pastel-red", green: "bg-pastel-green" };
 const INK: Record<SectionColour, string> = { blue: "text-pastel-blue-ink", yellow: "text-pastel-yellow-ink", red: "text-pastel-red-ink", green: "text-pastel-green-ink" };
 
@@ -70,12 +71,18 @@ export function TourFrame({ slides, shown, moved, onPick }: { slides: (TourSlide
             </>
           );
           const className = cx("tour-tab relative flex items-center gap-1.5 text-xs font-medium", on ? "text-ink" : "text-ink-faint", slide >= 0 && !on && "hover:text-ink");
-          return slide < 0 ? (
-            <span key={t.key} className={className}>{inner}</span>
+          const tab = slide < 0 ? (
+            <span className={className}>{inner}</span>
           ) : (
-            <button key={t.key} type="button" tabIndex={-1} className={cx(className, "relative")} onClick={(e) => onPick(slide, e.currentTarget)}>
+            <button type="button" tabIndex={-1} className={cx(className, "relative")} onClick={(e) => onPick(slide, e.currentTarget)}>
               {inner}
             </button>
+          );
+          return (
+            <Fragment key={t.key}>
+              {CLUSTER_STARTS.has(t.key) ? <span aria-hidden className="mx-0.5 h-4 w-px shrink-0 bg-rule-strong" /> : null}
+              {tab}
+            </Fragment>
           );
         })}
       </div>

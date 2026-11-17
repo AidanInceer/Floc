@@ -22,18 +22,7 @@ export type StopWeek = {
   after: number | null;
 };
 
-export function stopWeek(dates: IsoDate[], stops: Stop[], focusIndex: number): StopWeek {
-  const total = dates.length;
-  const weeks = Math.max(1, Math.ceil(total / WEEK));
-  const week = Math.min(Math.max(0, Math.floor(focusIndex / WEEK)), weeks - 1);
-  const first = week * WEEK;
-  const shown = dates.slice(first, first + WEEK);
-  const last = first + shown.length - 1;
-
-  const pad: IsoDate[] = [];
-  const tail = shown.at(-1);
-  for (let i = shown.length; i < WEEK && tail; i += 1) pad.push(addDays(tail, i - shown.length + 1));
-
+export function stopSegments(stops: Stop[], first: number, last: number): WeekSegment[] {
   const segments: WeekSegment[] = [];
   let row = 0;
   for (const stop of stops) {
@@ -50,6 +39,22 @@ export function stopWeek(dates: IsoDate[], stops: Stop[], focusIndex: number): S
       cutRight: to > last,
     });
   }
+  return segments;
+}
+
+export function stopWeek(dates: IsoDate[], stops: Stop[], focusIndex: number): StopWeek {
+  const total = dates.length;
+  const weeks = Math.max(1, Math.ceil(total / WEEK));
+  const week = Math.min(Math.max(0, Math.floor(focusIndex / WEEK)), weeks - 1);
+  const first = week * WEEK;
+  const shown = dates.slice(first, first + WEEK);
+  const last = first + shown.length - 1;
+
+  const pad: IsoDate[] = [];
+  const tail = shown.at(-1);
+  for (let i = shown.length; i < WEEK && tail; i += 1) pad.push(addDays(tail, i - shown.length + 1));
+
+  const segments = stopSegments(stops, first, last);
 
   return {
     week,
