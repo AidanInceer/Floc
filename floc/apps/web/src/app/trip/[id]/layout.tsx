@@ -6,7 +6,7 @@ import { requireTripAccess } from "@/server/access";
 import { leaveCostFor } from "@floc/core/trip/trip-state";
 import { readTripColor } from "@floc/core/trip/trip-color";
 import { readTripMark } from "@floc/core/trip/mark/trip-mark";
-import { TABS } from "@/lib/tabs";
+import { TRIP_TAB_CLUSTERS } from "@/lib/tabs";
 
 export async function generateMetadata({
   params,
@@ -41,7 +41,7 @@ export default async function TripLayout({
     <div>
       <div className="bg-paper">
         <div className="mx-auto flex w-full max-w-[84rem] items-center px-4 py-2 sm:px-6">
-          <TripTabs tripId={trip.id} tabs={TABS}>
+          <TripTabs tripId={trip.id} clusters={TRIP_TAB_CLUSTERS}>
             <TripMenu
               tripId={trip.id}
               tripName={trip.name}

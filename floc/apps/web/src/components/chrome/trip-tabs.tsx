@@ -2,7 +2,7 @@
 
 import Link, { useLinkStatus } from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, type CSSProperties, type ReactNode } from "react";
+import { Fragment, useEffect, type CSSProperties, type ReactNode } from "react";
 
 import { SECTION_COLOURS } from "@floc/core/design/section-colours";
 
@@ -15,7 +15,8 @@ import "./trip-tabs.css";
 
 const WRITES_ON_OPEN = new Set(["packing", "notes"]);
 
-export function TripTabs({ tripId, tabs, children }: { tripId: number; tabs: TabState[]; children?: ReactNode }) {
+export function TripTabs({ tripId, clusters, children }: { tripId: number; clusters: readonly (readonly TabState[])[]; children?: ReactNode }) {
+  const tabs = clusters.flat();
   const pathname = usePathname();
   const hrefOf = (tab: TabState) => `/trip/${tripId}/${tab.key}`;
   const current = activeHref(pathname, tabs.map(hrefOf));
@@ -42,31 +43,36 @@ export function TripTabs({ tripId, tabs, children }: { tripId: number; tabs: Tab
         style={fade.style}
         aria-label="Trip sections"
         data-tile={tile.placed ? "" : undefined}
-        className="scroll-x-bare relative flex h-11 max-w-full items-center gap-2 sm:gap-5"
+        className="scroll-x-bare relative flex h-11 max-w-full items-center gap-1.5 sm:gap-5"
       >
         <span ref={tile.tile} aria-hidden hidden className="trip-tab-tile" />
-        {tabs.map((tab) => (
-          <Link
-            key={tab.key}
-            href={hrefOf(tab)}
-            style={{
-              "--section-wash": `var(--pastel-${SECTION_COLOURS[tab.key]})`,
-              "--section-ink": `var(--pastel-${SECTION_COLOURS[tab.key]}-ink)`,
-            } as CSSProperties}
-            aria-current={hrefOf(tab) === current ? "page" : undefined}
-            onMouseEnter={warm(tab)}
-            onFocus={warm(tab)}
-            onTouchStart={warm(tab)}
-            onClick={tile.press(hrefOf(tab))}
-            data-pressed={tile.pressed === hrefOf(tab) ? "" : undefined}
-            className="trip-tab flex h-full min-w-8 shrink-0 items-center justify-center gap-1.5 text-sm font-medium text-ink-faint transition-colors hover:text-ink-soft aria-[current=page]:text-ink has-[[data-tab-pending]]:text-ink sm:min-w-0"
-          >
-            <span className="trip-tab-icon inline-flex size-[26px] items-center justify-center rounded-sm">
-              <NavGlyph name={tab.key} />
-            </span>
-            <span className="sr-only sm:not-sr-only">{tab.label}</span>
-            <PendingMark />
-          </Link>
+        {clusters.map((cluster, i) => (
+          <Fragment key={cluster[0].key}>
+            {i ? <span aria-hidden className="h-5 w-px shrink-0 bg-rule-strong sm:mx-0.5" /> : null}
+            {cluster.map((tab) => (
+              <Link
+                key={tab.key}
+                href={hrefOf(tab)}
+                style={{
+                  "--section-wash": `var(--pastel-${SECTION_COLOURS[tab.key]})`,
+                  "--section-ink": `var(--pastel-${SECTION_COLOURS[tab.key]}-ink)`,
+                } as CSSProperties}
+                aria-current={hrefOf(tab) === current ? "page" : undefined}
+                onMouseEnter={warm(tab)}
+                onFocus={warm(tab)}
+                onTouchStart={warm(tab)}
+                onClick={tile.press(hrefOf(tab))}
+                data-pressed={tile.pressed === hrefOf(tab) ? "" : undefined}
+                className="trip-tab flex h-full min-w-8 shrink-0 items-center justify-center gap-1.5 text-sm font-medium text-ink-faint transition-colors hover:text-ink-soft aria-[current=page]:text-ink has-[[data-tab-pending]]:text-ink sm:min-w-0"
+              >
+                <span className="trip-tab-icon inline-flex size-[26px] items-center justify-center rounded-sm">
+                  <NavGlyph name={tab.key} />
+                </span>
+                <span className="sr-only sm:not-sr-only">{tab.label}</span>
+                <PendingMark />
+              </Link>
+            ))}
+          </Fragment>
         ))}
       </nav>
       {children}
