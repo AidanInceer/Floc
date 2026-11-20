@@ -2,7 +2,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { webPort } from "@/server/api-port/api-port";
-import { insertNudge } from "@/server/trips/roster";
+import { insertNudge } from "@/server/trips/nudges";
 
 let world: Scenario;
 
@@ -18,7 +18,6 @@ const nudge = (tab: "dates" | "money" = "dates") =>
     fromUserId: world.admin,
     toUserId: world.member,
     tab,
-    message: null,
   });
 
 describe("the notifications port", () => {
@@ -28,7 +27,7 @@ describe("the notifications port", () => {
 
     expect(page.next).toBeNull();
     expect(page.items).toHaveLength(1);
-    expect(page.items[0]).toMatchObject({ text: "Ada nudged you about Ours", read: false, loud: true });
+    expect(page.items[0]).toMatchObject({ text: "Ada nudged you to mark your days on the trip Ours", read: false, loud: true });
     expect(typeof page.items[0].at).toBe("string");
   });
 

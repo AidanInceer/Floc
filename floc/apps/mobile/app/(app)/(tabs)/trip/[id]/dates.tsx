@@ -12,6 +12,7 @@ import { Alert, ScrollView, Text, View } from "react-native";
 import { DatesBars } from "@/components/dates/dates-bars";
 import { DatesCard } from "@/components/dates/dates-card";
 import { DatesPanel } from "@/components/dates/dates-panels";
+import { NudgeWord } from "@/components/trip/nudge/nudge-word";
 import { DatesStubs, type DatesStub } from "@/components/dates/dates-stubs";
 import { CalendarBelow, CalendarTop, useCalendarFill } from "@/components/days/calendar-fill";
 import { forecastIndex, type ForecastIndex } from "@/components/days/dates-weather";
@@ -138,6 +139,7 @@ export default function Dates() {
   const trip = useQuery(trpc.trips.get.queryOptions({ tripId }, { enabled: ready }));
   const rows = useQuery(trpc.availability.list.queryOptions({ tripId }, { enabled: ready }));
   const guests = useQuery(trpc.availability.guests.queryOptions({ tripId }, { enabled: ready }));
+  const nudges = useQuery(trpc.nudges.targets.queryOptions({ tripId }, { enabled: ready }));
   const weather = useQuery(trpc.itinerary.forecast.queryOptions({ tripId }, { enabled: ready }));
   const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }));
   const files = useQuery(trpc.files.list.queryOptions({ tripId }, { enabled: ready }));
@@ -274,6 +276,10 @@ export default function Dates() {
         isFree={mineOn}
         best={best}
         people={people}
+        nudgeFor={(id) => {
+          const person = nudges.data?.dates.find((n) => n.userId === id);
+          return person ? <NudgeWord tripId={tripId} task="dates" person={person} /> : null;
+        }}
         weather={{ view: weather.data, byDate: forecast.byDate, openDay }}
         onUseBest={useBest}
         onClear={() => setWindow(null, null)}

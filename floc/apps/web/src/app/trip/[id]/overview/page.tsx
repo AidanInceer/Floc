@@ -41,6 +41,8 @@ import { readEstimate } from "@/server/money/estimate/estimate-view";
 import { WalkthroughDialog } from "@/components/walkthrough/walkthrough-dialog";
 import { walkthroughFor } from "./walkthrough-for";
 import { mintShareToken } from "@/server/trips/invite-link";
+import { nudgeTargetsFor } from "@/server/trips/nudges";
+import { NUDGE_TASKS } from "@floc/core/trip/nudge/nudge";
 
 export const metadata = { title: "Overview" };
 
@@ -101,15 +103,21 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
   const color = readTripColor(trip.colorKey);
   const tone = tripPastel(color, tripId);
   const tucked = ideasTucked({ days: routeDays, today: underway(trip, now) });
+  const marked = markedUserIds(availabilityRows);
+  const nudges = await nudgeTargetsFor(access, NUDGE_TASKS, {
+    markedUserIds: marked,
+    owedBy: settle.rows.filter((r) => r.payee === viewer.id).map((r) => r.payer),
+  });
   const sortList = leftToSortFor({
     trip,
     today: now,
     viewerId: viewer.id,
     members: members.map((m) => ({ userId: m.userId, name: m.name })),
-    markedUserIds: markedUserIds(availabilityRows),
+    markedUserIds: marked,
     ideas,
     settle: settle.rows,
     legs,
+    nudges,
   }, await sharedPacking);
 
   return (
@@ -144,7 +152,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
                   <StreamedEstimate tripId={tripId} estimate={estimate} />
                 </Suspense>
               }
-              ideas={tucked ? <IdeasRow tripId={tripId} ideas={ideas} /> : null}
+              ideas={tucked ? <IdeasRow tripId={tripId} ideas={ideas} unvoted={nudges.ideas} /> : null}
               recap={recapShows(trip.endDate, now) ? (
                 <RecapFoot
                   tripId={tripId}
@@ -171,7 +179,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
         </div>
       </section>
 
-      {tucked ? null : <IdeasPanel tripId={tripId} ideas={ideas} datesUnset={datesUnset} />}
+      {tucked ? null : <IdeasPanel tripId={tripId} ideas={ideas} datesUnset={datesUnset} unvoted={nudges.ideas} />}
 
       <OverviewStops
         tripId={tripId}

@@ -2,8 +2,9 @@
 
 import { redirect } from "next/navigation";
 
-import { NUDGE_TABS, type NudgeTab } from "@/db/schema";
 import { assertAdmin, requireTripAccess, requireUser } from "@/server/access";
+import { readNudgeTask, type NudgeResult } from "@floc/core/trip/nudge/nudge";
+import { refreshNudged, sendNudges } from "@/server/trips/nudges";
 import { markTourSeen as markTourSeenFor } from "@/server/auth/tour";
 import { capText } from "@floc/core/text/text";
 import { readTripName } from "@floc/core/trip/trip-name";
@@ -16,7 +17,6 @@ import {
 import { LIMITS } from "@/server/limits";
 import { inviteToTrip } from "@/server/trips/invites";
 import {
-  insertNudge,
   leaveTripAs,
   removeMembership,
   setMemberRoleAdmin,
@@ -25,29 +25,15 @@ import { saveTrip } from "@/server/trips/trip-save";
 import { resetInviteToken } from "@/server/trips/trips";
 import { refresh } from "@/server/freshness";
 
-export async function sendNudge(formData: FormData) {
-  const tripId = Number(formData.get("tripId"));
-  const toUserId = String(formData.get("toUserId"));
-  const posted = String(formData.get("tab"));
-  const tab = (NUDGE_TABS as readonly string[]).includes(posted)
-    ? (posted as NudgeTab)
-    : NUDGE_TABS[0];
-  const message = capText(formData.get("message"), "nudgeMessage");
+export async function nudge(tripId: number, task: string, toUserIds: string[]): Promise<NudgeResult> {
+  const known = readNudgeTask(task);
+  if (!known) throw new Error("Unknown nudge");
+  const ids = [...new Set(toUserIds.map(String).filter((v) => v.length > 0 && v.length <= 64))].slice(0, LIMITS.members);
 
   const access = await requireTripAccess(tripId);
-  if (!access.members.some((m) => m.userId === toUserId)) {
-    throw new Error("Not a member of this trip");
-  }
-
-  await insertNudge({
-    tripId: access.trip.id,
-    fromUserId: access.viewer.id,
-    toUserId,
-    tab,
-    message,
-  });
-
-  refresh({ kind: "tripOverview", tripId: access.trip.id });
+  const plan = await sendNudges(access, known, ids);
+  if (plan.send.length > 0) refreshNudged(access.trip.id);
+  return { sent: plan.send.length, capped: plan.capped };
 }
 
 export async function inviteFriends(formData: FormData) {

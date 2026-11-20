@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
-import { insertNudge } from "@/server/trips/roster";
+import { insertNudge } from "@/server/trips/nudges";
 import { topBarFor } from "@/server/chrome/top-bar";
 
 let world: Scenario;
@@ -14,7 +14,7 @@ beforeEach(async () => {
 
 describe("the top bar's reads", () => {
   it("counts what the badges and the account menu show", async () => {
-    await insertNudge({ tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab: "dates", message: null });
+    await insertNudge({ tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab: "dates" });
 
     const bar = await topBarFor(world.member, 3);
 
@@ -26,7 +26,7 @@ describe("the top bar's reads", () => {
 
   it("caps the menu preview at the limit asked for", async () => {
     for (const tab of ["dates", "money"] as const) {
-      await insertNudge({ tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab, message: null });
+      await insertNudge({ tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab });
     }
 
     expect((await topBarFor(world.member, 1)).latest).toHaveLength(1);

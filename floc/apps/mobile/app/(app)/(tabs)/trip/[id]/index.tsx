@@ -208,6 +208,7 @@ function SortLine({
   const availability = useQuery(trpc.availability.list.queryOptions({ tripId }));
   const packing = useQuery(trpc.packing.list.queryOptions({ tripId }));
   const ideas = useQuery(trpc.ideas.list.queryOptions({ tripId }));
+  const nudges = useQuery(trpc.nudges.targets.queryOptions({ tripId }));
   if (!pairs.data || !availability.data || !packing.data || !ideas.data || !session) return null;
   const list = leftToSortFrom({
     trip,
@@ -219,7 +220,8 @@ function SortLine({
     settle: pairs.data.rows,
     shared: packing.data.shared.map((l) => ({ label: l.label, claimed: l.claims.length > 0 })),
     legs,
+    nudges: nudges.data,
   });
   const go = (gap: Gap) => (gap.tab === "overview" ? undefined : onGo(gap.tab));
-  return <LeftToSort list={list} onGo={go} />;
+  return <LeftToSort tripId={tripId} list={list} onGo={go} />;
 }

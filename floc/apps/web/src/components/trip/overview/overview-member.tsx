@@ -1,14 +1,12 @@
 import Link from "next/link";
 
-import { Avatar, Field, Select, Stack, Textarea, cx, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
-import { ConfirmSubmit, Sheet, SubmitButton } from "@/components/system/client-ui";
+import { Avatar, cx, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
+import { ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
 import { FriendButton } from "@/components/social/friend-button";
 import type { FriendState } from "@/server/social/friends";
 import type { PendingInvitee } from "@/server/trips/invites";
 import type { TripMember } from "@/server/access";
-import { NUDGE_TABS } from "@/db/schema";
-import { TAB_LABELS } from "@/lib/tabs";
-import { kickMember, promoteMember, sendNudge } from "@/app/trip/[id]/overview/actions";
+import { kickMember, promoteMember } from "@/app/trip/[id]/overview/actions";
 
 const row = "flex min-h-[52px] items-center gap-3 px-4 py-2";
 const word = "shrink-0 font-mono text-[11px] uppercase tracking-[0.06em]";
@@ -48,7 +46,6 @@ export function MemberRow({
         </Link>
         {you ? null : (
           <>
-            <NudgeSheet tripId={tripId} member={m} />
             {friendState === "friends" ? null : (
               <div className="px-2.5 py-1.5">
                 <FriendButton userId={m.userId} name={m.name} state={friendState} compact />
@@ -102,31 +99,5 @@ function Chevron() {
     <svg viewBox="0 0 14 14" width={13} height={13} fill="none" stroke="currentColor" strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="shrink-0 text-ink-faint transition-transform group-open:rotate-180">
       <path d="M4.2 5.6 7 8.4l2.8-2.8" />
     </svg>
-  );
-}
-
-function NudgeSheet({ tripId, member }: { tripId: number; member: TripMember }) {
-  return (
-    <Sheet trigger="Nudge" triggerVariant="ghost" triggerClassName={menuItemClass} title={`Nudge ${member.name}`}>
-      <form action={sendNudge}>
-        <input type="hidden" name="tripId" value={tripId} />
-        <input type="hidden" name="toUserId" value={member.userId} />
-        <Stack gap={3}>
-          <Field label="What's it about">
-            <Select name="tab" defaultValue={NUDGE_TABS[0]}>
-              {NUDGE_TABS.map((t) => (
-                <option key={t} value={t}>
-                  {TAB_LABELS[t] ?? t}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <Field label="Message (optional)">
-            <Textarea name="message" />
-          </Field>
-          <SubmitButton>Send nudge</SubmitButton>
-        </Stack>
-      </form>
-    </Sheet>
   );
 }

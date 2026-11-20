@@ -17,6 +17,7 @@ import { meRouter } from "./routers/me";
 import { moneyRouter } from "./routers/money";
 import { estimateRouter } from "./routers/estimate";
 import { notificationsRouter } from "./routers/notifications";
+import { nudgesRouter } from "./routers/nudges/nudges";
 import { packingRouter } from "./routers/packing";
 import { pagesRouter } from "./routers/notes/pages";
 import { peopleRouter } from "./routers/people";
@@ -40,6 +41,7 @@ export const appRouter = router({
   money: moneyRouter,
   estimate: estimateRouter,
   roster: rosterRouter,
+  nudges: nudgesRouter,
   friends: friendsRouter,
   groups: groupsRouter,
   people: peopleRouter,

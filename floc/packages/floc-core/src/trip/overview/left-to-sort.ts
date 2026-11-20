@@ -5,8 +5,11 @@ import type { Currency } from "../../money/currency";
 import { formatMoney } from "../../money/money";
 import { shortPlace } from "../../itinerary/names/place-name";
 import { countWord } from "../../text/count-word";
+import { nudgeLine, type NudgePerson, type NudgeTargets, type NudgeTask } from "../nudge/nudge";
 
 export type GapTab = "dates" | "money" | "packing" | "overview" | "days";
+
+export type GapNudge = { task: NudgeTask; people: NudgePerson[]; line: string };
 
 export type GapKind = "days" | "ideas" | "money" | "packing" | "stay" | "travel";
 
@@ -19,6 +22,7 @@ export type Gap = {
   tab: GapTab;
   anchor?: string;
   action: string;
+  nudge?: GapNudge;
 };
 
 export type LeftToSortInput = {
@@ -31,6 +35,7 @@ export type LeftToSortInput = {
   owe: { to: string; amountMinor: number; currency: Currency }[];
   shared: { label: string; claimed: boolean }[];
   legs: { no: number; placeName: string; arrive: IsoDate; leave: IsoDate; nights: number; hasStay: boolean; hasTravel: boolean }[];
+  nudges?: NudgeTargets;
 };
 
 export type Sorted = { key: string; kind: GapKind; text: string; sub?: string[] };
@@ -39,32 +44,48 @@ type Check = { done: true; item: Sorted } | { done: false; gap?: Gap };
 
 const check = (done: boolean, item: Sorted, gap: Gap): Check => (done ? { done, item } : { done, gap });
 
-const names = (list: string[]): string =>
-  list.length === 1 ? list[0] : `${list.slice(0, -1).join(", ")} and ${list[list.length - 1]}`;
+const names = (list: string[]): string => {
+  if (list.length > 3) return `${list.slice(0, 2).join(", ")} and ${list.length - 2} others`;
+  return list.length === 1 ? list[0] : `${list.slice(0, -1).join(", ")} and ${list[list.length - 1]}`;
+};
+
+const have = (n: number): string => (n === 1 ? "has" : "have");
+
+const nudgeOf = (task: NudgeTask, people: NudgePerson[] | undefined): Pick<Gap, "action" | "nudge"> =>
+  people?.length ? { action: "Nudge all", nudge: { task, people, line: nudgeLine(task, people.length) } } : { action: "Nudge" };
+
+function voteChecks(input: LeftToSortInput): Check[] {
+  if (input.ideas.length === 0) return [];
+  const text = `Vote on where: ${countWord(input.ideas.length, "idea")}`;
+  const checks = [check(input.ideas.some((i) => i.mine), { key: "vote", kind: "ideas", text: "You voted on where" }, { key: "vote", kind: "ideas", mine: true, text, tab: "overview", anchor: "ideas", action: "Vote" })];
+  const late = input.nudges?.ideas;
+  if (!late) return checks;
+  const gap: Gap = { key: "their-votes", kind: "ideas", mine: false, text: `${names(late.map((p) => p.name))} ${have(late.length)} not voted on where`, tab: "overview", anchor: "ideas", ...nudgeOf("ideas", late) };
+  return [...checks, check(late.length === 0, { key: "their-votes", kind: "ideas", text: "Everyone has voted on where" }, gap)];
+}
 
 function dateChecks(input: LeftToSortInput): Check[] {
   if (input.moment !== "finding") return [];
   const marked = new Set(input.markedUserIds);
   const others = input.members.filter((m) => m.userId !== input.viewerId && !marked.has(m.userId)).map((m) => m.name);
-  const checks: Check[] = [
+  return [
     check(marked.has(input.viewerId), { key: "my-days", kind: "days", text: "You marked your days" },
       { key: "my-days", kind: "days", mine: true, text: "Mark the days you can do", tab: "dates", action: "Mark my days" }),
     check(others.length === 0, { key: "their-days", kind: "days", text: "Everyone has marked their days" },
-      { key: "their-days", kind: "days", mine: false, text: `${names(others)} ${others.length === 1 ? "has" : "have"} not marked any days`, tab: "dates", action: "Nudge" }),
+      { key: "their-days", kind: "days", mine: false, text: `${names(others)} ${have(others.length)} not marked any days`, tab: "dates", ...nudgeOf("dates", input.nudges?.dates) }),
+    ...voteChecks(input),
   ];
-  if (input.ideas.length > 0) {
-    const n = input.ideas.length;
-    const text = `Vote on where: ${countWord(n, "idea")}`;
-    checks.push(check(input.ideas.some((i) => i.mine), { key: "vote", kind: "ideas", text: "You voted on where" }, { key: "vote", kind: "ideas", mine: true, text, tab: "overview", anchor: "ideas", action: "Vote" }));
-  }
-  return checks;
 }
 
 function moneyChecks(input: LeftToSortInput): Check[] {
-  return input.owe.map((o) => ({
+  const owe: Check[] = input.owe.map((o) => ({
     done: false,
     gap: { key: `owe-${o.to}-${o.currency}`, kind: "money", mine: true, text: `You owe ${o.to} ${formatMoney(o.amountMinor, o.currency)}`, tab: "money", action: "Settle up" },
   }));
+  const owing = input.nudges?.money ?? [];
+  if (owing.length === 0) return owe;
+  const text = `${names(owing.map((p) => p.name))} ${owing.length === 1 ? "owes" : "owe"} you`;
+  return [...owe, { done: false, gap: { key: "owed", kind: "money", mine: false, text, tab: "money", ...nudgeOf("money", owing) } }];
 }
 
 function packingChecks(input: LeftToSortInput): Check[] {

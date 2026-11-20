@@ -6,6 +6,7 @@ import { View } from "react-native";
 
 import { Button, Failed, Loading, TextBox } from "../../system/ui";
 import { IdeasPanel } from "./ideas-panel";
+import { IdeasWaiting } from "./ideas-waiting";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
 
@@ -34,7 +35,7 @@ export function IdeasSection({ tripId, datesUnset }: { tripId: number; datesUnse
   if (ideas.isError) return <Failed onRetry={() => ideas.refetch()} />;
 
   return (
-    <IdeasPanel
+  <IdeasPanel
       ideas={ideas.data.map((idea) => ({
         id: idea.id,
         title: idea.title,
@@ -51,6 +52,7 @@ export function IdeasSection({ tripId, datesUnset }: { tripId: number; datesUnse
       onSort={(next) => setSort(readIdeaSort(next))}
       onVote={(ideaId) => vote.mutate({ tripId, ideaId })}
       onRemove={(ideaId) => remove.mutate({ tripId, ideaId })}
+    footer={<IdeasWaiting tripId={tripId} />}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
         <View style={{ flex: 1 }}>

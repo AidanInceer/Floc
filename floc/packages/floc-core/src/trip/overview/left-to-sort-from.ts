@@ -2,6 +2,7 @@ import type { IsoDate } from "../../dates/dates";
 import { datesMoment } from "../../dates/dates-moment";
 import type { SettleRow } from "../../money/group-settle";
 import { leftToSort, type LeftToSort } from "./left-to-sort";
+import type { NudgeTargets } from "../nudge/nudge";
 
 export type LeftToSortSource = {
   trip: { startDate: IsoDate | null; endDate: IsoDate | null };
@@ -13,6 +14,7 @@ export type LeftToSortSource = {
   settle: readonly SettleRow[];
   shared: { label: string; claimed: boolean }[];
   legs: { no: number; placeName: string; arrive: IsoDate; leave: IsoDate; nights: number; stay: unknown; mode: unknown }[];
+  nudges?: NudgeTargets | undefined;
 };
 
 export function leftToSortFrom(source: LeftToSortSource): LeftToSort {
@@ -29,5 +31,6 @@ export function leftToSortFrom(source: LeftToSortSource): LeftToSort {
     owe: owe.map((r) => ({ to: nameOf.get(r.payee) ?? "a former member", amountMinor: r.amountMinor, currency: r.currency })),
     shared: over ? [] : source.shared,
     legs: source.legs.map((l, i) => ({ ...l, hasStay: l.stay !== null, hasTravel: i === 0 || l.mode !== null })),
+    ...(source.nudges ? { nudges: source.nudges } : {}),
   });
 }

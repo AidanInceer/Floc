@@ -836,7 +836,7 @@ export const noteReaction = sqliteTable(
   ],
 );
 
-export const NUDGE_TABS = ["notes", "dates", "days", "money"] as const;
+export const NUDGE_TABS = ["notes", "dates", "days", "money", "ideas"] as const;
 export type NudgeTab = (typeof NUDGE_TABS)[number];
 
 export const nudge = sqliteTable(

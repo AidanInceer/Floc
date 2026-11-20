@@ -3,7 +3,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
-import { insertNudge } from "@/server/trips/roster";
+import { insertNudge } from "@/server/trips/nudges";
 import { openNotification } from "@/server/notifications/inbox";
 import {
   forgetPushToken,
@@ -23,7 +23,7 @@ beforeEach(async () => {
 const minutes = (n: number) => new Date(Date.now() + n * 60_000);
 
 const nudge = () =>
-  insertNudge({ tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab: "money", message: null });
+  insertNudge({ tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab: "money" });
 
 function sender() {
   const sent: PushMessage[] = [];
@@ -55,7 +55,7 @@ describe("sending pushes", () => {
     expect(sent.map((m) => m.to).sort()).toEqual(["ExponentPushToken[a]", "ExponentPushToken[b]"]);
     expect(sent[0]).toMatchObject({
       title: "Ours",
-      body: "Ada nudged you",
+      body: "Ada nudged you to settle up",
       data: { href: `/trip/${world.ours.id}/money` },
     });
 
@@ -145,7 +145,7 @@ describe("sending pushes", () => {
     await registerPushToken(world.member, "ExponentPushToken[m]");
     await registerPushToken(world.admin, "ExponentPushToken[a]");
     await nudge();
-    await insertNudge({ tripId: world.ours.id, fromUserId: world.member, toUserId: world.admin, tab: "money", message: null });
+    await insertNudge({ tripId: world.ours.id, fromUserId: world.member, toUserId: world.admin, tab: "money" });
 
     await sendDuePushes(
       async (messages) => ({ deadTokens: [], failed: messages.filter((m) => m.to === "ExponentPushToken[m]") }),

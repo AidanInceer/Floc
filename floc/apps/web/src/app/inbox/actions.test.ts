@@ -3,7 +3,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { REDIRECT } from "@/test/setup";
 import { migrateTestDb, resetDb, seedScenario, signIn, type Scenario } from "@/test/db";
 import { countUnread, listInbox } from "@/server/notifications/inbox";
-import { insertNudge } from "@/server/trips/roster";
+import { insertNudge } from "@/server/trips/nudges";
 
 import { openNotification, readEverything, seeInbox } from "./actions";
 
@@ -22,7 +22,6 @@ const nudge = (tab: "dates" | "money" = "dates") =>
     fromUserId: world.admin,
     toUserId: world.member,
     tab,
-    message: null,
   });
 
 const form = (id: string | number): FormData => {

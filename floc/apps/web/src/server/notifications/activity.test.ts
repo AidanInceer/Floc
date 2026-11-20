@@ -7,7 +7,8 @@ import { insertNote } from "@/server/notes/notes";
 import { writeExpense, writeSettlement } from "@/server/money/money";
 import { claimPackingLine, insertPackingLine, softDeletePackingLine } from "@/server/packing/packing";
 import { extendTripDays, setTripWindow, softDeleteDay } from "@/server/itinerary/itinerary";
-import { addMember, insertNudge, removeMembership } from "@/server/trips/roster";
+import { addMember, removeMembership } from "@/server/trips/roster";
+import { insertNudge } from "@/server/trips/nudges";
 import { inviteToTrip } from "@/server/trips/invites";
 import { acceptPendingRequest, openPendingRequest } from "@/server/social/friends";
 
@@ -95,7 +96,6 @@ describe("each writer logs its change", () => {
       fromUserId: world.admin,
       toUserId: world.member,
       tab: "money",
-      message: null,
     });
     expect((await activities())[0].href).toBe(`/trip/${world.ours.id}/money`);
     expect(await inboxOf(world.member)).toEqual([{ kind: "nudge_sent", loud: true }]);
@@ -154,7 +154,7 @@ describe("each writer logs its change", () => {
 describe("grouping", () => {
   it("folds rapid edits by one person to one thing into one row, and a row you have read stays read", async () => {
     const edit = () =>
-      insertNudge({ tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab: "dates", message: null });
+      insertNudge({ tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab: "dates" });
     await setTripWindow(world.ours.id, "2026-09-01", "2026-09-02", world.admin);
     await db.update(schema.notification).set({ readAt: new Date(), seenAt: new Date() });
     await setTripWindow(world.ours.id, "2026-09-01", "2026-09-03", world.admin);

@@ -85,7 +85,7 @@ function daysWord(days: number | null): string {
   return days === 0 ? "No days" : countWord(days, "day");
 }
 
-export function WhoAnswered({ people }: { people: Person[] }) {
+export function WhoAnswered({ people, nudgeFor }: { people: Person[]; nudgeFor?: (id: string) => ReactNode }) {
   const { c } = useTheme();
   const answered = people.filter((p) => p.days !== null).length;
   return (
@@ -102,9 +102,11 @@ export function WhoAnswered({ people }: { people: Person[] }) {
             <Text numberOfLines={1} style={{ flex: 1, color: c.ink, fontFamily: fonts.sans, fontSize: size.small }}>
               {p.guest ? `${p.name} · guest` : p.name}
             </Text>
-            <Text style={{ color: p.days !== null ? c["ink-3"] : c["highlight-ink"], fontFamily: fonts.type, fontSize: size.label + 1, fontVariant: ["tabular-nums"] }}>
-              {daysWord(p.days)}
-            </Text>
+            {(p.days === null && nudgeFor?.(p.id)) || (
+              <Text style={{ color: p.days !== null ? c["ink-3"] : c["highlight-ink"], fontFamily: fonts.type, fontSize: size.label + 1, fontVariant: ["tabular-nums"] }}>
+                {daysWord(p.days)}
+              </Text>
+            )}
           </View>
         );
       })}
@@ -120,6 +122,7 @@ export function DatesPanel(p: {
   isFree: (d: IsoDate) => boolean;
   best: { start: IsoDate; end: IsoDate; free: number } | null;
   people: Person[];
+  nudgeFor?: (id: string) => ReactNode;
   weather: { view: TripForecastView | undefined; byDate: Record<string, ForecastDay>; openDay: string | null };
   onUseBest: () => void;
   onClear: () => void;
@@ -137,7 +140,7 @@ export function DatesPanel(p: {
     group: (
       <>
         {best(true)}
-        <WhoAnswered people={p.people} />
+        <WhoAnswered people={p.people} nudgeFor={p.nudgeFor} />
       </>
     ),
     trip: (
