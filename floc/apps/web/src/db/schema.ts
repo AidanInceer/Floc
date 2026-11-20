@@ -898,6 +898,7 @@ export const notification = sqliteTable(
   (t) => [
     uniqueIndex("notification_one_idx").on(t.activityId, t.userId),
     index("notification_user_idx").on(t.userId),
+    index("notification_user_seen_idx").on(t.userId, t.seenAt),
     index("notification_push_idx").on(t.loud, t.pushedAt),
     index("notification_email_idx").on(t.loud, t.emailedAt),
   ],

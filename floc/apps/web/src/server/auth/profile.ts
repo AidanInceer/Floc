@@ -2,6 +2,7 @@ import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import "server-only";
 
 import { eq, inArray } from "drizzle-orm";
+import { cache } from "react";
 
 import { db } from "@/db";
 import { user, userProfile } from "@/db/schema";
@@ -12,6 +13,8 @@ export async function getProfile(
 ): Promise<UserProfile | undefined> {
   return db.select().from(userProfile).where(eq(userProfile.userId, userId)).get();
 }
+
+export const readProfile = cache(getProfile);
 
 export async function ensureProfile(
   userId: string,

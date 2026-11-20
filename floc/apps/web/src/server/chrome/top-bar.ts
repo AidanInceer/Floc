@@ -2,7 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 
-import { getProfile } from "@/server/auth/profile";
+import { readProfile } from "@/server/auth/profile";
 import { canUseFeature } from "@/server/billing/entitlements";
 import type { TripChoice, WaitingFile } from "@floc/core/documents/booking/booking-inbox";
 import { tripsForPlacing, waitingBookings, type WaitingBooking } from "@/server/documents/bookings/booking-inbox";
@@ -17,7 +17,7 @@ export const topBarFor = cache(async function topBarFor(userId: string, previewL
     await Promise.all([
       countPendingInvitesFor(userId),
       countIncomingFriendRequests(userId),
-      getProfile(userId),
+      readProfile(userId),
       countUnread(userId),
       listUnseen(userId, previewLimit),
       waitingBookings(userId),

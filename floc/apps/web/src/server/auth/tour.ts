@@ -4,11 +4,11 @@ import { and, count, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { trip, tripMembership, userProfile } from "@/db/schema";
-import { ensureProfile, getProfile } from "@/server/auth/profile";
+import { ensureProfile, readProfile } from "@/server/auth/profile";
 import { shouldStartWalkthrough } from "@floc/core/trip/walkthrough";
 
 export async function tourSeenAt(userId: string): Promise<Date | null> {
-  return (await getProfile(userId))?.tourSeenAt ?? null;
+  return (await readProfile(userId))?.tourSeenAt ?? null;
 }
 
 async function tripsOnCount(userId: string): Promise<number> {
