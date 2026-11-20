@@ -24,7 +24,7 @@ type Props = {
 
 export function OverviewGroup(props: Props) {
   return (
-    <section id="the-group" className="flex min-w-0 scroll-mt-24 flex-wrap items-center gap-3">
+    <section id="the-group" className="flex min-w-0 scroll-mt-24 items-center gap-3">
       <h2 className="sr-only">Who&rsquo;s going</h2>
       <RosterSheet {...props} />
       <InviteSheet {...props} />
@@ -43,7 +43,7 @@ function RosterSheet({ tripId, viewerId, members, isAdmin, inviteUrl, friendStat
       bareTrigger
       title={going}
       body="flush"
-      triggerClassName="lift flex min-w-0 items-center gap-3 rounded-md py-1 pl-1 pr-3 text-left hover:bg-sheet-2 max-md:flex-[1_1_100%]"
+      triggerClassName="lift flex min-w-0 items-center gap-3 rounded-md py-1 pl-1 pr-3 text-left hover:bg-sheet-2 flex-1"
       trigger={
         <>
           <AvatarRow people={members.map((m) => ({ name: m.name, avatarIcon: m.avatarIcon, tone: m.tone }))} max={5} size={32} />
@@ -93,7 +93,7 @@ function InviteSheet({ tripId, members, pendingInvitees, friends, inviteUrl }: P
         </>
       }
       title="Invite friends"
-      triggerVariant="secondary"
+      triggerClassName="shrink-0"
     >
       {friends.length === 0 ? (
         <Stack gap={3}>
