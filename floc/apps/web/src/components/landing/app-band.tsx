@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { cx } from "@/components/system/ui";
 
 import { Glyph } from "@/components/system/icons/landing";
-import { MoneyScreen, TodayScreen } from "./phone-screens";
+import { DaysScreen, MoneyScreen } from "./phone-screens";
 
 function Phone({ className, children }: { className?: string; children: ReactNode }) {
   return (
@@ -27,18 +27,18 @@ export function AppBand() {
   return (
     <section className="overflow-hidden border-t border-rule px-4 py-24 sm:px-6">
       <div className="mx-auto grid max-w-[72rem] items-center gap-16 md:grid-cols-2 xl:grid-cols-[580px_minmax(0,1fr)]">
-        <div className="relative h-[580px]" role="img" aria-label="Floc on a phone: today's plan in Cefalù, and what you owe">
+        <div className="relative h-[580px]" role="img" aria-label="Floc on a phone: a day's plan in Cefalù, and what you owe">
           <Phone className="left-5 top-2.5 z-[2] md:left-0 -rotate-[4deg]">
-            <TodayScreen />
+            <DaysScreen />
           </Phone>
-          <Phone className="left-[272px] top-[50px] hidden rotate-[5deg] xl:block">
+          <Phone className="left-[290px] top-[50px] hidden rotate-[5deg] xl:block">
             <MoneyScreen />
           </Phone>
         </div>
         <div>
           <h2 className="band-title">The plan in your pocket.</h2>
           <p className="mt-5 max-w-[46ch] text-md text-ink-soft">
-            Today&rsquo;s plan, who owes who and what to bring. On the web now; the apps are coming.
+            Each day&rsquo;s plan, who owes who and what to bring. On the web now; the apps are coming.
           </p>
           <div className="max-w-[30rem]">
             <div className="mt-6 flex flex-wrap justify-center gap-2.5">
