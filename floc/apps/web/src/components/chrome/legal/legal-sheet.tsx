@@ -31,8 +31,10 @@ export function LegalSheet({ children }: { children: ReactNode }) {
   const link = legalLinkFor(usePathname());
   const ref = useRef<HTMLDialogElement>(null);
   const closing = useRef(false);
+  const open = link !== null;
 
   useLayoutEffect(() => {
+    if (!open) return;
     const sheet = ref.current!;
     const opener = document.activeElement as HTMLElement | null;
     const unlock = lockScroll();
@@ -47,7 +49,7 @@ export function LegalSheet({ children }: { children: ReactNode }) {
       unlock();
       opener?.focus({ preventScroll: true });
     };
-  }, []);
+  }, [open]);
 
   const close = useCallback(() => {
     if (closing.current) return;

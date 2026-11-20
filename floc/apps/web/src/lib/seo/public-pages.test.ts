@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 
-import { PRIVATE_PREFIXES, indexablePaths, publicMetadata, robotsTxt, sitemapXml } from "./public-pages";
+import { PRIVATE_PREFIXES, indexablePaths, publicMetadata, robotsTxt, sitemapSections, sitemapXml } from "./public-pages";
 
 const BASE = "https://floc.example";
 
@@ -82,5 +82,32 @@ describe("publicMetadata", () => {
 
   it("lets search engines index the page", () => {
     expect(meta.robots).toEqual({ index: true, follow: true });
+  });
+});
+
+describe("sitemapSections", () => {
+  const sections = sitemapSections();
+  const links = sections.flatMap((section) => section.links);
+
+  it("lists the same pages as sitemap.xml, apart from itself", () => {
+    const onPage = new Set([...links.map((link) => link.path), "/sitemap"]);
+    expect(onPage).toEqual(new Set(indexablePaths()));
+  });
+
+  it("names every Explore trip by its title, not its address", () => {
+    for (const trip of PRESET_TRIPS) {
+      expect(links).toContainEqual({ path: `/explore/${trip.id}`, label: trip.title });
+    }
+  });
+
+  it("names the static pages in words", () => {
+    expect(links).toContainEqual({ path: "/", label: "Home" });
+    expect(links).toContainEqual({ path: "/terms", label: "Terms of use" });
+  });
+
+  it("holds no private page", () => {
+    for (const { path } of links) {
+      for (const prefix of PRIVATE_PREFIXES) expect(path === prefix || path.startsWith(`${prefix}/`)).toBe(false);
+    }
   });
 });

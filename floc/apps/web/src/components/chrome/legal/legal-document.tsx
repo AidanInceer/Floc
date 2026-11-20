@@ -7,6 +7,7 @@ import { ContactDocument } from "./documents/contact";
 import { CookiesDocument } from "./documents/cookies";
 import { LegalNoticeDocument } from "./documents/legal";
 import { PrivacyDocument } from "./documents/privacy";
+import { SitemapDocument } from "./documents/sitemap";
 import { TermsDocument } from "./documents/terms";
 
 const DOCUMENTS: Partial<Record<LegalHref, () => ReactNode>> = {
@@ -14,6 +15,7 @@ const DOCUMENTS: Partial<Record<LegalHref, () => ReactNode>> = {
   "/cookies": CookiesDocument,
   "/legal": LegalNoticeDocument,
   "/privacy": PrivacyDocument,
+  "/sitemap": SitemapDocument,
   "/terms": TermsDocument,
 };
 
