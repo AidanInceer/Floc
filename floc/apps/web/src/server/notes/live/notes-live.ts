@@ -114,7 +114,7 @@ export function createNotesLive(options: {
     closeWhere((name) => !gone.has(name));
   });
   const stopTrips = onTripChanged((tripId, areas) => {
-    live.documents.get(tripDocumentName(tripId))?.broadcastStateless(tripSignal(areas));
+    live.documents.get(tripDocumentName(tripId))?.broadcastStateless(tripSignal(areas, Date.now()));
   });
   live.configure({ extensions: [{ async onDestroy() { stopKicks(); stopPings(); stopTrips(); } }] });
 

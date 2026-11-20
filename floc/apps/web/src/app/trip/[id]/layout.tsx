@@ -54,7 +54,7 @@ export default async function TripLayout({
           </TripTabs>
         </div>
       </div>
-      <TripLive tripId={trip.id} />
+      <TripLive tripId={trip.id} renderedAt={Date.now()} />
       {children}
     </div>
   );

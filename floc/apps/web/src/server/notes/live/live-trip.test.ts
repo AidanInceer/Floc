@@ -6,7 +6,7 @@ import WebSocket from "ws";
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { tripDocumentName } from "@floc/core/notes/live/live-names";
-import { readTripSignal } from "@floc/core/notes/live/trip-signal";
+import { readTripChange } from "@floc/core/notes/live/trip-signal";
 import { removeMembership } from "@/server/trips/roster";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { attachNotesLive, LIVE_NOTES_PATH } from "./live-socket";
@@ -48,11 +48,15 @@ function listenAs(userId: string, tripId: number) {
   open.push(provider);
   sockets.push(websocketProvider);
   const heard: string[][] = [];
+  const sent: number[] = [];
   provider.on("stateless", ({ payload }: { payload: string }) => {
-    const areas = readTripSignal(payload);
-    if (areas) heard.push(areas);
+    const change = readTripChange(payload);
+    if (change) {
+      heard.push(change.areas);
+      sent.push(change.sentAt);
+    }
   });
-  return { provider, heard };
+  return { provider, heard, sent };
 }
 
 const until = (check: () => boolean) =>
@@ -73,6 +77,18 @@ describe("the trip channel", () => {
 
     await until(() => ada.heard.length === 1 && mo.heard.length === 1);
     expect(mo.heard[0]).toEqual(["money"]);
+  });
+
+  it("says when the server sent the change, so a page drawn after it can skip the refresh", async () => {
+    const mo = listenAs(world.member, world.ours.id);
+    await until(() => mo.provider.isSynced);
+
+    const before = Date.now();
+    tripChanged(world.ours.id, ["days"]);
+
+    await until(() => mo.sent.length === 1);
+    expect(mo.sent[0]).toBeGreaterThanOrEqual(before);
+    expect(mo.sent[0]).toBeLessThanOrEqual(Date.now());
   });
 
   it("says nothing to a member of another trip", async () => {
