@@ -1,11 +1,12 @@
 import { goingNames, goingNotes } from "@floc/core/trip/overview/going";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
 
 import { FaceStack, type Face } from "../system/face-stack";
 import { AddPersonGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
+import { Button } from "../system/ui";
 import { LineRow } from "./overview/line-row";
-import { fonts, size, space } from "@/lib/theme";
+import { fonts, size } from "@/lib/theme";
 
 export function GoingLine({
   people,
@@ -25,21 +26,14 @@ export function GoingLine({
       <FaceStack faces={people} />
       <View style={{ flex: 1 }}>
         <Text style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.body }}>{`${people.length} going`}</Text>
-        <Text numberOfLines={2} style={{ color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.small }}>
+        <Text numberOfLines={3} style={{ color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.small }}>
           {goingNames(people.map((p) => p.name.split(" ")[0]))}
           {notes.length > 0 ? ` · ${notes.join(" · ")}` : ""}
         </Text>
       </View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Invite"
-        hitSlop={{ top: 16, bottom: 16, left: 12, right: 0 }}
-        onPress={onInvite}
-        style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: space.xs, opacity: pressed ? 0.6 : 1 })}
-      >
-        <AddPersonGlyph color={c.pen} />
-        <Text style={{ color: c.pen, fontFamily: fonts.sansBold, fontSize: size.small }}>Invite</Text>
-      </Pressable>
+      <View>
+        <Button label="Invite" fit="small" onPress={onInvite} icon={(ink) => <AddPersonGlyph color={ink} />} />
+      </View>
     </LineRow>
   );
 }
