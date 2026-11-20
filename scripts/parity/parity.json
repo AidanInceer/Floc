@@ -15,10 +15,10 @@
     "availability.list": {
       "mobile": "yes"
     },
-    "availability.setCalendarAllDayOnly": {
+    "availability.set": {
       "mobile": "yes"
     },
-    "availability.set": {
+    "availability.setCalendarAllDayOnly": {
       "mobile": "yes"
     },
     "billing.claim": {
@@ -312,6 +312,12 @@
       "mobile": "yes"
     },
     "notifications.unread": {
+      "mobile": "yes"
+    },
+    "nudges.send": {
+      "mobile": "yes"
+    },
+    "nudges.targets": {
       "mobile": "yes"
     },
     "packing.add": {

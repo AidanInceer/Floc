@@ -9,14 +9,6 @@ type TabKey =
 
 export type TabState = { key: TabKey; label: string };
 
-export const TAB_LABELS: Record<string, string> = {
-  notes: "Notes",
-  route: "Route",
-  dates: "Dates",
-  days: "Days",
-  money: "Money",
-};
-
 export const TRIP_TAB_CLUSTERS: readonly (readonly TabState[])[] = [
   [{ key: "overview", label: "Overview" }],
   [

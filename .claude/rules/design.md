@@ -31,6 +31,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - Status always has a word. Never colour or an icon alone. The word may live only in the label (title, `aria-label`, `aria-pressed`) when the mark sits where its meaning is plain:
   - A stop's hotel ribbon on the Overview: the file chip beside it names the booking, and its title and label say Booked.
   - The save heart on Explore fills red when saved; its label says Save or Saved with `aria-pressed` (ADR-042).
+  - A nudged person's chip on a nudge line greys out with a tick; its hidden text and label say "nudged today". The line's Nudge all turns to the word Nudged once nobody is left (#705).
   - A top pick's sun on Explore: on a web tile small and bare in the bottom right corner, quieter than the heart (Aidan); on a phone row beside the chevron. Its title and label say "Top pick for December to February", and the sort that brings the picks first is the same sun (#624, Aidan's pick of J3).
 - Light and dark use the same token names. No `dark:` variant, no hex literal ✓. Values live in `@floc/core/design/tokens`. The theme choice lives in `localStorage`, never in a column.
 - The wordmark is **floc.** with a pen-blue dot, drawn only by `components/system/wordmark.tsx` and, for share cards, `components/system/og-card.tsx`. Share cards use the image renderer's default face: it cannot read our `.woff2` files, and a card must always render (rule 11).

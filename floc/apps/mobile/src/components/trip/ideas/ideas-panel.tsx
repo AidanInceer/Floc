@@ -21,6 +21,7 @@ export function IdeasPanel({
   onVote,
   onRemove,
   children,
+  footer,
 }: {
   ideas: IdeaCard[];
   open: boolean;
@@ -30,6 +31,7 @@ export function IdeasPanel({
   onVote: (ideaId: number) => void;
   onRemove: (ideaId: number) => void;
   children: React.ReactNode;
+  footer?: React.ReactNode;
 }) {
   const { c } = useTheme();
 
@@ -100,6 +102,7 @@ export function IdeasPanel({
               </View>
             ))
           )}
+          {footer}
       </Card>
     </View>
   );

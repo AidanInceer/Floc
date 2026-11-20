@@ -20,6 +20,7 @@ export type Change = {
   subjectId: number | null;
   href: string;
   affected: string[];
+  detail?: string | null;
 };
 
 export type KnownBefore = {
@@ -73,6 +74,7 @@ export async function recordActivity(tx: Tx, change: Change, known: KnownBefore 
         actorId: change.actorId,
         subjectId: change.subjectId,
         href: change.href,
+        detail: change.detail ?? null,
       })
       .returning({ id: activity.id })
       .get();
