@@ -13,6 +13,7 @@ import {
   inviteToTrip,
   joinWithLink,
   listDeclinedInvitees,
+  listInviteesByAnswer,
   listPendingInvitees,
   listPendingInvitesFor,
 } from "@/server/trips/invites";
@@ -190,6 +191,15 @@ describe("asking someone by name", () => {
 
     await ask([world.outsider]);
     expect(await listDeclinedInvitees(world.ours.id)).toEqual([]);
+  });
+
+  it("reads who is waiting and who said no in one go", async () => {
+    await ask([world.outsider]);
+    await declineInvite(world.ours.id, world.outsider);
+
+    const answers = await listInviteesByAnswer(world.ours.id);
+    expect(answers.declined.map((p) => p.name)).toEqual(["Ozz"]);
+    expect(answers.pending).toEqual(await listPendingInvitees(world.ours.id));
   });
 
   it("is a no-op with nobody to invite", async () => {

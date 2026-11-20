@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
@@ -136,5 +137,14 @@ describe("the account menu's preview", () => {
     await nudge();
     await markInboxSeen(world.member);
     expect(await listUnseen(world.member, 3)).toEqual([]);
+  });
+});
+
+describe("the unread count", () => {
+  it("finds a person's unseen notifications through an index, not by reading all of theirs", async () => {
+    const plan = await db.all<{ detail: string }>(
+      sql`EXPLAIN QUERY PLAN SELECT id FROM notification WHERE user_id = ${"someone"} AND seen_at IS NULL AND deleted_at IS NULL`,
+    );
+    expect(plan.map((step) => step.detail).join(" ")).toContain("notification_user_seen_idx (user_id=? AND seen_at=?)");
   });
 });

@@ -102,9 +102,20 @@ export type ProPrice = {
   currency: Currency;
 };
 
+const PRICES_KEEP_MS = 6 * 60 * 60 * 1000;
+
+let pricesMemo: { at: number; prices: ProPrice[] } | null = null;
+
 export const proPrices = cache(async function proPrices(): Promise<ProPrice[]> {
+  if (pricesMemo && Date.now() - pricesMemo.at < PRICES_KEEP_MS) return pricesMemo.prices;
+  const prices = await readProPrices();
+  if (prices.complete) pricesMemo = { at: Date.now(), prices: prices.rows };
+  return prices.rows;
+});
+
+async function readProPrices(): Promise<{ rows: ProPrice[]; complete: boolean }> {
   const api = stripe();
-  if (!api) return [];
+  if (!api) return { rows: [], complete: false };
 
   const wanted = BILLING_INTERVALS.map(
     (interval) => [interval, priceFor(interval)] as const,
@@ -128,8 +139,9 @@ export const proPrices = cache(async function proPrices(): Promise<ProPrice[]> {
     }),
   );
 
-  return rows.filter((r): r is ProPrice => r !== null);
-});
+  const read = rows.filter((r): r is ProPrice => r !== null);
+  return { rows: read, complete: read.length === wanted.length };
+}
 
 export const subscriptionOf = cache(async function subscriptionOf(
   userId: string,

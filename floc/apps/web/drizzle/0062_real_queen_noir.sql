@@ -1,0 +1,1 @@
+CREATE INDEX `notification_user_seen_idx` ON `notification` (`user_id`,`seen_at`);

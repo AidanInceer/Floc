@@ -180,25 +180,25 @@ export type PendingInvitee = {
   avatarIcon: AvatarIcon | null;
 };
 
-export async function listPendingInvitees(
-  tripId: number,
-): Promise<PendingInvitee[]> {
-  return listInviteesByStatus(tripId, "pending");
+type InviteAnswer = "pending" | "declined";
+
+export async function listPendingInvitees(tripId: number): Promise<PendingInvitee[]> {
+  return (await inviteesWith(tripId, ["pending"])).pending;
 }
 
-export async function listDeclinedInvitees(
-  tripId: number,
-): Promise<PendingInvitee[]> {
-  return listInviteesByStatus(tripId, "declined");
+export async function listDeclinedInvitees(tripId: number): Promise<PendingInvitee[]> {
+  return (await inviteesWith(tripId, ["declined"])).declined;
 }
 
-async function listInviteesByStatus(
-  tripId: number,
-  status: "pending" | "declined",
-): Promise<PendingInvitee[]> {
+export async function listInviteesByAnswer(tripId: number): Promise<Record<InviteAnswer, PendingInvitee[]>> {
+  return inviteesWith(tripId, ["pending", "declined"]);
+}
+
+async function inviteesWith(tripId: number, answers: InviteAnswer[]): Promise<Record<InviteAnswer, PendingInvitee[]>> {
   const rows = await db
     .select({
       userId: tripInvite.toUserId,
+      status: tripInvite.status,
       name: user.name,
       displayName: userProfile.displayName,
       avatarIcon: userProfile.avatarIcon,
@@ -206,21 +206,18 @@ async function listInviteesByStatus(
     .from(tripInvite)
     .innerJoin(user, eq(user.id, tripInvite.toUserId))
     .leftJoin(userProfile, eq(userProfile.userId, tripInvite.toUserId))
-    .where(
-      and(
-        eq(tripInvite.tripId, tripId),
-        eq(tripInvite.status, status),
-        isNull(tripInvite.deletedAt),
-      ),
-    )
-    .limit(LIMITS.invites)
+    .where(and(eq(tripInvite.tripId, tripId), inArray(tripInvite.status, answers), isNull(tripInvite.deletedAt)))
+    .limit(LIMITS.invites * answers.length)
     .all();
 
-  return bounded(rows, "invites", `trip ${tripId}`).map((r) => ({
-    userId: r.userId,
-    name: r.displayName ?? r.name,
-    avatarIcon: r.avatarIcon,
-  }));
+  const out: Record<InviteAnswer, PendingInvitee[]> = { pending: [], declined: [] };
+  for (const r of rows) {
+    if (r.status !== "pending" && r.status !== "declined") continue;
+    out[r.status].push({ userId: r.userId, name: r.displayName ?? r.name, avatarIcon: r.avatarIcon });
+  }
+  bounded(out.pending, "invites", `trip ${tripId}`);
+  bounded(out.declined, "invites", `trip ${tripId}`);
+  return out;
 }
 
 export async function countPendingInvitesFor(userId: string): Promise<number> {

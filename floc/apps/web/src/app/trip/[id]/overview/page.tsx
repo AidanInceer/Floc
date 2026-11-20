@@ -3,10 +3,10 @@ import { Suspense } from "react";
 import { requireTripAccess } from "@/server/access";
 import { listDocuments } from "@/server/documents/documents";
 import { documentsEnabled } from "@/server/documents/document-store";
-import { listDaysWithEvents, listRouteDays, transportByDay } from "@/server/itinerary/itinerary";
+import { readTripDays } from "@/server/itinerary/trip-days";
 import { listAvailability } from "@/server/itinerary/availability";
 import { listIdeas } from "@/server/ideas/ideas-read";
-import { listDeclinedInvitees, listPendingInvitees } from "@/server/trips/invites";
+import { listInviteesByAnswer } from "@/server/trips/invites";
 import { listExpenses, listSettlements, listSplits } from "@/server/money/money";
 import { walkthroughDue } from "@/server/auth/tour";
 import { homeCurrenciesFor } from "@/server/auth/profile";
@@ -53,33 +53,31 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
 
   const groupExtras = Promise.all([
     friendStatesFor(viewer.id, members.map((m) => m.userId)),
-    listPendingInvitees(tripId),
-    listDeclinedInvitees(tripId),
+    listInviteesByAnswer(tripId),
     listFriendsFor(viewer.id),
-  ]).then(([friendStates, pendingInvitees, declinedInvitees, friends]) => ({
+  ]).then(([friendStates, invitees, friends]) => ({
     friendStates,
-    pendingInvitees,
-    declinedInvitees,
+    pendingInvitees: invitees.pending,
+    declinedInvitees: invitees.declined,
     friends,
   }));
 
   const now = today();
   const sharedPacking = readSharedPacking(tripId);
-  const [availabilityRows, expenseRows, dayRows, splitRows, settlementRows, routeDays, transport, walkthrough, ideas, docs, homes] =
+  const [availabilityRows, expenseRows, tripDays, splitRows, settlementRows, walkthrough, ideas, docs, homes] =
     await Promise.all([
       listAvailability(tripId),
       listExpenses(tripId),
-      listDaysWithEvents(tripId),
+      readTripDays(tripId),
       listSplits(tripId),
       listSettlements(tripId),
-      listRouteDays(tripId),
-      transportByDay(tripId),
       walkthroughDue(viewer.id),
       listIdeas(tripId, viewer.id),
       files ? listDocuments(tripId, viewer.id) : Promise.resolve([]),
       homeCurrenciesFor([...new Set([viewer.id, ...members.map((m) => m.userId)])]),
     ]);
 
+  const { days: dayRows, routeDays, transport } = tripDays;
   const { datesUnset, unresolved } = tripStateFor({
     trip,
     members,

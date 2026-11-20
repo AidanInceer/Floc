@@ -435,6 +435,13 @@
       "when": 1794753809678,
       "tag": "0061_narrow_microchip",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "6",
+      "when": 1795215612111,
+      "tag": "0062_real_queen_noir",
+      "breakpoints": true
     }
   ]
 }

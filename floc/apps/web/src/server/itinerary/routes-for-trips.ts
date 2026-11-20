@@ -8,8 +8,14 @@ import { routesByTrip, type TripHop } from "@floc/core/trip/overview/routes-by-t
 import type { OverviewRoute } from "@floc/core/trip/overview/route";
 import { LIMITS } from "@/server/limits";
 
+export type TripRoutes = { routes: Map<number, OverviewRoute>; firstPlace: Map<number, string> };
+
 export async function routesForTrips(tripIds: number[]): Promise<Map<number, OverviewRoute>> {
-  if (tripIds.length === 0) return new Map();
+  return (await readTripRoutes(tripIds)).routes;
+}
+
+export async function readTripRoutes(tripIds: number[]): Promise<TripRoutes> {
+  if (tripIds.length === 0) return { routes: new Map(), firstPlace: new Map() };
   const live = and(inArray(day.tripId, tripIds), isNull(day.deletedAt));
   const [days, events] = await Promise.all([
     db
@@ -41,5 +47,7 @@ export async function routesForTrips(tripIds: number[]): Promise<Map<number, Ove
 
   const firstHop = new Map<number, TripHop>();
   for (const e of events) if (e.mode && !firstHop.has(e.dayId)) firstHop.set(e.dayId, { ...e, mode: e.mode });
-  return routesByTrip(days, [...firstHop.values()]);
+  const firstPlace = new Map<number, string>();
+  for (const d of days) if (d.placeName !== null && !firstPlace.has(d.tripId)) firstPlace.set(d.tripId, d.placeName);
+  return { routes: routesByTrip(days, [...firstHop.values()]), firstPlace };
 }
