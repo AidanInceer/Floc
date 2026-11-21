@@ -8,6 +8,7 @@ import type { EstimatePort } from "./port/estimate";
 import type { FilesPort } from "./port/files";
 import type { BookingsPort } from "./port/bookings";
 import type { IdeasPort } from "./port/ideas";
+import type { NudgesPort } from "./port/nudges";
 import type { PackingPort } from "./port/packing";
 import type { FriendsPort } from "./port/friends";
 import type { NotificationsPort } from "./port/notifications";
@@ -24,6 +25,7 @@ export type * from "./port/estimate";
 export type * from "./port/files";
 export type * from "./port/bookings";
 export type * from "./port/ideas";
+export type * from "./port/nudges";
 export type * from "./port/packing";
 export type * from "./port/friends";
 export type * from "./port/notifications";
@@ -63,6 +65,7 @@ export type FlocPort = AccountPort &
   FilesPort &
   BookingsPort &
   IdeasPort &
+  NudgesPort &
   PackingPort &
   FriendsPort &
   NotificationsPort &

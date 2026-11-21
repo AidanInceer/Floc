@@ -8,6 +8,7 @@ import { SectionGlyph } from "./section-glyph";
 import { useTheme } from "../system/theme";
 import { Button, Card } from "../system/ui";
 import { fonts, radius, size, space } from "@/lib/theme";
+import { NudgeAll, NudgeLine } from "./nudge/nudge-chips";
 
 const CUBE = 11;
 const GAP = 3;
@@ -95,7 +96,16 @@ function StackCard({ item, onPress }: { item: Gap | Sorted; onPress?: () => void
   );
 }
 
-export function LeftToSort({ list, onGo }: { list: SortList; onGo: (gap: Gap) => void }) {
+function NudgeCard({ tripId, gap }: { tripId: number; gap: Gap & { nudge: NonNullable<Gap["nudge"]> } }) {
+  const { c } = useTheme();
+  return (
+    <View style={{ minHeight: CARD, backgroundColor: c.sheet, borderColor: c.rule, borderWidth: 1, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.sm }}>
+      <NudgeLine tripId={tripId} task={gap.nudge.task} people={gap.nudge.people} lead={<SortMark kind={gap.kind} done={false} />} />
+    </View>
+  );
+}
+
+export function LeftToSort({ tripId, list, onGo }: { tripId: number; list: SortList; onGo: (gap: Gap) => void }) {
   const { c } = useTheme();
   const [expanded, setExpanded] = useState(false);
   const [showDone, setShowDone] = useState(false);
@@ -129,10 +139,22 @@ export function LeftToSort({ list, onGo }: { list: SortList; onGo: (gap: Gap) =>
             {next.mine ? "Next for you: " : "Next: "}
             <Text style={{ color: c.ink, fontFamily: fonts.sansBold }}>{next.text}</Text>
           </Text>
-          <Button label={next.action} variant={next.mine ? "primary" : undefined} onPress={() => onGo(next)} />
+          {next.nudge ? (
+            <NudgeAll tripId={tripId} task={next.nudge.task} people={next.nudge.people} />
+          ) : (
+            <Button label={next.action} variant={next.mine ? "primary" : undefined} onPress={() => onGo(next)} />
+          )}
         </View>
       </Card>
-      {expanded ? list.open.map((gap) => <StackCard key={gap.key} item={gap} onPress={() => onGo(gap)} />) : null}
+      {expanded
+        ? list.open.map((gap) =>
+            gap.nudge ? (
+              <NudgeCard key={gap.key} tripId={tripId} gap={{ ...gap, nudge: gap.nudge }} />
+            ) : (
+              <StackCard key={gap.key} item={gap} onPress={() => onGo(gap)} />
+            ),
+          )
+        : null}
       {expanded && sorted > 0 ? (
         <Pressable
           accessibilityRole="button"

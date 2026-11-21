@@ -3,12 +3,12 @@ import { Suspense } from "react";
 import { requireTripAccess } from "@/server/access";
 import { listDocuments } from "@/server/documents/documents";
 import { documentsEnabled } from "@/server/documents/document-store";
-import { listDaysWithEvents, listRouteDays, transportByDay } from "@/server/itinerary/itinerary";
+import { readTripDays } from "@/server/itinerary/trip-days";
 import { listAvailability } from "@/server/itinerary/availability";
 import { listIdeas } from "@/server/ideas/ideas-read";
-import { listDeclinedInvitees, listPendingInvitees } from "@/server/trips/invites";
+import { listInviteesByAnswer } from "@/server/trips/invites";
 import { listExpenses, listSettlements, listSplits } from "@/server/money/money";
-import { walkthroughDue } from "@/server/auth/tour";
+import { welcomeView } from "@/server/auth/welcome/welcome-view";
 import { homeCurrenciesFor } from "@/server/auth/profile";
 import { absoluteUrl } from "@/server/auth/email";
 import { friendStatesFor, listFriendsFor } from "@/server/social/friends";
@@ -38,9 +38,10 @@ import { leftToSortFor, readSharedPacking } from "./left-to-sort-for";
 import { PanelPlaceholder, StreamedEstimate, StreamedGroup } from "./streamed";
 import { canUseFeature } from "@/server/billing/entitlements";
 import { readEstimate } from "@/server/money/estimate/estimate-view";
-import { WalkthroughDialog } from "@/components/walkthrough/walkthrough-dialog";
-import { walkthroughFor } from "./walkthrough-for";
+import { WelcomeModal } from "@/components/onboarding/welcome/welcome-modal";
 import { mintShareToken } from "@/server/trips/invite-link";
+import { nudgeTargetsFor } from "@/server/trips/nudges";
+import { NUDGE_TASKS } from "@floc/core/trip/nudge/nudge";
 
 export const metadata = { title: "Overview" };
 
@@ -53,33 +54,31 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
 
   const groupExtras = Promise.all([
     friendStatesFor(viewer.id, members.map((m) => m.userId)),
-    listPendingInvitees(tripId),
-    listDeclinedInvitees(tripId),
+    listInviteesByAnswer(tripId),
     listFriendsFor(viewer.id),
-  ]).then(([friendStates, pendingInvitees, declinedInvitees, friends]) => ({
+  ]).then(([friendStates, invitees, friends]) => ({
     friendStates,
-    pendingInvitees,
-    declinedInvitees,
+    pendingInvitees: invitees.pending,
+    declinedInvitees: invitees.declined,
     friends,
   }));
 
   const now = today();
   const sharedPacking = readSharedPacking(tripId);
-  const [availabilityRows, expenseRows, dayRows, splitRows, settlementRows, routeDays, transport, walkthrough, ideas, docs, homes] =
+  const [availabilityRows, expenseRows, tripDays, splitRows, settlementRows, welcome, ideas, docs, homes] =
     await Promise.all([
       listAvailability(tripId),
       listExpenses(tripId),
-      listDaysWithEvents(tripId),
+      readTripDays(tripId),
       listSplits(tripId),
       listSettlements(tripId),
-      listRouteDays(tripId),
-      transportByDay(tripId),
-      walkthroughDue(viewer.id),
+      welcomeView(viewer, members.filter((m) => m.userId !== viewer.id).map((m) => ({ id: m.userId, name: m.name })), trip.createdBy !== viewer.id ? trip.name : null),
       listIdeas(tripId, viewer.id),
       files ? listDocuments(tripId, viewer.id) : Promise.resolve([]),
       homeCurrenciesFor([...new Set([viewer.id, ...members.map((m) => m.userId)])]),
     ]);
 
+  const { days: dayRows, routeDays, transport } = tripDays;
   const { datesUnset, unresolved } = tripStateFor({
     trip,
     members,
@@ -103,15 +102,21 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
   const color = readTripColor(trip.colorKey);
   const tone = tripPastel(color, tripId);
   const tucked = ideasTucked({ days: routeDays, today: underway(trip, now) });
+  const marked = markedUserIds(availabilityRows);
+  const nudges = await nudgeTargetsFor(access, NUDGE_TASKS, {
+    markedUserIds: marked,
+    owedBy: settle.rows.filter((r) => r.payee === viewer.id).map((r) => r.payer),
+  });
   const sortList = leftToSortFor({
     trip,
     today: now,
     viewerId: viewer.id,
     members: members.map((m) => ({ userId: m.userId, name: m.name })),
-    markedUserIds: markedUserIds(availabilityRows),
+    markedUserIds: marked,
     ideas,
     settle: settle.rows,
     legs,
+    nudges,
   }, await sharedPacking);
 
   return (
@@ -146,11 +151,12 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
                   <StreamedEstimate tripId={tripId} estimate={estimate} />
                 </Suspense>
               }
-              ideas={tucked ? <IdeasRow tripId={tripId} ideas={ideas} /> : null}
+              ideas={tucked ? <IdeasRow tripId={tripId} ideas={ideas} unvoted={nudges.ideas} /> : null}
               recap={recapShows(trip.endDate, now) ? (
                 <RecapFoot
                   tripId={tripId}
                   tripName={trip.name}
+                  me={viewer.name}
                   others={members.filter((m) => m.userId !== viewer.id).map((m) => ({ id: m.userId, name: m.name }))}
                 />
               ) : null}
@@ -173,7 +179,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
         </div>
       </section>
 
-      {tucked ? null : <IdeasPanel tripId={tripId} ideas={ideas} datesUnset={datesUnset} />}
+      {tucked ? null : <IdeasPanel tripId={tripId} ideas={ideas} datesUnset={datesUnset} unvoted={nudges.ideas} />}
 
       <OverviewStops
         tripId={tripId}
@@ -182,7 +188,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
         bookings={files && !hasEnded(trip.endDate) ? <BookingsCard tripId={tripId} legs={legs} wholeTrip={wholeTrip} /> : null}
       />
 
-      {walkthrough ? <WalkthroughDialog {...walkthroughFor(access, ideas, legs.length > 0)} /> : null}
+      {welcome ? <WelcomeModal {...welcome} /> : null}
     </div>
   );
 }

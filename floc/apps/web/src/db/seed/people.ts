@@ -38,6 +38,7 @@ export async function upsertAccount(args: {
   password: string;
   name: string;
   profile: Profile;
+  welcomed?: boolean;
 }): Promise<string> {
   const existing = await db
     .select({ id: user.id })
@@ -60,6 +61,7 @@ export async function upsertAccount(args: {
     homeCurrency: profile.currency,
     vibeTags: profile.vibes,
     signupChannel: "direct" as const,
+    tourSeenAt: args.welcomed ? new Date() : null,
     ...profile.rings,
   };
   await db
@@ -102,6 +104,7 @@ export async function seedPerson(person: Person, scenario: Scenario): Promise<st
     password: SEED_PASSWORD,
     name: person.name,
     profile: person.profile,
+    welcomed: true,
   });
 }
 
@@ -125,6 +128,7 @@ export async function ensureDevUser(): Promise<string> {
       map: { green: ["FR", "ES"], yellow: ["JP"] },
       saves: ["porto-to-seville", "peru-sacred-valley"],
     },
+    welcomed: true,
   });
 }
 

@@ -17,11 +17,10 @@ import {
   inviteFriends,
   kickMember,
   leaveTrip,
-  markTourSeen,
+  nudge,
   promoteMember,
   renameTrip,
   resetInviteLink,
-  sendNudge,
   setTripTags,
 } from "./actions";
 
@@ -53,29 +52,32 @@ beforeEach(async () => {
   sendEmails.mockReset();
 });
 
-describe("nudging", () => {
-  beforeEach(() => signIn(world.member));
+describe("nudging (#705)", () => {
+  beforeEach(() => signIn(world.admin));
 
-  it("records the nudge and puts it in the member's inbox, with no email (#344)", async () => {
-    await sendNudge(form({ tripId: ours(), toUserId: world.admin, tab: "money", message: "Pay up" }));
+  it("nudges in one press, with no message, and puts it in the inbox with no email (#344)", async () => {
+    expect(await nudge(world.ours.id, "dates", [world.member])).toEqual({ sent: 1, capped: false });
 
     const [row] = await db.select().from(schema.nudge).all();
-    expect(row).toMatchObject({ fromUserId: world.member, toUserId: world.admin, tab: "money", message: "Pay up" });
+    expect(row).toMatchObject({ fromUserId: world.admin, toUserId: world.member, tab: "dates", message: null });
     const [told] = await db.select().from(schema.notification).all();
-    expect(told).toMatchObject({ userId: world.admin, loud: true });
+    expect(told).toMatchObject({ userId: world.member, loud: true });
     expect(sendEmails).not.toHaveBeenCalled();
   });
 
-  it("falls back to the first tab for one it does not know", async () => {
-    await sendNudge(form({ tripId: ours(), toUserId: world.admin, tab: "nowhere" }));
-    expect((await db.select().from(schema.nudge).get())?.tab).toBe("notes");
+  it("refuses a task it does not know", async () => {
+    await expect(nudge(world.ours.id, "notes", [world.member])).rejects.toThrow();
+    expect(await db.select().from(schema.nudge).all()).toEqual([]);
   });
 
-  it("refuses someone who is not on the trip", async () => {
-    await expect(sendNudge(form({ tripId: ours(), toUserId: world.outsider, tab: "money" }))).rejects.toThrow(
-      "Not a member of this trip",
-    );
+  it("sends nothing to someone who is not on the trip", async () => {
+    expect(await nudge(world.ours.id, "dates", [world.outsider])).toEqual({ sent: 0, capped: false });
     expect(await db.select().from(schema.nudge).all()).toEqual([]);
+  });
+
+  it("hides a trip you are not on (rule 5)", async () => {
+    signIn(world.outsider);
+    await expectNotFound(() => nudge(world.ours.id, "dates", [world.member]));
   });
 });
 
@@ -156,19 +158,6 @@ describe("resetting the invite link (#358)", () => {
 
     await expectNotFound(() => resetInviteLink(form({ tripId: ours() })));
     expect((await tripRow(world.ours.id))?.inviteToken).toBe(before);
-  });
-});
-
-describe("the tour (#314)", () => {
-  it("marks the signed-in person as having seen it", async () => {
-    signIn(world.member);
-    await markTourSeen();
-    const profile = await db
-      .select()
-      .from(schema.userProfile)
-      .where(eq(schema.userProfile.userId, world.member))
-      .get();
-    expect(profile?.tourSeenAt).toBeInstanceOf(Date);
   });
 });
 

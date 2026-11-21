@@ -23,15 +23,9 @@ export const STACK_COLUMNS = "grid gap-1.5 sm:grid-cols-[42px_max-content_max-co
 
 export function SortCard({ item, href, action }: { item: Item; href?: string; action?: string }) {
   const done = !href;
-  const colour = SORT_COLOURS[item.kind];
   return (
     <li className="grid grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-x-3.5 gap-y-0.5 rounded-md bg-sheet px-3.5 py-2.5 text-sm ring-1 ring-rule sm:col-span-full sm:grid-cols-subgrid">
-      <span
-        className="grid size-7 place-items-center rounded-sm max-sm:row-span-2"
-        style={{ backgroundColor: `var(--pastel-${colour})`, color: `var(--pastel-${colour}-ink)` }}
-      >
-        {done ? <CheckIcon size={12} /> : GLYPH[item.kind]}
-      </span>
+      <SortTile kind={item.kind} done={done} />
       <span className={cx("min-w-0", done && "text-ink-faint")}>{item.text}</span>
       {item.sub?.length ? (
         <span className="flex flex-wrap gap-x-3.5 font-mono text-xs text-ink-faint max-sm:col-start-2 max-sm:row-start-2 sm:contents">
@@ -50,5 +44,17 @@ export function SortCard({ item, href, action }: { item: Item; href?: string; ac
         </Link>
       )}
     </li>
+  );
+}
+
+export function SortTile({ kind, done = false }: { kind: GapKind; done?: boolean }) {
+  const colour = SORT_COLOURS[kind];
+  return (
+    <span
+      className="grid size-7 place-items-center rounded-sm max-sm:row-span-2"
+      style={{ backgroundColor: `var(--pastel-${colour})`, color: `var(--pastel-${colour}-ink)` }}
+    >
+      {done ? <CheckIcon size={12} /> : GLYPH[kind]}
+    </span>
   );
 }

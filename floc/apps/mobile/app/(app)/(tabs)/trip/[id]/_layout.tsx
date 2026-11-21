@@ -1,12 +1,11 @@
-import { shouldStartWalkthrough } from "@floc/core/trip/walkthrough";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, usePathname, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { useTheme } from "@/components/system/theme";
 import { TripHeader, type Section } from "@/components/trip/trip-header";
 import { useTripLive } from "@/components/trip/use-trip-live";
-import { WalkthroughSheet } from "@/components/walkthrough/walkthrough-sheet";
+import { WelcomeGate } from "@/components/onboarding/welcome-sheet";
 import { trpc } from "@/lib/api";
 import { viewerBalance } from "@/lib/balance";
 import { useSession } from "@/lib/auth";
@@ -78,53 +77,8 @@ export default function TripLayout() {
       }}
     />
       {trip.data && onOverview ? (
-        <FirstTripWalkthrough
-          tripId={tripId}
-          tripName={name}
-          datesSet={trip.data.startDate !== null}
-          joined={trip.data.role === "member"}
-          firstName={session?.user.name.split(" ")[0] ?? ""}
-          onDates={() => go("dates")}
-        />
+        <WelcomeGate invited={trip.data.role === "member" ? name : null} />
       ) : null}
     </>
-  );
-}
-
-function FirstTripWalkthrough({ tripId, tripName, datesSet, joined, firstName, onDates }: {
-  tripId: number;
-  tripName: string;
-  datesSet: boolean;
-  joined: boolean;
-  firstName: string;
-  onDates: () => void;
-}) {
-  const queryClient = useQueryClient();
-  const seen = useQuery(trpc.me.tourSeen.queryOptions());
-  const live = useQuery(trpc.trips.list.queryOptions({ archived: false }));
-  const archived = useQuery(trpc.trips.list.queryOptions({ archived: true }));
-  const places = useQuery(trpc.places.list.queryOptions({ tripId }));
-  const mark = useMutation({
-    ...trpc.me.markTourSeen.mutationOptions(),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: trpc.me.tourSeen.queryKey() }),
-  });
-  const [closed, setClosed] = useState(false);
-
-  if (seen.data === undefined || !live.data || !archived.data || !places.data || closed) return null;
-  if (!shouldStartWalkthrough({ seen: seen.data, tripCount: live.data.length + archived.data.length })) return null;
-  const close = () => {
-    setClosed(true);
-    mark.mutate();
-  };
-  return (
-    <WalkthroughSheet
-      trip={{ name: tripName, joined, datesSet, placesSet: places.data.length > 0 }}
-      firstName={firstName}
-      onClose={close}
-      onGo={(step) => {
-        close();
-        if (step.key === "dates") onDates();
-      }}
-    />
   );
 }

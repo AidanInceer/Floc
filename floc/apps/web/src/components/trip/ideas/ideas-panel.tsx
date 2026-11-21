@@ -1,15 +1,19 @@
 import { ChevronIcon } from "@/components/system/icons";
 import { IdeasBoard } from "./ideas-board";
 import type { IdeaRow } from "@floc/core/trip/ideas";
+import type { NudgePerson } from "@floc/core/trip/nudge/nudge";
+import { IdeasWaiting } from "./ideas-waiting";
 
 export function IdeasPanel({
   tripId,
   ideas,
   datesUnset,
+  unvoted,
 }: {
   tripId: number;
   ideas: IdeaRow[];
   datesUnset: boolean;
+  unvoted: NudgePerson[];
 }) {
   return (
     <details
@@ -28,6 +32,7 @@ export function IdeasPanel({
       </summary>
 
       <IdeasBoard tripId={tripId} ideas={ideas} />
+      <IdeasWaiting tripId={tripId} unvoted={unvoted} />
     </details>
   );
 }

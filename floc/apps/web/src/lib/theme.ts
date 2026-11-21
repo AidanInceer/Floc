@@ -35,6 +35,16 @@ export function applyTheme(
   nextFrame(() => nextFrame(() => delete root.dataset.themeSwap));
 }
 
+export function keepTheme(
+  root: { dataset: DOMStringMap },
+  { signedIn, stored, prefersDark }: { signedIn: boolean; stored: string | null; prefersDark: boolean },
+) {
+  if (root.dataset.theme) return;
+  const choice = signedIn ? readStoredChoice(stored) : "light";
+  root.dataset.themeChoice = choice;
+  root.dataset.theme = resolveTheme(choice, prefersDark);
+}
+
 export function themeBootstrap(signedIn: boolean): string {
   const read = signedIn ? `localStorage.getItem(${JSON.stringify(THEME_STORAGE_KEY)})` : JSON.stringify("light");
   return `(function(){var r=document.documentElement;try{var c=${read};if(c!=="light"&&c!=="dark"){c="system"}r.dataset.themeChoice=c;r.dataset.theme=c==="system"?(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):c}catch(e){r.dataset.themeChoice="system";r.dataset.theme="light"}})()`;

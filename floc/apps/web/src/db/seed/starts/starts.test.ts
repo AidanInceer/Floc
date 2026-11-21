@@ -4,10 +4,9 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb } from "@/test/db";
 import { devAccountEmail } from "@/server/auth/dev-accounts";
-import { walkthroughDue } from "@/server/auth/tour";
+import { welcomeFor } from "@/server/auth/welcome/welcome";
 import { findGuest, listGuests } from "@/server/guests/guests";
 import { findTripByShareLink } from "@/server/trips/invites";
-import { isLiveMember } from "@/server/trips/live-member";
 
 import { isSeedEmail } from "../identity.ts";
 import { buildScenarioA } from "../scenario-a.ts";
@@ -33,7 +32,7 @@ beforeEach(async () => {
 
 describe("dev starts", () => {
   it("names the six starts", () => {
-    expect(STARTS).toEqual(["new-user", "walkthrough", "join-link", "guest-account", "dead-link"]);
+    expect(STARTS).toEqual(["new-user", "new-joiner", "join-link", "guest-account", "dead-link"]);
   });
 
   it("builds the dev link for a start", () => {
@@ -45,12 +44,11 @@ describe("dev starts", () => {
     expect(await buildStart("new-user")).toEqual({ as: null, to: "/signup" });
   });
 
-  it("walkthrough: a fresh account on its first trip's Overview, walkthrough due", async () => {
-    const start = await buildStart("walkthrough");
-    const tripId = Number(start.to.match(/^\/trip\/(\d+)\/overview$/)?.[1]);
+  it("new-joiner: a fresh account with no trips, on My trips with the welcome due (#707)", async () => {
+    const start = await buildStart("new-joiner");
+    expect(start.to).toBe("/trips");
     expect(start.as).not.toBeNull();
-    expect(await isLiveMember(tripId, start.as!)).toBe(true);
-    expect(await walkthroughDue(start.as!)).toBe(true);
+    expect((await welcomeFor(start.as!)).due).toBe(true);
     expect(isSeedEmail((await devAccountEmail(start.as!))!)).toBe(true);
   });
 

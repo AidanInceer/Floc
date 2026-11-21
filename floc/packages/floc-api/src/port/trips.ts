@@ -31,6 +31,7 @@ export type NewTrip = {
   endDate: string | null;
   friendIds?: string[] | undefined;
   groupIds?: number[] | undefined;
+  places?: string[] | undefined;
 };
 
 export type TripPatch = {

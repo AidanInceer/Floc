@@ -1,9 +1,11 @@
+import { sql } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario, befriend } from "@/test/db";
 import { insertNote, softDeleteNoteAndReplies } from "@/server/notes/notes";
-import { insertNudge, removeMembership } from "@/server/trips/roster";
+import { removeMembership } from "@/server/trips/roster";
+import { insertNudge } from "@/server/trips/nudges";
 import { inviteToTrip } from "@/server/trips/invites";
 import { softDeleteTrip } from "@/server/trips/trips";
 import { tripHref } from "@floc/core/notifications/notification-href";
@@ -18,7 +20,7 @@ beforeEach(async () => {
 });
 
 const nudge = (tab: "dates" | "money" = "dates") =>
-  insertNudge({ tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab, message: null });
+  insertNudge({ tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab });
 
 describe("the inbox", () => {
   it("names the person and the trip, newest first, and counts unread", async () => {
@@ -26,7 +28,7 @@ describe("the inbox", () => {
     const page = await listInbox(world.member, null);
 
     expect(page.items).toHaveLength(1);
-    expect(page.items[0]).toMatchObject({ text: "Ada nudged you about Ours", read: false, loud: true });
+    expect(page.items[0]).toMatchObject({ text: "Ada nudged you to mark your days on the trip Ours", read: false, loud: true });
     expect(await countUnread(world.member)).toBe(1);
     expect(await countUnread(world.admin)).toBe(0);
   });
@@ -103,7 +105,7 @@ describe("the inbox", () => {
   });
 
   it("pages 50 at a time", async () => {
-    const rows = Array.from({ length: 51 }, () => ({ tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab: "dates" as const, message: null }));
+    const rows = Array.from({ length: 51 }, () => ({ tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab: "dates" as const }));
     const nudges = await db.insert(schema.nudge).values(rows).returning({ id: schema.nudge.id });
     const href = tripHref(world.ours.id, "dates");
     const sent = await db.insert(schema.activity)
@@ -129,12 +131,21 @@ describe("the account menu's preview", () => {
     const shown = await listUnseen(world.member, 2);
     expect(shown).toHaveLength(2);
     expect(shown[0].id).toBeGreaterThan(shown[1].id);
-    expect(shown[0]).toMatchObject({ text: "Ada nudged you about Ours" });
+    expect(shown[0]).toMatchObject({ text: "Ada nudged you to mark your days on the trip Ours" });
   });
 
   it("empties once the inbox has been landed on", async () => {
     await nudge();
     await markInboxSeen(world.member);
     expect(await listUnseen(world.member, 3)).toEqual([]);
+  });
+});
+
+describe("the unread count", () => {
+  it("finds a person's unseen notifications through an index, not by reading all of theirs", async () => {
+    const plan = await db.all<{ detail: string }>(
+      sql`EXPLAIN QUERY PLAN SELECT id FROM notification WHERE user_id = ${"someone"} AND seen_at IS NULL AND deleted_at IS NULL`,
+    );
+    expect(plan.map((step) => step.detail).join(" ")).toContain("notification_user_seen_idx (user_id=? AND seen_at=?)");
   });
 });

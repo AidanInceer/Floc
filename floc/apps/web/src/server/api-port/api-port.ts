@@ -28,6 +28,7 @@ import { estimatePort } from "@/server/api-port/estimate/api-port-estimate";
 import { commentsPort } from "@/server/api-port/api-port-comments";
 import { pagesPort } from "@/server/api-port/pages/api-port-pages";
 import { ideasPort } from "@/server/api-port/ideas/ideas";
+import { nudgesPort } from "@/server/api-port/nudges/nudges";
 import { filesPort } from "@/server/api-port/api-port-files";
 import { bookingsPort } from "@/server/api-port/bookings/bookings";
 import { explorePort } from "@/server/api-port/api-port-explore";
@@ -129,6 +130,7 @@ export const webPort: FlocPort = {
   ...commentsPort,
   ...pagesPort,
   ...ideasPort,
+  ...nudgesPort,
   ...socialPort,
   ...billingPort,
   ...estimatePort,

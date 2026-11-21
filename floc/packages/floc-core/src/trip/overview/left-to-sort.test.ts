@@ -114,6 +114,41 @@ describe("leftToSort", () => {
     expect([...open, ...done].map((g) => g.kind)).toEqual(["stay", "money", "stay", "travel"]);
   });
 
+  describe("nudge lines (#705)", () => {
+    const person = (userId: string, name: string, nudged = false) => ({ userId, name, nudged });
+    const nudges = {
+      dates: [person("sofia", "Sofia"), person("tom", "Tom", true)],
+      money: [person("sofia", "Sofia")],
+      ideas: [person("tom", "Tom")],
+    };
+
+    it("puts the people to nudge on the days line, with Nudge all", () => {
+      const gap = leftToSort({ ...base, moment: "finding", markedUserIds: ["me"], nudges }).open[0];
+      expect(gap).toMatchObject({ key: "their-days", action: "Nudge all" });
+      expect(gap.nudge).toEqual({ task: "dates", people: nudges.dates, line: "2 people have not marked any days" });
+    });
+
+    it("adds a line for each person who owes you and each who has not voted", () => {
+      const { open } = leftToSort({ ...base, moment: "finding", ideas: [{ mine: true }], nudges });
+      const lines = open.filter((g) => g.nudge).map((g) => [g.key, g.kind, g.text, g.nudge?.line]);
+      expect(lines).toEqual([
+        ["owed", "money", "Sofia owes you", "1 person owes you"],
+        ["their-votes", "ideas", "Tom has not voted on where", "1 person has not voted on where"],
+      ]);
+    });
+
+    it("says everyone has voted once nobody is left to nudge", () => {
+      const { done } = leftToSort({ ...base, moment: "finding", ideas: [{ mine: true }], nudges: { ...nudges, ideas: [] } });
+      expect(done.map((d) => d.text)).toContain("Everyone has voted on where");
+    });
+
+    it("shortens a long list of names on a line", () => {
+      const many = ["Ann", "Bo", "Cy", "Di"].map((name) => ({ userId: name, name }));
+      const { open } = leftToSort({ ...base, moment: "finding", members: [...members, ...many], markedUserIds: ["me", "sofia", "tom"] });
+      expect(open[0].text).toBe("Ann, Bo and 2 others have not marked any days");
+    });
+  });
+
   it("says when you and everyone else have marked your days, and when you have voted", () => {
     const { done } = leftToSort({ ...base, moment: "finding", ideas: [{ mine: true }] });
     expect(done.map((d) => d.text)).toEqual(["You marked your days", "Everyone has marked their days", "You voted on where"]);

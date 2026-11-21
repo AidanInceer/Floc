@@ -1,6 +1,6 @@
 ---
 name: scenario
-description: Drop Aidan straight into a Floc moment that is hard to reach from the dev account — a new sign-up, the first-trip walkthrough, an invite link, a guest who signs up, a dead link, the "keep these countries?" question after being removed. Resets a dev database, starts the web server and opens a link that signs in as the right person on the right page. Use when the user says /floc:scenario, "set up a scenario", "let me test the walkthrough / invite / guest flow", or wants to see a one-time moment again.
+description: Drop Aidan straight into a Floc moment that is hard to reach from the dev account — a new sign-up, the welcome for a new joiner, an invite link, a guest who signs up, a dead link, the "keep these countries?" question after being removed. Resets a dev database, starts the web server and opens a link that signs in as the right person on the right page. Use when the user says /floc:scenario, "set up a scenario", "let me test the welcome / invite / guest flow", or wants to see a one-time moment again.
 ---
 
 In Codex, read [Codex runtime](../../CODEX.md) before following this workflow.
@@ -17,7 +17,7 @@ Always show this list, then wait for a number:
 | # | Scenario | You land |
 |---|---|---|
 | 1 | `new-user` | Signed out on `/signup`. Sign up yourself; you reach an empty My trips with the welcome. |
-| 2 | `walkthrough` | As Alex Newman, a fresh account, on the Overview of their only trip, with the first-trip walkthrough open. |
+| 2 | `new-joiner` | As Alex Newman, a fresh account with no trips, on My trips with the welcome open. Finish it and Start opens Start a trip. |
 | 3 | `join-link` | Signed out on Portugal's invite link, three ideas to vote on. Join as a guest or with an account. |
 | 4 | `guest-account` | As guest Sam on Portugal's invite page, with votes and three free days. Sign up: the answers move to the new account and you join the trip. |
 | 5 | `dead-link` | Signed out on Portugal's old invite link, after the admin reset it: "This link no longer works". |

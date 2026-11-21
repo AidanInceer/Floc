@@ -6,6 +6,8 @@ import type { Gap, LeftToSort as SortList, Sorted } from "@floc/core/trip/overvi
 import { ButtonLink, cx, iconButtonClass } from "@/components/system/ui";
 import { ChevronIcon } from "@/components/system/icons";
 import { STACK_COLUMNS, SortCard } from "./sort/sort-card";
+import { NudgeCard } from "./sort/nudge-card";
+import { NudgeAll } from "@/components/trip/nudge/nudge-all";
 import { SortCubes } from "./sort/sort-cubes";
 import { useDeal } from "./sort/use-deal";
 
@@ -33,9 +35,13 @@ export function LeftToSort({ tripId, list }: { tripId: number; list: SortList })
           <span className="order-3 min-w-0 basis-full text-sm text-ink-faint sm:order-none sm:flex-1 sm:basis-auto sm:truncate">
             {next.mine ? "Next for you:" : "Next:"} <b className="font-medium text-ink">{next.text}</b>
           </span>
-          <ButtonLink href={hrefOf(tripId, next)} variant={next.mine ? "primary" : "secondary"} className="order-4 max-sm:flex-1 sm:order-none">
-            {next.action}
-          </ButtonLink>
+          {next.nudge ? (
+            <NudgeAll tripId={tripId} task={next.nudge.task} people={next.nudge.people} className="order-4 max-sm:flex-1 sm:order-none" />
+          ) : (
+            <ButtonLink href={hrefOf(tripId, next)} variant={next.mine ? "primary" : "secondary"} className="order-4 max-sm:flex-1 sm:order-none">
+              {next.action}
+            </ButtonLink>
+          )}
           <button
             type="button"
             onClick={toggle}
@@ -52,9 +58,13 @@ export function LeftToSort({ tripId, list }: { tripId: number; list: SortList })
       </div>
       <div ref={drawer} id={id} inert className="invisible relative z-[1] h-0 overflow-hidden">
         <ul ref={stack} className={cx("pt-2 [&>li]:relative [&>li>*]:[opacity:var(--ink-o,1)]", STACK_COLUMNS)}>
-          {list.open.map((gap) => (
-            <SortCard key={gap.key} item={gap} href={hrefOf(tripId, gap)} action={gap.action} />
-          ))}
+          {list.open.map((gap) =>
+            gap.nudge ? (
+              <NudgeCard key={gap.key} tripId={tripId} gap={gap} nudge={gap.nudge} />
+            ) : (
+              <SortCard key={gap.key} item={gap} href={hrefOf(tripId, gap)} action={gap.action} />
+            ),
+          )}
           {sorted > 0 ? <SortedDeck done={list.done} /> : null}
         </ul>
       </div>

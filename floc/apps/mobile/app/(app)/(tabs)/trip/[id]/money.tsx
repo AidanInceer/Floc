@@ -9,6 +9,7 @@ import { Alert, ScrollView, Text, View } from "react-native";
 
 import { EventSheet } from "@/components/days/event-sheet";
 import { BalanceCard } from "@/components/money/balance-card";
+import { NudgeWord } from "@/components/trip/nudge/nudge-word";
 import { BudgetTab } from "@/components/money/estimate/budget-tab";
 import { ExpenseForm, type DayOption, type ExpenseDraft } from "@/components/money/expense-form";
 import { ExpenseRows } from "@/components/money/expense-rows";
@@ -93,6 +94,7 @@ function ExpensesView({ switcher }: { switcher: React.ReactNode }) {
     trpc.money.ledger.queryOptions({ tripId }, { enabled: ready }),
   );
   const pairs = useQuery(trpc.money.pairs.queryOptions({ tripId }, { enabled: ready }));
+  const nudges = useQuery(trpc.nudges.targets.queryOptions({ tripId }, { enabled: ready }));
   const itinerary = useQuery(
     trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }),
   );
@@ -192,7 +194,17 @@ function ExpensesView({ switcher }: { switcher: React.ReactNode }) {
     <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
       {switcher}
       {snapshot.expenses.length > 0 ? (
-        <BalanceCard rows={pairs.data?.rows ?? []} viewerId={me} nameOf={nameOf} busy={settle.isPending} onSettle={settleRow} />
+        <BalanceCard
+          rows={pairs.data?.rows ?? []}
+          viewerId={me}
+          nameOf={nameOf}
+          busy={settle.isPending}
+          onSettle={settleRow}
+          nudgeFor={(userId) => {
+            const person = nudges.data?.money.find((n) => n.userId === userId);
+            return person ? <NudgeWord tripId={tripId} task="money" person={person} /> : null;
+          }}
+        />
       ) : null}
 
       <Problem text={editing.kind === "none" ? problem : null} />

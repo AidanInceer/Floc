@@ -31,6 +31,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - Status always has a word. Never colour or an icon alone. The word may live only in the label (title, `aria-label`, `aria-pressed`) when the mark sits where its meaning is plain:
   - A stop's hotel ribbon on the Overview: the file chip beside it names the booking, and its title and label say Booked.
   - The save heart on Explore fills red when saved; its label says Save or Saved with `aria-pressed` (ADR-042).
+  - A nudged person's chip on a nudge line greys out with a tick; its hidden text and label say "nudged today". The line's Nudge all turns to the word Nudged once nobody is left (#705).
   - A top pick's sun on Explore: on a web tile small and bare in the bottom right corner, quieter than the heart (Aidan); on a phone row beside the chevron. Its title and label say "Top pick for December to February", and the sort that brings the picks first is the same sun (#624, Aidan's pick of J3).
 - Light and dark use the same token names. No `dark:` variant, no hex literal ✓. Values live in `@floc/core/design/tokens`. The theme choice lives in `localStorage`, never in a column.
 - The wordmark is **floc.** with a pen-blue dot, drawn only by `components/system/wordmark.tsx` and, for share cards, `components/system/og-card.tsx`. Share cards use the image renderer's default face: it cannot read our `.woff2` files, and a card must always render (rule 11).
@@ -57,6 +58,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
   - The trip tab bar: one tile slides from the open tab to the one you press and takes its colour, 0.26s; the page changes at once ([ADR-052](../../docs/foundation/decisions.html#adr-052)).
   - A stop on the Overview grows to its height as it opens and its chevron turns, 0.22s. A packed thing’s box turns green in 0.22s while its tick draws over 0.5s on `--ease-even`, slow enough to see it written (Aidan); a drawn stroke's dash matches its path length; a copy button keeps its words, holds a pen wash for about a second and shows a tick, the mark hover never shows; a primary keeps its fill and shows the tick alone, and a button with no icon holds the tick in its left padding so its width stays ([ADR-053](../../docs/foundation/decisions.html#adr-053)).
   - A toggle's white tile slides to the new choice, 0.22s; a day on an Explore trip grows to its height as it opens, as a stop does ([ADR-061](../../docs/foundation/decisions.html#adr-061)).
+  - The welcome and Start a trip modals ease their height to each step, 0.28s, slide the step and tick a choice ([ADR-067](../../docs/foundation/decisions.html#adr-067)).
   - The top bar’s beads fuse as the page scrolls ([visual language](../../docs/design/visual-language.html#navigation-and-chrome)). Scroll sets how far the words have folded; the join plays once. No other workspace surface moves on scroll.
 
 ## Words
@@ -106,6 +108,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - Pictures: one consistent treatment. Image controls sit in one bar under the image, never arrows on top. Map pins stay plain numbers. Explore's globe marks each trip with a pin shape, not a dot; trips that start in one town sit side by side. It zooms by its two buttons, never by the scroll wheel (Aidan). Your own trip shows no stock photos — photos there are the person's choice.
 - Explore filters sit in a left rail, never along the top.
 - Say a thing once. On Days, web and phone, stops sit on the day strip and pressing one edits where you sleep — no separate overnight band, and the top of a screen stacks no bands. In the web's wide week the stops sit in a row over the week's columns instead, and the strip goes; the week takes the screen's width up to 160rem while the trip tab bar and the other tabs stay 84rem (Aidan, ADR-066).
+- A list of ways to start never repeats the control above it. On an empty My trips the Name field above already creates the trip, so the rows are only Borrow one from Explore and Got a link? (Aidan, #707).
 
 ## Surfaces
 

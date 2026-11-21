@@ -4,7 +4,6 @@ export const TEXT_CAPS = {
   noteDoc: 400_000,
   expenseDescription: 200,
   expenseNotes: 2000,
-  nudgeMessage: 500,
   displayName: 80,
   avatarIcon: 500,
   placeName: 200,

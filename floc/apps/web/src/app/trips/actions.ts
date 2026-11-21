@@ -29,6 +29,7 @@ export async function createTrip(formData: FormData): Promise<void> {
   const tripId = await startTrip(viewer.id, {
     name: formData.get("name"), startDate, endDate, friendIds: readFriendIds(formData),
     groupIds: [...new Set(formData.getAll("groupIds").map(Number))].filter((id) => Number.isSafeInteger(id) && id > 0).slice(0, GROUP_CAP),
+    places: formData.getAll("places").map(String),
   });
 
   redirect(`/trip/${tripId}/overview`);

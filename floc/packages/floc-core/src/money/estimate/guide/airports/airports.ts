@@ -38,7 +38,13 @@ export function findAirport(airports: readonly Airport[], code: string | null): 
   return airports.find((a) => a.code === upper) ?? null;
 }
 
-export const airportLabel = (airport: Pick<Airport, "code" | "name">) => `${airport.name} (${airport.code})`;
+export function countryAirports(airports: readonly Airport[], country: string | null, limit = 4): Airport[] {
+  if (!country) return [];
+  const code = country.toUpperCase();
+  return airports.filter((a) => a.country === code && a.large).slice(0, limit);
+}
+
+export const airportLabel =(airport: Pick<Airport, "code" | "name">) => `${airport.name} (${airport.code})`;
 
 export const airportPlace = (airport: Pick<Airport, "code" | "city" | "country">) =>
   `${airport.code} · ${airport.city ? `${airport.city}, ` : ""}${airport.country}`;

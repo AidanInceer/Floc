@@ -1,4 +1,5 @@
 import { isReceipt, isReminder, type ActivityKind, type ReceiptKind, type ReminderKind } from "./rules";
+import { NUDGE_TODO, readNudgeTask } from "../trip/nudge/nudge";
 
 type Change = Exclude<ActivityKind, ReminderKind | ReceiptKind>;
 
@@ -46,6 +47,8 @@ export function notificationText(kind: ActivityKind, { actor, trip, detail }: Pa
   const tripName = trip ?? "a trip";
   if (isReminder(kind)) return REMINDERS[kind].inbox(tripName, detail ?? "");
   if (isReceipt(kind)) return RECEIPTS[kind](tripName);
+  const task = kind === "nudge_sent" ? readNudgeTask(detail) : null;
+  if (task) return `${actor} nudged you to ${NUDGE_TODO[task]} on the trip ${tripName}`;
   const { did, joins } = LINES[kind];
   if (joins === null) return `${actor} ${did}`;
   return [actor, did, joins, tripName].filter(Boolean).join(" ");
@@ -54,6 +57,8 @@ export function notificationText(kind: ActivityKind, { actor, trip, detail }: Pa
 export function pushText(kind: ActivityKind, { actor, detail }: Omit<Parts, "trip">): string {
   if (isReminder(kind)) return REMINDERS[kind].push(detail ?? "");
   if (isReceipt(kind)) return RECEIPTS[kind]("your trip");
+  const task = kind === "nudge_sent" ? readNudgeTask(detail) : null;
+  if (task) return `${actor} nudged you to ${NUDGE_TODO[task]}`;
   const { did, joins } = LINES[kind];
   return joins === "" ? `${actor} ${did} the trip` : `${actor} ${did}`;
 }

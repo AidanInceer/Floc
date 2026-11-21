@@ -19,6 +19,9 @@ import { listWishListsFor, wishListPeopleToAsk } from "@/server/wish-lists/wish-
 import { getSession } from "@/server/access";
 import { savedTripIds } from "@/server/explore/explore-saves";
 import { listingRates, viewerCurrency } from "@/server/money/viewer-currency";
+import { listFriendsFor } from "@/server/social/friends";
+import { listGroupsFor } from "@/server/social/groups";
+import { startPeople } from "@/server/auth/welcome/welcome-view";
 import { publicMetadata } from "@/lib/seo/public-pages";
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ start?: string | string[]; wish?: string | string[] }> };
@@ -37,6 +40,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : {};
 }
 
+async function peopleFor(userId: string | null, wishId: number | null) {
+  if (!userId) return { along: [], people: [] };
+  const [along, friends, groups] = await Promise.all([
+    wishId ? wishListPeopleToAsk(userId, wishId) : [],
+    listFriendsFor(userId),
+    listGroupsFor(userId),
+  ]);
+  return { along, people: startPeople([friends, ...groups.map((g) => g.members), along]) };
+}
+
 export default async function ExploreTripPage({ params, searchParams }: Props) {
   const trip = findTrip((await params).slug);
   if (!trip) notFound();
@@ -44,18 +57,18 @@ export default async function ExploreTripPage({ params, searchParams }: Props) {
   const userId = session?.user?.id ?? null;
   const query = await searchParams;
   const wishId = wishListParam(query.wish);
-  const [rates, saved, wish, along] = await Promise.all([
+  const [rates, saved, wish, { along, people }] = await Promise.all([
     viewerCurrency(userId, await headers()).then(listingRates),
     userId ? savedTripIds(userId) : [],
     userId ? listWishListsFor(userId) : null,
-    userId && wishId ? wishListPeopleToAsk(userId, wishId) : [],
+    peopleFor(userId, wishId),
   ]);
   const plan = buildPresetPlan(trip, presetDetail(trip.id));
   const lists = wish?.lists.map(({ id, title }) => ({ id, title })) ?? [];
 
   return (
     <SavedTripsProvider ids={saved} signedIn={!!userId}>
-      <ListingWishProvider value={{ lists, along }}>
+      <ListingWishProvider value={{ lists, along, me: session?.user?.name ?? "", people }}>
         <div className="mx-auto w-full max-w-[84rem] px-4 pb-32 pt-6 sm:px-6 lg:pb-24">
           <Link href="/explore" className={cx(buttonClass("ghost"), "mb-3")}>
             <ChevronIcon direction="left" size={12} />

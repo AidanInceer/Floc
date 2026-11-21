@@ -1,32 +1,24 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { TEXT_CAPS } from "@floc/core/text/text";
 
 import Link from "next/link";
 
-import { Menu, Sheet } from "@/components/system/client-ui";
+import { Menu } from "@/components/system/client-ui";
 import { PlusIcon } from "@/components/system/icons";
-import { cx, menuItemClass } from "@/components/system/ui";
-import { NewTripForm } from "@/components/trip/new-trip-form";
-import type { Person } from "@/server/social/friends";
-import type { Group } from "@/server/social/groups";
+import { Button, cx, menuItemClass } from "@/components/system/ui";
+import { StartTripModal } from "@/components/onboarding/start/start-trip-modal";
+import type { StartPerson } from "@/components/onboarding/start/start-who";
 
-export function NewTripField({
-  action,
-  friends,
-  groups,
-  asked,
-  along,
-}: {
-  action: (formData: FormData) => Promise<void>;
-  friends: Person[];
-  groups: Group[];
+export function NewTripField({ me, people, asked, along }: {
+  me: string;
+  people: StartPerson[];
   asked: string | null;
-  along?: Person[];
+  along?: string[];
 }) {
   const [name, setName] = useState(asked ?? "");
-  const trigger = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(asked !== null);
   const ready = name.trim() !== "";
 
   return (
@@ -35,7 +27,7 @@ export function NewTripField({
         className="min-w-0 flex-1"
         onSubmit={(event) => {
           event.preventDefault();
-          trigger.current?.querySelector("button")?.click();
+          setOpen(true);
         }}
       >
         <label className="flex h-11 cursor-text items-center gap-3 rounded-l-sm border border-rule-strong bg-sheet px-2.5 transition-colors hover:border-ink-faint has-[input:focus-visible]:outline-2 has-[input:focus-visible]:-outline-offset-1 has-[input:focus-visible]:outline-pen sm:h-[2.375rem]">
@@ -50,26 +42,18 @@ export function NewTripField({
           />
         </label>
       </form>
-      <div ref={trigger} className="contents">
-        <Sheet
-          trigger={
-            <>
-              <PlusIcon />
-              New trip
-            </>
-          }
-          triggerVariant={ready ? "primary" : "secondary"}
-          triggerClassName={cx(
-            "h-11 shrink-0 whitespace-nowrap rounded-l-none border-l-0 hover:transform-none max-sm:rounded-r-none sm:h-[2.375rem]",
-            ready && "hover:shadow-none",
-          )}
-          title="Start a trip"
-          body="flush"
-          defaultOpen={asked !== null}
-        >
-          <NewTripForm action={action} friends={friends} groups={groups} name={name.trim()} along={along} />
-        </Sheet>
-      </div>
+      <Button
+        type="button"
+        variant={ready ? "primary" : "secondary"}
+        onClick={() => setOpen(true)}
+        className={cx(
+          "h-11 shrink-0 whitespace-nowrap rounded-l-none border-l-0 hover:transform-none max-sm:rounded-r-none sm:h-[2.375rem]",
+          ready && "hover:shadow-none",
+        )}
+      >
+        <PlusIcon />
+        New trip
+      </Button>
       <div className="flex sm:hidden">
         <Menu
           label="More on My trips"
@@ -80,6 +64,7 @@ export function NewTripField({
           </Link>
         </Menu>
       </div>
+      {open ? <StartTripModal key={name} open onClose={() => setOpen(false)} me={me} people={people} seed={{ name: name.trim(), along }} /> : null}
     </div>
   );
 }

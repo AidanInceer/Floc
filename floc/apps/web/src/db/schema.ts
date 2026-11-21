@@ -836,7 +836,7 @@ export const noteReaction = sqliteTable(
   ],
 );
 
-export const NUDGE_TABS = ["notes", "dates", "days", "money"] as const;
+export const NUDGE_TABS = ["notes", "dates", "days", "money", "ideas"] as const;
 export type NudgeTab = (typeof NUDGE_TABS)[number];
 
 export const nudge = sqliteTable(
@@ -898,6 +898,7 @@ export const notification = sqliteTable(
   (t) => [
     uniqueIndex("notification_one_idx").on(t.activityId, t.userId),
     index("notification_user_idx").on(t.userId),
+    index("notification_user_seen_idx").on(t.userId, t.seenAt),
     index("notification_push_idx").on(t.loud, t.pushedAt),
     index("notification_email_idx").on(t.loud, t.emailedAt),
   ],

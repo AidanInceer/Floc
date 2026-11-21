@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { sessionResolver } from "./live-session";
+import { SHARED_CHECK_MS, sessionResolver } from "./live-session";
 
 const answering = (status: number, body: unknown) => {
   const calls: RequestInit[] = [];
@@ -40,5 +40,26 @@ describe("session over the socket", () => {
     expect(await failed(new Headers({ cookie: "s=1" }))).toBeNull();
     const none = sessionResolver("http://x", answering(200, null).fetchFn);
     expect(await none(new Headers({ cookie: "s=1" }))).toBeNull();
+  });
+
+  it("asks once when one page opens two documents with the same cookie at once", async () => {
+    const { fetchFn, urls } = answering(200, { user: { id: "u-1" } });
+    let now = 1_000;
+    const resolve = sessionResolver("http://x", fetchFn, () => now);
+    const headers = new Headers({ cookie: "s=1" });
+    expect(await Promise.all([resolve(headers), resolve(headers)])).toEqual(["u-1", "u-1"]);
+    expect(urls).toHaveLength(1);
+
+    now += SHARED_CHECK_MS;
+    await resolve(headers);
+    expect(urls).toHaveLength(2);
+  });
+
+  it("never shares a check between two cookies", async () => {
+    const { fetchFn, urls } = answering(200, { user: { id: "u-1" } });
+    const resolve = sessionResolver("http://x", fetchFn, () => 1_000);
+    await resolve(new Headers({ cookie: "s=1" }));
+    await resolve(new Headers({ cookie: "s=2" }));
+    expect(urls).toHaveLength(2);
   });
 });

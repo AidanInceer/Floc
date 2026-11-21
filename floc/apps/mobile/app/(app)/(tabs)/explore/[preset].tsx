@@ -123,7 +123,7 @@ export default function PresetDetail() {
         busy={start.isPending}
         error={start.isError ? start.error.message : null}
         onClose={() => setSheet(false)}
-        onStart={(choice) => start.mutate({ ...choice, friendIds })}
+        onStart={(choice) => start.mutate({ ...choice, friendIds: [...new Set([...choice.friendIds, ...friendIds])] })}
       />
     </>
   );

@@ -1,15 +1,13 @@
 import "server-only";
 
 import { listMembersFor, type TripMember } from "@/server/access";
-import { firstOvernightPlaceByTrip } from "@/server/itinerary/itinerary";
-import { routesForTrips } from "@/server/itinerary/routes-for-trips";
+import { readTripRoutes, type TripRoutes } from "@/server/itinerary/routes-for-trips";
 import { listTripsFor } from "@/server/trips/trips";
 import { hasEnded } from "@floc/core/dates/dates";
 import { readTags } from "@floc/core/trip/tags";
 import { readTripColor } from "@floc/core/trip/trip-color";
 import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import type { TripCardData } from "@/components/trip/trip-card";
-import type { OverviewRoute } from "@floc/core/trip/overview/route";
 
 export type TripListCard = { card: TripCardData; members: TripMember[] };
 
@@ -20,10 +18,10 @@ export async function loadTripCards(
   const rows = await listTripsFor(viewerId, { archived });
   const tripIds = rows.map((r) => r.id);
 
-  const [membersByTrip, whereByTrip, routes] = await Promise.all([
+  const none: TripRoutes = { routes: new Map(), firstPlace: new Map() };
+  const [membersByTrip, { routes, firstPlace: whereByTrip }] = await Promise.all([
     listMembersFor(tripIds),
-    archived ? new Map<number, string>() : firstOvernightPlaceByTrip(tripIds),
-    archived ? new Map<number, OverviewRoute>() : routesForTrips(tripIds),
+    archived ? none : readTripRoutes(tripIds),
   ]);
 
   return rows.map((r) => {

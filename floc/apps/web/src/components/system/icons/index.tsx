@@ -31,7 +31,7 @@ export function LineIcon({
   );
 }
 
-type IconProps = { size?: number; className?: string };
+export type IconProps = { size?: number; className?: string };
 
 export function CrossIcon(props: IconProps) {
   return (
@@ -70,15 +70,6 @@ export function CheckIcon(props: IconProps) {
   return (
     <LineIcon {...props}>
       <path d="M2.5 7.5 5.5 10.5 11.5 3.5" />
-    </LineIcon>
-  );
-}
-
-export function ClockIcon(props: IconProps) {
-  return (
-    <LineIcon {...props}>
-      <circle cx="7" cy="7" r="5.2" />
-      <path d="M7 4v3.2l2 1.2" />
     </LineIcon>
   );
 }
