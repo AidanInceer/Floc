@@ -71,14 +71,13 @@ export default async function DatesPage({
   const tripId = trip.id;
 
   const files = documentsEnabled();
-  const [rows, lengths, dayLoads, routeDays, forecast, weatherPro, bookingPrefill, guests, docs, sites, allDayOnly] = await Promise.all([
+  const [rows, lengths, dayLoads, routeDays, forecast, weatherPro, guests, docs, sites, allDayOnly] = await Promise.all([
     listAvailability(tripId),
     listLengthChoices(tripId),
     listDayLoads(tripId),
     listRouteDays(tripId),
     getTripForecast(tripId),
     canUseFeature("dates.weather", tripId),
-    canUseFeature("booking.prefill", tripId),
     listGuests(tripId),
     files ? listDocuments(tripId, viewer.id) : Promise.resolve([]),
     bookingSitesOf(viewer.id),
@@ -130,7 +129,6 @@ export default async function DatesPage({
     days: routeDays.map((d) => ({ ...d, overnightPlaceName: d.placeName })),
     today: today(),
     adults: members.length,
-    prefill: bookingPrefill,
     files: docs,
   });
 

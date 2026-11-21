@@ -54,7 +54,6 @@ function bookingFor(trip: Outputs["trips"]["get"], days: Outputs["itinerary"]["d
     days: (days ?? []).map((d) => ({ ...d, dayId: d.id })),
     today: today(),
     adults: trip.members.length,
-    prefill: trip.bookingPrefill,
     files: files ?? [],
   });
 }

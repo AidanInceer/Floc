@@ -7,6 +7,7 @@ import { CheckIcon, MinusIcon } from "@/components/system/icons";
 import { SegmentTrack } from "@/components/system/segment-track";
 import { cx, trackSegmentClass } from "@/components/system/ui";
 import type { BillingInterval } from "@floc/core/billing/plans";
+import { PRO_FEATURES } from "@floc/core/billing/pro-features";
 import type { Currency } from "@floc/core/money/currency";
 import { formatMoney } from "@floc/core/money/money";
 
@@ -14,9 +15,7 @@ type Price = { interval: BillingInterval; amountMinor: number; currency: Currenc
 
 const ROWS: { what: string; free: boolean }[] = [
   { what: "Plan trips, dates, days and money", free: true },
-  { what: "Each stop's forecast on your trip dates", free: false },
-  { what: "A packing list filled in for you", free: false },
-  { what: "Searches with your place and dates in", free: false },
+  ...PRO_FEATURES.map((f) => ({ what: f.name, free: false })),
 ];
 
 const PERIODS: Record<BillingInterval, { word: string; per: string }> = {
@@ -62,13 +61,13 @@ export function ProCompare({ prices }: { prices: Price[] }) {
       </div>
       {ROWS.map((r) => (
         <div key={r.what} role="row" className={cx(GRID, "min-h-11 border-t border-rule")}>
-          <span role="rowheader">{r.what}</span>
+          <span role="rowheader" className="text-pretty">{r.what}</span>
           <span role="cell" className="h-full"><Mark on={r.free} /></span>
           <span role="cell" className={proCell}><Mark on /></span>
         </div>
       ))}
       <div className="grid gap-x-0 gap-y-2 border-t border-rule pt-3.5 sm:grid-cols-[minmax(0,1fr)_11rem]">
-        <p className="text-xs text-ink-faint max-sm:order-2">One of you paying covers the whole trip.</p>
+        <p className="text-xs text-ink-faint max-sm:order-2">Pro is yours. The trip stays free for everyone on it.</p>
         <div className="flex items-center justify-between gap-2 rounded-sm bg-sheet-2 p-2.5 sm:flex-col sm:rounded-t-none sm:pb-3">
             {prices.length > 1 ? (
               <SegmentTrack role="group" aria-label="Billing period" className="flex gap-0.5">

@@ -1,5 +1,6 @@
 import type { BillingStatus, StoreClaim, StoreClaimResult } from "@floc/api/port";
 import Constants from "expo-constants";
+import { proFeatureSentence } from "@floc/core/billing/pro-features";
 import { deepLinkToSubscriptions } from "expo-iap";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -58,8 +59,7 @@ export function ProSection({
       ) : (
         <>
           <ProText>
-            {view.line ? `${view.line} ` : ""}Pro adds each stop's forecast on your dates, a packing list filled
-            in for you, and flight and stay searches with your place and dates filled in. The trip stays free for everyone on it.
+            {view.line ? `${view.line} ` : ""}{`Pro adds ${proFeatureSentence()}. The trip stays free for everyone on it.`}
           </ProText>
           <ProOffer accountToken={status.accountToken} claim={claim} onClaimed={onClaimed} />
         </>

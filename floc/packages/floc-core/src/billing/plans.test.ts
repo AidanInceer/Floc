@@ -6,6 +6,10 @@ describe("FEATURE_PLAN", () => {
   it("makes your cost estimate and budget Pro, and yours alone (#574, ADR-057)", () => {
     expect(FEATURE_PLAN["money.estimate"]).toEqual({ plan: "pro", scope: "user" });
   });
+
+  it("gates no filled-in booking search, which is free for everyone (#716)", () => {
+    expect(Object.keys(FEATURE_PLAN)).not.toContain("booking.prefill");
+  });
 });
 
 describe("planMeets", () => {
