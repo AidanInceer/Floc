@@ -230,6 +230,7 @@ export function Sheet({
 export function ConfirmSubmit({
   children,
   message,
+  detail,
   confirmLabel = "Yes, do it",
   variant = "danger",
   confirmVariant,
@@ -238,6 +239,7 @@ export function ConfirmSubmit({
 }: {
   children: ReactNode;
   message: string;
+  detail?: string;
   confirmLabel?: string;
   variant?: "primary" | "secondary" | "ghost" | "danger";
   confirmVariant?: "primary" | "secondary" | "ghost" | "danger";
@@ -282,6 +284,7 @@ export function ConfirmSubmit({
           >
             {message}
           </p>
+          {detail ? <p className="mt-2 text-sm text-ink-2">{detail}</p> : null}
           <div className="mt-6 flex flex-wrap justify-end gap-2">
             <Button
               type="button"

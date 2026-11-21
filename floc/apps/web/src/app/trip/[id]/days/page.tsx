@@ -32,6 +32,8 @@ import { BookingSitesProvider } from "@/components/booking/booking-sites";
 import { SitePicker } from "@/components/booking/site-picker";
 import { bookingSitesOf } from "@/server/auth/booking-sites";
 import { eventName } from "@floc/core/itinerary/names/event-name";
+import { DAY_REMOVAL_TITLE, dayRemovalMessage, planDayRemoval } from "@floc/core/itinerary/day-removal";
+import { listDayBookings } from "@/server/itinerary/removal/remove-day";
 
 export const metadata = { title: "Days" };
 
@@ -48,11 +50,12 @@ export default async function DaysPage({
 
   const query = await searchParams;
   const openEventId = Number(query.event) || null;
-  const [calendar, bookingPrefill, sites, feedUrl] = await Promise.all([
+  const [calendar, bookingPrefill, sites, feedUrl, dayBookings] = await Promise.all([
     loadCalendar(access, openEventId),
     canUseFeature("booking.prefill", trip.id),
     bookingSitesOf(viewer.id),
     calendarFeedUrlFor(trip.id, viewer.id),
+    listDayBookings(trip.id, viewer.id),
   ]);
   const { days, commentCounts, fileEventIds, selected } = calendar;
   const commenter = commenterOf(viewer, members);
@@ -128,12 +131,20 @@ export default async function DaysPage({
     }
   }
 
+  const removalDetail = (dayId: number) => {
+    const plan = planDayRemoval(days, dayId, trip, dayBookings);
+    return plan ? dayRemovalMessage(plan) : undefined;
+  };
+
   const removeDayControls = Object.fromEntries(
     days.map((d) => [
       d.id,
       <form key={d.id} action={removeDay.bind(null, trip.id, d.id)}>
         <ConfirmSubmit
-          message="Remove this day? Its events go with it."
+          message={DAY_REMOVAL_TITLE}
+          detail={removalDetail(d.id)}
+          confirmLabel="Remove day"
+          confirmVariant="danger"
           variant="ghost"
           className={menuDangerItemClass}
         >
@@ -274,7 +285,7 @@ function EventPanel({
       </div>
 
       <form action={deleteEvent.bind(null, tripId, event.id)} className="border-t border-rule px-2 py-1.5">
-        <ConfirmSubmit message="Delete this event?" variant="ghost" className={menuDangerItemClass}>
+        <ConfirmSubmit message="Delete this event?" variant="ghost" confirmVariant="danger" className={menuDangerItemClass}>
           Delete event
         </ConfirmSubmit>
       </form>
