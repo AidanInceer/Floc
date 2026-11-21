@@ -79,11 +79,12 @@ export function TripMenu({
       {isAdmin ? (
         <form action={deleteTrip}>
           <input type="hidden" name="tripId" value={tripId} />
-          <input type="hidden" name="redirectTo" value="/trips" />
           <ConfirmSubmit
             variant="ghost"
-            message={`Delete "${tripName}" for everyone? Nobody will be able to reopen it from the app — archive it instead if you might want it back.`}
+            confirmVariant="danger"
+            message={`Delete "${tripName}" for everyone? This can't be undone.`}
             confirmLabel="Delete it"
+            alternative={archived ? undefined : { label: "Archive instead", action: archiveTrip }}
             className={menuDangerItemClass}
           >
             Delete trip
