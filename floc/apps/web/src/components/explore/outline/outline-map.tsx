@@ -11,6 +11,7 @@ import { tripRoute } from "@/lib/explore/route/trip-route";
 
 import { tripCodes } from "./country";
 import { drawOutline } from "./drawing";
+import { LandPaths } from "./land-paths";
 import { useLand } from "./use-land";
 
 const OUTLINE_SIZES = {
@@ -39,11 +40,7 @@ export function OutlineMap({ trip, size }: { trip: PresetTrip; size: "tile" | "p
       aria-label={`${route.stops.map((s) => s.place).join(", ")}, ${trip.country}`}
       className="block size-full"
     >
-      <path d={d.home} className={home} />
-      <path d={d.other} strokeWidth={0.75} className="fill-sheet-3 stroke-rule-strong" />
-      {d.islets.map((islet) => (
-        <circle key={`${islet.x} ${islet.y}`} cx={islet.x} cy={islet.y} r={islet.r} className={home} />
-      ))}
+      <LandPaths home={d.home} other={d.other} islets={d.islets} fill={home} />
       {shape ? (
         <g fill="none" strokeLinejoin="round">
           {pieces.map((p, k) =>

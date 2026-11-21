@@ -7,8 +7,10 @@ import { migrateTestDb, resetDb, seedScenario, signIn, type Scenario } from "@/t
 
 import {
   setCountryMark,
+  setReduceMotion,
   updateCurrency,
   updateFace,
+  updateMotion,
   updatePacking,
   updateVibeTags,
 } from "./actions";
@@ -78,6 +80,20 @@ describe("the profile", () => {
     expect(await updatePacking(form({ packTier: "light", packAutoGenerate: "on" }))).toEqual({});
     expect(await updatePacking(form({ packTier: "featherweight" }))).toEqual({ error: "Pick a packing style." });
     expect(await profile()).toMatchObject({ packTier: "light", packAutoGenerate: true });
+  });
+
+  it("keeps animations on until you turn them off", async () => {
+    await updateFace(form({ displayName: "Mo B" }));
+    expect((await profile())?.reduceMotion).toBe(false);
+    expect(await updateMotion(form({ reduceMotion: "on" }))).toEqual({});
+    expect((await profile())?.reduceMotion).toBe(true);
+    await updateMotion(form({}));
+    expect((await profile())?.reduceMotion).toBe(false);
+  });
+
+  it("turns animations off from Explore, making the profile if it is missing", async () => {
+    await setReduceMotion(true);
+    expect((await profile())?.reduceMotion).toBe(true);
   });
 
   it("sends a signed-out visitor to log in", async () => {

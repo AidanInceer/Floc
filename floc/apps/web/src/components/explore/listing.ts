@@ -16,11 +16,11 @@ export function skinFor(trip: PresetTrip): string {
 export const regionSkin = (region: Region): string => REGION_SKIN[region];
 
 const REGION_LAND: Record<Region, string> = {
-  Europe: "fill-[var(--tone-blue)] stroke-pastel-blue-ink/40",
-  Africa: "fill-[var(--tone-yellow)] stroke-pastel-yellow-ink/40",
-  Asia: "fill-[var(--tone-red)] stroke-pastel-red-ink/40",
-  Americas: "fill-[var(--tone-green)] stroke-pastel-green-ink/40",
-  Oceania: "fill-[var(--tone-blue)] stroke-pen-deep/40",
+  Europe: "fill-[var(--tone-blue)]",
+  Africa: "fill-[var(--tone-yellow)]",
+  Asia: "fill-[var(--tone-red)]",
+  Americas: "fill-[var(--tone-green)]",
+  Oceania: "fill-[var(--tone-blue)]",
 };
 
 export function landFor(trip: PresetTrip): string {

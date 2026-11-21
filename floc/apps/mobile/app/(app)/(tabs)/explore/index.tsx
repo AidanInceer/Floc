@@ -16,6 +16,7 @@ import { ExploreMap, MAP_PICKS } from "@/components/explore/explore-map";
 import { FinderBar } from "@/components/explore/finder/finder-bar";
 import { FinderSheet } from "@/components/explore/finder/finder-sheet";
 import { ListingRow } from "@/components/explore/listing-row";
+import { useOpeningPick } from "@/components/explore/use-opening-pick";
 import { useTheme } from "@/components/system/theme";
 import { Body, Empty, Heading, SearchField } from "@/components/system/ui";
 import { TextLink } from "@/components/system/text-controls";
@@ -41,6 +42,7 @@ export default function Explore() {
   const state = useQuery(trpc.explore.get.queryOptions());
   const saves = useQuery(trpc.explore.saves.queryOptions());
   const [picked, setPicked] = useState(MAP_PICKS[0].id);
+  useOpeningPick(state.data?.likes, saves.data, setPicked);
   const asked = readCountryCode(useLocalSearchParams<{ country?: string }>().country);
   const [finder, setFinder] = useState<Finder>(asked ? { ...EMPTY_FINDER, q: countryName(asked) } : EMPTY_FINDER);
   const [sort, setSort] = useState<FinderSort>("match");

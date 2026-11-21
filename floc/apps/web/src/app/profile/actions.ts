@@ -79,6 +79,18 @@ export async function updatePacking(formData: FormData): Promise<{ error?: strin
   return {};
 }
 
+export async function setReduceMotion(reduceMotion: boolean): Promise<void> {
+  const viewer = await requireUser();
+  await ensureProfile(viewer.id);
+  await updateProfileFields(viewer.id, { reduceMotion });
+  refresh({ kind: "profile" });
+}
+
+export async function updateMotion(formData: FormData): Promise<{ error?: string }> {
+  await setReduceMotion(formData.get("reduceMotion") === "on");
+  return {};
+}
+
 export async function setCountryMark(
   code: string,
   next: "green" | "yellow" | "blank",

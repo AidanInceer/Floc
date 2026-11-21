@@ -96,6 +96,7 @@ function SettingsPanels({
   const [tier, setTier] = useState<PackTier>(settings.packTier);
   const [autoFill, setAutoFill] = useState(settings.packAutoGenerate);
   const [currency, setCurrency] = useState(settings.homeCurrency);
+  const [still, setStill] = useState(settings.reduceMotion);
   const [notify, setNotify] = useState({
     push: settings.notifyPush,
     email: settings.notifyEmail,
@@ -114,6 +115,7 @@ function SettingsPanels({
   const saveTags = useMutation({ ...trpc.settings.vibeTags.mutationOptions(), onError, onSuccess });
   const savePacking = useMutation({ ...trpc.settings.packing.mutationOptions(), onError, onSuccess });
   const saveCurrency = useMutation({ ...trpc.settings.currency.mutationOptions(), onError, onSuccess });
+  const saveMotion = useMutation({ ...trpc.settings.motion.mutationOptions(), onError, onSuccess });
   const saveNotify = useMutation({
     ...trpc.settings.notifications.mutationOptions(),
     onError,
@@ -177,6 +179,18 @@ function SettingsPanels({
             onChange={(next) => {
               setTags(next);
               saveTags.mutate({ tags: next as never });
+            }}
+          />
+        </Drawer>
+
+        <Drawer title="Animations" summary={still ? "Off" : "On"}>
+          <Toggle
+            label="Turn animations off"
+            hint="Maps and pages show where they end, without playing through."
+            value={still}
+            onChange={(next) => {
+              setStill(next);
+              saveMotion.mutate({ reduce: next });
             }}
           />
         </Drawer>

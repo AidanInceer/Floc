@@ -88,39 +88,41 @@
 .explore-pin:hover,
 .explore-pin[aria-pressed="true"] { z-index: 2; }
 
-.explore-atlas .atlas-world {
+/* Every trip or the zoom, then the animations switch, in one row at the foot of the globe. */
+.explore-atlas .atlas-controls {
   position: absolute;
   /* Why: lines up with the page column below (max-w-[76rem], px-4 / sm:px-6), not the viewport edge. */
   --edge: 1rem;
   left: max(var(--edge), calc((100% - 76rem) / 2 + var(--edge)));
   bottom: 16px;
   z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.explore-atlas .atlas-world {
   display: inline-flex;
+  height: 31px;
   align-items: center;
   gap: 7px;
-  padding: 7px 12px 7px 10px;
+  padding: 0 12px 0 10px;
   border: 1px solid var(--rule-2);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
   background: var(--sheet);
   color: var(--ink-2);
   font-size: 13px;
   box-shadow: var(--shadow-sm);
 }
-.explore-atlas .atlas-world:hover { color: var(--ink); border-color: var(--pen); }
+.explore-atlas .atlas-world:hover { color: var(--pen-deep); border-color: var(--pen); background: var(--pen-2); }
 
 /* Zoom out and in, where "Every trip" sits once a trip is open. */
 .explore-atlas .atlas-zoom {
-  position: absolute;
-  --edge: 1rem;
-  left: max(var(--edge), calc((100% - 76rem) / 2 + var(--edge)));
-  bottom: 16px;
-  z-index: 2;
   display: flex;
   gap: 6px;
 }
 @media (min-width: 640px) {
-  .explore-atlas .atlas-world,
-  .explore-atlas .atlas-zoom { --edge: 1.5rem; }
+  .explore-atlas .atlas-controls { --edge: 1.5rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

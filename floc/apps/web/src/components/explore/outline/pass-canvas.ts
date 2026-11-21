@@ -12,6 +12,15 @@ type Point = { x: number; y: number };
 type Land = { home: string; other: string; islets: (Point & { r: number })[] };
 type Scene = { route: TripRoute; land: Land; frame: Frame; box: Size; tone: string; moving: boolean };
 
+function isletPath(islets: Land["islets"]) {
+  const path = new Path2D();
+  for (const islet of islets) {
+    path.moveTo(islet.x + islet.r, islet.y);
+    path.arc(islet.x, islet.y, islet.r, 0, Math.PI * 2);
+  }
+  return path;
+}
+
 export function passCanvas(canvas: HTMLCanvasElement, { route, land, frame, box, tone, moving }: Scene) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return () => {};
@@ -22,7 +31,7 @@ export function passCanvas(canvas: HTMLCanvasElement, { route, land, frame, box,
   const whole: Pose<Point> = { centre: { x: box.width / 2, y: box.height / 2 }, w: box.width, at: { x: box.width / 2, y: box.height / 2 } };
   const length = shape.pieces.reduce((sum, p) => sum + p.len, 0);
   const tl = followPen(plane, { from: whole, to: whole, look: penLook(plane, penPoints(shape, 160)), length });
-  const paths = { home: new Path2D(land.home), other: new Path2D(land.other) };
+  const paths = { home: new Path2D(land.home), other: new Path2D(land.other), islets: isletPath(land.islets) };
   const css = getComputedStyle(canvas);
   const colour = (name: string) => css.getPropertyValue(`--${name}`);
   const t0 = performance.now();
@@ -44,16 +53,14 @@ export function passCanvas(canvas: HTMLCanvasElement, { route, land, frame, box,
     ctx!.lineWidth = 0.75 / k;
     ctx!.fillStyle = colour(`tone-${tone}`);
     ctx!.fill(paths.home);
+    ctx!.fill(paths.islets);
     ctx!.fillStyle = colour("sheet-3");
-    ctx!.strokeStyle = colour("rule-2");
     ctx!.fill(paths.other);
+    ctx!.strokeStyle = colour("rule-2");
+    ctx!.lineJoin = "round";
     ctx!.stroke(paths.other);
-    ctx!.fillStyle = colour(`tone-${tone}`);
-    for (const islet of land.islets) {
-      ctx!.beginPath();
-      ctx!.arc(islet.x, islet.y, islet.r, 0, Math.PI * 2);
-      ctx!.fill();
-    }
+    ctx!.stroke(paths.home);
+    ctx!.stroke(paths.islets);
     ctx!.restore();
     paintRoute(ctx!, shape, { pieces: shape.pieces.map((p) => p.px.map(move)), stops: shape.stops.map((st) => move(st.px)), drawn: tl.drawn(t), seen: markFade(tl, t), alpha: 1 }, ink, names, width);
   }

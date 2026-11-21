@@ -33,9 +33,15 @@ describe("saved packing lists on Lists", () => {
     expect(kit.name).toBe("Beach");
   });
 
-  it("refuses a list with no name", async () => {
-    await expect(createPackingKit(form({ name: "  " }))).rejects.toThrow("needs a name");
-    await expect(renameKit(1, form({ name: "" }))).rejects.toThrow("needs a name");
+  it("makes no list from a name of only spaces, and keeps the page up", async () => {
+    await expect(createPackingKit(form({ name: "  " }))).resolves.toBeUndefined();
+    expect(await listPackingKitsWithItems(world.member)).toEqual([]);
+  });
+
+  it("keeps a list's name when the new one is only spaces", async () => {
+    const kit = await makeKit();
+    await expect(renameKit(kit.id, form({ name: "   " }))).resolves.toBeUndefined();
+    expect((await listPackingKitsWithItems(world.member))[0]!.name).toBe("Beach");
   });
 
   it("renames a list, then deletes it", async () => {
@@ -59,9 +65,13 @@ describe("saved packing lists on Lists", () => {
     expect((await listPackingKitsWithItems(world.member))[0]!.items).toEqual([]);
   });
 
-  it("refuses a thing with no name and a step that is not one", async () => {
+  it("adds nothing from a label of only spaces, and keeps the page up", async () => {
     const kit = await makeKit();
-    await expect(addKitItem(kit.id, form({ label: "" }))).rejects.toThrow("needs a name");
+    await expect(addKitItem(kit.id, form({ label: "   " }))).resolves.toBeUndefined();
+    expect((await listPackingKitsWithItems(world.member))[0]!.items).toEqual([]);
+  });
+
+  it("refuses a step that is not one", async () => {
     await expect(stepKitItemQuantity(1, form({ step: "5" }))).rejects.toThrow("quantity step");
   });
 

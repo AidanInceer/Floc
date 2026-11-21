@@ -29,6 +29,7 @@ export type MySettings = {
   vibeTags: string[];
   packTier: PackTier;
   packAutoGenerate: boolean;
+  reduceMotion: boolean;
   homeCurrency: Currency;
   notifyPush: boolean;
   notifyEmail: boolean;
@@ -125,6 +126,8 @@ export type AccountPort = {
   toggleBookingSite(viewerId: string, kind: SiteKind, site: BookingSite): Promise<BookingSites>;
 
   updateHomeCurrency(viewerId: string, currency: Currency): Promise<void>;
+
+  updateReduceMotion(viewerId: string, reduceMotion: boolean): Promise<void>;
 
   updateNotifications(
     viewerId: string,

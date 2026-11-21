@@ -9,6 +9,7 @@ import { legalLinkFor, riseFrom } from "@/lib/legal/legal-sheet";
 
 import { LegalBar } from "./legal-bar";
 import "./legal-sheet.css";
+import { isStill } from "@/lib/motion/still";
 
 const SLIDE_MS = 480;
 
@@ -57,7 +58,7 @@ export function LegalSheet({ children }: { children: ReactNode }) {
     const sheet = ref.current!;
     measure(sheet);
     delete sheet.dataset.open;
-    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduced = isStill();
     setTimeout(() => router.back(), reduced ? 0 : SLIDE_MS);
   }, [router]);
 

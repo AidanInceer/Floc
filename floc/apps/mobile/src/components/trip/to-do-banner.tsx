@@ -1,4 +1,4 @@
-import { cubeColumns, type Gap, type GapKind, type LeftToSort as SortList, type Sorted } from "@floc/core/trip/overview/left-to-sort";
+import { cubeColumns, type Gap, type GapKind, type ToDoList, type Sorted } from "@floc/core/trip/overview/to-do";
 import { SORT_COLOURS } from "@floc/core/design/section-colours";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -23,6 +23,7 @@ function SortMark({ kind, done }: { kind: GapKind; done: boolean }) {
     ideas: <StarGlyph color={ink} on={false} />,
     money: <SectionGlyph route="money" color={ink} />,
     packing: <SectionGlyph route="packing" color={ink} />,
+    plan: <SectionGlyph route="days" color={ink} />,
     stay: <BedGlyph color={ink} />,
     travel: <SectionGlyph route="days" color={ink} />,
   };
@@ -91,7 +92,11 @@ function StackCard({ item, onPress }: { item: Gap | Sorted; onPress?: () => void
           </Text>
         ) : null}
       </View>
-      <Text style={{ color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.small }}>{done ? "Sorted" : item.action}</Text>
+      {"action" in item ? (
+        <Button label={item.action} variant="quiet" fit="small" onPress={() => onPress?.()} />
+      ) : (
+        <Text style={{ color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.small }}>Done</Text>
+      )}
     </Pressable>
   );
 }
@@ -105,7 +110,7 @@ function NudgeCard({ tripId, gap }: { tripId: number; gap: Gap & { nudge: NonNul
   );
 }
 
-export function LeftToSort({ tripId, list, onGo }: { tripId: number; list: SortList; onGo: (gap: Gap) => void }) {
+export function ToDoBanner({ tripId, list, onGo }: { tripId: number; list: ToDoList; onGo: (gap: Gap) => void }) {
   const { c } = useTheme();
   const [expanded, setExpanded] = useState(false);
   const [showDone, setShowDone] = useState(false);
@@ -122,7 +127,7 @@ export function LeftToSort({ tripId, list, onGo }: { tripId: number; list: SortL
           <View style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
             <Cubes total={total} filled={sorted} />
             <Text style={small}>
-              <Text style={{ color: c.ink, fontFamily: fonts.display, fontSize: size.body }}>{sorted}</Text> of {total} sorted
+              <Text style={{ color: c.ink, fontFamily: fonts.display, fontSize: size.body }}>{sorted}</Text> of {total} done
             </Text>
             <Pressable
               accessibilityRole="button"
@@ -158,13 +163,13 @@ export function LeftToSort({ tripId, list, onGo }: { tripId: number; list: SortL
       {expanded && sorted > 0 ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`${sorted} already sorted`}
+          accessibilityLabel={`${sorted} done`}
           accessibilityState={{ expanded: showDone }}
           onPress={() => setShowDone(!showDone)}
           style={{ flexDirection: "row", alignItems: "center", gap: space.md, minHeight: CARD, backgroundColor: c["pen-2"], borderColor: c["pen-edge"], borderWidth: 1, borderStyle: "dashed", borderRadius: radius.sm, padding: space.md }}
         >
           <Cubes total={sorted} filled={sorted} />
-          <Text style={small}>{sorted} already sorted</Text>
+          <Text style={small}>{sorted} done</Text>
           <View style={{ marginLeft: "auto" }}>
             <ChevronGlyph color={c["ink-2"]} open={showDone} />
           </View>

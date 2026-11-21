@@ -512,6 +512,18 @@
       transform: none;
     }
   }
+
+  /* Animations turned off on Profile or Explore hold the page as still as the device setting does. */
+  :root[data-motion="still"] *,
+  :root[data-motion="still"] *::before,
+  :root[data-motion="still"] *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  :root[data-motion="still"] .lift:hover {
+    transform: none;
+  }
 }
 
 @layer components {

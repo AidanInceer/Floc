@@ -170,7 +170,7 @@ export function DatesBoard(props: DatesBoardProps) {
           mine: (
             <>
               {!choose ? cal.note : null}
-              <SaveBar changed={paint.changed} pending={pending} onSave={onSave} onFill={onFill} />
+              <SaveBar changed={paint.changed} pending={pending} onSave={onSave} onFill={onFill} more={cal.menu} />
             </>
           ),
           trip: pick.editing && (

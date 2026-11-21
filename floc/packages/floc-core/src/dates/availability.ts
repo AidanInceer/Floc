@@ -22,12 +22,20 @@ export function addMonths(month: IsoMonth, delta: number): IsoMonth {
   return `${String(Math.floor(zero / 12)).padStart(4, "0")}-${String((zero % 12) + 1).padStart(2, "0")}`;
 }
 
-export function formatMonth(month: IsoMonth): string {
+function monthLabel(month: IsoMonth, name: "long" | "short"): string {
   return fromIsoDate(`${month}-01`).toLocaleDateString("en-GB", {
-    month: "long",
+    month: name,
     year: "numeric",
     timeZone: "UTC",
   });
+}
+
+export function formatMonth(month: IsoMonth): string {
+  return monthLabel(month, "long");
+}
+
+export function formatShortMonth(month: IsoMonth): string {
+  return monthLabel(month, "short");
 }
 
 export function daysInMonth(month: IsoMonth): IsoDate[] {

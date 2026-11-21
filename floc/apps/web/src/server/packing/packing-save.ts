@@ -27,6 +27,7 @@ import {
 } from "@/server/packing/packing";
 import { fillPersonalBag, packingPlanFor, takePackingIdea } from "@/server/packing/packing-generator";
 import { applyPackingKitToBag } from "@/server/packing/packing-kits";
+import { stillThere } from "@/server/removed-rows";
 
 type Access = Pick<TripAccess, "trip" | "viewer" | "packingLine">;
 
@@ -58,8 +59,9 @@ export async function removeLine(access: Access, lineId: number): Promise<void> 
 
 export async function removeLines(access: Access, lineIds: number[]): Promise<void> {
   if (lineIds.length === 0) return;
-  const lines = await Promise.all(lineIds.map((id) => access.packingLine(id)));
-  await softDeletePackingLines(lines.map((line) => line.id), access.viewer.id);
+  const lines = await Promise.all(lineIds.map((id) => stillThere(access.packingLine(id))));
+  const left = lines.flatMap((line) => (line ? [line.id] : []));
+  if (left.length > 0) await softDeletePackingLines(left, access.viewer.id);
   changed(access);
 }
 

@@ -2,6 +2,7 @@ import { BAR_HOLD_EVENT } from "@/lib/bar-fuse";
 
 import { curtainAt, POUR_MS, type Box } from "./curtain";
 import { gooLayer } from "./goo-layer";
+import { isStill } from "@/lib/motion/still";
 
 const LEAVE_MS = 300;
 const GIVE_UP_MS = 2500;
@@ -14,7 +15,7 @@ const state = (s: "leaving" | "waiting" | "pouring" | null) => {
   else delete root().dataset.tripOpen;
 };
 const hold = (on: boolean) => window.dispatchEvent(new CustomEvent(BAR_HOLD_EVENT, { detail: on }));
-const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reduced = isStill;
 
 function barBox(): Box | null {
   const beads = [...(document.querySelector(".fuse-row")?.children ?? [])].filter((el) => el.tagName.toLowerCase() !== "svg");

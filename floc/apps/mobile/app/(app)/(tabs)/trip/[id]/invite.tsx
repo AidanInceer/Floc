@@ -1,4 +1,4 @@
-import { INVITE_LINK_LIFE } from "@floc/core/trip/group/invite-link";
+import { INVITE_LINK_LIFE, INVITE_LINK_RESET } from "@floc/core/trip/group/invite-link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
@@ -99,7 +99,7 @@ export default function Invite() {
               onPress={() =>
                 Alert.alert(
                   "Reset the invite link?",
-                  "The old link stops working for anyone still holding it. Everyone already on the trip stays.",
+                  INVITE_LINK_RESET,
                   [
                     { text: "Cancel", style: "cancel" },
                     { text: "Reset the link", style: "destructive", onPress: () => reset.mutate({ tripId }) },

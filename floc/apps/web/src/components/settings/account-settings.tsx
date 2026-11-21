@@ -16,6 +16,7 @@ import { ProStatus } from "@/components/settings/pro-status";
 import { SettingsRow, SettingsSheet } from "@/components/settings/settings-row";
 import { TravelStyle } from "@/components/settings/travel-style";
 import { TripsFields } from "@/components/settings/trips-fields";
+import { MotionField } from "@/components/settings/motion-field";
 import { EstimateRow } from "@/components/settings/estimate-fields";
 import type { EstimateSettings } from "@floc/core/money/estimate/view";
 import { SignOutButton } from "@/components/auth/sign-out-button";
@@ -149,6 +150,10 @@ export function AccountSettings({ email, profile, linkedAccounts, calendarGrante
             <TravelStyle selected={vibeTags} />
             <p className="text-xs text-ink-faint">Shown on your profile to the people you pick in Privacy.</p>
           </AutoSaveForm>
+        </SettingsRow>
+
+        <SettingsRow {...row("motion")} title="Animations" summary={profile.reduceMotion ? "Off" : "On"}>
+          <MotionField reduceMotion={profile.reduceMotion} />
         </SettingsRow>
 
         <SettingsRow {...row("trips")} title="Trips" summary={tripsSummary(PACK_TIER_LABELS[profile.packTier], profile.homeCurrency)}>

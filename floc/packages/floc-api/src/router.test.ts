@@ -65,7 +65,7 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
     loadLedger: vi.fn().mockResolvedValue({ expenses: [], splits: [], settlements: [] }),
     createTrip: vi.fn().mockResolvedValue({ id: 2 }),
     startTripFromPreset: vi.fn().mockResolvedValue({ id: 3 }),
-    loadExplore: vi.fn().mockResolvedValue({ finder: null, rates: null }),
+    loadExplore: vi.fn().mockResolvedValue({ finder: null, likes: [], rates: null }),
     setExploreFinder: vi.fn().mockResolvedValue(undefined),
     listSavedTrips: vi.fn().mockResolvedValue(["lisbon"]),
     setTripSaved: vi.fn().mockResolvedValue(undefined),

@@ -1,8 +1,8 @@
-import { clipRing } from "./clip";
 import { countryFrame, frameFor, homePiece, type Frame, type Size } from "./frame";
 import { onLand, type Box, type Piece, type Spot } from "./land";
-import { ringPath } from "./ring-path";
-import { thin } from "./thin";
+import { clipRing } from "./path/clip";
+import { ringPath } from "./path/ring-path";
+import { thin } from "./path/thin";
 
 type Point = { x: number; y: number };
 

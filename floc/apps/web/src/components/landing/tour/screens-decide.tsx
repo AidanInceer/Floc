@@ -5,7 +5,7 @@ import { groupTab, spanLabel, tripTab, yourDaysTab, type TabSummary } from "@flo
 import { ArrowUpIcon, CheckIcon, ChevronIcon, CrossIcon } from "@/components/system/icons";
 import { NavGlyph } from "@/components/system/icons/nav";
 import { Avatar, LegendKey, cx } from "@/components/system/ui";
-import { SortCubes } from "@/components/trip/overview/sort/sort-cubes";
+import { SortCubes } from "@/components/trip/overview/to-do/sort-cubes";
 
 import { alex, jo, kit, priya, sam, maya, you } from "../sample-trip";
 import { FakeButton, PageHead } from "./screen-frame";
@@ -19,12 +19,12 @@ const IDEAS = [
   { title: "Lisbon and the coast", by: alex, votes: 1, mine: false },
 ];
 
-function SortStrip() {
+function ToDoStrip() {
   return (
     <div className="flex items-center gap-4 rounded-md bg-sheet px-4 py-2.5 shadow-raised ring-1 ring-rule">
       <SortCubes total={6} filled={1} />
       <span className="shrink-0 text-sm text-ink-soft">
-        <b className="nums font-display text-[17px] text-ink">1</b> of 6 sorted
+        <b className="nums font-display text-[17px] text-ink">1</b> of 6 done
       </span>
       <span className="min-w-0 flex-1 truncate text-sm text-ink-faint">
         Next for you: <b className="font-medium text-ink">Mark the days you can do</b>
@@ -38,7 +38,7 @@ function SortStrip() {
 export function WhereScreen() {
   return (
     <>
-      <SortStrip />
+      <ToDoStrip />
       <div className="mt-3 overflow-hidden rounded-md border border-rule bg-sheet">
         <div className="flex items-center gap-3 px-4 py-3">
           <ChevronIcon direction="down" size={15} className="shrink-0 text-ink-faint" />

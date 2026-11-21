@@ -2,9 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { KeyboardEvent, PointerEvent } from "react";
 
 import { stepSlide, swipeStep, wipeOrigin, wipeReach } from "@/lib/landing/tour";
+import { isStill } from "@/lib/motion/still";
 
 const EASE = "cubic-bezier(0.2, 0.85, 0.3, 1)";
-const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reduced = isStill;
 
 export function useTour(count: number) {
   const stage = useRef<HTMLDivElement>(null);

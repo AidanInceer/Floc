@@ -3,7 +3,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } f
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme } from "./theme";
-import { useReducedMotion } from "./use-reduced-motion";
+import { useStill } from "@/lib/accessibility/use-still";
 import { radius, space } from "@/lib/theme";
 
 export function Sheet({
@@ -20,7 +20,7 @@ export function Sheet({
   stableHeight?: boolean;
 }) {
   const { c } = useTheme();
-  const reducedMotion = useReducedMotion();
+  const reducedMotion = useStill();
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   return (

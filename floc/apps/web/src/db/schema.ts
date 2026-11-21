@@ -171,6 +171,7 @@ export const userProfile = sqliteTable("user_profile", {
   packAutoGenerate: integer("pack_auto_generate", { mode: "boolean" })
     .notNull()
     .default(true),
+  reduceMotion: integer("reduce_motion", { mode: "boolean" }).notNull().default(false),
   tourSeenAt: integer("tour_seen_at", { mode: "timestamp" }),
   notifyPush: integer("notify_push", { mode: "boolean" }).notNull().default(true),
   notifyEmail: integer("notify_email", { mode: "boolean" }).notNull().default(true),

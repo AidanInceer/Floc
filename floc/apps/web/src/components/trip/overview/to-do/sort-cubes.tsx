@@ -1,4 +1,4 @@
-import { cubeColumns } from "@floc/core/trip/overview/left-to-sort";
+import { cubeColumns } from "@floc/core/trip/overview/to-do";
 import { cx } from "@/components/system/ui";
 
 export function SortCubes({ total, filled }: { total: number; filled: number }) {

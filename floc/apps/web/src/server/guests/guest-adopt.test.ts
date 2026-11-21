@@ -6,6 +6,7 @@ import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { setAvailability } from "@/server/itinerary/availability";
 import { insertIdea, toggleIdeaVote } from "@/server/ideas/ideas";
 import { isLiveMember } from "@/server/trips/live-member";
+import { resetInviteToken } from "@/server/trips/trips";
 import { adoptGuest } from "@/server/guests/guest-adopt";
 import { LIMITS } from "@/server/limits";
 
@@ -91,6 +92,42 @@ describe("adoptGuest", () => {
     expect(await isLiveMember(world.ours.id, sam)).toBe(false);
     expect(await marksOf(sam)).toEqual([]);
     expect(await marksOf(guest)).toEqual([]);
+  });
+
+  it("does not join on a vote the guest took back", async () => {
+    const guest = await makeUser("g-sam", true);
+    const sam = await makeUser("u-sam", false);
+    const ideaId = await insertIdea({ tripId: world.ours.id, createdBy: world.admin, title: "Lisbon" });
+    await toggleIdeaVote(ideaId, guest);
+    await toggleIdeaVote(ideaId, guest);
+
+    await adoptGuest(guest, sam);
+
+    expect(await isLiveMember(world.ours.id, sam)).toBe(false);
+  });
+
+  it("does not join an archived trip, and drops the guest's answers on it", async () => {
+    const guest = await makeUser("g-sam", true);
+    const sam = await makeUser("u-sam", false);
+    await setAvailability(world.ours.id, guest, ["2026-09-01"], true);
+    await db.update(schema.trip).set({ archivedAt: new Date() }).where(eq(schema.trip.id, world.ours.id));
+
+    await adoptGuest(guest, sam);
+
+    expect(await isLiveMember(world.ours.id, sam)).toBe(false);
+    expect(await marksOf(sam)).toEqual([]);
+    expect(await marksOf(guest)).toEqual([]);
+  });
+
+  it("does not join once the link the guest answered on was reset", async () => {
+    const guest = await makeUser("g-sam", true);
+    const sam = await makeUser("u-sam", false);
+    await setAvailability(world.ours.id, guest, ["2026-09-01"], true);
+    await resetInviteToken(world.ours.id);
+
+    await adoptGuest(guest, sam);
+
+    expect(await isLiveMember(world.ours.id, sam)).toBe(false);
   });
 
   it("does nothing when the person signing in was not a guest", async () => {
