@@ -7,6 +7,8 @@ export type DayMark =
 
 export type DayMarkInput = {
   tally: number;
+  prefer?: number;
+  answered?: number;
   memberCount: number;
   inTrip: boolean;
   picking: boolean;
@@ -23,7 +25,9 @@ export function dayMark(d: DayMarkInput): DayMark {
   if (d.picking && d.pending) return { kind: "pend" };
   if (d.tally === 0) return { kind: "none" };
   if (d.tally >= d.memberCount) return { kind: "all" };
-  return { kind: "some", step: someFreeStep(d.tally, d.memberCount) };
+  if (d.prefer === undefined) return { kind: "some", step: someFreeStep(d.tally, d.memberCount) };
+  const answered = Math.max(d.answered ?? d.memberCount, d.tally);
+  return { kind: "some", step: someFreeStep(d.tally + d.prefer, 2 * answered) };
 }
 
 export function markKey(m: DayMark): string {

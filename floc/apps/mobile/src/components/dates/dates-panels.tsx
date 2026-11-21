@@ -43,28 +43,10 @@ export function Coverage({ isFree, start, end }: { isFree: (d: IsoDate) => boole
   return <Block first name="In the trip" value={`${cover.free} of ${countWord(cover.total, "day")}`} note={note} />;
 }
 
-export function BestFit({
-  best,
-  memberCount,
-  first,
-  onUse,
-}: {
-  best: { start: IsoDate; end: IsoDate; free: number } | null;
-  memberCount: number;
-  first?: boolean;
-  onUse: () => void;
-}) {
-  if (!best) return null;
-  const days = nightsBetween(best.start, best.end) + 1;
-  return (
-    <Block
-      first={first}
-      name="Best fit"
-      value={spanLabel(best.start, best.end)}
-      note={`${countWord(days, "day")} · ${best.free} of ${memberCount} free`}
-      action={<Button label="Use these" fit="small" variant="quiet" onPress={onUse} />}
-    />
-  );
+function BestSlot({ card, first }: { card: ReactNode; first: boolean }) {
+  const { c } = useTheme();
+  if (!card) return null;
+  return <View style={{ borderTopWidth: first ? 0 : StyleSheet.hairlineWidth, borderTopColor: c.rule }}>{card}</View>;
 }
 
 export function TripBlock({ start, end, onClear }: { start: IsoDate | null; end: IsoDate | null; onClear: () => void }) {
@@ -120,33 +102,20 @@ export function DatesPanel(p: {
   view: DatesView;
   trip: { start: IsoDate | null; end: IsoDate | null };
   isFree: (d: IsoDate) => boolean;
-  best: { start: IsoDate; end: IsoDate; free: number } | null;
+  bestCard: ReactNode;
   people: Person[];
   nudgeFor?: (id: string) => ReactNode;
   weather: { view: TripForecastView | undefined; byDate: Record<string, ForecastDay>; openDay: string | null };
-  onUseBest: () => void;
   onClear: () => void;
   onSeePro: () => void;
 }) {
-  const dated = !!p.trip.start && !!p.trip.end;
-  const best = (first: boolean) => <BestFit best={p.best} memberCount={p.people.length} first={first} onUse={p.onUseBest} />;
   const body = {
-    mine: (
-      <>
-        <Coverage isFree={p.isFree} start={p.trip.start} end={p.trip.end} />
-        {best(!dated)}
-      </>
-    ),
-    group: (
-      <>
-        {best(true)}
-        <WhoAnswered people={p.people} nudgeFor={p.nudgeFor} />
-      </>
-    ),
+    mine: <Coverage isFree={p.isFree} start={p.trip.start} end={p.trip.end} />,
+    group: <WhoAnswered people={p.people} nudgeFor={p.nudgeFor} />,
     trip: (
       <>
         <TripBlock start={p.trip.start} end={p.trip.end} onClear={p.onClear} />
-        {best(false)}
+        <BestSlot card={p.bestCard} first={false} />
       </>
     ),
     forecast: (

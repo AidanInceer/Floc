@@ -22,10 +22,11 @@ function Bar({ words, children }: { words: string; children: ReactNode }) {
   );
 }
 
-export function SaveBar({ changed, busy, onSave }: { changed: number; busy: boolean; onSave: () => void }) {
+export function SaveBar({ changed, busy, onSave, onFill }: { changed: number; busy: boolean; onSave: () => void; onFill: () => void }) {
   return (
-    <Bar words={`${countWord(changed, "change")} not saved`}>
-      <Button label={`Save ${countWord(changed, "day")}`} fit="small" busy={busy} onPress={onSave} />
+    <Bar words={changed > 0 ? `${countWord(changed, "change")} not saved` : ""}>
+      <Button label="Free all month" variant="quiet" fit="small" onPress={onFill} />
+      {changed > 0 ? <Button label={`Save ${countWord(changed, "day")}`} fit="small" busy={busy} onPress={onSave} /> : null}
     </Bar>
   );
 }
@@ -59,10 +60,11 @@ export function DatesBars(p: {
   dated: boolean;
   busy: { marks: boolean; window: boolean };
   onSave: () => void;
+  onFill: () => void;
   onCommit: () => void;
   onDiscard: () => void;
 }) {
-  if (p.view === "mine" && p.unsaved > 0) return <SaveBar changed={p.unsaved} busy={p.busy.marks} onSave={p.onSave} />;
+  if (p.view === "mine") return <SaveBar changed={p.unsaved} busy={p.busy.marks} onSave={p.onSave} onFill={p.onFill} />;
   if (p.view === "trip" && p.range)
     return <CommitBar range={p.range} dated={p.dated} busy={p.busy.window} onCommit={p.onCommit} onDiscard={p.onDiscard} />;
   return null;

@@ -183,7 +183,7 @@ export function Badge({
 export function LegendKey({ swatch, label }: { swatch: string; label: string }) {
   return (
     <span className="flex items-center gap-1.5 text-xs text-ink-soft">
-      <span className={cx("size-3 rounded-sm border", swatch)} aria-hidden />
+      <span className={cx("size-3 shrink-0 rounded-sm border", swatch)} aria-hidden />
       {label}
     </span>
   );

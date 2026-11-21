@@ -11,7 +11,10 @@ import { datesMoment } from "@floc/core/dates/dates-moment";
 import { BookingCard } from "@/components/booking/booking-card";
 import { bookingSitesOf } from "@/server/auth/booking-sites";
 import { getTripForecast } from "@/server/itinerary/weather";
-import { bestWindow, freeDaysByUser, monthOf, thisMonth } from "@floc/core/dates/availability";
+import { freeDaysByUser, monthOf, thisMonth } from "@floc/core/dates/availability";
+import { bestDates, windowHeadline, windowReasons } from "@floc/core/dates/finding/best-dates";
+import { listLengthChoices } from "@/server/itinerary/trip-length";
+import type { BestDate } from "@/components/availability/best-dates-card";
 import { dateRange, formatDateRange, nightsBetween } from "@floc/core/dates/dates";
 import { spanLabel } from "@floc/core/dates/dates-tabs";
 import {
@@ -31,9 +34,9 @@ import {
 import { calendarEnabled } from "@/server/calendar/calendar-import";
 import { calendarAllDayOnly } from "@/server/calendar/calendar-options";
 import { DatesBoard } from "@/components/availability/dates-board";
+import { AsideHead } from "@/components/availability/dates-board-parts";
 import { DatesFold } from "@/components/availability/dates-fold";
 import { DatesActions } from "@/components/availability/dates-actions";
-import { BestWindowCard } from "@/components/availability/best-window-card";
 import { WhoAnswered } from "@/components/availability/who-answered";
 import type { GroupAnswer } from "@floc/core/dates/dates-tabs";
 import { NudgeWord } from "@/components/trip/nudge/nudge-word";
@@ -47,6 +50,7 @@ import {
   removeTripGuest,
   saveAvailability,
   setTripDates,
+  setTripLength,
   applyBestWindow,
 } from "./actions";
 import { nounFor } from "@floc/core/text/count-word";
@@ -67,8 +71,9 @@ export default async function DatesPage({
   const tripId = trip.id;
 
   const files = documentsEnabled();
-  const [rows, dayLoads, routeDays, forecast, weatherPro, bookingPrefill, guests, docs, sites, allDayOnly] = await Promise.all([
+  const [rows, lengths, dayLoads, routeDays, forecast, weatherPro, bookingPrefill, guests, docs, sites, allDayOnly] = await Promise.all([
     listAvailability(tripId),
+    listLengthChoices(tripId),
     listDayLoads(tripId),
     listRouteDays(tripId),
     getTripForecast(tripId),
@@ -82,9 +87,12 @@ export default async function DatesPage({
 
   const free = rows.filter((r) => r.available);
   const mine = free.filter((r) => r.userId === viewer.id).map((r) => r.date);
+  const liked = free.filter((r) => r.userId === viewer.id && r.preferred).map((r) => r.date);
 
   const tallies: Record<string, number> = {};
   for (const row of free) tallies[row.date] = (tallies[row.date] ?? 0) + 1;
+  const othersPrefer: Record<string, number> = {};
+  for (const row of free) if (row.preferred && row.userId !== viewer.id) othersPrefer[row.date] = (othersPrefer[row.date] ?? 0) + 1;
   const marked = freeDaysByUser(rows);
   const nudges = await nudgeTargetsFor(access, ["dates"], { markedUserIds: markedUserIds(rows) });
 
@@ -104,9 +112,18 @@ export default async function DatesPage({
   const resetNoun = windowCostNoun(resetCost);
   const resetLabel = windowCostLabel(resetCost);
 
-  const best = bestWindow(rows);
-  const bestCost = best ? windowCost(dayLoads, best.start, best.end) : null;
-  const bestNoun = bestCost && windowCostNoun(bestCost);
+  const names = new Map([...members.map((m) => [m.userId, m.name] as const), ...guests.map((g) => [g.id, g.name] as const)]);
+  const windows: BestDate[] = bestDates(rows, lengths, today()).map((w) => {
+    const cost = windowCost(dayLoads, w.start, w.end);
+    const noun = windowCostNoun(cost);
+    return {
+      start: w.start,
+      end: w.end,
+      headline: windowHeadline(w),
+      reasons: windowReasons(w, (userId) => names.get(userId) ?? "A guest", viewer.id),
+      cost: noun ? { noun, label: windowCostLabel(cost)! } : null,
+    };
+  });
 
   const booking = bookingPlan({
     trip,
@@ -123,16 +140,6 @@ export default async function DatesPage({
     ...guests.map((g) => ({ id: g.id, name: g.name, answered: g.id in marked })),
   ];
 
-  const bestCard = best ? (
-    <BestWindowCard
-      window={best}
-      memberCount={members.length + guests.length}
-      current={best.start === trip.startDate && best.end === trip.endDate}
-      cost={bestNoun ? { noun: bestNoun, label: windowCostLabel(bestCost!)! } : null}
-      apply={applyBestWindow.bind(null, tripId, best.start, best.end)}
-    />
-  ) : null;
-
   const board = (
     <DatesBoard
       tripId={tripId}
@@ -148,7 +155,9 @@ export default async function DatesPage({
       }
       firstMonth={firstMonth}
       mine={mine}
+      liked={liked}
       tallies={tallies}
+      othersPrefer={othersPrefer}
       memberCount={members.length + guests.length}
       tripStart={trip.startDate}
       tripEnd={trip.endDate}
@@ -157,10 +166,14 @@ export default async function DatesPage({
       weatherLocked={!weatherPro}
       group={group}
       viewerId={viewer.id}
-      bestWindow={best}
+      finder={{
+        windows,
+        lengths,
+        setLength: setTripLength.bind(null, tripId),
+        apply: applyBestWindow.bind(null, tripId),
+      }}
       slots={{
-        faces: <AvatarRow people={answered} size={20} max={4} />,
-        best: bestCard,
+        faces: <AvatarRow people={answered} size={20} max={3} />,
         who: (
           <WhoAnswered
             members={members}
@@ -242,7 +255,7 @@ export default async function DatesPage({
 function TripBlock({ start, end }: { start: string | null; end: string | null }) {
   return (
     <div className="p-4">
-      <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">The trip</p>
+      <AsideHead title="The trip" />
       {start && end ? (
         <>
           <p className="nums mt-1 font-mono text-base text-ink">{spanLabel(start, end)}</p>
@@ -251,7 +264,7 @@ function TripBlock({ start, end }: { start: string | null; end: string | null })
           </p>
         </>
       ) : (
-        <p className="mt-1 text-base text-highlight-ink">No dates yet</p>
+        <p className="mt-1 text-[13px] text-highlight-ink">No dates yet</p>
       )}
     </div>
   );

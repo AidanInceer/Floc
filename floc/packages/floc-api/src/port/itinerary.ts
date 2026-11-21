@@ -1,3 +1,4 @@
+import type { LengthChoice, TripLength } from "@floc/core/dates/finding/trip-length";
 import type { WeatherCondition } from "@floc/core/itinerary/weather";
 import type { DayEventType, TransportType } from "@floc/core/vocabulary";
 
@@ -54,6 +55,7 @@ export type Availability = {
   userId: string;
   date: string;
   available: boolean;
+  preferred: boolean;
 };
 
 export type EventInput = {
@@ -105,6 +107,22 @@ export type ItineraryPort = {
     tripId: number,
     dates: string[],
     available: boolean,
+  ): Promise<void>;
+
+  setPreferredDays(
+    viewerId: string,
+    tripId: number,
+    dates: string[],
+    preferred: boolean,
+  ): Promise<void>;
+
+  listLengthChoices(viewerId: string, tripId: number): Promise<LengthChoice[]>;
+
+  setLengthChoice(
+    viewerId: string,
+    tripId: number,
+    length: TripLength,
+    picked: boolean,
   ): Promise<void>;
 
   addEvent(

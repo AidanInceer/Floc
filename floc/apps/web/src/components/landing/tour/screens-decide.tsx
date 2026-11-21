@@ -186,7 +186,7 @@ export function WhenScreen() {
           </div>
         </div>
         <div className="flex flex-col border-l border-rule bg-sheet-2 px-3 py-3">
-          <span className="font-mono text-[9.5px] uppercase tracking-[0.06em] text-ink-faint">Best fit</span>
+          <span className="font-mono text-[9.5px] uppercase tracking-[0.06em] text-ink-faint">Best dates</span>
           <p className="nums mt-1.5 text-[13px] font-medium">{spanLabel(BEST.start, BEST.end)}</p>
           <p className="nums mt-0.5 text-[11px] text-ink-faint">8 days · 6 of 6 free</p>
           <span className="mt-2.5"><FakeButton small>Use these</FakeButton></span>
