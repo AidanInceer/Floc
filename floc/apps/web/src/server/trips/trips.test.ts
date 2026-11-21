@@ -3,6 +3,8 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { insertIdea, toggleIdeaVote } from "@/server/ideas/ideas";
+import { setAvailability } from "@/server/itinerary/availability";
 import { findTripByInviteToken } from "@/server/trips/invites";
 import {
   createTripWithAdmin,
@@ -23,6 +25,15 @@ beforeEach(async () => {
 
 const tripRow = (id: number) =>
   db.select().from(schema.trip).where(eq(schema.trip.id, id)).get();
+
+async function makeGuest(id: string) {
+  await db.insert(schema.user).values({ id, name: "Sam", email: `${id}@guest.test`, isAnonymous: true });
+  return id;
+}
+
+const votesOf = (userId: string) => db.select().from(schema.ideaVote).where(eq(schema.ideaVote.userId, userId)).all();
+
+const marksOf = (userId: string) => db.select().from(schema.availability).where(eq(schema.availability.userId, userId)).all();
 
 const membership = (tripId: number, userId: string) =>
   db
@@ -170,6 +181,41 @@ describe("resetting the invite link", () => {
     await resetInviteToken(world.ours.id);
 
     expect((await tripRow(world.ours.id))?.inviteToken).toBe(before);
+  });
+
+  it("removes the answers of guests on that trip, votes taken back included", async () => {
+    const guest = await makeGuest("g-sam");
+    const kept = await insertIdea({ tripId: world.ours.id, createdBy: world.admin, title: "Lisbon" });
+    const takenBack = await insertIdea({ tripId: world.ours.id, createdBy: world.admin, title: "Porto" });
+    await toggleIdeaVote(kept, guest);
+    await toggleIdeaVote(takenBack, guest);
+    await toggleIdeaVote(takenBack, guest);
+    await setAvailability(world.ours.id, guest, ["2026-09-01"], true);
+
+    await resetInviteToken(world.ours.id);
+
+    expect(await votesOf(guest)).toEqual([]);
+    expect(await marksOf(guest)).toEqual([]);
+  });
+
+  it("keeps a member's answers on that trip", async () => {
+    const ideaId = await insertIdea({ tripId: world.ours.id, createdBy: world.admin, title: "Lisbon" });
+    await toggleIdeaVote(ideaId, world.member);
+    await setAvailability(world.ours.id, world.member, ["2026-09-01"], true);
+
+    await resetInviteToken(world.ours.id);
+
+    expect(await votesOf(world.member)).toHaveLength(1);
+    expect(await marksOf(world.member)).toHaveLength(1);
+  });
+
+  it("keeps a guest's answers on another trip", async () => {
+    const guest = await makeGuest("g-sam");
+    await setAvailability(world.theirs.id, guest, ["2026-09-01"], true);
+
+    await resetInviteToken(world.ours.id);
+
+    expect(await marksOf(guest)).toHaveLength(1);
   });
 });
 
