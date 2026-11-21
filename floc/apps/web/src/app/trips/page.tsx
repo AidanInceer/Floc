@@ -66,7 +66,7 @@ export default async function TripsPage({
 
       {invites.length > 0 ? <InviteList invites={invites} /> : null}
 
-      {cards.length === 0 ? <TripDoors me={viewer.name} people={people} /> : null}
+      {cards.length === 0 ? <TripDoors /> : null}
       {dated.length > 0 ? (
         <section className="mt-6">
           <h2 className="sr-only">With dates</h2>
