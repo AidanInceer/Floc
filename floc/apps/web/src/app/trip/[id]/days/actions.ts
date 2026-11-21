@@ -17,6 +17,7 @@ import {
 import { removeTripDay } from "@/server/itinerary/removal/remove-day";
 import { refresh } from "@/server/freshness";
 import { resetCalendarFeed } from "@/server/itinerary/feed/calendar-feed-link";
+import { editTrip } from "@/server/trip-edit";
 
 export async function addDays(tripId: number, afterDate: string, count: number) {
   const access = await requireTripAccess(tripId);
@@ -24,9 +25,10 @@ export async function addDays(tripId: number, afterDate: string, count: number) 
 }
 
 export async function removeDay(tripId: number, dayId: number) {
-  const access = await requireTripAccess(tripId);
-  const target = await access.day(dayId);
-  await removeTripDay(access.trip, target.id, access.viewer.id);
+  await editTrip(tripId, "itinerary", async (access) => {
+    const target = await access.day(dayId);
+    await removeTripDay(access.trip, target.id, access.viewer.id);
+  });
 }
 
 export async function setDayOvernight(
@@ -42,7 +44,7 @@ export async function setDayOvernight(
 }
 
 export async function addEvent(tripId: number, dayId: number, input: EventFields) {
-  await saveEvent(await requireTripAccess(tripId), { dayId }, input);
+  await editTrip(tripId, "itinerary", (access) => saveEvent(access, { dayId }, input));
 }
 
 export async function updateEvent(
@@ -50,11 +52,11 @@ export async function updateEvent(
   eventId: number,
   input: EventFields,
 ) {
-  await saveEvent(await requireTripAccess(tripId), { eventId }, input);
+  await editTrip(tripId, "itinerary", (access) => saveEvent(access, { eventId }, input));
 }
 
 export async function deleteEvent(tripId: number, eventId: number) {
-  await removeEvent(await requireTripAccess(tripId), eventId);
+  await editTrip(tripId, "itinerary", (access) => removeEvent(access, eventId));
 }
 
 export async function reorderEvents(
@@ -123,17 +125,17 @@ export async function rescheduleEvent(
   time: string,
   endTime: string | null,
 ) {
-  const access = await requireTripAccess(tripId);
+  await editTrip(tripId, "itinerary", async (access) => {
+    const target = await access.event(eventId);
+    const toDay = await access.day(toDayId);
 
-  const target = await access.event(eventId);
-  const toDay = await access.day(toDayId);
+    const start = readClockTime(time);
+    if (!start) return;
 
-  const start = readClockTime(time);
-  if (!start) return;
+    await moveEventTo(target.id, toDay.id, start, readClockTime(endTime));
 
-  await moveEventTo(target.id, toDay.id, start, readClockTime(endTime));
-
-  refresh({ kind: "itinerary", tripId: access.trip.id });
+    refresh({ kind: "itinerary", tripId: access.trip.id });
+  });
 }
 
 function readClockTime(value: string | null): string | null {
@@ -155,9 +157,8 @@ export async function submitEvent(tripId: number, formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   if (!title) return;
 
-  const access = await requireTripAccess(tripId);
-  await saveEvent(access, eventId ? { eventId } : { dayId },
-    { ...readEventFields(formData), title }, placeFrom(formData));
+  await editTrip(tripId, "itinerary", (access) =>
+    saveEvent(access, eventId ? { eventId } : { dayId }, { ...readEventFields(formData), title }, placeFrom(formData)));
 }
 
 function readEventFields(formData: FormData) {

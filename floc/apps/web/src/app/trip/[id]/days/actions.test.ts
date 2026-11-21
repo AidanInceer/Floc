@@ -14,6 +14,7 @@ import {
   addEvent,
   deleteEvent,
   moveEventToAnotherDay,
+  removeDay,
   reorderEvents,
   rescheduleEvent,
   setDayOvernight,
@@ -195,6 +196,46 @@ describe("cross-trip itinerary writes", () => {
         title: "Nope",
       }),
     );
+  });
+});
+
+describe("acting on something another member already removed", () => {
+  const removed = { deletedAt: new Date() };
+
+  beforeEach(() => signIn(world.member));
+
+  it("leaves an event that is gone alone, and keeps the page up", async () => {
+    await deleteEvent(world.ours.id, world.ours.eventId);
+
+    await expect(deleteEvent(world.ours.id, world.ours.eventId)).resolves.toBeUndefined();
+    await expect(
+      updateEvent(world.ours.id, world.ours.eventId, { type: "activity", title: "Too late" }),
+    ).resolves.toBeUndefined();
+    await expect(
+      rescheduleEvent(world.ours.id, world.ours.eventId, world.ours.dayId, "23:00", "23:30"),
+    ).resolves.toBeUndefined();
+
+    expect(await titleOf(world.ours.eventId)).toBe("Ours event");
+    expect(await timeOf(world.ours.eventId)).toBe("09:00");
+    expect(await liveEvents(world.ours.dayId)).toHaveLength(1);
+  });
+
+  it("adds nothing to a day that is gone, and removes it no further", async () => {
+    await db.update(schema.day).set(removed).where(eq(schema.day.id, world.ours.dayId));
+
+    await expect(
+      addEvent(world.ours.id, world.ours.dayId, { type: "activity", title: "Too late" }),
+    ).resolves.toBeUndefined();
+    await expect(removeDay(world.ours.id, world.ours.dayId)).resolves.toBeUndefined();
+
+    expect(await liveEvents(world.ours.dayId)).toHaveLength(2);
+  });
+
+  it("still answers another trip's removed event as one that does not exist (rule 5)", async () => {
+    await deleteEvent(world.ours.id, world.ours.eventId);
+    signIn(world.outsider);
+
+    await expectNotFound(() => deleteEvent(world.theirs.id, world.ours.eventId));
   });
 });
 

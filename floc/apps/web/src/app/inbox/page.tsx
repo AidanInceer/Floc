@@ -13,11 +13,11 @@ export const metadata = { title: "Inbox" };
 export default async function InboxPage({
   searchParams,
 }: {
-  searchParams: Promise<{ after?: string }>;
+  searchParams: Promise<{ after?: string | string[] }>;
 }) {
   const viewer = await requireUser("/inbox");
   const { after } = await searchParams;
-  const [page, unseen] = await Promise.all([listInbox(viewer.id, after ?? null), countUnread(viewer.id)]);
+  const [page, unseen] = await Promise.all([listInbox(viewer.id, after), countUnread(viewer.id)]);
   const anyUnread = page.items.some((item) => !item.read);
 
   return (

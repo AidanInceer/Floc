@@ -120,6 +120,13 @@ describe("the inbox", () => {
     expect(second.next).toBeNull();
     expect(new Set([...first.items, ...second.items].map((i) => i.id)).size).toBe(51);
   });
+
+  it("opens at the newest for an Older link that is not one of its own", async () => {
+    await nudge();
+    for (const bent of ["99999999999999999999-1", "abc", "1-", ["1-2", "3-4"]]) {
+      expect((await listInbox(world.member, bent)).items).toHaveLength(1);
+    }
+  });
 });
 
 describe("the account menu's preview", () => {

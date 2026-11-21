@@ -118,6 +118,51 @@ describe("within a trip", () => {
   });
 });
 
+describe("acting on a line another member already removed", () => {
+  beforeEach(async () => {
+    signIn(world.admin);
+    await removePackingLine(world.ours.id, ourLineId);
+    signIn(world.member);
+  });
+
+  it("claims, ticks, renames and removes nothing, and keeps the page up", async () => {
+    await expect(setPackingClaim(world.ours.id, ourLineId, true)).resolves.toBeUndefined();
+    await expect(setPackingPacked(world.ours.id, ourLineId, true)).resolves.toBeUndefined();
+    await expect(removePackingLine(world.ours.id, ourLineId)).resolves.toBeUndefined();
+    expect(await renamePackingLine(world.ours.id, ourLineId, "Too late")).toEqual({});
+
+    expect(await liveClaims(ourLineId)).toHaveLength(0);
+    expect(await listPackingLines(world.ours.id)).toHaveLength(0);
+  });
+
+  it("removes the ticked lines that are still there", async () => {
+    await insertPackingLine(world.ours.id, world.admin, "Speaker", "other");
+    const [speaker] = await listPackingLines(world.ours.id);
+    const ticked = new FormData();
+    ticked.append("lineId", String(ourLineId));
+    ticked.append("lineId", String(speaker.id));
+
+    await removePackingLines(world.ours.id, ticked);
+
+    expect(await listPackingLines(world.ours.id)).toHaveLength(0);
+  });
+
+  it("still answers from another trip as a line that does not exist (rule 5)", async () => {
+    signIn(world.outsider);
+    await expectNotFound(() => setPackingClaim(world.theirs.id, ourLineId, true));
+  });
+
+  it("still answers another member's removed bag line as one that does not exist", async () => {
+    await insertPersonalPackingLine(world.ours.id, world.admin, "Their meds", "toiletries");
+    const [theirs] = await listPersonalPackingLines(world.ours.id, world.admin);
+    signIn(world.admin);
+    await removePackingLine(world.ours.id, theirs.id);
+    signIn(world.member);
+
+    await expectNotFound(() => setPersonalPackingPacked(world.ours.id, theirs.id, true));
+  });
+});
+
 describe("renaming a line (#362)", () => {
   beforeEach(() => signIn(world.member));
 

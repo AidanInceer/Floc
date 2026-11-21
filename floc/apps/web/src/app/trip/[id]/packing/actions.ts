@@ -18,6 +18,7 @@ import {
   stepQuantity,
   takeIdea,
 } from "@/server/packing/packing-save";
+import { editTrip } from "@/server/trip-edit";
 
 async function addFromForm(tripId: number, formData: FormData, mine: boolean) {
   const refusal = await addLine(await requireTripAccess(tripId), {
@@ -41,30 +42,30 @@ export async function renamePackingLine(
   lineId: number,
   rawLabel: string,
 ): Promise<{ error?: string }> {
-  const refusal = await renameLine(await requireTripAccess(tripId), lineId, rawLabel);
+  const refusal = await editTrip(tripId, "packing", (access) => renameLine(access, lineId, rawLabel));
   return refusal ? { error: refusal.message } : {};
 }
 
 export async function removePackingLine(tripId: number, lineId: number) {
-  await removeLine(await requireTripAccess(tripId), lineId);
+  await editTrip(tripId, "packing", (access) => removeLine(access, lineId));
 }
 
 export async function setPackingClaim(tripId: number, lineId: number, claimed: boolean) {
-  await setClaim(await requireTripAccess(tripId), lineId, claimed);
+  await editTrip(tripId, "packing", (access) => setClaim(access, lineId, claimed));
 }
 
 export async function setPackingPacked(tripId: number, lineId: number, packed: boolean) {
-  await setPacked(await requireTripAccess(tripId), lineId, packed);
+  await editTrip(tripId, "packing", (access) => setPacked(access, lineId, packed));
 }
 
 export async function setPersonalPackingPacked(tripId: number, lineId: number, packed: boolean) {
-  await setPacked(await requireTripAccess(tripId), lineId, packed);
+  await editTrip(tripId, "packing", (access) => setPacked(access, lineId, packed));
 }
 
 export async function stepPersonalPackingQuantity(tripId: number, lineId: number, formData: FormData) {
   const delta = parseQuantityStep(formData.get("step"));
   if (!delta) throw new Error("That isn't a quantity step");
-  await stepQuantity(await requireTripAccess(tripId), lineId, delta);
+  await editTrip(tripId, "packing", (access) => stepQuantity(access, lineId, delta));
 }
 
 export async function setTripPackTier(tripId: number, formData: FormData) {
@@ -91,7 +92,7 @@ export async function removePackingLines(tripId: number, formData: FormData) {
     .map((v) => Number(v))
     .filter((n) => Number.isInteger(n) && n > 0)
     .slice(0, LIMITS.packingLines);
-  await removeLines(await requireTripAccess(tripId), ids);
+  await editTrip(tripId, "packing", (access) => removeLines(access, ids));
 }
 
 export async function resetPackingList(tripId: number, mine: boolean) {
