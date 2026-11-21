@@ -75,8 +75,9 @@ export type TripForecastView = {
     placeName: string;
     from: string;
     horizonEnd: string;
-    days: { date: string; condition: WeatherCondition; label: string; hi: number; lo: number }[];
+    days: { date: string; placeName: string; condition: WeatherCondition; label: string; hi: number; lo: number }[];
     hourly: Record<string, { hour: string; condition: WeatherCondition; temp: number; rain: number }[]>;
+    nightPlaces: Record<string, string>;
   } | null;
 };
 

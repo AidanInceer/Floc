@@ -14,7 +14,7 @@ type Price = { interval: BillingInterval; amountMinor: number; currency: Currenc
 
 const ROWS: { what: string; free: boolean }[] = [
   { what: "Plan trips, dates, days and money", free: true },
-  { what: "The forecast on your trip dates", free: false },
+  { what: "Each stop's forecast on your trip dates", free: false },
   { what: "A packing list filled in for you", free: false },
   { what: "Searches with your place and dates in", free: false },
 ];

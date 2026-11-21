@@ -1,3 +1,5 @@
+import { HORIZON_DAYS } from "@floc/core/itinerary/weather";
+
 export type FaqKey = "free" | "account" | "booking" | "money" | "pro";
 export type FaqItem = { key: FaqKey; question: string; answer: string };
 
@@ -6,7 +8,7 @@ export function landingFaq({ sellingPro, monthly }: { sellingPro: boolean; month
     key: "pro",
     question: "What does Pro add?",
     answer:
-      "Today, Pro adds your own cost estimate and budget for each trip, weather for your dates, a packing list built from the forecast and your plan, pre-filled flight and stay searches, and more room for tickets. Pro is yours: it adds these to your own screen" +
+      "Today, Pro adds your own cost estimate and budget for each trip, each stop’s forecast on your dates (up to " + HORIZON_DAYS + " days ahead), a packing list built from the forecast and your plan, pre-filled flight and stay searches, and more room for tickets. Pro is yours: it adds these to your own screen" +
       (monthly ? `, for ${monthly} a month.` : ".") +
       " The trip stays free for everyone. This is just the start — there’s plenty more to come.",
   };

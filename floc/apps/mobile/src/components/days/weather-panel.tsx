@@ -1,4 +1,5 @@
 import { formatDate } from "@floc/core/dates/dates";
+import { shortPlace } from "@floc/core/itinerary/names/place-name";
 import type { WeatherCondition } from "@floc/core/itinerary/weather";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -9,7 +10,7 @@ import { HourlyCurve, type HourlyPoint } from "./hourly-curve";
 import { fonts, radius, size, space } from "@/lib/theme";
 import type { TokenName } from "@floc/core/design/tokens";
 
-export type ForecastDay = { date: string; condition: WeatherCondition; label: string; hi: number; lo: number };
+export type ForecastDay = { date: string; placeName: string; condition: WeatherCondition; label: string; hi: number; lo: number };
 
 export const WEATHER_LOOK: Record<WeatherCondition, { ground: TokenName; ink: TokenName; word: string }> = {
   sun: { ground: "highlight", ink: "highlight-ink", word: "Sun" },
@@ -60,7 +61,7 @@ export function WeatherPanel({
           <WeatherGlyph condition={day.condition} color={day.condition === "rain" ? c.pen : c["ink-2"]} size={20} />
           <Figure tone="ink-2">{formatDate(day.date)}</Figure>
           <View style={{ flex: 1 }}>
-            <Body>{day.label}</Body>
+            <Body>{day.placeName ? `${shortPlace(day.placeName)} · ${day.label}` : day.label}</Body>
           </View>
           <Figure>{`${day.hi}° / ${day.lo}°`}</Figure>
         </View>

@@ -151,8 +151,7 @@ export function DatesBoard(props: DatesBoardProps) {
     group: slots.who,
     trip: <>{slots.trip}{bestCard}</>,
     forecast: weather ? (
-      <ForecastPanel days={tripDays} byDate={byDate} hourly={weather.hourly} placeName={weather.placeName}
-        horizonEnd={weather.horizonEnd} selected={hourDay} onSelect={setHourDay} />
+      <ForecastPanel days={tripDays} byDate={byDate} weather={weather} selected={hourDay} onSelect={setHourDay} />
     ) : slots.locked,
   };
 
