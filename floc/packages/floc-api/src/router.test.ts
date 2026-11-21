@@ -84,6 +84,8 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
     addEvent: unused,
     updateEvent: unused,
     deleteEvent: unused,
+    dayRemovalPlan: unused,
+    removeDay: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   } as FlocPort;
 }
@@ -433,6 +435,19 @@ describe("what the input rules refuse", () => {
         event: { type: "activity", title: "Museum", time: "09:00+01:00" },
       }),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+});
+
+describe("removing a day", () => {
+  it("passes the viewer, trip and day to the port", async () => {
+    const { caller: ana, port } = caller("u1");
+    await ana.itinerary.removeDay({ tripId: 1, dayId: 4 });
+    expect(port.removeDay).toHaveBeenCalledWith("u1", 1, 4);
+  });
+
+  it("refuses a day id that is not a positive whole number", async () => {
+    const { caller: ana } = caller("u1");
+    await expect(ana.itinerary.removeDay({ tripId: 1, dayId: 0 })).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 });
 

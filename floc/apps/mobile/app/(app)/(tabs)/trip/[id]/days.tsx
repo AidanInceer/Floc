@@ -9,6 +9,7 @@ import { StyleSheet, Text, View } from "react-native";
 
 import { AddToCalendar } from "@/components/days/add-to-calendar";
 import { DayGrid } from "@/components/days/day-grid";
+import { DayMenu } from "@/components/days/day-menu";
 import { EventOpen } from "@/components/days/event-open";
 import { EventSheet } from "@/components/days/event-sheet";
 import { DayStrip } from "@/components/days/day-strip";
@@ -146,6 +147,7 @@ export default function Days() {
               setProblem(null);
             }}
           />
+          <DayMenu tripId={tripId} dayId={day.id} />
         </View>
         <OvernightLine tripId={tripId} days={days.data} openAt={overnightAt} onClose={() => setOvernightAt(null)} />
       </View>

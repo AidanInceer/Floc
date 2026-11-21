@@ -12,9 +12,9 @@ import {
   listEventSlots,
   moveEventToDay,
   rescheduleEvent as moveEventTo,
-  softDeleteDay,
   type EventFields,
 } from "@/server/itinerary/itinerary";
+import { removeTripDay } from "@/server/itinerary/removal/remove-day";
 import { refresh } from "@/server/freshness";
 import { resetCalendarFeed } from "@/server/itinerary/feed/calendar-feed-link";
 
@@ -26,8 +26,7 @@ export async function addDays(tripId: number, afterDate: string, count: number) 
 export async function removeDay(tripId: number, dayId: number) {
   const access = await requireTripAccess(tripId);
   const target = await access.day(dayId);
-  await softDeleteDay(target.id, access.viewer.id);
-  refresh({ kind: "itinerary", tripId: access.trip.id });
+  await removeTripDay(access.trip, target.id, access.viewer.id);
 }
 
 export async function setDayOvernight(
