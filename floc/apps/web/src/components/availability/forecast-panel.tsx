@@ -46,8 +46,8 @@ export function ForecastPanel({
           return (
             <Fragment key={d}>
               {stopAt.has(d) ? (
-                <li className={cx("px-2 pb-1 pt-2 text-[13px] font-medium text-ink [overflow-wrap:anywhere]", i > 0 && "border-t border-rule")}>
-                  {shortPlace(weather.nightPlaces[d])}
+                <li className={cx("px-2 pb-1 pt-2", i > 0 && "border-t border-rule")}>
+                  <h4 className="text-[13px] font-medium text-ink [overflow-wrap:anywhere]">{shortPlace(weather.nightPlaces[d])}</h4>
                 </li>
               ) : null}
               <li>
@@ -88,8 +88,9 @@ function DayHours({ date, day, points, back }: { date: IsoDate; day: DailyForeca
         All days
       </button>
       <p className={label}>
-        {weekday} {n} · {shortPlace(day.placeName)}
+        {weekday} {n}
       </p>
+      <p className="mt-1 text-[13px] font-medium text-ink [overflow-wrap:anywhere]">{shortPlace(day.placeName)}</p>
       <div className="mb-3 mt-1.5 flex items-center gap-3">
         <span className="text-ink-soft">
           <WeatherGlyph condition={day.condition} size={30} />
