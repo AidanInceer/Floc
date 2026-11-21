@@ -12,7 +12,7 @@ beforeEach(async () => {
   world = await seedScenario();
 });
 
-const download = (tripId: number) =>
+const download = (tripId: number | string) =>
   GET(new Request(`http://localhost/trip/${tripId}/calendar.ics`), { params: Promise.resolve({ id: String(tripId) }) });
 
 describe("downloading a trip's calendar", () => {
@@ -26,5 +26,10 @@ describe("downloading a trip's calendar", () => {
   it("answers someone not on the trip as a trip that does not exist (rule 5)", async () => {
     signIn(world.outsider);
     await expectNotFound(() => download(world.ours.id));
+  });
+
+  it("answers an address whose trip is not a number as a trip that does not exist (rule 5)", async () => {
+    signIn(world.member);
+    for (const bent of ["abc", "Infinity", "1.5"]) await expectNotFound(() => download(bent));
   });
 });

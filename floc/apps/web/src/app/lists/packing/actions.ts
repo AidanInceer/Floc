@@ -22,7 +22,7 @@ import { refresh } from "@/server/freshness";
 export async function createPackingKit(formData: FormData) {
   const viewer = await requireUser("/lists/packing");
   const name = capRequiredText(formData.get("name"), "packingKitName");
-  if (!name) throw new Error("A saved list needs a name");
+  if (!name) return;
 
   const id = await insertPackingKit(viewer.id, name);
 
@@ -33,7 +33,7 @@ export async function createPackingKit(formData: FormData) {
 export async function renameKit(kitId: number, formData: FormData) {
   const viewer = await requireUser("/lists/packing");
   const name = capRequiredText(formData.get("name"), "packingKitName");
-  if (!name) throw new Error("A saved list needs a name");
+  if (!name) return;
 
   await renamePackingKit(kitId, viewer.id, name);
 
@@ -51,7 +51,7 @@ export async function deleteKit(kitId: number) {
 export async function addKitItem(kitId: number, formData: FormData) {
   const viewer = await requireUser("/lists/packing");
   const label = capRequiredText(formData.get("label"), "packingLabel");
-  if (!label) throw new Error("A thing to pack needs a name");
+  if (!label) return;
 
   await insertPackingKitItem(
     kitId,
