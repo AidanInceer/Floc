@@ -5,6 +5,7 @@ import { today } from "@floc/core/dates/dates";
 import { toDoFrom } from "@floc/core/trip/overview/to-do-from";
 import type { Gap } from "@floc/core/trip/overview/to-do";
 import { groupStatuses } from "@floc/core/trip/group/group-status";
+import { INVITE_LINK_RESET } from "@floc/core/trip/group/invite-link";
 import { pastelOf } from "@floc/core/design/pastels";
 import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
 import { transportModes, tripLegs } from "@floc/core/trip/overview/legs";
@@ -181,7 +182,7 @@ function EditSheet({
           onPress={() =>
             Alert.alert(
               "Reset the invite link?",
-              "The old link stops working for anyone still holding it. Everyone already on the trip stays.",
+              INVITE_LINK_RESET,
               [
                 { text: "Cancel", style: "cancel" },
                 { text: "Reset the link", style: "destructive", onPress: () => resetLink.mutate({ tripId: trip.id }) },

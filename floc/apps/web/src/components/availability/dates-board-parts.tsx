@@ -10,7 +10,7 @@ import { Button, LegendKey, busyMark, cx, panelTitleClass, trackSegmentClass } f
 import { SegmentTrack } from "@/components/system/segment-track";
 import type { PaintMode } from "@floc/core/dates/finding/day-paint";
 import { WeatherGlyph } from "@/components/system/icons/weather";
-import { formatMonth, tripCoverage, type IsoMonth } from "@floc/core/dates/availability";
+import { formatMonth, formatShortMonth, tripCoverage, type IsoMonth } from "@floc/core/dates/availability";
 import { formatDate, type IsoDate } from "@floc/core/dates/dates";
 import { forecastTab, groupTab, tripTab, yourDaysTab, type GroupAnswer } from "@floc/core/dates/dates-tabs";
 import type { TripForecast } from "@/server/itinerary/weather";
@@ -28,14 +28,17 @@ export function AsideHead({ title, id, meta }: { title: string; id?: string; met
 export function MonthPager({ month, page, lead, menu }: { month: IsoMonth; page: (delta: number) => void; lead: ReactNode; menu?: ReactNode }) {
   const round = "!size-8 !p-0";
   return (
-    <div className="mb-3.5 flex min-h-8 items-center gap-2.5">
+    <div className="mb-3.5 flex min-h-8 flex-wrap items-center gap-x-1.5 gap-y-2 sm:gap-x-2.5">
       <span className="flex shrink-0 items-center">{lead}</span>
       <span className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2.5">
-        {menu}
+        {menu ? <span className="hidden sm:contents">{menu}</span> : null}
         <Button variant="secondary" className={round} aria-label="Earlier month" onClick={() => page(-1)}>
           <ChevronIcon direction="left" />
         </Button>
-        <p className="whitespace-nowrap text-center font-display text-[13px] font-semibold sm:text-[15px] xl:min-w-[9.5rem]">{formatMonth(month)}</p>
+        <p className="min-w-[4.25rem] whitespace-nowrap text-center font-display text-[13px] font-semibold sm:min-w-0 sm:text-[15px] xl:min-w-[9.5rem]">
+          <span className="sm:hidden">{formatShortMonth(month)}</span>
+          <span className="hidden sm:inline">{formatMonth(month)}</span>
+        </p>
         <Button variant="secondary" className={round} aria-label="Later month" onClick={() => page(1)}>
           <ChevronIcon direction="right" />
         </Button>
@@ -76,7 +79,7 @@ function Bar({ children }: { children: ReactNode }) {
   return <div className="flex flex-wrap items-center gap-2.5 border-t border-rule pb-3.5 pt-3">{children}</div>;
 }
 
-export function SaveBar({ changed, pending, onSave, onFill }: { changed: number; pending: boolean; onSave: () => void; onFill?: () => void }) {
+export function SaveBar({ changed, pending, onSave, onFill, more }: { changed: number; pending: boolean; onSave: () => void; onFill?: () => void; more?: ReactNode }) {
   return (
     <Bar>
       {onFill ? (
@@ -84,6 +87,7 @@ export function SaveBar({ changed, pending, onSave, onFill }: { changed: number;
           Free all month
         </Button>
       ) : null}
+      {more ? <span className="ml-auto flex items-center sm:hidden">{more}</span> : null}
       {changed > 0 ? (
         <span className="ml-auto flex flex-wrap items-center justify-end gap-2.5">
           <span className="text-[13px] text-ink-soft">{countWord(changed, "change")} not saved</span>

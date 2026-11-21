@@ -20,6 +20,7 @@ type SettingsPort = Pick<
   | "updateVibeTags"
   | "updatePackingDefaults"
   | "updateHomeCurrency"
+  | "updateReduceMotion"
   | "toggleBookingSite"
   | "updateNotifications"
   | "unlinkSignIn"
@@ -54,6 +55,7 @@ export const settingsPort: SettingsPort = {
       vibeTags: readVibeTags(profile.vibeTags),
       packTier: profile.packTier,
       packAutoGenerate: profile.packAutoGenerate,
+      reduceMotion: profile.reduceMotion,
       homeCurrency: profile.homeCurrency,
       notifyPush: profile.notifyPush,
       notifyEmail: profile.notifyEmail,
@@ -105,6 +107,12 @@ export const settingsPort: SettingsPort = {
   async updateHomeCurrency(viewerId, currency) {
     await ensureProfile(viewerId);
     await updateProfileFields(viewerId, { homeCurrency: currency });
+    refresh({ kind: "profile" });
+  },
+
+  async updateReduceMotion(viewerId, reduceMotion) {
+    await ensureProfile(viewerId);
+    await updateProfileFields(viewerId, { reduceMotion });
     refresh({ kind: "profile" });
   },
 

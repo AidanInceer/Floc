@@ -14,6 +14,7 @@ import {
   splitStep,
   type Pull,
 } from "@/lib/bar-fuse";
+import { isStill, watchStill } from "@/lib/motion/still";
 
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
@@ -109,7 +110,6 @@ export function useBarFuse(rowRef: RefObject<HTMLElement | null>, svgRef: RefObj
     const path = svg?.firstElementChild;
     if (!row || !svg || !path) return;
 
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
     let layout = NO_LAYOUT;
     let p = 0;
     let t = 0;
@@ -161,7 +161,7 @@ export function useBarFuse(rowRef: RefObject<HTMLElement | null>, svgRef: RefObj
       frame = 0;
       p = scrollProgress(window.scrollY);
       t = heldFold ?? (easing ? t : foldAmount(p));
-      if (reduce.matches) {
+      if (isStill()) {
         stop();
         busy = false;
         joined = wantJoined(joined, p, held);
@@ -206,7 +206,7 @@ export function useBarFuse(rowRef: RefObject<HTMLElement | null>, svgRef: RefObj
     };
     window.addEventListener(BAR_HOLD_EVENT, hold);
     window.addEventListener("resize", relayout);
-    reduce.addEventListener("change", update);
+    const stopWatch = watchStill(update);
     void document.fonts?.ready.then(relayout);
     return () => {
       stop();
@@ -216,7 +216,7 @@ export function useBarFuse(rowRef: RefObject<HTMLElement | null>, svgRef: RefObj
       window.removeEventListener(BAR_HOLD_EVENT, hold);
       unfold();
       window.removeEventListener("resize", relayout);
-      reduce.removeEventListener("change", update);
+      stopWatch();
       clearLayout(row, layout);
       delete row.dataset.fuse;
       path.removeAttribute("d");

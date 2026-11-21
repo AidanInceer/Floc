@@ -3,7 +3,7 @@ import "server-only";
 import type { FlocPort } from "@floc/api/port";
 
 import { refresh } from "@/server/freshness";
-import { loadFinder, saveFinder } from "@/server/explore/explore-finder";
+import { loadTaste, saveFinder } from "@/server/explore/explore-finder";
 import { savedTripIds, setTripSaved } from "@/server/explore/explore-saves";
 import { friendsWhoSaved } from "@/server/explore/friend-saves";
 import { listingRates, viewerCurrency } from "@/server/money/viewer-currency";
@@ -13,7 +13,8 @@ type ExplorePort = Pick<FlocPort, "loadExplore" | "setExploreFinder" | "listSave
 export const explorePort: ExplorePort = {
   async loadExplore(viewerId) {
     const rates = await listingRates(await viewerCurrency(viewerId, new Headers()));
-    return { finder: await loadFinder(viewerId), rates };
+    const { finder, likes } = await loadTaste(viewerId);
+    return { finder, likes, rates };
   },
 
   async setExploreFinder(viewerId, finder) {

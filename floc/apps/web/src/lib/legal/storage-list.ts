@@ -2,6 +2,7 @@ import { ANALYTICS_KEEP_DAYS } from "@floc/core/analytics/events";
 import { CONSENT_CATEGORIES, CONSENT_COOKIE, CONSENT_DAYS } from "@floc/core/consent/consent";
 import { LIVE_CACHE_PREFIX } from "@floc/core/notes/live/live-epoch";
 
+import { MOTION_STORAGE_KEY } from "@/lib/motion/still";
 import { THEME_STORAGE_KEY } from "@/lib/theme";
 
 import { FUNCTIONAL_KEYS, FUNCTIONAL_PREFIXES } from "../storage/functional-keys";
@@ -21,6 +22,7 @@ export const STORAGE_LIST: StoredThing[] = [
   { name: "better-auth.state", kind: "Cookie", category: "necessary", purpose: "Holds your place while you sign in with Google.", lasts: "10 minutes", days: 1 },
   { name: CONSENT_COOKIE, kind: "Cookie", category: "necessary", purpose: "Remembers the choice you make on this page.", lasts: "12 months", days: CONSENT_DAYS },
   { name: THEME_STORAGE_KEY, kind: "Local storage", category: "necessary", purpose: "The theme you picked, light or dark.", lasts: "Until you pick Auto", days: null },
+  { name: MOTION_STORAGE_KEY, kind: "Local storage", category: "necessary", purpose: "That you turned animations off on Explore before signing in.", lasts: "Until you turn them back on", days: null },
   { name: "floc.bookings.asked", kind: "Session storage", category: "necessary", purpose: "Remembers that you answered which trip a forwarded booking belongs to.", lasts: "Until you close the tab", days: null },
   { name: `${LIVE_CACHE_PREFIX}…`, kind: "Browser database", category: "necessary", purpose: "A copy of the notes page you have open, so an edit is not lost when the connection drops.", lasts: "Until you sign out", days: null },
   { name: FUNCTIONAL_KEYS[0], kind: "Local storage", category: "functional", purpose: "How you last sorted Ideas.", lasts: "Until you turn this off", days: null },
@@ -32,7 +34,7 @@ const longestNecessaryCookie = Math.max(...STORAGE_LIST.filter((s) => s.category
 
 const CATEGORY_TERMS: Record<(typeof CONSENT_CATEGORIES)[number]["key"], { examples: string; duration: string; consent: string }> = {
   necessary: {
-    examples: "Sign-in session cookies, the record of your cookie preferences, your chosen theme, and a temporary copy of an open notes page.",
+    examples: "Sign-in session cookies, the record of your cookie preferences, your chosen theme and animation setting, and a temporary copy of an open notes page.",
     duration: `From the end of your visit up to ${months(longestNecessaryCookie)} months`,
     consent: "Not required",
   },

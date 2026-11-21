@@ -12,14 +12,16 @@ export function ExploreFront({
   signedIn,
   initialFinder,
   season,
+  opening,
   blankName = null,
 }: {
   signedIn: boolean;
   initialFinder: Finder;
   season: number[];
+  opening: string;
   blankName?: string | null;
 }) {
-  const [picked, setPicked] = useState(PRESET_TRIPS[0].id);
+  const [picked, setPicked] = useState(opening);
   const [route, setRoute] = useState<AtlasRoute | null>(null);
   const card = useRef<HTMLDivElement>(null);
   const trip = PRESET_TRIPS.find((t) => t.id === picked) ?? PRESET_TRIPS[0];
@@ -34,7 +36,7 @@ export function ExploreFront({
       <h1 className="sr-only">Explore</h1>
       <section className="relative -mt-15">
         <div className="h-[25.75rem] lg:absolute lg:inset-0 lg:h-auto">
-          <ExploreGlobe picked={trip.id} route={route} card={card} onPick={pickOnMap} onWorld={() => setRoute(null)} />
+          <ExploreGlobe picked={trip.id} route={route} card={card} onPick={pickOnMap} onWorld={() => setRoute(null)} signedIn={signedIn} />
         </div>
         <div className="pointer-events-none relative mx-auto flex max-w-[112rem] justify-end px-4 pb-6 pt-21 sm:px-6 lg:min-h-[53.9rem] lg:pb-8 lg:pt-23">
           <div ref={card} className="pointer-events-auto w-full lg:w-[25rem]">

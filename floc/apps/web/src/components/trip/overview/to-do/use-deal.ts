@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { DEAL_MS, type DealStart, dealEase, dealFrame, dealStarts, resumeAt } from "./deal";
+import { isStill } from "@/lib/motion/still";
 
 const clamp = (x: number) => Math.min(1, Math.max(0, x));
 
@@ -51,7 +52,7 @@ export function useDeal() {
     const cards = [...ul.children] as HTMLElement[];
     cards.forEach((li, i) => { li.style.zIndex = String(cards.length - i); });
     run.current.starts = dealStarts(cards.map((li) => ({ top: li.offsetTop, height: li.offsetHeight, width: li.offsetWidth })));
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (isStill()) {
       run.current.pos = opening ? 1 : 0;
       paint(run.current.pos);
       return settle(opening);

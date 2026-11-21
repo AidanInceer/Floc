@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { availability, idea, ideaVote } from "@/db/schema";
@@ -13,12 +13,16 @@ type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 async function tripsAnswered(guestId: string): Promise<number[]> {
   const [marks, votes] = await Promise.all([
-    db.selectDistinct({ tripId: availability.tripId }).from(availability).where(eq(availability.userId, guestId)).all(),
+    db
+      .selectDistinct({ tripId: availability.tripId })
+      .from(availability)
+      .where(and(eq(availability.userId, guestId), isNull(availability.deletedAt)))
+      .all(),
     db
       .selectDistinct({ tripId: idea.tripId })
       .from(ideaVote)
       .innerJoin(idea, eq(idea.id, ideaVote.ideaId))
-      .where(eq(ideaVote.userId, guestId))
+      .where(and(eq(ideaVote.userId, guestId), isNull(ideaVote.deletedAt)))
       .all(),
   ]);
   return [...new Set([...marks, ...votes].map((r) => r.tripId))];

@@ -1,4 +1,4 @@
-const STILL = "(prefers-reduced-motion: reduce)";
+import { isStill, watchStill } from "@/lib/motion/still";
 
 type Start = { still: boolean };
 
@@ -6,23 +6,19 @@ export function watchFirstView(
   node: Element,
   on: { onStart: (start: Start) => void; onArm?: (start: Start) => void; onStill?: () => void },
 ): () => void {
-  const reduced = matchMedia(STILL);
-  on.onArm?.({ still: reduced.matches });
-  const motionChanged = () => {
-    if (reduced.matches) on.onStill?.();
-  };
-  if (on.onStill) reduced.addEventListener("change", motionChanged);
+  on.onArm?.({ still: isStill() });
+  const stopWatch = on.onStill ? watchStill((still) => still && on.onStill?.()) : () => {};
   const seen = new IntersectionObserver(
     ([entry]) => {
       if (!entry?.isIntersecting) return;
       seen.disconnect();
-      on.onStart({ still: reduced.matches });
+      on.onStart({ still: isStill() });
     },
     { rootMargin: "0px 0px -35% 0px" },
   );
   seen.observe(node);
   return () => {
     seen.disconnect();
-    reduced.removeEventListener("change", motionChanged);
+    stopWatch();
   };
 }

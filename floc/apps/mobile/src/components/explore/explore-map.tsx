@@ -7,7 +7,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { LandLayer } from "../map/land-layer";
 import { useTheme } from "../system/theme";
-import { useReducedMotion } from "../system/use-reduced-motion";
+import { useStill } from "@/lib/accessibility/use-still";
 import { paperStyle } from "@/lib/map";
 import { fonts, radius, size } from "@/lib/theme";
 import { countWord } from "@floc/core/text/count-word";
@@ -26,7 +26,7 @@ function firstBase(trip: (typeof MAP_PICKS)[number]): LngLat {
 export function ExploreMap({ picked, onPick }: { picked: string; onPick: (presetId: string) => void }) {
   const { c } = useTheme();
   const camera = useRef<CameraRef>(null);
-  const reducedMotion = useReducedMotion();
+  const reducedMotion = useStill();
   const [lng, lat] = firstBase(MAP_PICKS.find((t) => t.id === picked) ?? MAP_PICKS[0]);
   const first = useRef<LngLat>([lng, lat]);
 

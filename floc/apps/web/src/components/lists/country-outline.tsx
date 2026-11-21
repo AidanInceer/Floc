@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 
 import { drawCountry } from "@/components/explore/outline/drawing";
+import { LandPaths } from "@/components/explore/outline/land-paths";
 import { useLand } from "@/components/explore/outline/use-land";
 
 const BOX = { width: 240, height: 170 };
@@ -13,12 +14,7 @@ export function CountryOutline({ code, name, fill }: { code: string; name: strin
 
   return (
     <svg viewBox={`0 0 ${BOX.width} ${BOX.height}`} preserveAspectRatio="xMidYMid slice" role="img" aria-label={name} className="block size-full">
-      {d ? (
-        <>
-          <path d={d.home} className={fill} />
-          <path d={d.other} strokeWidth={0.75} className="fill-sheet-3 stroke-rule-strong" />
-        </>
-      ) : null}
+      {d ? <LandPaths home={d.home} other={d.other} fill={fill} /> : null}
     </svg>
   );
 }

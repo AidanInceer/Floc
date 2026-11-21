@@ -13,8 +13,8 @@ const SORT_ICONS: Record<FinderSort, ReactNode> = {
   match: <path d="M7 12.1C3.3 9.4 1.5 7.5 1.5 5.4A3.2 3.2 0 0 1 7 3.5a3.2 3.2 0 0 1 5.5 1.9c0 2.1-1.8 4-5.5 6.7Z" />,
   cheap: <path d="M3 10.5v-8M1.2 4.3 3 2.5l1.8 1.8M7 4h2M7 7h3.5M7 10h5" />,
   dear: <path d="M3 3.5v8m-1.8-1.8L3 11.5l1.8-1.8M7 4h5M7 7h3.5M7 10h2" />,
-  short: <path d="M3 10.5v-8M1.2 4.3 3 2.5l1.8 1.8M12.4 8.5A2.9 2.9 0 0 1 9.3 3.9a3.1 3.1 0 1 0 3.1 4.6Z" />,
-  long: <path d="M3 3.5v8m-1.8-1.8L3 11.5l1.8-1.8M12.4 8.5A2.9 2.9 0 0 1 9.3 3.9a3.1 3.1 0 1 0 3.1 4.6Z" />,
+  short: <path d="M4.2 7h5.6M4.2 5.4v3.2M9.8 5.4v3.2" />,
+  long: <path d="M1.2 7h11.6M1.2 5.4v3.2M12.8 5.4v3.2" />,
 };
 
 function Pill({ dark = false, onClick, children }: { dark?: boolean; onClick: () => void; children: ReactNode }) {
@@ -68,7 +68,7 @@ export function FinderBar({
 
 export function SortPicker({ sort, onSort }: { sort: FinderSort; onSort: (sort: FinderSort) => void }) {
   return (
-    <div role="radiogroup" aria-label="Sort" className="flex shrink-0 items-center justify-between gap-0.5 rounded-md border border-rule-strong bg-sheet p-0.5 max-sm:w-full">
+    <div role="radiogroup" aria-label="Sort" className="flex h-11 shrink-0 items-stretch justify-between gap-0.5 rounded-md border border-rule-strong bg-sheet p-0.5 max-sm:w-full max-sm:p-px">
       {(Object.keys(FINDER_SORTS) as FinderSort[]).map((key) => (
         <button
           key={key}
@@ -79,7 +79,7 @@ export function SortPicker({ sort, onSort }: { sort: FinderSort; onSort: (sort: 
           title={FINDER_SORTS[key]}
           onClick={() => onSort(key)}
           className={cx(
-            "grid size-8 place-items-center rounded-sm transition-colors max-sm:h-10 max-sm:w-auto max-sm:flex-1",
+            "grid w-9 place-items-center rounded-sm transition-colors max-sm:w-auto max-sm:flex-1",
             sort === key ? "bg-pen-soft text-pen-deep" : "text-ink-soft hover:bg-sheet-2 hover:text-ink",
           )}
         >

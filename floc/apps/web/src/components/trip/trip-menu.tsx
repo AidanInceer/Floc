@@ -5,6 +5,7 @@ import { TripColorPicker } from "@/components/trip/trip-color-picker";
 import { TripMarkPicker } from "@/components/trip/trip-mark-picker";
 import { tripPastel, type TripColor } from "@floc/core/trip/trip-color";
 import type { TripMark } from "@floc/core/trip/mark/trip-mark";
+import { INVITE_LINK_RESET } from "@floc/core/trip/group/invite-link";
 import { archiveTrip, deleteTrip } from "@/app/trips/actions";
 import { leaveTrip, resetInviteLink } from "@/app/trip/[id]/overview/actions";
 
@@ -52,7 +53,7 @@ export function TripMenu({
           <ConfirmSubmit
             variant="ghost"
             confirmVariant="danger"
-            message="Reset the invite link? The old link stops working for anyone still holding it. Everyone already on the trip stays."
+            message={`Reset the invite link? ${INVITE_LINK_RESET}`}
             confirmLabel="Reset the link"
             className={menuItemClass}
           >

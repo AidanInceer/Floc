@@ -3,7 +3,7 @@ import { Stack, useRouter, type Href } from "expo-router";
 import { useEffect } from "react";
 
 import { useTheme } from "@/components/system/theme";
-import { useReducedMotion } from "@/components/system/use-reduced-motion";
+import { useStill } from "@/lib/accessibility/use-still";
 import { client, queryClient, trpc } from "@/lib/api";
 import { usePageViews } from "@/components/consent/use-page-views";
 import { registerThisPhone } from "@/lib/push/push";
@@ -29,7 +29,7 @@ function usePushTaps() {
 
 export default function AppLayout() {
   const { c } = useTheme();
-  const reducedMotion = useReducedMotion();
+  const reducedMotion = useStill();
   usePushTaps();
   usePageViews();
   return (
