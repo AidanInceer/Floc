@@ -235,6 +235,7 @@ export function ConfirmSubmit({
   confirmVariant,
   className,
   label,
+  alternative,
 }: {
   children: ReactNode;
   message: string;
@@ -243,11 +244,13 @@ export function ConfirmSubmit({
   confirmVariant?: "primary" | "secondary" | "ghost" | "danger";
   className?: string;
   label?: string;
+  alternative?: { label: string; action: (formData: FormData) => Promise<void> };
 }) {
   const { pending } = useFormStatus();
   const ref = useRef<HTMLDialogElement>(null);
   const labelId = useId();
   const wasPending = useRef(false);
+  const [choseAlternative, setChoseAlternative] = useState(false);
   useEffect(() => {
     if (wasPending.current && !pending) ref.current?.close();
     wasPending.current = pending;
@@ -282,7 +285,7 @@ export function ConfirmSubmit({
           >
             {message}
           </p>
-          <div className="mt-6 flex flex-wrap justify-end gap-2">
+          <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
             <Button
               type="button"
               variant="secondary"
@@ -290,9 +293,28 @@ export function ConfirmSubmit({
             >
               Cancel
             </Button>
-            <Button type="submit" variant={confirmVariant ?? variant} disabled={pending} aria-busy={pending || undefined}>
+            {alternative ? (
+              <Button
+                type="submit"
+                variant="secondary"
+                formAction={alternative.action}
+                disabled={pending}
+                aria-busy={(pending && choseAlternative) || undefined}
+                onClick={() => setChoseAlternative(true)}
+              >
+                {alternative.label}
+                {busyMark(pending && choseAlternative)}
+              </Button>
+            ) : null}
+            <Button
+              type="submit"
+              variant={confirmVariant ?? variant}
+              disabled={pending}
+              aria-busy={(pending && !choseAlternative) || undefined}
+              onClick={() => setChoseAlternative(false)}
+            >
               {confirmLabel}
-              {busyMark(pending)}
+              {busyMark(pending && !choseAlternative)}
             </Button>
           </div>
         </div>
