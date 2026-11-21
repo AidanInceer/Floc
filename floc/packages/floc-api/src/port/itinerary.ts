@@ -1,4 +1,5 @@
 import type { LengthChoice, TripLength } from "@floc/core/dates/finding/trip-length";
+import type { DayRemovalPlan } from "@floc/core/itinerary/day-removal";
 import type { WeatherCondition } from "@floc/core/itinerary/weather";
 import type { DayEventType, TransportType } from "@floc/core/vocabulary";
 
@@ -140,4 +141,8 @@ export type ItineraryPort = {
   ): Promise<void>;
 
   deleteEvent(viewerId: string, tripId: number, eventId: number): Promise<void>;
+
+  dayRemovalPlan(viewerId: string, tripId: number, dayId: number): Promise<DayRemovalPlan>;
+
+  removeDay(viewerId: string, tripId: number, dayId: number): Promise<void>;
 };

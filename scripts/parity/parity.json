@@ -234,6 +234,12 @@
     "itinerary.forecast": {
       "mobile": "yes"
     },
+    "itinerary.removalPlan": {
+      "mobile": "yes"
+    },
+    "itinerary.removeDay": {
+      "mobile": "yes"
+    },
     "itinerary.resetCalendarUrl": {
       "mobile": "yes"
     },
