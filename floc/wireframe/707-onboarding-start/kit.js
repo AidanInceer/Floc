@@ -101,12 +101,10 @@ export const openTrip = () => ({
 export function doors() {
   if (S.arrive === "invite") {
     return [
-      { lead: tile("plus"), label: "Start a trip of your own", hint: "A name is enough to begin", act: "door:new" },
       { lead: tile("explore"), label: "Get ideas on Explore", hint: "Ready-made routes to borrow and change", act: "door:explore" },
     ];
   }
   return [
-    { lead: tile("plus"), label: "Name a trip", hint: "A name is enough. Dates and people can wait", act: "door:new" },
     { lead: tile("explore"), label: "Borrow one from Explore", hint: "A ready-made route to make your own", act: "door:explore" },
     { lead: tile("link"), label: "Got a link?", hint: "Paste an invite and you are on the trip", act: "door:link" },
   ];

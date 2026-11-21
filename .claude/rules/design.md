@@ -108,6 +108,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - Pictures: one consistent treatment. Image controls sit in one bar under the image, never arrows on top. Map pins stay plain numbers. Explore's globe marks each trip with a pin shape, not a dot; trips that start in one town sit side by side. It zooms by its two buttons, never by the scroll wheel (Aidan). Your own trip shows no stock photos — photos there are the person's choice.
 - Explore filters sit in a left rail, never along the top.
 - Say a thing once. On Days, web and phone, stops sit on the day strip and pressing one edits where you sleep — no separate overnight band, and the top of a screen stacks no bands. In the web's wide week the stops sit in a row over the week's columns instead, and the strip goes; the week takes the screen's width up to 160rem while the trip tab bar and the other tabs stay 84rem (Aidan, ADR-066).
+- A list of ways to start never repeats the control above it. On an empty My trips the Name field above already creates the trip, so the rows are only Borrow one from Explore and Got a link? (Aidan, #707).
 
 ## Surfaces
 
