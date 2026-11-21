@@ -4,7 +4,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import type { OutboundEmail } from "@/server/auth/email";
-import { insertNudge } from "@/server/trips/roster";
+import { insertNudge } from "@/server/trips/nudges";
 import { sendDueEmails } from "@/server/notifications/email-fallback";
 import { registerPushToken, sendDuePushes } from "@/server/notifications/push";
 import { recordActivity } from "@/server/notifications/activity";
@@ -22,7 +22,7 @@ beforeEach(async () => {
 const minutes = (n: number) => new Date(Date.now() + n * 60_000);
 
 const nudge = () =>
-  insertNudge({ tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab: "money", message: null });
+  insertNudge({ tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab: "money" });
 
 function mailer() {
   const sent: OutboundEmail[] = [];
@@ -47,7 +47,7 @@ describe("the email fallback", () => {
     expect(sent).toHaveLength(1);
     expect(sent[0]).toMatchObject({
       to: `${world.member}@example.test`,
-      subject: "Ada nudged you about Ours",
+      subject: "Ada nudged you to settle up on the trip Ours",
       cta: { url: expect.stringMatching(new RegExp(`/trip/${world.ours.id}/money$`)) },
     });
 
@@ -131,7 +131,7 @@ describe("the email fallback", () => {
     const { sent, send } = mailer();
     await sendDueEmails(send, minutes(11));
     await db.update(schema.activity).set({ lastModifiedAt: new Date(Date.now() - 60 * 60_000) });
-    await insertNudge({ tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab: "dates", message: null });
+    await insertNudge({ tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab: "dates" });
 
     await sendDueEmails(send, minutes(30));
     expect(sent).toHaveLength(1);
@@ -150,7 +150,7 @@ describe("the email fallback", () => {
     await db.update(schema.activity).set({ lastModifiedAt: new Date(Date.now() - 60 * 60_000) });
 
     await sendDueEmails(send, minutes(30));
-    expect(sent.map((m) => m.subject)).toEqual(["Ada nudged you about Ours", "Ada invited you to Ours"]);
+    expect(sent.map((m) => m.subject)).toEqual(["Ada nudged you to settle up on the trip Ours", "Ada invited you to Ours"]);
   });
 
   it("sends once when two runs overlap", async () => {

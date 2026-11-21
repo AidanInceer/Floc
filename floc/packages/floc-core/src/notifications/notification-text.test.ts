@@ -49,6 +49,28 @@ describe("notificationText", () => {
   });
 });
 
+describe("a nudge's words", () => {
+  it("says what to do and names the trip (#705)", () => {
+    expect(notificationText("nudge_sent", { actor: "Ada", trip: "Portugal", detail: "dates" })).toBe(
+      "Ada nudged you to mark your days on the trip Portugal",
+    );
+    expect(notificationText("nudge_sent", { actor: "Ada", trip: "Portugal", detail: "money" })).toBe(
+      "Ada nudged you to settle up on the trip Portugal",
+    );
+    expect(notificationText("nudge_sent", { actor: "Ada", trip: "Portugal", detail: "ideas" })).toBe(
+      "Ada nudged you to vote on where to go on the trip Portugal",
+    );
+  });
+
+  it("leaves the trip out of the push, as every push does", () => {
+    expect(pushText("nudge_sent", { actor: "Ada", detail: "dates" })).toBe("Ada nudged you to mark your days");
+  });
+
+  it("keeps the old words for a nudge sent before tasks", () => {
+    expect(notificationText("nudge_sent", { actor: "Ada", trip: "Portugal", detail: null })).toBe("Ada nudged you about Portugal");
+  });
+});
+
 describe("pushText", () => {
   it("leaves the trip out, because the push title already names it", () => {
     expect(pushText("nudge_sent", { actor: "Ada" })).toBe("Ada nudged you");

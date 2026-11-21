@@ -1,6 +1,7 @@
 import { formatMoney } from "@floc/core/money/money";
 import type { SettleRow } from "@floc/core/money/group-settle";
 import { whoTone } from "@floc/core/people/who";
+import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";
@@ -14,9 +15,10 @@ type Props = {
   nameOf: (userId: string) => string;
   busy: boolean;
   onSettle: (row: SettleRow) => void;
+  nudgeFor?: (userId: string) => ReactNode;
 };
 
-function PayRow({ row, paying, nameOf, busy, onSettle }: { row: SettleRow; paying: boolean } & Omit<Props, "rows" | "viewerId">) {
+function PayRow({ row, paying, nameOf, busy, onSettle, nudgeFor }: { row: SettleRow; paying: boolean } & Omit<Props, "rows" | "viewerId">) {
   const { c } = useTheme();
   const who = nameOf(paying ? row.payee : row.payer);
   const tone = whoTone(who);
@@ -25,6 +27,7 @@ function PayRow({ row, paying, nameOf, busy, onSettle }: { row: SettleRow; payin
       <Face name={who} tone={tone} look="seat" />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text numberOfLines={1} style={{ color: c.ink, fontFamily: fonts.sansBold, fontSize: size.small }}>{who}</Text>
+        {paying ? null : <View style={{ alignSelf: "flex-start" }}>{nudgeFor?.(row.payer)}</View>}
         <Text style={{ color: paying ? c.red : c["pastel-green-ink"], fontFamily: fonts.type, fontSize: size.body + 2, fontVariant: ["tabular-nums"] }}>
           {formatMoney(row.amountMinor, row.currency)}
         </Text>
@@ -44,7 +47,7 @@ function Part({ title, empty, children, first }: { title: string; empty: string;
   );
 }
 
-export function BalanceCard({ rows, viewerId, nameOf, busy, onSettle }: Props) {
+export function BalanceCard({ rows, viewerId, nameOf, busy, onSettle, nudgeFor }: Props) {
   const { c } = useTheme();
   if (rows.length === 0) {
     return (
@@ -64,7 +67,7 @@ export function BalanceCard({ rows, viewerId, nameOf, busy, onSettle }: Props) {
         {owe.map((r) => <PayRow key={key(r)} row={r} paying nameOf={nameOf} busy={busy} onSettle={onSettle} />)}
       </Part>
       <Part title="You are owed" empty="Nothing to chase.">
-        {owed.map((r) => <PayRow key={key(r)} row={r} paying={false} nameOf={nameOf} busy={busy} onSettle={onSettle} />)}
+        {owed.map((r) => <PayRow key={key(r)} row={r} paying={false} nameOf={nameOf} busy={busy} onSettle={onSettle} nudgeFor={nudgeFor} />)}
       </Part>
       {others.length > 0 ? (
         <View style={{ backgroundColor: c["sheet-2"], borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.rule, paddingHorizontal: space.lg, paddingVertical: space.md, gap: space.sm }}>

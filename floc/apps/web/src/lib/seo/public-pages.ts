@@ -2,7 +2,20 @@ import type { Metadata } from "next";
 
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 
-const STATIC_PUBLIC_PATHS = ["/", "/explore", "/privacy", "/cookies", "/terms", "/legal", "/contact", "/sitemap"] as const;
+import { LEGAL_LINKS } from "@/lib/legal/legal-links";
+
+type PublicLink = { path: string; label: string };
+export type SitemapSection = { title: string; links: PublicLink[] };
+
+const SITEMAP_PATH = "/sitemap";
+
+const STATIC_PUBLIC_PAGES: PublicLink[] = [
+  { path: "/", label: "Home" },
+  { path: "/explore", label: "Explore" },
+  ...LEGAL_LINKS.map(({ href, label }) => ({ path: href, label })),
+];
+
+const EXPLORE_PAGES: PublicLink[] = PRESET_TRIPS.map((trip) => ({ path: `/explore/${trip.id}`, label: trip.title }));
 
 export const PRIVATE_PREFIXES = [
   "/trip",
@@ -23,7 +36,14 @@ export const PRIVATE_PREFIXES = [
 ] as const;
 
 export function indexablePaths(): string[] {
-  return [...STATIC_PUBLIC_PATHS, ...PRESET_TRIPS.map((trip) => `/explore/${trip.id}`)];
+  return [...STATIC_PUBLIC_PAGES, ...EXPLORE_PAGES].map((page) => page.path);
+}
+
+export function sitemapSections(): SitemapSection[] {
+  return [
+    { title: "Pages", links: STATIC_PUBLIC_PAGES.filter((page) => page.path !== SITEMAP_PATH) },
+    { title: "Explore trips", links: EXPLORE_PAGES },
+  ];
 }
 
 export function sitemapXml(base: string): string {

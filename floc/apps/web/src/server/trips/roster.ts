@@ -1,10 +1,9 @@
 import "server-only";
 
-import { and, count, eq, gt, inArray, isNull, ne, sql } from "drizzle-orm";
+import { and, count, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 
 import { db } from "@/db";
-import { nudge, trip, tripMembership } from "@/db/schema";
-import type { NudgeTab } from "@/db/schema";
+import { trip, tripMembership } from "@/db/schema";
 import { assertRoom, bounded, LIMITS } from "@/server/limits";
 import { tripHref } from "@floc/core/notifications/notification-href";
 import { touch } from "@/server/audit";
@@ -184,30 +183,4 @@ export async function handOverAndLeaveAllTrips(userId: string): Promise<void> {
     .set({ deletedAt: new Date(), lastModifiedAt: new Date() })
     .where(eq(tripMembership.userId, userId));
   kickFromTripNotes(null, userId);
-}
-
-export async function insertNudge(args: {
-  tripId: number;
-  fromUserId: string;
-  toUserId: string;
-  tab: NudgeTab;
-  message: string | null;
-}): Promise<void> {
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const [{ n }] = await db
-    .select({ n: count() })
-    .from(nudge)
-    .where(and(eq(nudge.tripId, args.tripId), eq(nudge.fromUserId, args.fromUserId), gt(nudge.createdAt, since)));
-  assertRoom("nudgesPerDay", n);
-  await db.transaction(async (tx) => {
-    const row = await tx.insert(nudge).values(args).returning({ id: nudge.id }).get();
-    await recordActivity(tx, {
-      kind: "nudge_sent",
-      tripId: args.tripId,
-      actorId: args.fromUserId,
-      subjectId: row.id,
-      href: tripHref(args.tripId, args.tab),
-      affected: [args.toUserId],
-    });
-  });
 }

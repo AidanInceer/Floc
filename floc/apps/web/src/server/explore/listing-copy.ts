@@ -47,7 +47,7 @@ export async function copyListing(viewerId: string, choice: CopyChoice, today: I
 
   return db.transaction(async (tx) => {
     const tripId = await insertTripWithAdmin(tx, {
-      name: listing.title,
+      name: choice.name ?? listing.title,
       startDate: window?.startDate ?? null,
       endDate: window?.endDate ?? null,
       createdBy: viewerId,

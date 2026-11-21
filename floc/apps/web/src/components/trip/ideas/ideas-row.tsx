@@ -1,9 +1,11 @@
 import { sortIdeas, type IdeaRow } from "@floc/core/trip/ideas";
 import { Sheet } from "@/components/system/client-ui";
 import { ChevronIcon } from "@/components/system/icons";
+import type { NudgePerson } from "@floc/core/trip/nudge/nudge";
 import { IdeasBoard } from "./ideas-board";
+import { IdeasWaiting } from "./ideas-waiting";
 
-export function IdeasRow({ tripId, ideas }: { tripId: number; ideas: IdeaRow[] }) {
+export function IdeasRow({ tripId, ideas, unvoted }: { tripId: number; ideas: IdeaRow[]; unvoted: NudgePerson[] }) {
   const [top] = sortIdeas(ideas, "votes");
   if (!top) return null;
   return (
@@ -26,6 +28,7 @@ export function IdeasRow({ tripId, ideas }: { tripId: number; ideas: IdeaRow[] }
       }
     >
       <IdeasBoard tripId={tripId} ideas={ideas} />
+      <IdeasWaiting tripId={tripId} unvoted={unvoted} />
     </Sheet>
     </div>
   );

@@ -19,6 +19,11 @@ describe("readCopyForm", () => {
     expect(readCopyForm(form({ presetId: "x", month: "later", ideas: "on" }))).toEqual({ presetId: "x", month: null, startDate: null, ideas: true, events: false });
   });
 
+  it("reads the name the person chose for their copy (#708)", () => {
+    expect(readCopyForm(form({ presetId: "x", name: "  Iberia with the girls " })).name).toBe("Iberia With The Girls");
+    expect(readCopyForm(form({ presetId: "x" })).name).toBeUndefined();
+  });
+
   it("reads a form that only names the listing as an undated copy", () => {
     expect(readCopyForm(form({ presetId: "x" })).month).toBeNull();
   });

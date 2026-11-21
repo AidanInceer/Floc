@@ -11,7 +11,7 @@ export function briefLines(f) {
     if (f.branch !== "develop") lines.push(`Main checkout is on ${f.branch ?? "a detached HEAD"}, not develop. Switch it back before building anything.`);
     else if (f.dirty && f.behind) lines.push(`Main checkout has ${f.dirty} changed tracked files and is ${f.behind} commits behind develop, so it cannot update and its AGENTS.md and skills may be stale. Do not build here; the work belongs in a worktree.`);
     else if (f.dirty) lines.push(`Main checkout has ${f.dirty} changed tracked files. They belong in a worktree (pnpm workspace:new <name>), not here.`);
-    else if (f.pulled) lines.push(`Main checkout moved forward ${f.pulled} commits to develop.${f.agentsChanged ? " AGENTS.md changed: read it again before acting." : ""}`);
+    else if (f.pulled) lines.push(`Main checkout moved forward ${f.pulled} commits to develop.${f.agentsChanged ? " AGENTS.md changed: read it again before acting." : ""}${pullSteps(f)}`);
   } else {
     lines.push(`This is worktree ${f.folder} on ${f.branch ?? "a detached HEAD"}${f.behind ? `, ${f.behind} commits behind develop` : ""}. One task here; start another task in its own worktree and session.`);
   }
@@ -20,6 +20,11 @@ export function briefLines(f) {
   }
   if (f.tasks) lines.push(`In flight: ${f.tasks} task worktrees. pnpm workspace:list shows each.`);
   return lines;
+}
+
+function pullSteps(f) {
+  const steps = [f.depsChanged && "pnpm install", f.migrationsAdded && "pnpm --filter floc-web db:migrate"].filter(Boolean);
+  return steps.length ? ` Before the dev site serves it, run: ${steps.join(", then ")}.` : "";
 }
 
 const gitIn = (cwd, ...args) => {
@@ -41,7 +46,13 @@ function updateMain(main, facts) {
   const before = gitIn(main, "rev-parse", "HEAD");
   if (gitIn(main, "merge", "--ff-only", "--quiet", "origin/develop") === null) return {};
   const changed = gitIn(main, "diff", "--name-only", before, "HEAD") ?? "";
-  return { pulled: facts.behind, behind: 0, agentsChanged: /^AGENTS\.md$/m.test(changed) };
+  return {
+    pulled: facts.behind,
+    behind: 0,
+    agentsChanged: /^AGENTS\.md$/m.test(changed),
+    depsChanged: /^pnpm-lock\.yaml$/m.test(changed),
+    migrationsAdded: /^floc\/apps\/web\/drizzle\/[^/]+\.sql$/m.test(changed),
+  };
 }
 
 export function gather(root) {

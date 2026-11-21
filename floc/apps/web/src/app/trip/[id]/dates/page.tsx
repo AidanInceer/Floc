@@ -24,18 +24,12 @@ import {
 } from "@floc/core/trip/trip-window";
 import {
   AvatarRow,
-  Field,
-  Select,
-  Stack,
-  Textarea,
   menuDangerItemClass,
   PageTitle,
 } from "@/components/system/ui";
 import {
   ConfirmSubmit,
   Menu,
-  Sheet,
-  SubmitButton,
 } from "@/components/system/client-ui";
 import { calendarEnabled } from "@/server/calendar/calendar-import";
 import { calendarAllDayOnly } from "@/server/calendar/calendar-options";
@@ -45,10 +39,9 @@ import { DatesFold } from "@/components/availability/dates-fold";
 import { DatesActions } from "@/components/availability/dates-actions";
 import { WhoAnswered } from "@/components/availability/who-answered";
 import type { GroupAnswer } from "@floc/core/dates/dates-tabs";
-import { NUDGE_TABS } from "@/db/schema";
-import { TAB_LABELS } from "@/lib/tabs";
-import { sendNudge } from "@/app/trip/[id]/overview/actions";
-import type { TripMember } from "@/server/access";
+import { NudgeWord } from "@/components/trip/nudge/nudge-word";
+import { nudgeTargetsFor } from "@/server/trips/nudges";
+import { markedUserIds } from "@floc/core/dates/availability";
 import {
   clearMyAvailability,
   clearTripDates,
@@ -101,6 +94,7 @@ export default async function DatesPage({
   const othersPrefer: Record<string, number> = {};
   for (const row of free) if (row.preferred && row.userId !== viewer.id) othersPrefer[row.date] = (othersPrefer[row.date] ?? 0) + 1;
   const marked = freeDaysByUser(rows);
+  const nudges = await nudgeTargetsFor(access, ["dates"], { markedUserIds: markedUserIds(rows) });
 
   const firstMonth =
     from && /^\d{4}-\d{2}$/.test(from)
@@ -185,7 +179,10 @@ export default async function DatesPage({
             members={members}
             marked={marked}
             viewerId={viewer.id}
-            nudgeFor={(m) => <NudgeSheet tripId={tripId} member={m} />}
+            nudgeFor={(m) => {
+              const person = nudges.dates.find((p) => p.userId === m.userId);
+              return person ? <NudgeWord tripId={tripId} task="dates" person={person} /> : null;
+            }}
             guests={guests}
             removeGuestFor={(g) => <RemoveGuest tripId={tripId} guest={g} />}
           />
@@ -272,45 +269,6 @@ function TripBlock({ start, end }: { start: string | null; end: string | null })
     </div>
   );
 }
-
-function NudgeSheet({
-  tripId,
-  member,
-}: {
-  tripId: number;
-  member: TripMember;
-}) {
-  return (
-    <Sheet
-      trigger="Nudge"
-      triggerVariant="secondary"
-      title={`Nudge ${member.name}`}
-    >
-      <form action={sendNudge}>
-        <input type="hidden" name="tripId" value={tripId} />
-        <input type="hidden" name="toUserId" value={member.userId} />
-        <Stack gap={3}>
-          <Field label="What's it about">
-            <Select name="tab" defaultValue="days">
-              {NUDGE_TABS.map((t) => (
-                <option key={t} value={t}>
-                  {TAB_LABELS[t] ?? t}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <Field label="Message (optional)">
-            <Textarea
-              name="message"
-            />
-          </Field>
-          <SubmitButton>Send nudge</SubmitButton>
-        </Stack>
-      </form>
-    </Sheet>
-  );
-}
-
 function RemoveGuest({ tripId, guest }: { tripId: number; guest: Guest }) {
   return (
     <Menu label={`${guest.name} actions`}>

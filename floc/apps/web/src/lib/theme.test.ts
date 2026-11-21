@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { applyTheme, readStoredChoice, resolveTheme, themeBootstrap, THEME_STORAGE_KEY } from "./theme";
+import { applyTheme, keepTheme, readStoredChoice, resolveTheme, themeBootstrap, THEME_STORAGE_KEY } from "./theme";
 
 describe("readStoredChoice", () => {
   it("keeps a real choice", () => {
@@ -81,5 +81,25 @@ describe("applyTheme", () => {
     expect(root.dataset.themeSwap).toBe("");
     while (frames.length) frames.shift()!();
     expect(root.dataset.themeSwap).toBeUndefined();
+  });
+});
+
+describe("keepTheme", () => {
+  it("sets the stored choice when the page drew without a theme, as a not-found page can", () => {
+    const root = { dataset: {} as DOMStringMap };
+    keepTheme(root, { signedIn: true, stored: "dark", prefersDark: false });
+    expect(root.dataset).toMatchObject({ themeChoice: "dark", theme: "dark" });
+  });
+
+  it("is light when signed out, as the bootstrap is", () => {
+    const root = { dataset: {} as DOMStringMap };
+    keepTheme(root, { signedIn: false, stored: "dark", prefersDark: true });
+    expect(root.dataset).toMatchObject({ themeChoice: "light", theme: "light" });
+  });
+
+  it("leaves a theme the bootstrap already set", () => {
+    const root = { dataset: { themeChoice: "system", theme: "dark" } as DOMStringMap };
+    keepTheme(root, { signedIn: true, stored: "light", prefersDark: true });
+    expect(root.dataset).toMatchObject({ themeChoice: "system", theme: "dark" });
   });
 });

@@ -21,7 +21,7 @@ export function WhoAnswered({
   removeGuestFor?: (guest: Guest) => ReactNode;
   marked: Partial<Record<string, number>>;
   viewerId: string;
-  nudgeFor: (member: TripMember) => ReactNode;
+  nudgeFor: (member: TripMember) => ReactNode | null;
 }) {
   const answered = [...members.map((m) => m.userId), ...guests.map((g) => g.id)].filter((id) => id in marked).length;
 
@@ -45,10 +45,8 @@ export function WhoAnswered({
               <span className="min-w-0 flex-1 truncate text-sm">{you ? "You" : m.name}</span>
               {days !== undefined ? (
                 <span className="nums font-mono text-[11px] text-ink-faint">{daysLabel(days)}</span>
-              ) : you ? (
-                <span className="font-mono text-[11px] text-pastel-yellow-ink">Not yet</span>
               ) : (
-                nudgeFor(m)
+                (!you && nudgeFor(m)) || <span className="font-mono text-[11px] text-pastel-yellow-ink">Not yet</span>
               )}
             </li>
           );

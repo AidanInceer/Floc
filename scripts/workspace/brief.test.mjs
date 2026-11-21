@@ -15,6 +15,14 @@ test("a stale or dirty main checkout is named before anything is built", () => {
   assert.match(briefLines({ ...current, pulled: 4, agentsChanged: true })[0], /moved forward 4 commits.*AGENTS\.md changed/);
 });
 
+test("a pull that changed dependencies or added migrations names the steps the dev site needs", () => {
+  const lines = briefLines({ ...current, pulled: 2, depsChanged: true, migrationsAdded: true });
+  assert.match(lines[0], /moved forward 2 commits/);
+  assert.match(lines[0], /pnpm install/);
+  assert.match(lines[0], /pnpm --filter floc-web db:migrate/);
+  assert.doesNotMatch(briefLines({ ...current, pulled: 2 })[0], /pnpm install|db:migrate/);
+});
+
 test("stale cached skills say how to refresh them", () => {
   assert.match(briefLines({ ...current, installed: "0.15.0", repo: "0.17.0" })[0], /claude plugin update floc@floc --scope project/);
 });

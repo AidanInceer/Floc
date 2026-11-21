@@ -13,7 +13,7 @@ export const VIBE_TAGS = [
   "slow mornings",
 ] as const;
 
-type VibeTag = (typeof VIBE_TAGS)[number];
+export type VibeTag = (typeof VIBE_TAGS)[number];
 
 export const VIBE_TAG_GROUPS: { name: string; tags: VibeTag[] }[] = [
   { name: "Pace", tags: ["early starts", "slow mornings", "late nights"] },

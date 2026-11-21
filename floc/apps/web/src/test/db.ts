@@ -63,6 +63,7 @@ export async function resetDb(): Promise<void> {
   const [first, ...rest] = TABLES.map((table) => db.delete(table));
   await db.batch([first, ...rest]);
   currentUser.id = null;
+  currentUser.startedAt = undefined;
 }
 
 export function signIn(userId: string | null): void {

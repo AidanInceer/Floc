@@ -13,6 +13,9 @@ import { getHomeRates } from "@/server/money/fx";
 import { Avatar, PageTitle, EmptyState, SectionHeading } from "@/components/system/ui";
 import { Sheet } from "@/components/system/client-ui";
 import { settleUpFrom, type SettleUp } from "@/server/money/settle-up";
+import { nudgeTargetsFor } from "@/server/trips/nudges";
+import type { NudgePerson } from "@floc/core/trip/nudge/nudge";
+import { NudgeWord } from "@/components/trip/nudge/nudge-word";
 import { paidIn, type SettleRow } from "@floc/core/money/group-settle";
 import { formatMoney } from "@floc/core/money/money";
 import { PairSettleForm, SettleUpForm } from "@/components/money/settlement-form";
@@ -73,6 +76,7 @@ export default async function MoneyPage({
     namesForUsers([...extraIds]),
     settleUpFrom({ ledger: { expenses, splits, settlements }, viewerId, homes: homeOf }),
   ]);
+  const nudges = await nudgeTargetsFor(access, ["money"], { owedBy: settle.rows.filter((r) => r.payee === viewerId).map((r) => r.payer) });
 
   const userNames: Record<string, string> = {};
   for (const m of access.members) userNames[m.userId] = m.name;
@@ -138,7 +142,7 @@ export default async function MoneyPage({
           {settled ? (
             <SettledBanner />
           ) : (
-            <SettleUpPanel tripId={tripId} viewerId={viewerId} settle={settle} label={label} tone={tone} />
+            <SettleUpPanel tripId={tripId} viewerId={viewerId} settle={settle} label={label} tone={tone} owing={nudges.money} />
           )}
 
           <ActivityFeed
@@ -226,21 +230,27 @@ function SettleUpPanel({
   settle,
   label,
   tone,
+  owing,
 }: {
   tripId: number;
   viewerId: string;
   settle: SettleUp;
   label: (userId: string) => string;
   tone: (userId: string) => string | undefined;
+  owing: NudgePerson[];
 }) {
   const row = (r: SettleRow) => {
     const paying = r.payer === viewerId;
     const other = paying ? r.payee : r.payer;
+    const chase = paying ? undefined : owing.find((p) => p.userId === other);
     return (
       <li key={`${r.payer}-${r.payee}`} className="flex flex-wrap items-center justify-between gap-3 border-b border-rule py-3 last:border-b-0">
         <span className="flex items-center gap-2.5">
           <Avatar name={label(other)} tone={tone(other)} size={32} />
-          <span className="text-[15px]">{label(other)}</span>
+          <span className="grid justify-items-start">
+            <span className="text-[15px]">{label(other)}</span>
+            {chase ? <NudgeWord tripId={tripId} task="money" person={chase} /> : null}
+          </span>
         </span>
         <span className="flex items-center gap-3">
           <span className="nums text-xl tracking-tight">{formatMoney(r.amountMinor, r.currency)}</span>

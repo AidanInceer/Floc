@@ -38,8 +38,8 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
       tripCount: 1,
     }),
     renameMe: vi.fn().mockResolvedValue(undefined),
-    tourSeen: vi.fn().mockResolvedValue(false),
-    markTourSeen: vi.fn().mockResolvedValue(undefined),
+    welcome: vi.fn().mockResolvedValue({ due: true, currency: "GBP", answers: {} }),
+    finishWelcome: vi.fn().mockResolvedValue(undefined),
     loadPacking: vi.fn().mockResolvedValue({ shared: [], mine: [] }),
     addPackingLine: vi.fn().mockResolvedValue(undefined),
     claimPackingLine: vi.fn().mockResolvedValue(undefined),
@@ -184,18 +184,24 @@ describe("muting a trip (#346)", () => {
   });
 });
 
-describe("the tour (#314)", () => {
-  it("reads and marks only the caller's own record", async () => {
+describe("the welcome (#707)", () => {
+  it("reads and finishes only the caller's own record", async () => {
     const { caller: ana, port } = caller("u1");
-    await expect(ana.me.tourSeen()).resolves.toBe(false);
-    await ana.me.markTourSeen();
-    expect(port.tourSeen).toHaveBeenCalledWith("u1");
-    expect(port.markTourSeen).toHaveBeenCalledWith("u1");
+    await expect(ana.me.welcome()).resolves.toMatchObject({ due: true });
+    await ana.me.finishWelcome({});
+    expect(port.welcome).toHaveBeenCalledWith("u1");
+    expect(port.finishWelcome).toHaveBeenCalledWith("u1", {});
   });
 
   it("refuses a signed-out caller", async () => {
     const { caller: anon } = caller(null);
-    await expect(anon.me.markTourSeen()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+    await expect(anon.me.finishWelcome({})).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+
+  it("passes only the welcome answers it knows to the host", async () => {
+    const { caller: ana, port } = caller("u1");
+    await ana.me.finishWelcome({ airport: "dub", currency: "EUR", cabin: "economy", pace: "rocket", vibes: ["beaches", "skydiving"] });
+    expect(port.finishWelcome).toHaveBeenCalledWith("u1", { homeAirport: "DUB", homeCurrency: "EUR", travelCabin: "economy", vibeTags: ["beaches"] });
   });
 });
 

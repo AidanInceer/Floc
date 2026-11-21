@@ -9,7 +9,7 @@ import { LIMITS } from "@/server/limits";
 import { writeExpense } from "@/server/money/money";
 import { insertNote } from "@/server/notes/notes";
 import { insertPackingLine, insertPersonalPackingLine } from "@/server/packing/packing";
-import { insertNudge } from "@/server/trips/roster";
+import { insertNudge } from "@/server/trips/nudges";
 import { insertTripLink } from "@/server/trips/trip-links";
 import { createTripWithAdmin, tripsHeldBy } from "@/server/trips/trips";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
@@ -100,7 +100,7 @@ describe("the trip's lists", () => {
 
 describe("people", () => {
   it("refuses a nudge past one person's daily ceiling on a trip", async () => {
-    const nudge = { tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab: "dates" as const, message: null };
+    const nudge = { tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, tab: "dates" as const };
     for (let i = 0; i < LIMITS.nudgesPerDay; i++) await insertNudge(nudge);
     expect(await refused(() => insertNudge(nudge))).toBe(true);
   });

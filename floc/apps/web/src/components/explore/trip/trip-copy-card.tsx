@@ -3,7 +3,7 @@
 import type { PlanStop } from "@floc/core/trip/explore/detail/preset-plan";
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 
-import { CopySheet } from "@/components/explore/copy/copy-sheet";
+import { StartListing } from "@/components/explore/copy/start-listing";
 import { AddToWishList } from "@/components/lists/wish/listing-wish";
 import { listingStartHref } from "@/lib/landing/start-trip";
 import { CopyIcon } from "@/components/system/icons/explore-trip";
@@ -20,10 +20,10 @@ function CopyAction({ trip, signedIn, className, defaultOpen }: { trip: PresetTr
     );
   }
   return (
-    <CopySheet trip={trip} className={className} defaultOpen={defaultOpen}>
+    <StartListing trip={trip} className={className} defaultOpen={defaultOpen}>
       <CopyIcon />
       Copy to my trips
-    </CopySheet>
+    </StartListing>
   );
 }
 

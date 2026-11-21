@@ -3,8 +3,8 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
-import { ensureDays, setOvernightPlaceOn } from "@/server/itinerary/itinerary";
-import { routesForTrips } from "@/server/itinerary/routes-for-trips";
+import { ensureDays, firstOvernightPlaceByTrip, setOvernightPlaceOn } from "@/server/itinerary/itinerary";
+import { readTripRoutes, routesForTrips } from "@/server/itinerary/routes-for-trips";
 
 let world: Scenario;
 
@@ -59,5 +59,20 @@ describe("routesForTrips", () => {
 
   it("asks nothing for an empty list", async () => {
     expect((await routesForTrips([])).size).toBe(0);
+  });
+
+  it("names each trip's first place from the same read as its route", async () => {
+    await ensureDays(world.ours.id, ["2026-09-02", "2026-09-03"]);
+    const porto = await makePlace("Porto", 41.15, -8.63, "PT");
+    const lisbon = await makePlace("Lisbon", 38.72, -9.14, "PT");
+    await setOvernightPlaceOn(world.ours.id, [await dayId(world.ours.id, "2026-09-03")], lisbon);
+    await setOvernightPlaceOn(world.ours.id, [await dayId(world.ours.id, "2026-09-02")], porto);
+    await setOvernightPlaceOn(world.theirs.id, [world.theirs.dayId], porto);
+    await db.update(schema.place).set({ deletedAt: new Date() }).where(eq(schema.place.id, porto));
+
+    const ids = [world.ours.id, world.theirs.id];
+    const { firstPlace } = await readTripRoutes(ids);
+    expect(firstPlace).toEqual(await firstOvernightPlaceByTrip(ids));
+    expect(firstPlace.get(world.ours.id)).toBe("Lisbon");
   });
 });

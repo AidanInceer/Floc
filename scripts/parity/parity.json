@@ -264,10 +264,10 @@
     "kits.stepItem": {
       "mobile": "yes"
     },
-    "me.get": {
+    "me.finishWelcome": {
       "mobile": "yes"
     },
-    "me.markTourSeen": {
+    "me.get": {
       "mobile": "yes"
     },
     "me.profile": {
@@ -280,7 +280,7 @@
     "me.setMark": {
       "mobile": "yes"
     },
-    "me.tourSeen": {
+    "me.welcome": {
       "mobile": "yes"
     },
     "money.deleteExpense": {
@@ -321,6 +321,12 @@
       "mobile": "yes"
     },
     "notifications.unread": {
+      "mobile": "yes"
+    },
+    "nudges.send": {
+      "mobile": "yes"
+    },
+    "nudges.targets": {
       "mobile": "yes"
     },
     "packing.add": {

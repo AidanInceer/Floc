@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, count, desc, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { idea, ideaVote, user, userProfile } from "@/db/schema";
@@ -50,4 +50,19 @@ export async function listIdeas(tripId: number, viewerId: string): Promise<IdeaR
     votes: tally.get(r.id)?.votes ?? 0,
     mine: tally.get(r.id)?.mine ?? false,
   }));
+}
+
+export async function ideaVoters(tripId: number): Promise<{ count: number; voterIds: string[] }> {
+  const live = and(eq(idea.tripId, tripId), isNull(idea.deletedAt));
+  const [[{ n }], voters] = await Promise.all([
+    db.select({ n: count() }).from(idea).where(live),
+    db
+      .selectDistinct({ userId: ideaVote.userId })
+      .from(ideaVote)
+      .innerJoin(idea, eq(idea.id, ideaVote.ideaId))
+      .where(and(live, isNull(ideaVote.deletedAt)))
+      .limit(LIMITS.members)
+      .all(),
+  ]);
+  return { count: n, voterIds: voters.map((v) => v.userId) };
 }

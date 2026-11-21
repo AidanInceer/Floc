@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { airportLabel, airportPlace, chosenAirport, findAirport, loadAirports, parseAirports, searchAirports } from "./airports";
+import { airportLabel, airportPlace, chosenAirport, countryAirports, findAirport, loadAirports, parseAirports, searchAirports } from "./airports";
 
 const LIST = parseAirports({
   GB: "LHR|London Heathrow|London|L;LGW|London Gatwick|London|L;MAN|Manchester|Manchester|L;INV|Inverness|Inverness",
@@ -108,5 +108,25 @@ describe("loadAirports", () => {
   it("holds each code once", async () => {
     const all = await loadAirports();
     expect(new Set(all.map((a) => a.code)).size).toBe(all.length);
+  });
+});
+
+describe("countryAirports (#707)", () => {
+  const list = parseAirports({
+    IE: "ORK|Cork International|Cork|L;DUB|Dublin|Dublin|L;CFN|Donegal|Donegal",
+    GB: "LHR|Heathrow|London|L",
+  });
+
+  it("offers the large airports in the guessed country", () => {
+    expect(countryAirports(list, "IE").map((a) => a.code)).toEqual(["ORK", "DUB"]);
+  });
+
+  it("offers nothing without a country, or for one it does not know", () => {
+    expect(countryAirports(list, null)).toEqual([]);
+    expect(countryAirports(list, "XX")).toEqual([]);
+  });
+
+  it("reads the country in any case and keeps to the limit", () => {
+    expect(countryAirports(list, "ie", 1).map((a) => a.code)).toEqual(["ORK"]);
   });
 });

@@ -14,6 +14,7 @@ import { PageViewBeacon } from "@/components/chrome/consent/page-view-beacon";
 import { requestConsent } from "@/server/consent/consent";
 import { SiteFooter } from "@/components/chrome/site-footer";
 import { SessionRenewal } from "@/components/chrome/session-renewal";
+import { ThemeKeeper } from "@/components/chrome/theme-keeper";
 import { NONCE_HEADER } from "@/lib/http/csp";
 import { themeBootstrap } from "@/lib/theme";
 import { getSession } from "@/server/access";
@@ -91,6 +92,7 @@ export default async function RootLayout({
         <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: themeBootstrap(Boolean(session?.user)) }} />
       </head>
       <body className="min-h-dvh">
+        <ThemeKeeper signedIn={Boolean(session?.user)} />
         <AppChrome
           user={chromeUser}
           inviteCount={inviteCount}
