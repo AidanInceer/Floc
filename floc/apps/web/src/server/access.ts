@@ -35,6 +35,12 @@ const getRawSession = cache(async () => {
 
 export const getSession = cache(async () => memberSession(await getRawSession()));
 
+export async function memberSessionStart(): Promise<{ userId: string; startedAt: Date } | null> {
+  const raw = await getRawSession();
+  if (!raw || raw.user.isAnonymous) return null;
+  return { userId: raw.user.id, startedAt: new Date(raw.session.createdAt) };
+}
+
 export async function getInviteGuest(): Promise<{ id: string; name: string } | null> {
   const session = await getRawSession();
   if (!session?.user?.isAnonymous) return null;

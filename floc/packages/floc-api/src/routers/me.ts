@@ -1,4 +1,5 @@
 import { TEXT_CAPS } from "@floc/core/text/text";
+import { readWelcomeAnswers } from "@floc/core/people/welcome/welcome";
 import { z } from "zod";
 
 import { protectedProcedure, router } from "../trpc";
@@ -8,11 +9,22 @@ export const meRouter = router({
 
   profile: protectedProcedure.query(({ ctx }) => ctx.port.loadMyProfile(ctx.viewer.id)),
 
-  tourSeen: protectedProcedure.query(({ ctx }) => ctx.port.tourSeen(ctx.viewer.id)),
+  welcome: protectedProcedure.query(({ ctx }) => ctx.port.welcome(ctx.viewer.id)),
 
-  markTourSeen: protectedProcedure.mutation(async ({ ctx }) => {
-    await ctx.port.markTourSeen(ctx.viewer.id);
-  }),
+  finishWelcome: protectedProcedure
+    .input(
+      z.object({
+        airport: z.string().max(3).optional(),
+        currency: z.string().max(3).optional(),
+        cabin: z.string().max(20).optional(),
+        stay: z.string().max(20).optional(),
+        pace: z.string().max(20).optional(),
+        vibes: z.array(z.string().max(40)).max(20).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.port.finishWelcome(ctx.viewer.id, readWelcomeAnswers(input));
+    }),
 
   rename: protectedProcedure
     .input(

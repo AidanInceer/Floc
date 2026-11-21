@@ -8,7 +8,7 @@ import { listAvailability } from "@/server/itinerary/availability";
 import { listIdeas } from "@/server/ideas/ideas-read";
 import { listInviteesByAnswer } from "@/server/trips/invites";
 import { listExpenses, listSettlements, listSplits } from "@/server/money/money";
-import { walkthroughDue } from "@/server/auth/tour";
+import { welcomeView } from "@/server/auth/welcome/welcome-view";
 import { homeCurrenciesFor } from "@/server/auth/profile";
 import { absoluteUrl } from "@/server/auth/email";
 import { friendStatesFor, listFriendsFor } from "@/server/social/friends";
@@ -38,8 +38,7 @@ import { leftToSortFor, readSharedPacking } from "./left-to-sort-for";
 import { PanelPlaceholder, StreamedEstimate, StreamedGroup } from "./streamed";
 import { canUseFeature } from "@/server/billing/entitlements";
 import { readEstimate } from "@/server/money/estimate/estimate-view";
-import { WalkthroughDialog } from "@/components/walkthrough/walkthrough-dialog";
-import { walkthroughFor } from "./walkthrough-for";
+import { WelcomeModal } from "@/components/onboarding/welcome/welcome-modal";
 import { mintShareToken } from "@/server/trips/invite-link";
 import { nudgeTargetsFor } from "@/server/trips/nudges";
 import { NUDGE_TASKS } from "@floc/core/trip/nudge/nudge";
@@ -66,14 +65,14 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
 
   const now = today();
   const sharedPacking = readSharedPacking(tripId);
-  const [availabilityRows, expenseRows, tripDays, splitRows, settlementRows, walkthrough, ideas, docs, homes] =
+  const [availabilityRows, expenseRows, tripDays, splitRows, settlementRows, welcome, ideas, docs, homes] =
     await Promise.all([
       listAvailability(tripId),
       listExpenses(tripId),
       readTripDays(tripId),
       listSplits(tripId),
       listSettlements(tripId),
-      walkthroughDue(viewer.id),
+      welcomeView(viewer, members.filter((m) => m.userId !== viewer.id).map((m) => ({ id: m.userId, name: m.name })), trip.createdBy !== viewer.id ? trip.name : null),
       listIdeas(tripId, viewer.id),
       files ? listDocuments(tripId, viewer.id) : Promise.resolve([]),
       homeCurrenciesFor([...new Set([viewer.id, ...members.map((m) => m.userId)])]),
@@ -157,6 +156,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
                 <RecapFoot
                   tripId={tripId}
                   tripName={trip.name}
+                  me={viewer.name}
                   others={members.filter((m) => m.userId !== viewer.id).map((m) => ({ id: m.userId, name: m.name }))}
                 />
               ) : null}
@@ -188,7 +188,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
         bookings={files && !hasEnded(trip.endDate) ? <BookingsCard tripId={tripId} legs={legs} wholeTrip={wholeTrip} /> : null}
       />
 
-      {walkthrough ? <WalkthroughDialog {...walkthroughFor(access, ideas, legs.length > 0)} /> : null}
+      {welcome ? <WelcomeModal {...welcome} /> : null}
     </div>
   );
 }

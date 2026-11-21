@@ -1,33 +1,21 @@
 "use client";
 
-import { peopleCount } from "@floc/core/people/group-ticks";
 import Link from "next/link";
 import { createContext, useContext, useState, useTransition, type ReactNode } from "react";
 
 import { addWishItemAction } from "@/app/lists/wish/actions";
 import { Menu } from "@/components/system/client-ui";
 import { CheckIcon, PlusIcon } from "@/components/system/icons";
-import { AvatarRow, buttonClass, cx, menuItemClass } from "@/components/system/ui";
+import { buttonClass, cx, menuItemClass } from "@/components/system/ui";
 import type { Person } from "@/server/social/friends";
 
-type ListingWish = { lists: { id: number; title: string }[]; along: Person[] };
+type ListingWish = { lists: { id: number; title: string }[]; along: Person[]; me: string; people: { id: string; name: string }[] };
 
-const Context = createContext<ListingWish>({ lists: [], along: [] });
+export const ListingWishContext = createContext<ListingWish>({ lists: [], along: [], me: "", people: [] });
+const Context = ListingWishContext;
 
 export function ListingWishProvider({ value, children }: { value: ListingWish; children: ReactNode }) {
   return <Context.Provider value={value}>{children}</Context.Provider>;
-}
-
-export function CopyAlong() {
-  const { along } = useContext(Context);
-  if (along.length === 0) return null;
-  return (
-    <div className="mt-4 flex items-center gap-2 border-t border-rule pt-3">
-      {along.map((p) => <input key={p.id} type="hidden" name="friendIds" value={p.id} />)}
-      <AvatarRow people={along} size={22} max={5} />
-      <span className="font-mono text-xs text-ink-soft">{peopleCount(along.length)} asked along</span>
-    </div>
-  );
 }
 
 export function AddToWishList({ presetId, className }: { presetId: string; className?: string }) {

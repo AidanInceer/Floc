@@ -2,6 +2,7 @@ import { TEXT_CAPS } from "@floc/core/text/text";
 import { isIsoDate } from "@floc/core/dates/dates";
 import { GROUP_CAP, TRIP_INVITE_CAP } from "@floc/core/people/group-ticks";
 import { NO_TRIP_NAME, TRIP_NAME_TOO_LONG } from "@floc/core/trip/trip-name";
+import { START_PLACE_LENGTH, START_PLACES_CAP } from "@floc/core/trip/start/start-steps";
 import { z } from "zod";
 
 import { protectedProcedure, router, tripProcedure } from "../trpc";
@@ -26,6 +27,7 @@ export const tripsRouter = router({
         endDate: optionalDate.default(null),
         friendIds: z.array(z.string().min(1).max(64)).max(TRIP_INVITE_CAP).optional(),
         groupIds: z.array(z.number().int().positive()).max(GROUP_CAP).optional(),
+        places: z.array(z.string().max(START_PLACE_LENGTH)).max(START_PLACES_CAP).optional(),
       }),
     )
     .mutation(({ ctx, input }) => ctx.port.createTrip(ctx.viewer.id, input)),
@@ -39,6 +41,7 @@ export const tripsRouter = router({
         ideas: z.boolean().default(true),
         events: z.boolean().default(true),
         friendIds: z.array(z.string().min(1).max(64)).max(TRIP_INVITE_CAP).default([]),
+        name: tripName.optional(),
       }),
     )
     .mutation(({ ctx, input: { friendIds, ...choice } }) => ctx.port.startTripFromPreset(ctx.viewer.id, choice, friendIds)),

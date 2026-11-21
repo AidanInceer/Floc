@@ -1,15 +1,17 @@
-import { PlusIcon, ShareIcon } from "@/components/system/icons";
+import { ShareIcon } from "@/components/system/icons";
 import { Sheet } from "@/components/system/client-ui";
-import { NextTripForm } from "./next-trip-form";
+import { PlanNext } from "./plan-next";
 import { SharePicture } from "./share-picture";
 
 export function RecapFoot({
   tripId,
   tripName,
+  me,
   others,
 }: {
   tripId: number;
   tripName: string;
+  me: string;
   others: { id: string; name: string }[];
 }) {
   return (
@@ -23,14 +25,7 @@ export function RecapFoot({
         >
           <SharePicture tripId={tripId} tripName={tripName} />
         </Sheet>
-        <Sheet
-          title="Plan the next one"
-          triggerVariant="secondary"
-          triggerClassName="w-full whitespace-nowrap"
-          trigger={<><PlusIcon size={12} />Plan the next one</>}
-        >
-          <NextTripForm tripId={tripId} others={others} />
-        </Sheet>
+        <PlanNext me={me} others={others} />
       </div>
     </div>
   );

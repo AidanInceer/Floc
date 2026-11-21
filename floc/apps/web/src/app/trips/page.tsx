@@ -1,22 +1,23 @@
 import { arrangeTripsList } from "@floc/core/trip/trips-home";
-import Link from "next/link";
 
 import { requireUser } from "@/server/access";
-import { listFriendsFor, type Person } from "@/server/social/friends";
-import { listGroupsFor, type Group } from "@/server/social/groups";
+import { listFriendsFor } from "@/server/social/friends";
+import { listGroupsFor } from "@/server/social/groups";
 import { listPendingInvitesFor, type PendingInvite } from "@/server/trips/invites";
 import { newTripName, wishListParam } from "@/lib/landing/start-trip";
 import { wishListPeopleToAsk } from "@/server/wish-lists/wish-lists";
 import { loadTripCards } from "./cards";
 import { formatDateRange, hasEnded, splitEnded } from "@floc/core/dates/dates";
 import { Avatar, ButtonLink, Stack, cx, PageTitle } from "@/components/system/ui";
-import { Sheet, SubmitButton } from "@/components/system/client-ui";
-import { ChevronIcon, PlusIcon } from "@/components/system/icons";
+import { SubmitButton } from "@/components/system/client-ui";
+import { ChevronIcon } from "@/components/system/icons";
 import type { TripCardData } from "@/components/trip/trip-card";
 import { TripBar } from "@/components/trip/trips/trip-bar";
 import { NewTripField } from "@/components/trip/trips/new-trip-field";
-import { NewTripForm } from "@/components/trip/new-trip-form";
-import { acceptTripInvite, createTrip, declineTripInvite } from "./actions";
+import { TripDoors } from "@/components/onboarding/trip-doors";
+import { WelcomeModal } from "@/components/onboarding/welcome/welcome-modal";
+import { startPeople, welcomeView } from "@/server/auth/welcome/welcome-view";
+import { acceptTripInvite, declineTripInvite } from "./actions";
 import "./past-trips.css";
 
 export const metadata = { title: "My trips" };
@@ -42,6 +43,8 @@ export default async function TripsPage({
     wishId ? wishListPeopleToAsk(viewer.id, wishId) : Promise.resolve([]),
   ]);
 
+  const people = startPeople([friends, ...groups.map((g) => g.members), along]);
+  const welcome = await welcomeView(viewer, people);
   const cards = cardRows.map((c) => c.card);
   const ordered = orderCards(
     tag ? cards.filter((card) => card.tags?.some((value) => value.toLowerCase() === tag)) : cards,
@@ -54,7 +57,7 @@ export default async function TripsPage({
       <PageTitle className="sr-only">My trips</PageTitle>
       <header className="grid grid-cols-[minmax(0,1fr)] gap-1.5 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
         <div className="sm:col-start-2">
-          <NewTripField action={createTrip} friends={friends} groups={groups} asked={asked} along={along} />
+          <NewTripField me={viewer.name} people={people} asked={asked} along={along.map((p) => p.id)} />
         </div>
         <ButtonLink href="/trips/archived" variant="ghost" className="justify-self-end max-sm:hidden sm:col-start-3">
           Archived
@@ -63,19 +66,7 @@ export default async function TripsPage({
 
       {invites.length > 0 ? <InviteList invites={invites} /> : null}
 
-      {live.length === 0 ? (
-        <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <NewTripTile friends={friends} groups={groups} first={cards.length === 0} />
-        </ul>
-      ) : null}
-      {cards.length === 0 ? (
-        <p className="mt-4 text-center text-sm text-ink-soft">
-          or{" "}
-          <Link href="/explore" className="text-pen hover:underline">
-            borrow one from Explore
-          </Link>
-        </p>
-      ) : null}
+      {cards.length === 0 ? <TripDoors me={viewer.name} people={people} /> : null}
       {dated.length > 0 ? (
         <section className="mt-6">
           <h2 className="sr-only">With dates</h2>
@@ -91,6 +82,7 @@ export default async function TripsPage({
       ) : null}
 
       {ended.length > 0 ? <PastTrips trips={ended} /> : null}
+      {welcome ? <WelcomeModal {...welcome} /> : null}
     </div>
   );
 }
@@ -122,42 +114,6 @@ function PastTrips({ trips }: { trips: TripCardData[] }) {
       </summary>
       <TripList trips={trips} className="mt-5" />
     </details>
-  );
-}
-
-function NewTripTile({ friends, groups, first }: { friends: Person[]; groups: Group[]; first?: boolean }) {
-  return (
-    <li className="contents">
-      <Sheet
-        bareTrigger
-        trigger={
-          <span className="flex items-center gap-4 text-left">
-            {first ? null : (
-              <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-sm bg-pen-soft text-pen-deep">
-                <PlusIcon />
-              </span>
-            )}
-            <span className="block">
-              {first ? <span className="typed text-current">No trips yet</span> : null}
-              <span className={cx("block font-display font-semibold tracking-tight text-ink", first ? "mt-1 text-2xl" : "text-lg")}>
-                Start a trip
-              </span>
-              <span className={cx("block text-balance text-sm text-ink-soft", first ? "mt-2" : "")}>
-                Name it, then ask your friends along. Dates can wait.
-              </span>
-            </span>
-          </span>
-        }
-        title="Start a trip"
-        body="flush"
-        triggerClassName={cx(
-          "lift flex w-full flex-col justify-center rounded-md bg-sheet p-4 text-left shadow-[inset_0_0_0_1px_var(--rule-2)] hover:shadow-[inset_0_0_0_1px_var(--pen)]",
-          first ? "min-h-40" : "",
-        )}
-      >
-        <NewTripForm action={createTrip} friends={friends} groups={groups} />
-      </Sheet>
-    </li>
   );
 }
 

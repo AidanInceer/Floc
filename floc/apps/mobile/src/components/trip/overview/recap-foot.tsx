@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 
@@ -5,7 +6,6 @@ import { PlusGlyph, ShareGlyph } from "../../system/glyphs";
 import { Button } from "../../system/ui";
 import { space } from "@/lib/theme";
 import { LineRow } from "./line-row";
-import { NextTripSheet } from "./next-trip-sheet";
 import { ShareRecapSheet } from "./share-recap-sheet";
 
 export function RecapFoot({ tripId, tripName, others }: {
@@ -13,7 +13,8 @@ export function RecapFoot({ tripId, tripName, others }: {
   tripName: string;
   others: { id: string; name: string }[];
 }) {
-  const [open, setOpen] = useState<"share" | "next" | null>(null);
+  const router = useRouter();
+  const [open, setOpen] = useState<"share" | null>(null);
   return (
     <View testID="recap-foot">
       <LineRow>
@@ -22,12 +23,11 @@ export function RecapFoot({ tripId, tripName, others }: {
             <Button variant="quiet" label="Share" onPress={() => setOpen("share")} icon={(ink) => <ShareGlyph color={ink} />} />
           </View>
           <View style={{ flex: 1 }}>
-            <Button variant="quiet" label="Plan the next one" onPress={() => setOpen("next")} icon={(ink) => <PlusGlyph color={ink} />} />
+            <Button variant="quiet" label="Plan the next one" onPress={() => router.push({ pathname: "/(app)/new-trip", params: { along: others.map((p) => p.id).join(",") } } as never)} icon={(ink) => <PlusGlyph color={ink} />} />
           </View>
         </View>
       </LineRow>
       <ShareRecapSheet open={open === "share"} onClose={() => setOpen(null)} tripId={tripId} tripName={tripName} />
-      <NextTripSheet open={open === "next"} onClose={() => setOpen(null)} others={others} />
     </View>
   );
 }

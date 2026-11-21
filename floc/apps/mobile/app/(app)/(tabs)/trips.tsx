@@ -11,7 +11,8 @@ import { InviteBanner } from "@/components/trip/invite-banner";
 import { TagPills } from "@/components/trip/tag-pills";
 import { useTheme } from "@/components/system/theme";
 import { TripSheet, draftFor, type TripDraft } from "@/components/trip/trip-sheet";
-import { Body, Button, Card, Empty, Failed, Figure, Label, SectionTitle, Toggle } from "@/components/system/ui";
+import { Body, Button, Card, Failed, Figure, Label, SectionTitle, Toggle } from "@/components/system/ui";
+import { WelcomeGate } from "@/components/onboarding/welcome-sheet";
 import { formatDateRange, fromIsoDate, splitEnded } from "@floc/core/dates/dates";
 import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
 import { pastelOf } from "@floc/core/design/pastels";
@@ -97,10 +98,9 @@ export default function Trips() {
         ListEmptyComponent={
           hasTrips ? null : (
             <View style={{ gap: space.sm }}>
-              <Empty>No trips yet.</Empty>
-              <Button label="Start a trip" onPress={() => router.push("/(app)/new-trip")} />
-              <Button label="Borrow one from Explore" variant="quiet" onPress={() => router.push("/explore" as never)} />
-              <Button label="Join with a link" variant="quiet" onPress={() => router.push("/(app)/join")} />
+              <Button label="Name a trip" onPress={() => router.push("/(app)/new-trip")} />
+              <Button label="Got a link?" variant="quiet" onPress={() => router.push("/(app)/join")} />
+              <Button label="Browse Explore" variant="quiet" onPress={() => router.push("/explore" as never)} />
             </View>
           )
         }
@@ -132,6 +132,7 @@ export default function Trips() {
         }
       />
       {chosen !== null ? <TripMenu trip={chosen} onClose={() => setChosen(null)} /> : null}
+      <WelcomeGate />
     </View>
   );
 }

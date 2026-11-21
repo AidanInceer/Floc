@@ -58,6 +58,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
   - The trip tab bar: one tile slides from the open tab to the one you press and takes its colour, 0.26s; the page changes at once ([ADR-052](../../docs/foundation/decisions.html#adr-052)).
   - A stop on the Overview grows to its height as it opens and its chevron turns, 0.22s. A packed thing’s box turns green in 0.22s while its tick draws over 0.5s on `--ease-even`, slow enough to see it written (Aidan); a drawn stroke's dash matches its path length; a copy button keeps its words, holds a pen wash for about a second and shows a tick, the mark hover never shows; a primary keeps its fill and shows the tick alone, and a button with no icon holds the tick in its left padding so its width stays ([ADR-053](../../docs/foundation/decisions.html#adr-053)).
   - A toggle's white tile slides to the new choice, 0.22s; a day on an Explore trip grows to its height as it opens, as a stop does ([ADR-061](../../docs/foundation/decisions.html#adr-061)).
+  - The welcome and Start a trip modals ease their height to each step, 0.28s, slide the step and tick a choice ([ADR-067](../../docs/foundation/decisions.html#adr-067)).
   - The top bar’s beads fuse as the page scrolls ([visual language](../../docs/design/visual-language.html#navigation-and-chrome)). Scroll sets how far the words have folded; the join plays once. No other workspace surface moves on scroll.
 
 ## Words

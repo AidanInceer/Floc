@@ -33,6 +33,13 @@ export async function insertIdea(args: {
   return row.id;
 }
 
+export async function insertIdeas(tripId: number, createdBy: string, titles: string[]): Promise<void> {
+  if (titles.length === 0) return;
+  const [{ n }] = await db.select({ n: count() }).from(idea).where(and(eq(idea.tripId, tripId), isNull(idea.deletedAt)));
+  assertRoom("ideas", n, titles.length);
+  await db.insert(idea).values(titles.map((title) => ({ tripId, createdBy, title: title.slice(0, IDEA_TITLE_MAX) })));
+}
+
 export async function softDeleteIdea(tripId: number, ideaId: number): Promise<void> {
   await db
     .update(idea)

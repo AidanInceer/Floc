@@ -31,7 +31,7 @@ vi.mock("next/headers", () => ({
   cookies: async () => new Map(),
 }));
 
-export const currentUser: { id: string | null } = { id: null };
+export const currentUser: { id: string | null; startedAt?: Date | undefined } = { id: null };
 
 vi.mock("@/server/auth/auth", () => ({
   enabledProviders: { google: false, facebook: false },
@@ -47,7 +47,7 @@ vi.mock("@/server/auth/auth", () => ({
           .from(user)
           .where(eq(user.id, currentUser.id))
           .get();
-        return row ? { user: row, session: { userId: row.id } } : null;
+        return row ? { user: row, session: { userId: row.id, createdAt: currentUser.startedAt ?? new Date() } } : null;
       },
     },
   },

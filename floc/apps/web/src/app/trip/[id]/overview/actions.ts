@@ -2,10 +2,9 @@
 
 import { redirect } from "next/navigation";
 
-import { assertAdmin, requireTripAccess, requireUser } from "@/server/access";
+import { assertAdmin, requireTripAccess } from "@/server/access";
 import { readNudgeTask, type NudgeResult } from "@floc/core/trip/nudge/nudge";
 import { refreshNudged, sendNudges } from "@/server/trips/nudges";
-import { markTourSeen as markTourSeenFor } from "@/server/auth/tour";
 import { capText } from "@floc/core/text/text";
 import { readTripName } from "@floc/core/trip/trip-name";
 import {
@@ -61,11 +60,6 @@ export async function inviteFriends(formData: FormData) {
     { kind: "tripOverview", tripId: access.trip.id },
     { kind: "invites" },
   );
-}
-
-export async function markTourSeen() {
-  const viewer = await requireUser();
-  await markTourSeenFor(viewer.id);
 }
 
 export async function kickMember(formData: FormData) {

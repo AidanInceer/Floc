@@ -16,7 +16,7 @@ beforeEach(async () => {
 
 const TODAY = "2026-10-22";
 const listing = "great-ocean-road-and-uluru";
-const copy = (choice: { month?: number | null; startDate?: string | null; ideas?: boolean; events?: boolean }, presetId = listing) =>
+const copy = (choice: { month?: number | null; startDate?: string | null; ideas?: boolean; events?: boolean; name?: string }, presetId = listing) =>
   copyListing(world.admin, { presetId, month: null, startDate: null, ideas: true, events: true, ...choice }, TODAY);
 
 const tripRow = (id: number) => db.select().from(schema.trip).where(eq(schema.trip.id, id)).get();
@@ -38,6 +38,18 @@ const events = (tripId: number) =>
     .where(eq(schema.day.tripId, tripId))
     .orderBy(asc(schema.day.date), asc(schema.dayEvent.orderIndex))
     .all();
+
+describe("naming a copy (#708)", () => {
+  it("uses the name the person chose", async () => {
+    const id = (await copy({ month: 10, name: "Outback Lads" }))!;
+    expect((await tripRow(id))?.name).toBe("Outback Lads");
+  });
+
+  it("falls back to the listing's title", async () => {
+    const id = (await copy({ month: 10 }))!;
+    expect((await tripRow(id))?.name).toBe("Great Ocean Road to Uluru");
+  });
+});
 
 describe("copying a listing with a start month", () => {
   it("dates the trip from the 1st of the next such month and runs it for the listing's nights", async () => {
