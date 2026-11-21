@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import { AsideHead } from "@/components/availability/dates-board-parts";
 import { ChevronIcon } from "@/components/system/icons";
 import { cx } from "@/components/system/ui";
@@ -12,21 +12,39 @@ import type { DailyForecast, HourlyPoint, TripForecast } from "@/server/itinerar
 
 const label = "font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint";
 
-export function ForecastPanel({
-  days,
-  byDate,
-  weather,
-  selected,
-  onSelect,
-}: {
+type PanelProps = {
   days: IsoDate[];
   byDate: Record<IsoDate, DailyForecast>;
   weather: TripForecast;
   selected: IsoDate | null;
   onSelect: (date: IsoDate | null) => void;
-}) {
-  const day = selected ? byDate[selected] : undefined;
-  if (selected && day) return <DayHours date={selected} day={day} points={weather.hourly[selected] ?? []} back={() => onSelect(null)} />;
+};
+
+export function ForecastPanel({ days, byDate, weather, selected, onSelect }: PanelProps) {
+  const open = selected && byDate[selected] ? selected : null;
+  return (
+    <div className="grid">
+      <PanelView shown={open === null}>
+        <DayList days={days} byDate={byDate} weather={weather} onSelect={onSelect} />
+      </PanelView>
+      {days.filter((d) => byDate[d]).map((d) => (
+        <PanelView key={d} shown={open === d}>
+          <DayHours date={d} day={byDate[d]} points={weather.hourly[d] ?? []} back={() => onSelect(null)} />
+        </PanelView>
+      ))}
+    </div>
+  );
+}
+
+function PanelView({ shown, children }: { shown: boolean; children: ReactNode }) {
+  return (
+    <div className={cx("[grid-area:1/1]", !shown && "invisible")} aria-hidden={shown ? undefined : true} inert={!shown}>
+      {children}
+    </div>
+  );
+}
+
+function DayList({ days, byDate, weather, onSelect }: Omit<PanelProps, "selected">) {
   const nights = days.flatMap((date) => {
     const placeName = weather.nightPlaces[date];
     return placeName ? [{ date, placeName }] : [];
