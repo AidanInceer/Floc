@@ -51,6 +51,16 @@ export const itineraryRouter = router({
     ctx.port.loadTripForecast(ctx.viewer.id, input.tripId),
   ),
 
+  removalPlan: tripProcedure
+    .input(z.object({ dayId: z.number().int().positive() }))
+    .query(({ ctx, input }) => ctx.port.dayRemovalPlan(ctx.viewer.id, input.tripId, input.dayId)),
+
+  removeDay: tripProcedure
+    .input(z.object({ dayId: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.port.removeDay(ctx.viewer.id, input.tripId, input.dayId);
+    }),
+
   addEvent: tripProcedure
     .input(z.object({ dayId: z.number().int().positive(), event: eventFields }))
     .mutation(async ({ ctx, input }) => {
