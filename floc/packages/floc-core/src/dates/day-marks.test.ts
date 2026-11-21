@@ -39,6 +39,17 @@ describe("dayMark", () => {
     expect(dayMark(day({ tally: 2 }))).toEqual({ kind: "some", step: 2 });
   });
 
+  it("counts a preferred day twice, out of what the people who answered could give", () => {
+    const six = { memberCount: 6, answered: 5 };
+    expect(dayMark(day({ ...six, tally: 5, prefer: 0 }))).toEqual({ kind: "some", step: 2 });
+    expect(dayMark(day({ ...six, tally: 5, prefer: 3 }))).toEqual({ kind: "some", step: 3 });
+    expect(dayMark(day({ ...six, tally: 3, prefer: 0 }))).toEqual({ kind: "some", step: 1 });
+  });
+
+  it("still calls a day everyone can do all free, preferred or not", () => {
+    expect(dayMark(day({ tally: 4, prefer: 0, answered: 4 }))).toEqual({ kind: "all" });
+  });
+
   it("lets the trip win over the group's answer", () => {
     expect(dayMark(day({ tally: 1, inTrip: true }))).toEqual({ kind: "trip" });
   });

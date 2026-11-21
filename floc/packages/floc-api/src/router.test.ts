@@ -55,6 +55,9 @@ function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {
     listAvailability: vi.fn().mockResolvedValue([]),
     listTripGuests: vi.fn().mockResolvedValue([{ id: "g1", name: "Kit" }]),
     setAvailability: vi.fn().mockResolvedValue(undefined),
+    setPreferredDays: vi.fn().mockResolvedValue(undefined),
+    listLengthChoices: vi.fn().mockResolvedValue([{ userId: "u1", length: "week" }]),
+    setLengthChoice: vi.fn().mockResolvedValue(undefined),
     listFiles: vi.fn().mockResolvedValue([]),
     listPlaces: vi.fn().mockResolvedValue([]),
     searchPlaces: vi.fn().mockResolvedValue([]),
@@ -485,6 +488,31 @@ describe("availability (ticket 297)", () => {
     await expect(
       ana.availability.set({ tripId: 1, dates: [], available: true }),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("marks the caller's own preferred days", async () => {
+    const { caller: ana, port } = caller("u1");
+    await ana.availability.prefer({ tripId: 1, dates: ["2026-05-01"], preferred: true });
+    expect(port.setPreferredDays).toHaveBeenCalledWith("u1", 1, ["2026-05-01"], true);
+  });
+
+  it("lists how long each person can go, and saves the caller's own choice", async () => {
+    const { caller: ana, port } = caller("u1");
+    expect(await ana.availability.lengths({ tripId: 1 })).toEqual([{ userId: "u1", length: "week" }]);
+    await ana.availability.setLength({ tripId: 1, length: "week", picked: true });
+    expect(port.setLengthChoice).toHaveBeenCalledWith("u1", 1, "week", true);
+  });
+
+  it("refuses a length that is not one of the four", async () => {
+    const { caller: ana } = caller("u1");
+    await expect(
+      ana.availability.setLength({ tripId: 1, length: "fortnight" as never, picked: true }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("hides the group's lengths from somebody not on the trip (rule 5)", async () => {
+    const { caller: ana } = caller("u1");
+    await expect(ana.availability.lengths({ tripId: 2 })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 
   it("lists the guests who answered on the invite link, by name only (#442)", async () => {

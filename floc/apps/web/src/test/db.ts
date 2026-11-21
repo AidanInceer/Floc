@@ -36,6 +36,7 @@ const TABLES = [
   schema.dayEvent,
   schema.day,
   schema.availability,
+  schema.tripLengthChoice,
   schema.nudge,
   schema.userCountryMark,
   schema.exploreSave,

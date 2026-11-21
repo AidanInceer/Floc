@@ -25,11 +25,11 @@ export function DatesKey() {
   const { c } = useTheme();
   return (
     <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: space.xs, paddingVertical: space.md }}>
-      <Item word="You can do">
-        <View style={{ width: MARK, height: MARK, borderRadius: radius.pill, backgroundColor: c.ink, opacity: 0.14 }} />
+      <Item word="Can do">
+        <View style={{ width: MARK, height: MARK, borderRadius: radius.pill, borderWidth: 1, borderColor: c["ink-3"] }} />
       </Item>
-      <Item word="Everyone free">
-        <Swatch ground="pastel-green" edge="pastel-green-edge" />
+      <Item word="Prefer">
+        <View style={{ width: MARK, height: MARK, borderRadius: radius.pill, borderWidth: 1.5, borderColor: c.ink, backgroundColor: c.sheet }} />
       </Item>
       <Item word="Some free">
         <View style={{ flexDirection: "row", gap: 2 }}>
@@ -37,6 +37,9 @@ export function DatesKey() {
           <Swatch ground="some-free-2" width={6} edge="rule-2" />
           <Swatch ground="some-free-3" width={6} />
         </View>
+      </Item>
+      <Item word="Everyone free">
+        <Swatch ground="pastel-green" edge="pastel-green-edge" />
       </Item>
       <Item word="The trip">
         <Swatch ground="green" />

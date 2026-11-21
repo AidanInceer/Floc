@@ -60,7 +60,7 @@ describe("tripTab", () => {
   it("points at the best fit when undated", () => {
     expect(tripTab(null, null, { start: "2027-09-06", end: "2027-09-12" })).toMatchObject({
       value: "No dates yet",
-      note: `Best fit ${spanLabel("2027-09-06", "2027-09-12")}`,
+      note: `Best dates ${spanLabel("2027-09-06", "2027-09-12")}`,
       open: true,
     });
     expect(tripTab(null, null, null).note).toBe("Pick the days");

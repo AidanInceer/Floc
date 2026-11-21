@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, count, eq, isNull, notInArray } from "drizzle-orm";
+import { and, count, eq, inArray, isNull, notInArray } from "drizzle-orm";
 
 import { db } from "@/db";
 import { availability } from "@/db/schema";
@@ -11,6 +11,7 @@ export type AvailabilityRow = {
   userId: string;
   date: string;
   available: boolean;
+  preferred: boolean;
 };
 
 export async function listAvailability(tripId: number): Promise<AvailabilityRow[]> {
@@ -19,6 +20,7 @@ export async function listAvailability(tripId: number): Promise<AvailabilityRow[
       userId: availability.userId,
       date: availability.date,
       available: availability.available,
+      preferred: availability.preferred,
     })
     .from(availability)
     .where(and(eq(availability.tripId, tripId), isNull(availability.deletedAt)))
@@ -37,12 +39,9 @@ export async function listMarkedDates(tripId: number, userId: string): Promise<S
   return new Set(rows.map((r) => r.date));
 }
 
-export async function setAvailability(
-  tripId: number,
-  userId: string,
-  dates: string[],
-  isAvailable: boolean,
-): Promise<void> {
+type Mark = { available: boolean; preferred?: boolean };
+
+async function markDates(tripId: number, userId: string, dates: string[], mark: Mark): Promise<void> {
   const wanted = [...new Set(dates)];
   if (wanted.length === 0) return;
   assertRoom("availabilityPerPerson", 0, wanted.length);
@@ -53,11 +52,42 @@ export async function setAvailability(
   assertRoom("availabilityPerPerson", n, wanted.length);
   await db
     .insert(availability)
-    .values(wanted.map((date) => ({ tripId, userId, date, available: isAvailable })))
+    .values(wanted.map((date) => ({ tripId, userId, date, ...mark })))
     .onConflictDoUpdate({
       target: [availability.tripId, availability.userId, availability.date],
-      set: { available: isAvailable, deletedAt: null, ...touch() },
+      set: { ...mark, deletedAt: null, ...touch() },
     });
+}
+
+export async function setAvailability(
+  tripId: number,
+  userId: string,
+  dates: string[],
+  isAvailable: boolean,
+): Promise<void> {
+  await markDates(tripId, userId, dates, isAvailable ? { available: true } : { available: false, preferred: false });
+}
+
+export async function setPreferredDays(
+  tripId: number,
+  userId: string,
+  dates: string[],
+  preferred: boolean,
+): Promise<void> {
+  if (preferred) return markDates(tripId, userId, dates, { available: true, preferred: true });
+  const wanted = [...new Set(dates)];
+  if (wanted.length === 0) return;
+  await db
+    .update(availability)
+    .set({ preferred: false, ...touch() })
+    .where(
+      and(
+        eq(availability.tripId, tripId),
+        eq(availability.userId, userId),
+        inArray(availability.date, wanted),
+        isNull(availability.deletedAt),
+      ),
+    );
 }
 
 export async function clearAvailabilityFor(
@@ -66,7 +96,7 @@ export async function clearAvailabilityFor(
 ): Promise<void> {
   await db
     .update(availability)
-    .set({ available: false, ...touch() })
+    .set({ available: false, preferred: false, ...touch() })
     .where(
       and(
         eq(availability.tripId, tripId),

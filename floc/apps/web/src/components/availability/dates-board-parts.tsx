@@ -6,7 +6,9 @@ import type { DatesTab, TabStub } from "@/components/availability/dates-tabs";
 import { NavGlyph } from "@/components/system/icons/nav";
 import { CheckIcon, ChevronIcon } from "@/components/system/icons";
 import { ProStar } from "@/components/system/pro-star";
-import { Button, LegendKey, busyMark, cx } from "@/components/system/ui";
+import { Button, LegendKey, busyMark, cx, panelTitleClass, trackSegmentClass } from "@/components/system/ui";
+import { SegmentTrack } from "@/components/system/segment-track";
+import type { PaintMode } from "@floc/core/dates/finding/day-paint";
 import { WeatherGlyph } from "@/components/system/icons/weather";
 import { formatMonth, tripCoverage, type IsoMonth } from "@floc/core/dates/availability";
 import { formatDate, type IsoDate } from "@floc/core/dates/dates";
@@ -14,24 +16,59 @@ import { forecastTab, groupTab, tripTab, yourDaysTab, type GroupAnswer } from "@
 import type { TripForecast } from "@/server/itinerary/weather";
 import { countWord } from "@floc/core/text/count-word";
 
-const typed = "font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint";
+export function AsideHead({ title, id, meta }: { title: string; id?: string; meta?: ReactNode }) {
+  return (
+    <div className="flex min-h-[26px] items-center justify-between gap-2">
+      <h3 id={id} className={panelTitleClass}>{title}</h3>
+      {meta}
+    </div>
+  );
+}
 
-export function MonthPager({ month, page, hint, menu }: { month: IsoMonth; page: (delta: number) => void; hint: string; menu?: ReactNode }) {
+export function MonthPager({ month, page, lead, menu }: { month: IsoMonth; page: (delta: number) => void; lead: ReactNode; menu?: ReactNode }) {
   const round = "!size-8 !p-0";
   return (
-    <div className="mb-3.5 flex items-center gap-2.5">
-      <Button variant="secondary" className={round} aria-label="Earlier month" onClick={() => page(-1)}>
-        <ChevronIcon direction="left" />
-      </Button>
-      <p className="min-w-[9.5rem] text-center font-display text-[15px] font-semibold">{formatMonth(month)}</p>
-      <Button variant="secondary" className={round} aria-label="Later month" onClick={() => page(1)}>
-        <ChevronIcon direction="right" />
-      </Button>
-      <span className="ml-auto flex items-center gap-2.5">
-        {hint ? <span className="hidden text-[13px] text-ink-faint sm:block">{hint}</span> : null}
+    <div className="mb-3.5 flex min-h-8 items-center gap-2.5">
+      <span className="flex shrink-0 items-center">{lead}</span>
+      <span className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2.5">
         {menu}
+        <Button variant="secondary" className={round} aria-label="Earlier month" onClick={() => page(-1)}>
+          <ChevronIcon direction="left" />
+        </Button>
+        <p className="whitespace-nowrap text-center font-display text-[13px] font-semibold sm:text-[15px] xl:min-w-[9.5rem]">{formatMonth(month)}</p>
+        <Button variant="secondary" className={round} aria-label="Later month" onClick={() => page(1)}>
+          <ChevronIcon direction="right" />
+        </Button>
       </span>
     </div>
+  );
+}
+
+export const PagerHint = ({ hint }: { hint: string }) => (hint ? <span className="hidden text-[13px] text-ink-faint sm:block">{hint}</span> : null);
+
+const MARK_MODES: { value: PaintMode; label: string; swatch: string }[] = [
+  { value: "free", label: "Can do", swatch: "border border-ink-faint" },
+  { value: "prefer", label: "Prefer", swatch: "border-[1.5px] border-ink bg-sheet" },
+];
+
+const ownSwatch = (look: string) => <span aria-hidden className={cx("size-3 shrink-0 rounded-full", look)} />;
+
+export function MarkSwitch({ mode, onMode }: { mode: PaintMode; onMode: (mode: PaintMode) => void }) {
+  return (
+    <SegmentTrack role="group" aria-label="What a press marks" className="flex items-center gap-1">
+      {MARK_MODES.map((m) => (
+        <button
+          key={m.value}
+          type="button"
+          aria-pressed={m.value === mode}
+          onClick={() => onMode(m.value)}
+          className={cx(trackSegmentClass(m.value === mode), "flex items-center gap-1.5 whitespace-nowrap px-2.5 py-[3px] text-[13px] leading-[17px] sm:px-3")}
+        >
+          {ownSwatch(m.swatch)}
+          {m.label}
+        </button>
+      ))}
+    </SegmentTrack>
   );
 }
 
@@ -39,14 +76,23 @@ function Bar({ children }: { children: ReactNode }) {
   return <div className="flex flex-wrap items-center gap-2.5 border-t border-rule pb-3.5 pt-3">{children}</div>;
 }
 
-export function SaveBar({ changed, pending, onSave }: { changed: number; pending: boolean; onSave: () => void }) {
+export function SaveBar({ changed, pending, onSave, onFill }: { changed: number; pending: boolean; onSave: () => void; onFill?: () => void }) {
   return (
     <Bar>
-      <span className="text-[13px] text-ink-soft">{countWord(changed, "change")} not saved</span>
-      <Button variant="primary" className="ml-auto" disabled={pending} aria-busy={pending || undefined} onClick={onSave}>
-        {`Save ${countWord(changed, "day")}`}
-        {busyMark(pending)}
-      </Button>
+      {onFill ? (
+        <Button variant="secondary" onClick={onFill}>
+          Free all month
+        </Button>
+      ) : null}
+      {changed > 0 ? (
+        <span className="ml-auto flex flex-wrap items-center justify-end gap-2.5">
+          <span className="text-[13px] text-ink-soft">{countWord(changed, "change")} not saved</span>
+          <Button variant="primary" disabled={pending} aria-busy={pending || undefined} onClick={onSave}>
+            {`Save ${countWord(changed, "day")}`}
+            {busyMark(pending)}
+          </Button>
+        </span>
+      ) : null}
     </Bar>
   );
 }
@@ -91,15 +137,16 @@ export function CommitBar({ pick, dated, problem, pending, onCommit, onDiscard }
 }
 
 export function DatesKey() {
-  const swatch = (cls: string) => <span aria-hidden className={cx("size-3 rounded-[4px] max-sm:size-2", cls)} />;
+  const swatch = (cls: string) => <span aria-hidden className={cx("size-3 shrink-0 rounded-[4px] max-sm:size-2", cls)} />;
   const item = "flex items-center gap-1.5";
   return (
-    <div className="flex flex-wrap gap-x-[18px] gap-y-2 py-3 text-xs text-ink-soft max-sm:flex-nowrap max-sm:justify-between max-sm:gap-x-2 max-sm:whitespace-nowrap max-sm:text-[11px] max-sm:[&>span]:gap-1 max-sm:[&>span]:text-[11px]">
-      <span className={item}>
-        <span aria-hidden className="size-3.5 rounded-full bg-ink-soft/20" />
-        You can do
-      </span>
-      <LegendKey swatch="bg-pastel-green border-pastel-green" label="Everyone free" />
+    <div className="flex flex-wrap gap-x-[18px] gap-y-2 py-3 text-xs text-ink-soft max-sm:gap-x-3 max-sm:gap-y-1.5 max-sm:whitespace-nowrap max-sm:text-[11px] max-sm:[&>span]:gap-1 max-sm:[&>span]:text-[11px]">
+      {MARK_MODES.map((m) => (
+        <span key={m.value} className={item}>
+          {ownSwatch(m.swatch)}
+          {m.label}
+        </span>
+      ))}
       <span className={item}>
         <span className="flex gap-[3px]">
           {swatch("bg-some-free-1")}
@@ -108,6 +155,7 @@ export function DatesKey() {
         </span>
         Some free
       </span>
+      <LegendKey swatch="bg-pastel-green border-pastel-green" label="Everyone free" />
       <LegendKey swatch="bg-green border-green" label="The trip" />
     </div>
   );
@@ -118,7 +166,7 @@ export function Coverage({ isFree, start, end }: { isFree: (d: string) => boolea
   if (!c) return null;
   return (
     <div className="p-4">
-      <p className={typed}>In the trip</p>
+      <AsideHead title="In the trip" />
       <p className="nums mt-1 font-mono text-base text-ink">
         {c.free} of {countWord(c.total, "day")}
       </p>
@@ -129,8 +177,10 @@ export function Coverage({ isFree, start, end }: { isFree: (d: string) => boolea
   );
 }
 
-export const HINT: Record<DatesTab, string> = {
-  mine: "Drag across the days you can do",
+export const hintFor = (tab: DatesTab): string => HINT[tab];
+
+const HINT: Record<DatesTab, string> = {
+  mine: "",
   group: "",
   trip: "Press the first day, then the last",
   forecast: "Press a trip day for its hours",

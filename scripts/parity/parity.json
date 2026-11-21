@@ -12,13 +12,22 @@
     "availability.guests": {
       "mobile": "yes"
     },
+    "availability.lengths": {
+      "mobile": "yes"
+    },
     "availability.list": {
+      "mobile": "yes"
+    },
+    "availability.prefer": {
+      "mobile": "yes"
+    },
+    "availability.set": {
       "mobile": "yes"
     },
     "availability.setCalendarAllDayOnly": {
       "mobile": "yes"
     },
-    "availability.set": {
+    "availability.setLength": {
       "mobile": "yes"
     },
     "billing.claim": {

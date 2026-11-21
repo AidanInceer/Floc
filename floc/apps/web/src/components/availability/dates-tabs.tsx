@@ -40,7 +40,7 @@ function Stub({ stub, selected, onOpen }: { stub: TabStub; selected: boolean; on
       className={cx(
         "relative grid min-w-0 justify-items-center gap-1.5 px-1 py-3 text-center transition-colors",
         "[&+&]:shadow-[inset_1px_0_0_var(--rule)] lg:[&+&]:shadow-none",
-        "lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:justify-items-stretch lg:gap-x-2.5 lg:gap-y-1 lg:border-b-[1.5px] lg:border-dashed lg:border-rule-strong lg:py-4 lg:pl-[18px] lg:pr-4 lg:text-left",
+        "lg:grid-cols-[auto_auto_minmax(0,1fr)] lg:justify-items-stretch lg:gap-x-2.5 lg:gap-y-1 lg:border-b-[1.5px] lg:border-dashed lg:border-rule-strong lg:py-4 lg:pl-[18px] lg:pr-4 lg:text-left",
         selected ? "bg-sheet" : "hover:bg-sheet/55",
       )}
     >
@@ -59,16 +59,18 @@ function Stub({ stub, selected, onOpen }: { stub: TabStub; selected: boolean; on
       >
         {stub.glyph}
       </span>
-      <span className="typed hidden min-w-0 items-center gap-1.5 truncate lg:flex">{stub.label}</span>
-      <span className="hidden items-center lg:flex">{stub.corner}</span>
-      <b className="min-w-0 max-w-full truncate text-[13px] font-semibold lg:col-span-3 lg:mt-1.5 lg:font-display lg:text-lg lg:leading-tight lg:tracking-[-0.015em]">
+      <b className="flex min-w-0 max-w-full items-center justify-center gap-1.5 truncate text-[13px] font-semibold text-ink lg:justify-start lg:font-display lg:text-[17px] lg:leading-tight">
+        {stub.label}
+      </b>
+      <span className="hidden min-w-0 items-center justify-end lg:flex [&_*]:shrink-0">{stub.corner}</span>
+      <span className="min-w-0 max-w-full truncate text-xs text-ink-soft lg:col-span-3 lg:mt-1 lg:text-[13px]">
         <span className="lg:hidden">{summary.short}</span>
         <span className="hidden lg:inline">{summary.value}</span>
-      </b>
+      </span>
       <small
         className={cx(
           "hidden truncate text-[13px] lg:col-span-3 lg:block",
-          summary.open ? "text-highlight-ink" : "text-ink-soft",
+          summary.open ? "text-highlight-ink" : "text-ink-faint",
         )}
       >
         {summary.note}

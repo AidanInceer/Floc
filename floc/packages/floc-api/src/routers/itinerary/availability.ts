@@ -1,4 +1,5 @@
 import { isIsoDate } from "@floc/core/dates/dates";
+import { TRIP_LENGTHS } from "@floc/core/dates/finding/trip-length";
 import { z } from "zod";
 
 import { protectedProcedure, router, tripProcedure } from "../../trpc";
@@ -38,5 +39,24 @@ export const availabilityRouter = router({
         input.dates,
         input.available,
       );
+    }),
+
+  prefer: tripProcedure
+    .input(
+      z.object({
+        dates: z.array(isoDate).min(1).max(MAX_DATES),
+        preferred: z.boolean(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.port.setPreferredDays(ctx.viewer.id, input.tripId, input.dates, input.preferred);
+    }),
+
+  lengths: tripProcedure.query(({ ctx, input }) => ctx.port.listLengthChoices(ctx.viewer.id, input.tripId)),
+
+  setLength: tripProcedure
+    .input(z.object({ length: z.enum(TRIP_LENGTHS), picked: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.port.setLengthChoice(ctx.viewer.id, input.tripId, input.length, input.picked);
     }),
 });

@@ -8,6 +8,7 @@ import {
   TRANSPORT_TYPES,
 } from "@floc/core/vocabulary";
 import { CURRENCIES } from "@floc/core/money/currency";
+import { TRIP_LENGTHS } from "@floc/core/dates/finding/trip-length";
 import { DEFAULT_CATEGORY, EXPENSE_CATEGORIES } from "@floc/core/money/expense-category";
 import { DOC_CATEGORIES } from "@floc/core/documents/documents";
 import { PACK_CATEGORIES, PACK_ORIGINS, PACK_TIERS } from "@floc/core/packing/packing";
@@ -606,10 +607,29 @@ export const availability = sqliteTable(
       .references(() => user.id, { onDelete: "cascade" }),
     date: text("date").notNull(),
     available: integer("available", { mode: "boolean" }).notNull(),
+    preferred: integer("preferred", { mode: "boolean" }).notNull().default(false),
     ...audit,
   },
   (t) => [
     uniqueIndex("availability_unique_idx").on(t.tripId, t.userId, t.date),
+  ],
+);
+
+export const tripLengthChoice = sqliteTable(
+  "trip_length_choice",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    tripId: integer("trip_id")
+      .notNull()
+      .references(() => trip.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    length: text("length", { enum: TRIP_LENGTHS }).notNull(),
+    ...audit,
+  },
+  (t) => [
+    uniqueIndex("trip_length_choice_unique_idx").on(t.tripId, t.userId, t.length),
   ],
 );
 
@@ -1009,6 +1029,7 @@ export type Trip = typeof trip.$inferSelect;
 export type TripMembership = typeof tripMembership.$inferSelect;
 export type TripInvite = typeof tripInvite.$inferSelect;
 export type Availability = typeof availability.$inferSelect;
+export type TripLengthChoice = typeof tripLengthChoice.$inferSelect;
 export type Day = typeof day.$inferSelect;
 export type DayEvent = typeof dayEvent.$inferSelect;
 export type Place = typeof place.$inferSelect;

@@ -4,7 +4,10 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db, schema } from "@/db";
 import { expectNotFound, migrateTestDb, resetDb, seedScenario, signIn, type Scenario } from "@/test/db";
 
-import { clearMyAvailability, clearTripDates, saveAvailability, setTripDates } from "./actions";
+import { listAvailability } from "@/server/itinerary/availability";
+import { listLengthChoices } from "@/server/itinerary/trip-length";
+
+import { clearMyAvailability, clearTripDates, saveAvailability, setTripDates, setTripLength } from "./actions";
 
 let world: Scenario;
 
@@ -61,6 +64,42 @@ describe("availability", () => {
   it("refuses a trip the viewer is not on (rule 5)", async () => {
     signIn(world.outsider);
     await expectNotFound(() => saveAvailability(world.ours.id, ["2026-09-01"], []));
+  });
+
+  it("saves preferred days, and takes a preference off without losing the day", async () => {
+    await saveAvailability(world.ours.id, ["2026-09-01"], [], { on: ["2026-09-02", "2026-09-03"], off: [] });
+    await saveAvailability(world.ours.id, [], [], { on: [], off: ["2026-09-03"] });
+
+    expect((await listAvailability(world.ours.id)).map((r) => [r.date, r.available, r.preferred]).sort()).toEqual([
+      ["2026-09-01", true, false],
+      ["2026-09-02", true, true],
+      ["2026-09-03", true, false],
+    ]);
+  });
+
+  it("refuses a preferred date that is not a day", async () => {
+    await expect(saveAvailability(world.ours.id, [], [], { on: ["2026-02-31"], off: [] })).rejects.toThrow("Not a date: 2026-02-31");
+  });
+});
+
+describe("how long", () => {
+  it("picks the viewer's own length, and takes it back", async () => {
+    await setTripLength(world.ours.id, "week", true);
+    expect(await listLengthChoices(world.ours.id)).toEqual([{ userId: world.member, length: "week" }]);
+
+    await setTripLength(world.ours.id, "week", false);
+    expect(await listLengthChoices(world.ours.id)).toEqual([]);
+  });
+
+  it("refuses a length or a choice that is not one of ours", async () => {
+    await expect(setTripLength(world.ours.id, "fortnight" as never, true)).rejects.toThrow("Not a length.");
+    await expect(setTripLength(world.ours.id, "week", "maybe" as never)).rejects.toThrow("Not a choice.");
+    expect(await listLengthChoices(world.ours.id)).toEqual([]);
+  });
+
+  it("refuses a trip the viewer is not on (rule 5)", async () => {
+    signIn(world.outsider);
+    await expectNotFound(() => setTripLength(world.ours.id, "week", true));
   });
 });
 

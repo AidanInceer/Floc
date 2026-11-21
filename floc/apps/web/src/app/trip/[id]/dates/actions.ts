@@ -4,7 +4,9 @@ import { isIsoDate } from "@floc/core/dates/dates";
 import { windowProblem } from "@floc/core/trip/trip-window";
 import { requireTripAccess, requireUser } from "@/server/access";
 import { setTripWindow } from "@/server/itinerary/itinerary";
-import { clearAvailabilityFor, setAvailability } from "@/server/itinerary/availability";
+import { isTripLength, type TripLength } from "@floc/core/dates/finding/trip-length";
+import { clearAvailabilityFor, setAvailability, setPreferredDays } from "@/server/itinerary/availability";
+import { setLengthChoice } from "@/server/itinerary/trip-length";
 import { refresh } from "@/server/freshness";
 import { removeGuest } from "@/server/guests/guests";
 import { fillFromCalendar, type CalendarFill } from "@/server/calendar/calendar-import";
@@ -33,13 +35,36 @@ async function setAvailabilityDates(
   );
 }
 
+async function setPreferredDates(tripId: number, dates: string[], preferred: boolean) {
+  if (dates.length === 0) return;
+  assertIsoDates(dates);
+  const access = await requireTripAccess(tripId);
+
+  await setPreferredDays(access.trip.id, access.viewer.id, dates, preferred);
+
+  refresh({ kind: "tripDates", tripId: access.trip.id }, { kind: "tripOverview", tripId: access.trip.id });
+}
+
 export async function saveAvailability(
   tripId: number,
   add: string[],
   remove: string[],
+  prefer: { on: string[]; off: string[] } = { on: [], off: [] },
 ) {
   await setAvailabilityDates(tripId, add, true);
   await setAvailabilityDates(tripId, remove, false);
+  await setPreferredDates(tripId, prefer.on, true);
+  await setPreferredDates(tripId, prefer.off, false);
+}
+
+export async function setTripLength(tripId: number, length: TripLength, picked: boolean) {
+  if (!isTripLength(length)) throw new Error("Not a length.");
+  if (typeof picked !== "boolean") throw new Error("Not a choice.");
+  const access = await requireTripAccess(tripId);
+
+  await setLengthChoice(access.trip.id, access.viewer.id, length, picked);
+
+  refresh({ kind: "tripDates", tripId: access.trip.id });
 }
 
 export async function setTripDates(

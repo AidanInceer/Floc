@@ -20,6 +20,7 @@ export const LIMITS = {
   ideas: 200,
   availability: 20_000,
   availabilityPerPerson: 732,
+  lengthChoices: 1000,
   commentsPerThread: 500,
   nudgesPerDay: 20,
   friendGroups: 20,

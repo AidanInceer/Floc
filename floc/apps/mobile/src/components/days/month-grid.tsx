@@ -21,6 +21,7 @@ const FILL: Record<string, { ground: TokenName; ink: TokenName; fade?: number }>
 
 const INSET = 3;
 const DISC = 30;
+const RING = 1.5;
 
 type Join = { left: boolean; right: boolean };
 
@@ -47,10 +48,13 @@ function Shape({ fill, join }: { fill: (typeof FILL)[string]; join: Join }) {
   );
 }
 
-function Disc({ onTrip, ink }: { onTrip: boolean; ink: string }) {
+function Disc({ onTrip, own }: { onTrip: boolean; own: "free" | "prefer" }) {
   const { c } = useTheme();
-  return <View style={{ position: "absolute", width: DISC, height: DISC, borderRadius: radius.pill, backgroundColor: onTrip ? c.sheet : ink, opacity: onTrip ? 1 : 0.14 }} />;
+  const base = { position: "absolute", width: DISC, height: DISC, borderRadius: radius.pill } as const;
+  if (own === "prefer") return <View style={{ ...base, backgroundColor: c.sheet, borderWidth: onTrip ? 0 : RING, borderColor: c.ink }} />;
+  return <View style={{ ...base, borderWidth: 1, borderColor: onTrip ? c.sheet : c["ink-3"] }} />;
 }
+
 
 function decoration(look: DayLook): "line-through" | "underline" | "none" {
   if (look.cut) return "line-through";
@@ -62,16 +66,18 @@ function DayCell({ date, look, join }: { date: string; look: DayLook; join: Join
   const key = markKey(look.mark);
   const fill = FILL[key];
   const onTrip = key === "trip";
+  const own = look.own ?? (look.mine ? "free" : "off");
+  const liked = own === "prefer";
   const base = fill ? c[fill.ink] : c.ink;
-  const ink = look.mine && onTrip ? c.green : base;
+  const ink = liked ? (onTrip ? c.green : c.ink) : base;
   return (
     <View accessibilityLabel={look.label} style={{ flex: 1, alignItems: "center", justifyContent: "center", opacity: look.past ? 0.7 : 1 }}>
       {fill ? <Shape fill={fill} join={join} /> : null}
-      {look.mine ? <Disc onTrip={onTrip} ink={base} /> : null}
+      {own === "off" ? null : <Disc onTrip={onTrip} own={own} />}
       <Text
         style={{
           color: ink,
-          fontFamily: onTrip || look.mine ? fonts.typeBold : fonts.type,
+          fontFamily: onTrip || liked ? fonts.typeBold : fonts.type,
           fontSize: size.small,
           fontVariant: ["tabular-nums"],
           textDecorationLine: decoration(look),
