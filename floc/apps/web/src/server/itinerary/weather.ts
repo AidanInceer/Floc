@@ -16,12 +16,15 @@ import {
   type WeatherCondition,
 } from "@floc/core/itinerary/weather";
 import { canUseFeature } from "@/server/billing/entitlements";
+import { LIMITS } from "@/server/limits";
+import { forecastTitle, placeForEachNight, type NightPlace } from "@floc/core/itinerary/forecast/forecast-stops";
 
 const MET_NORWAY = "https://api.met.no/weatherapi/locationforecast/2.0/compact";
 const USER_AGENT = "Floc https://floc.live";
 
 export type DailyForecast = {
   date: IsoDate;
+  placeName: string;
   condition: WeatherCondition;
   label: string;
   hi: number;
@@ -41,6 +44,7 @@ export type TripForecast = {
   horizonEnd: IsoDate;
   days: DailyForecast[];
   hourly: Record<IsoDate, HourlyPoint[]>;
+  nightPlaces: Record<IsoDate, string>;
 };
 
 type Anchor = { lat: number; lng: number; placeName: string };
@@ -79,20 +83,32 @@ type MetResponse = { properties?: { timeseries?: MetEntry[] } };
 
 type Step = { date: IsoDate; time: string; hour: number; hours: number; temp: number; condition: WeatherCondition; rain: number };
 
-export async function getTripForecast(tripId: number): Promise<TripForecast | null> {
-  if (!(await canUseFeature("dates.weather", tripId))) return null;
+type Stop = Anchor & { id: number };
 
-  const anchor = await tripForecastAnchor(tripId);
-  if (!anchor) return null;
+async function tripNights(tripId: number): Promise<NightPlace<Stop>[]> {
+  const rows = await db
+    .select({ date: day.date, id: place.id, lat: place.lat, lng: place.lng, placeName: place.name })
+    .from(day)
+    .leftJoin(place, eq(place.id, day.overnightPlaceId))
+    .where(and(eq(day.tripId, tripId), isNull(day.deletedAt)))
+    .orderBy(asc(day.date))
+    .limit(LIMITS.days)
+    .all();
+  return rows.map((r) => ({
+    date: r.date,
+    place:
+      r.id !== null && r.lat !== null && r.lng !== null && r.placeName !== null
+        ? { id: r.id, lat: r.lat, lng: r.lng, placeName: r.placeName }
+        : null,
+  }));
+}
 
+async function stopSteps(stop: Stop): Promise<Step[] | null> {
   const url = new URL(MET_NORWAY);
-  url.searchParams.set("lat", anchor.lat.toFixed(4));
-  url.searchParams.set("lon", anchor.lng.toFixed(4));
-
-  let body: MetResponse;
-  let zone: string;
+  url.searchParams.set("lat", stop.lat.toFixed(4));
+  url.searchParams.set("lon", stop.lng.toFixed(4));
   try {
-    zone = tzLookup(anchor.lat, anchor.lng);
+    const zone = tzLookup(stop.lat, stop.lng);
     const res = await fetch(url.toString(), {
       headers: { "User-Agent": USER_AGENT },
       next: { revalidate: 10_800 },
@@ -102,19 +118,39 @@ export async function getTripForecast(tripId: number): Promise<TripForecast | nu
       log.warn("weather.failed", { status: res.status });
       return null;
     }
-    body = (await res.json()) as MetResponse;
+    const body = (await res.json()) as MetResponse;
+    return toSteps(body.properties?.timeseries ?? [], zone);
   } catch (err) {
     log.warn("weather.unreachable", describeError(err));
     return null;
   }
+}
+
+export async function getTripForecast(tripId: number): Promise<TripForecast | null> {
+  if (!(await canUseFeature("dates.weather", tripId))) return null;
+
+  const nights = placeForEachNight(await tripNights(tripId));
+  if (nights.size === 0) return null;
 
   const from = today();
   const horizonEnd = addDays(from, HORIZON_DAYS - 1);
-  const steps = toSteps(body.properties?.timeseries ?? [], zone).filter((s) => s.date >= from && s.date <= horizonEnd);
-  const days = mapDaily(steps);
-  if (days.length === 0) return null;
+  const placeName = forecastTitle([...nights.values()].map((s) => s.placeName));
+  const ahead = [...nights].filter(([date]) => date >= from && date <= horizonEnd);
+  const stops = [...new Map(ahead.map(([, s]) => [s.id, s])).values()];
+  const series = new Map(await Promise.all(stops.map(async (s) => [s.id, await stopSteps(s)] as const)));
+  if (stops.length > 0 && [...series.values()].every((s) => s === null)) return null;
 
-  return { placeName: anchor.placeName, from, horizonEnd, days, hourly: mapHourly(steps) };
+  const steps: Step[] = [];
+  const placeOf = new Map<IsoDate, string>();
+  for (const [date, s] of ahead) {
+    const own = (series.get(s.id) ?? []).filter((step) => step.date === date);
+    if (own.length > 0) placeOf.set(date, s.placeName);
+    steps.push(...own);
+  }
+
+  const days = mapDaily(steps).map((d) => ({ ...d, placeName: placeOf.get(d.date) ?? placeName }));
+  const nightPlaces = Object.fromEntries([...nights].map(([date, s]) => [date, s.placeName]));
+  return { placeName, from, horizonEnd, days, hourly: mapHourly(steps), nightPlaces };
 }
 
 function localClock(zone: string) {
@@ -155,7 +191,7 @@ function toSteps(series: MetEntry[], zone: string): Step[] {
   return out;
 }
 
-function mapDaily(steps: Step[]): DailyForecast[] {
+function mapDaily(steps: Step[]): Omit<DailyForecast, "placeName">[] {
   const byDate = new Map<IsoDate, { condition: WeatherCondition; hi: number; lo: number }>();
   for (const step of steps) {
     const seen = byDate.get(step.date);

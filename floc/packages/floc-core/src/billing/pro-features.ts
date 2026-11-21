@@ -1,3 +1,4 @@
+import { HORIZON_DAYS } from "../itinerary/weather";
 import type { FeatureKey } from "./plans";
 
 export type ProFeature = {
@@ -19,8 +20,8 @@ export const PRO_FEATURES = [
   {
     key: "dates.weather",
     name: "See the forecast",
-    detail: "Weather for every day you are away.",
-    phrase: "weather for your dates",
+    detail: `Each stop's forecast, up to ${HORIZON_DAYS} days ahead.`,
+    phrase: `each stop’s forecast on your dates (up to ${HORIZON_DAYS} days ahead)`,
     tag: "weather",
   },
   {
