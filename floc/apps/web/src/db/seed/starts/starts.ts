@@ -7,10 +7,10 @@ import { availability, idea, ideaVote, trip } from "../../schema.ts";
 import { SEED_DOMAIN } from "../identity.ts";
 import { seedGuest, upsertAccount } from "../people.ts";
 import { OPEN } from "../profiles.ts";
-import { isoIn, makeTrip } from "../world.ts";
+import { isoIn } from "../world.ts";
 import { mintShareToken } from "@/server/trips/invite-link";
 
-export const STARTS = ["new-user", "walkthrough", "join-link", "guest-account", "dead-link"] as const;
+export const STARTS = ["new-user", "new-joiner", "join-link", "guest-account", "dead-link"] as const;
 export type StartName = (typeof STARTS)[number];
 
 export type Start = { as: string | null; to: string };
@@ -23,7 +23,7 @@ async function tripNamed(name: string) {
   return row;
 }
 
-async function walkthrough(): Promise<Start> {
+async function newJoiner(): Promise<Start> {
   const newcomer = await upsertAccount({
     id: "seed-start-newcomer",
     email: startEmail("newcomer"),
@@ -31,14 +31,7 @@ async function walkthrough(): Promise<Start> {
     name: "Alex Newman",
     profile: { vibes: [], currency: "GBP", rings: OPEN },
   });
-  const tripId = await makeTrip({
-    name: "Lisbon, long weekend",
-    startDate: isoIn(60),
-    endDate: isoIn(63),
-    createdBy: newcomer,
-    members: [{ userId: newcomer, role: "admin" }],
-  });
-  return { as: newcomer, to: `/trip/${tripId}/overview` };
+  return { as: newcomer, to: "/trips" };
 }
 
 async function portugalWithIdeas() {
@@ -78,7 +71,7 @@ async function deadLink(): Promise<Start> {
 
 const BUILDERS: Record<StartName, () => Promise<Start>> = {
   "new-user": async () => ({ as: null, to: "/signup" }),
-  walkthrough,
+  "new-joiner": newJoiner,
   "join-link": joinLink,
   "guest-account": guestAccount,
   "dead-link": deadLink,

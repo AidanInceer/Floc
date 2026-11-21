@@ -63,6 +63,14 @@ describe("creating a trip", () => {
     expect((await invite(rome!.id, world.member))?.status).toBe("pending");
   });
 
+  it("turns the places named at the start into ideas on the trip, in order (#708)", async () => {
+    await expect(createTrip(form({ name: "Iberia", places: ["Lisbon", "Porto", "lisbon", " "] }))).rejects.toThrow(REDIRECT);
+    const iberia = await db.select().from(schema.trip).where(eq(schema.trip.name, "Iberia")).get();
+    const ideas = await db.select().from(schema.idea).where(eq(schema.idea.tripId, iberia!.id)).all();
+    expect(ideas.map((i) => i.title)).toEqual(["Lisbon", "Porto"]);
+    expect(ideas.every((i) => i.createdBy === world.admin)).toBe(true);
+  });
+
   it("refuses a trip with no name", async () => {
     await expect(createTrip(form({ name: "  " }))).rejects.toThrow("A trip needs a name");
   });

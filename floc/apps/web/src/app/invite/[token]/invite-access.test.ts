@@ -84,8 +84,14 @@ describe("where the link sends somebody", () => {
   it("comes back to the link after signing up or in", () => {
     const { signUpHref, signInHref } = inviteAuthHrefs("abc");
 
-    expect(signUpHref).toContain(encodeURIComponent("/invite/abc"));
-    expect(signInHref).toContain(encodeURIComponent("/invite/abc"));
+    expect(signUpHref).toContain(encodeURIComponent("/invite/abc/join"));
+    expect(signInHref).toContain(encodeURIComponent("/invite/abc/join"));
+  });
+
+  it("reads the token from the join return address too (#707)", () => {
+    expect(inviteTokenIn("/invite/abc/join")).toBe("abc");
+    expect(inviteTokenIn("/invite/abc")).toBe("abc");
+    expect(inviteTokenIn("/invite/abc/other")).toBeNull();
   });
 
   it("marks a sign-up that arrived on a link", () => {
@@ -94,7 +100,7 @@ describe("where the link sends somebody", () => {
 
   it("escapes a token rather than letting it shape the URL", () => {
     const { signInHref } = inviteAuthHrefs("a/b?c=d");
-    expect(signInHref).toBe(`/login?redirect=${encodeURIComponent("/invite/a/b?c=d")}`);
+    expect(signInHref).toBe(`/login?redirect=${encodeURIComponent("/invite/a/b?c=d/join")}`);
   });
 });
 

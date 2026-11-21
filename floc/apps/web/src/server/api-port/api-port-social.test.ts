@@ -166,11 +166,13 @@ describe("the share link (ticket 05, 147)", () => {
   });
 });
 
-describe("the tour through the port (#314)", () => {
-  it("is unseen until marked, then seen", async () => {
-    expect(await webPort.tourSeen(world.member)).toBe(false);
-    await webPort.markTourSeen(world.member);
-    expect(await webPort.tourSeen(world.member)).toBe(true);
+describe("the welcome through the port (#707)", () => {
+  it("is due until finished, then saves the answers", async () => {
+    expect((await webPort.welcome(world.member)).due).toBe(true);
+    await webPort.finishWelcome(world.member, { homeAirport: "LIS", vibeTags: ["museums"] });
+    const after = await webPort.welcome(world.member);
+    expect(after.due).toBe(false);
+    expect(after.answers).toMatchObject({ homeAirport: "LIS", vibeTags: ["museums"] });
   });
 });
 

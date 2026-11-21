@@ -2,7 +2,6 @@
 
 import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 
-import { CopySheet } from "@/components/explore/copy/copy-sheet";
 import { PostcardStamp } from "@/components/explore/postcard-stamp";
 import { ButtonLink } from "@/components/system/ui";
 import { listingStartHref } from "@/lib/landing/start-trip";
@@ -47,7 +46,7 @@ export function ExplorePostcard({ trip, signedIn }: { trip: PresetTrip; signedIn
       </ul>
       <div className="mt-auto flex flex-wrap items-center gap-3.5">
         {signedIn ? (
-          <CopySheet trip={trip}>Start this trip</CopySheet>
+          <ButtonLink href={listingStartHref(true, trip.id)} variant="primary">Start this trip</ButtonLink>
         ) : (
           <ButtonLink href={listingStartHref(false, trip.id)} variant="primary">
             Sign up to start

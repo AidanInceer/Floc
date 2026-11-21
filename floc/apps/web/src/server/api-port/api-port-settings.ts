@@ -7,7 +7,7 @@ import { listSignInMethods, unlinkSignIn } from "@/server/auth/sign-in-methods";
 import { refresh } from "@/server/freshness";
 import { ensureProfile, loadIdentity, updateProfileFields } from "@/server/auth/profile";
 import { eraseAccount } from "@/server/auth/erase-account";
-import { markTourSeen, tourSeenAt } from "@/server/auth/tour";
+import { finishWelcome, welcomeFor } from "@/server/auth/welcome/welcome";
 import { toggleBookingSite } from "@/server/auth/booking-sites";
 import { readBookingSites } from "@floc/core/trip/booking/booking-sites";
 
@@ -24,16 +24,14 @@ type SettingsPort = Pick<
   | "updateNotifications"
   | "unlinkSignIn"
   | "deleteMyAccount"
-  | "tourSeen"
-  | "markTourSeen"
+  | "welcome"
+  | "finishWelcome"
 >;
 
 export const settingsPort: SettingsPort = {
-  async tourSeen(viewerId) {
-    return (await tourSeenAt(viewerId)) !== null;
-  },
+  welcome: (viewerId) => welcomeFor(viewerId),
 
-  markTourSeen: (viewerId) => markTourSeen(viewerId),
+  finishWelcome: (viewerId, answers) => finishWelcome(viewerId, answers),
 
   async loadMySettings(viewerId): Promise<MySettings> {
     const profile = await ensureProfile(viewerId);

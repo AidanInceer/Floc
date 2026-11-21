@@ -17,7 +17,6 @@ import {
   inviteFriends,
   kickMember,
   leaveTrip,
-  markTourSeen,
   nudge,
   promoteMember,
   renameTrip,
@@ -159,19 +158,6 @@ describe("resetting the invite link (#358)", () => {
 
     await expectNotFound(() => resetInviteLink(form({ tripId: ours() })));
     expect((await tripRow(world.ours.id))?.inviteToken).toBe(before);
-  });
-});
-
-describe("the tour (#314)", () => {
-  it("marks the signed-in person as having seen it", async () => {
-    signIn(world.member);
-    await markTourSeen();
-    const profile = await db
-      .select()
-      .from(schema.userProfile)
-      .where(eq(schema.userProfile.userId, world.member))
-      .get();
-    expect(profile?.tourSeenAt).toBeInstanceOf(Date);
   });
 });
 

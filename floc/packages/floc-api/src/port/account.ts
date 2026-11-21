@@ -1,6 +1,7 @@
 import type { Currency } from "@floc/core/money/currency";
 import type { PackTier } from "@floc/core/packing/packing";
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
+import type { WelcomeAnswers } from "@floc/core/people/welcome/welcome";
 import type { BookingSite, BookingSites, SiteKind } from "@floc/core/trip/booking/booking-sites";
 import type { FriendState } from "./friends";
 
@@ -88,9 +89,9 @@ export type PublicProfileView = {
 export type AccountPort = {
   loadMe(viewerId: string): Promise<Me>;
 
-  tourSeen(viewerId: string): Promise<boolean>;
+  welcome(viewerId: string): Promise<{ due: boolean; currency: Currency; answers: WelcomeAnswers }>;
 
-  markTourSeen(viewerId: string): Promise<void>;
+  finishWelcome(viewerId: string, answers: WelcomeAnswers): Promise<void>;
 
   loadMyProfile(viewerId: string): Promise<MyProfile>;
 

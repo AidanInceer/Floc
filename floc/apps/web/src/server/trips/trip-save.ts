@@ -5,10 +5,12 @@ import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import { parseTagNames } from "@floc/core/trip/tags";
 import { readTripColor } from "@floc/core/trip/trip-color";
 import { readTripName } from "@floc/core/trip/trip-name";
+import { readStartPlaces } from "@floc/core/trip/start/start-steps";
 
 import type { TripAccess } from "@/server/access";
 import { ensureProfile } from "@/server/auth/profile";
 import { refresh } from "@/server/freshness";
+import { insertIdeas } from "@/server/ideas/ideas";
 import { setTripWindow } from "@/server/itinerary/itinerary";
 import { touchUsedGroups } from "@/server/social/groups";
 import type { NewTrip } from "@floc/api/port";
@@ -29,6 +31,7 @@ export async function startTrip(
   const [, held] = await Promise.all([ensureProfile(viewerId), tripsHeldBy(viewerId)]);
   const id = await createTripWithAdmin({ name, startDate: input.startDate, endDate: input.endDate, createdBy: viewerId }, held);
   refresh({ kind: "tripList" });
+  await insertIdeas(id, viewerId, readStartPlaces(input.places ?? []));
   if (input.friendIds?.length) {
     const sent = await inviteToTrip({ tripId: id, fromUserId: viewerId, toUserIds: input.friendIds });
     if (sent && input.groupIds?.length) {
