@@ -4,6 +4,7 @@ import {
   addMonths,
   bestWindow,
   daysInMonth,
+  formatShortMonth,
   freeDaysByUser,
   markedUserIds,
   monthGrid,
@@ -27,6 +28,11 @@ describe("month arithmetic", () => {
     expect(daysInMonth("2026-02")).toHaveLength(28);
     expect(daysInMonth("2028-02")).toHaveLength(29);
     expect(daysInMonth("2026-09")).toHaveLength(30);
+  });
+
+  it("names a month in short for a narrow screen", () => {
+    expect(formatShortMonth("2026-12")).toBe("Dec 2026");
+    expect(formatShortMonth("2027-05")).toBe("May 2027");
   });
 });
 
