@@ -13,10 +13,9 @@ import { tripRoute } from "@/lib/explore/route/trip-route";
 import type { LatLng } from "@floc/globe/sphere";
 
 import { atlasGlobe } from "./atlas-globe";
+import { isStill, watchStill } from "@/lib/motion/still";
 
 type AtlasGlobe = NonNullable<ReturnType<typeof atlasGlobe>>;
-
-const STILL = "(prefers-reduced-motion: reduce)";
 
 export function useAtlasGlobe(home: LatLng, places: LatLng[], clear: () => Box) {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -38,10 +37,12 @@ export function useAtlasGlobe(home: LatLng, places: LatLng[], clear: () => Box) 
     if (!g) return;
     globe.current = g;
     g.setLand(rings.current.world, rings.current.fine);
-    g.start(matchMedia(STILL).matches);
+    g.start(isStill());
     const stopRedraw = watchRedraw(node, g.redraw);
+    const stopWatch = watchStill(g.hold);
     return () => {
       stopRedraw();
+      stopWatch();
       g.stop();
       globe.current = null;
     };

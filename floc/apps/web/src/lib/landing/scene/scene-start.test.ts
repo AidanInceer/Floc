@@ -5,10 +5,20 @@ import { watchFirstView } from "./scene-start";
 type Options = IntersectionObserverInit;
 let observers: { callback: IntersectionObserverCallback; options: Options | undefined; observed: Element[]; disconnect: ReturnType<typeof vi.fn> }[];
 let motion: { matches: boolean; listeners: Set<() => void> };
+let root: { dataset: DOMStringMap };
 
 beforeEach(() => {
   observers = [];
   motion = { matches: false, listeners: new Set() };
+  root = { dataset: {} };
+  vi.stubGlobal("document", { documentElement: root });
+  vi.stubGlobal(
+    "MutationObserver",
+    class {
+      observe() {}
+      disconnect() {}
+    },
+  );
   vi.stubGlobal(
     "IntersectionObserver",
     class {
@@ -53,6 +63,14 @@ describe("watchFirstView", () => {
     show(true);
     expect(onStart).toHaveBeenCalledWith({ still: false });
     expect(observers[0]!.disconnect).toHaveBeenCalled();
+  });
+
+  it("starts still when the person turned animations off on their account", () => {
+    root.dataset.motion = "still";
+    const onStart = vi.fn();
+    watchFirstView(node, { onStart });
+    show(true);
+    expect(onStart).toHaveBeenCalledWith({ still: true });
   });
 
   it("starts still when the person asks for reduced motion", () => {

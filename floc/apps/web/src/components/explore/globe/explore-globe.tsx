@@ -4,6 +4,7 @@ import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
 
 import { openArea } from "@/components/explore/atlas/atlas-frame";
+import { MotionToggle } from "@/components/explore/motion-toggle";
 import { firstBase, routeParts } from "@/components/explore/listing";
 import { MinusIcon, PlusIcon } from "@/components/system/icons";
 import { NavGlyph } from "@/components/system/icons/nav";
@@ -27,12 +28,14 @@ export function ExploreGlobe({
   card,
   onPick,
   onWorld,
+  signedIn,
 }: {
   picked: string;
   route: AtlasRoute | null;
   card: RefObject<HTMLElement | null>;
   onPick: (presetId: string) => void;
   onWorld: () => void;
+  signedIn: boolean;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const clear = useCallback(
@@ -76,21 +79,24 @@ export function ExploreGlobe({
           ))}
         </ol>
       ) : null}
-      {route ? (
-        <button type="button" onClick={onWorld} className="atlas-world">
-          <NavGlyph name="explore" />
-          Every trip
-        </button>
-      ) : (
-        <div role="group" aria-label="Zoom the map" className="atlas-zoom">
-          <button type="button" aria-label="Zoom out" title="Zoom out" disabled={zoom === 0} onClick={() => setZoom(zoom - 1)} className={iconFrameClass()}>
-            <MinusIcon />
+      <div className="atlas-controls">
+        {route ? (
+          <button type="button" onClick={onWorld} className="atlas-world">
+            <NavGlyph name="explore" />
+            Every trip
           </button>
-          <button type="button" aria-label="Zoom in" title="Zoom in" disabled={zoom === ZOOMS.length - 1} onClick={() => setZoom(zoom + 1)} className={iconFrameClass()}>
-            <PlusIcon />
-          </button>
-        </div>
-      )}
+        ) : (
+          <div role="group" aria-label="Zoom the map" className="atlas-zoom">
+            <button type="button" aria-label="Zoom out" title="Zoom out" disabled={zoom === 0} onClick={() => setZoom(zoom - 1)} className={iconFrameClass()}>
+              <MinusIcon />
+            </button>
+            <button type="button" aria-label="Zoom in" title="Zoom in" disabled={zoom === ZOOMS.length - 1} onClick={() => setZoom(zoom + 1)} className={iconFrameClass()}>
+              <PlusIcon />
+            </button>
+          </div>
+        )}
+        <MotionToggle signedIn={signedIn} />
+      </div>
     </div>
   );
 }

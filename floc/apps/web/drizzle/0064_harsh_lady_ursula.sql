@@ -1,0 +1,1 @@
+ALTER TABLE `user_profile` ADD `reduce_motion` integer DEFAULT false NOT NULL;

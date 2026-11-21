@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CrossGlyph } from "../system/glyphs";
 import { useTheme } from "../system/theme";
-import { useReducedMotion } from "../system/use-reduced-motion";
+import { useStill } from "@/lib/accessibility/use-still";
 import { Heading, IconButton } from "../system/ui";
 import { fonts, size, space } from "@/lib/theme";
 
@@ -22,7 +22,7 @@ export function EventSheet({
   children: ReactNode;
 }) {
   const { c } = useTheme();
-  const reducedMotion = useReducedMotion();
+  const reducedMotion = useStill();
   const insets = useSafeAreaInsets();
 
   return (

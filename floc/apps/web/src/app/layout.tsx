@@ -16,6 +16,7 @@ import { SiteFooter } from "@/components/chrome/site-footer";
 import { SessionRenewal } from "@/components/chrome/session-renewal";
 import { ThemeKeeper } from "@/components/chrome/theme-keeper";
 import { NONCE_HEADER } from "@/lib/http/csp";
+import { motionBootstrap } from "@/lib/motion/still";
 import { themeBootstrap } from "@/lib/theme";
 import { getSession } from "@/server/access";
 import { appUrl } from "@/lib/env";
@@ -86,10 +87,11 @@ export default async function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
+      data-motion={profile?.reduceMotion ? "still" : undefined}
       className={`${display.variable} ${body.variable} ${mono.variable}`}
     >
       <head>
-        <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: themeBootstrap(Boolean(session?.user)) }} />
+        <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: themeBootstrap(Boolean(session?.user)) + motionBootstrap(Boolean(session?.user)) }} />
       </head>
       <body className="min-h-dvh">
         <ThemeKeeper signedIn={Boolean(session?.user)} />

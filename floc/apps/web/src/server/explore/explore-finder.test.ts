@@ -4,7 +4,7 @@ import { EMPTY_FINDER, type Finder } from "@floc/core/trip/explore/finder/finder
 
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { ensureProfile, updateProfileFields } from "@/server/auth/profile";
-import { loadFinder, saveFinder } from "@/server/explore/explore-finder";
+import { loadFinder, loadTaste, saveFinder } from "@/server/explore/explore-finder";
 
 let world: Scenario;
 
@@ -35,5 +35,17 @@ describe("the saved finder", () => {
     await ensureProfile(world.admin);
     await updateProfileFields(world.admin, { exploreAnswers: { size: "5-8", when: "summer", cost: "more", pace: "base", nights: 14 } });
     expect(await loadFinder(world.admin)).toBeNull();
+  });
+});
+
+describe("what you like on Explore", () => {
+  it("is nothing for someone who has told Floc nothing", async () => {
+    expect((await loadTaste(world.admin)).likes).toEqual([]);
+  });
+
+  it("joins the finder's likes with your travel style, each once", async () => {
+    await saveFinder(world.admin, MINE);
+    await updateProfileFields(world.admin, { vibeTags: ["food first", "beaches", "late nights"] });
+    expect((await loadTaste(world.admin)).likes).toEqual(["Food", "Beaches", "Coast"]);
   });
 });

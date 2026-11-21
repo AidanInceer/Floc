@@ -454,6 +454,9 @@
     "settings.identity": {
       "mobile": "yes"
     },
+    "settings.motion": {
+      "mobile": "yes"
+    },
     "settings.notifications": {
       "mobile": "yes"
     },

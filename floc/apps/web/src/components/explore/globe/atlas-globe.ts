@@ -99,6 +99,9 @@ export function atlasGlobe(canvas: HTMLCanvasElement, { home, places, flags, cle
       still = reduced;
       wake();
     },
+    hold(reduced: boolean) {
+      still = reduced;
+    },
     setLand(worldRings: number[][][], fine: number[][][]) {
       land = { world: worldRings, fine };
       wake();
