@@ -22,7 +22,6 @@ export type TripDetail = {
   archived: boolean;
   role: TripRole;
   members: TripMember[];
-  bookingPrefill: boolean;
 };
 
 export type NewTrip = {

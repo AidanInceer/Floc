@@ -1,8 +1,9 @@
 import { eq } from "drizzle-orm";
-import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { db, schema } from "@/db";
-import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { givePro, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { addDays, today } from "@floc/core/dates/dates";
 import {
   insertPersonalPackingLine,
   listPersonalPackingLines,
@@ -67,6 +68,33 @@ describe("what the trip tells us", () => {
     expect(plan.nights).toBe(5);
     expect(plan.climate).toBeNull();
     expect(plan.gap).toBe("no-place");
+  });
+
+  it("reads each stop's own forecast, not only the first stop's", async () => {
+    await givePro(world.admin);
+    const from = today();
+    const cool = await db.insert(schema.place).values({ name: "Cool", providerId: "osm:test:cool", lat: 5.6037, lng: -0.187 }).returning().get();
+    const hot = await db.insert(schema.place).values({ name: "Hot", providerId: "osm:test:hot", lat: 6.1319, lng: 1.2228 }).returning().get();
+    await db.delete(schema.day).where(eq(schema.day.tripId, world.ours.id));
+    await db.insert(schema.day).values([
+      { tripId: world.ours.id, date: from, overnightPlaceId: cool.id },
+      { tripId: world.ours.id, date: addDays(from, 1), overnightPlaceId: hot.id },
+    ]);
+    await setDates(from, addDays(from, 1));
+    const temps: Record<string, number> = { "5.6037": 12, "6.1319": 31 };
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      const temp = temps[new URL(url).searchParams.get("lat") ?? ""];
+      const timeseries = [0, 1].flatMap((d) => ["00", "06", "12", "18"].map((hh) => ({
+        time: `${addDays(from, d)}T${hh}:00:00Z`,
+        data: { instant: { details: { air_temperature: temp } }, next_6_hours: { summary: { symbol_code: "clearsky_day" } } },
+      })));
+      return { ok: true, json: async () => ({ properties: { timeseries } }) };
+    }));
+
+    const plan = await packingPlanFor((await tripRow())!);
+
+    expect(plan.hottest).toBe(31);
+    vi.unstubAllGlobals();
   });
 });
 

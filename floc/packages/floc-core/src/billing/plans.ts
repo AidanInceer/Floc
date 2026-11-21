@@ -6,7 +6,6 @@ export type Scope = "trip" | "user";
 export const FEATURE_PLAN = {
   "dates.weather": { plan: "pro", scope: "trip" },
   "packing.autoGenerate": { plan: "pro", scope: "trip" },
-  "booking.prefill": { plan: "pro", scope: "trip" },
   "files.extraStorage": { plan: "pro", scope: "trip" },
   "bookings.autoFile": { plan: "pro", scope: "user" },
   "money.estimate": { plan: "pro", scope: "user" },

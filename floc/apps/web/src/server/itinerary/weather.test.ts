@@ -41,12 +41,40 @@ async function anchorTrip(
     .get();
   await db
     .update(schema.day)
-    .set({ overnightPlaceId: place.id })
+    .set({ overnightPlaceId: place.id, date: today() })
     .where(eq(schema.day.id, dayId));
   return place.id;
 }
 
 const ACCRA = { lat: 5.6037, lng: -0.187 };
+const LOME = { lat: 6.1319, lng: 1.2228 };
+
+async function stop(name: string, coords: { lat: number; lng: number }) {
+  const row = await db
+    .insert(schema.place)
+    .values({ name, providerId: `osm:test:${name}`, ...coords })
+    .returning({ id: schema.place.id })
+    .get();
+  return row.id;
+}
+
+async function planNights(tripId: number, firstNight: string, places: (number | null)[]) {
+  await db.delete(schema.day).where(eq(schema.day.tripId, tripId));
+  await db.insert(schema.day).values(
+    places.map((overnightPlaceId, i) => ({ tripId, date: addDays(firstNight, i), overnightPlaceId })),
+  );
+}
+
+function stubFetchByPlace(bodies: Record<string, unknown>) {
+  const fn = vi.fn(async (url: string) => {
+    const lat = new URL(url).searchParams.get("lat") ?? "";
+    const body = bodies[lat];
+    if (body === undefined) throw new Error("network down");
+    return { ok: true, json: async () => body };
+  });
+  vi.stubGlobal("fetch", fn);
+  return fn;
+}
 
 type Entry = { time: string; data: Record<string, unknown> };
 
@@ -114,8 +142,9 @@ describe("getTripForecast", () => {
   });
 
   it("asks MET Norway for the place, names Floc, and maps the days in the place's own time", async () => {
-    await anchorTrip(world.ours.dayId, ACCRA);
     const from = today();
+    const lisbon = await stop("Lisbon", ACCRA);
+    await planNights(world.ours.id, from, Array(HORIZON_DAYS + 2).fill(lisbon));
     const fetchMock = stubFetch(metBody(from));
 
     const forecast = await getTripForecast(world.ours.id);
@@ -144,14 +173,81 @@ describe("getTripForecast", () => {
   });
 
   it("shows hours in the place's own time, not MET Norway's UTC", async () => {
-    await anchorTrip(world.ours.dayId, { lat: 35.68, lng: 139.69 });
     const from = today();
+    const tokyo = await stop("Tokyo", { lat: 35.68, lng: 139.69 });
+    await planNights(world.ours.id, from, [tokyo, tokyo]);
     stubFetch(metBody(from));
 
     const forecast = await getTripForecast(world.ours.id);
 
     expect(forecast!.hourly[addDays(from, 1)][0].hour).toBe("00:00");
     expect(forecast!.hourly[from][0].hour).toBe("09:00");
+  });
+
+  it("gives each night the forecast of the stop the group sleeps at that night", async () => {
+    const from = today();
+    const accra = await stop("Accra, Ghana", ACCRA);
+    const lome = await stop("Lomé, Togo", LOME);
+    await planNights(world.ours.id, from, [accra, accra, lome, lome]);
+    const fetchMock = stubFetchByPlace({ "5.6037": metBody(from), "6.1319": metBody(from) });
+
+    const forecast = await getTripForecast(world.ours.id);
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(forecast!.placeName).toBe("Accra → Lomé");
+    expect(forecast!.days.map((d) => [d.date, d.placeName])).toEqual([
+      [from, "Accra, Ghana"],
+      [addDays(from, 1), "Accra, Ghana"],
+      [addDays(from, 2), "Lomé, Togo"],
+      [addDays(from, 3), "Lomé, Togo"],
+    ]);
+  });
+
+  it("asks once for a place the route comes back to", async () => {
+    const from = today();
+    const accra = await stop("Accra", ACCRA);
+    const lome = await stop("Lomé", LOME);
+    await planNights(world.ours.id, from, [accra, lome, accra]);
+    const fetchMock = stubFetchByPlace({ "5.6037": metBody(from), "6.1319": metBody(from) });
+
+    await getTripForecast(world.ours.id);
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("gives a night with no place the most recent stop's forecast", async () => {
+    const from = today();
+    const accra = await stop("Accra", ACCRA);
+    await planNights(world.ours.id, from, [accra, null, null]);
+    stubFetch(metBody(from));
+
+    const forecast = await getTripForecast(world.ours.id);
+
+    expect(forecast!.days.map((d) => d.placeName)).toEqual(["Accra", "Accra", "Accra"]);
+  });
+
+  it("leaves nights past the forecast range blank, without calling out for a trip far off", async () => {
+    const accra = await stop("Accra", ACCRA);
+    await planNights(world.ours.id, addDays(today(), 60), [accra, accra]);
+    const fetchMock = stubFetch(metBody(today()));
+
+    const forecast = await getTripForecast(world.ours.id);
+
+    expect(forecast).toMatchObject({ placeName: "Accra", days: [], hourly: {} });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("still shows the other stops when one stop's forecast fails (rule 11)", async () => {
+    const from = today();
+    const accra = await stop("Accra", ACCRA);
+    const lome = await stop("Lomé", LOME);
+    await planNights(world.ours.id, from, [accra, lome]);
+    stubFetchByPlace({ "5.6037": metBody(from) });
+
+    const forecast = await getTripForecast(world.ours.id);
+
+    expect(forecast!.days.map((d) => d.placeName)).toEqual(["Accra"]);
+    expect(forecast!.nightPlaces).toEqual({ [from]: "Accra", [addDays(from, 1)]: "Lomé" });
   });
 
   it("does not treat an undated, unplaced trip as an error — returns null, no fetch", async () => {

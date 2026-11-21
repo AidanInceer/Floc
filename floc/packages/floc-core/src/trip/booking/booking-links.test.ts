@@ -18,7 +18,7 @@ const day = (dayId: number, date: string, placeId: number | null, name: string |
 
 describe("flightLinks", () => {
   it("names the destination and both dates on Google Flights", () => {
-    const [google] = flightLinks({ destination: "Lisbon", start: "2026-10-14", end: "2026-10-20", prefill: true });
+    const [google] = flightLinks({ destination: "Lisbon", start: "2026-10-14", end: "2026-10-20" });
     expect(google.site).toBe("Google Flights");
     expect(decodeURIComponent(google.url)).toContain(
       "Flights to Lisbon on 2026-10-14 returning 2026-10-20",
@@ -26,31 +26,17 @@ describe("flightLinks", () => {
   });
 
   it("still gives every site with dates only", () => {
-    const links = flightLinks({ destination: null, start: "2026-10-14", end: "2026-10-20", prefill: true });
+    const links = flightLinks({ destination: null, start: "2026-10-14", end: "2026-10-20" });
     expect(links.map((l) => l.site)).toEqual(["Google Flights", "Skyscanner", "Kayak", "Kiwi.com"]);
     expect(decodeURIComponent(links[0].url)).toContain("Flights on 2026-10-14 returning 2026-10-20");
     expect(links[1].url).toContain("outboundDate=2026-10-14");
   });
 
-  it("opens each site's own search, with nothing filled in, without prefill", () => {
-    const links = flightLinks({ destination: "Lisbon", start: "2026-10-14", end: "2026-10-20", prefill: false });
-    expect(links.map((l) => l.site)).toEqual(["Google Flights", "Skyscanner", "Kayak", "Kiwi.com"]);
-    for (const { url } of links) {
-      expect(new URL(url).search).toBe("");
-      expect(url).not.toContain("Lisbon");
-    }
-  });
 });
 
 describe("stayLinks", () => {
-  it("opens each site's own search, with nothing filled in, without prefill", () => {
-    const links = stayLinks({ place: "Porto", checkIn: "2026-10-14", checkOut: "2026-10-17", adults: 4, prefill: false });
-    expect(links.map((l) => l.site)).toEqual(["Booking.com", "Trip.com", "Airbnb", "Hotels.com", "Hostelworld"]);
-    for (const { url } of links) expect(new URL(url).search).toBe("");
-  });
-
   it("sends place, dates and head count to Airbnb and Hotels.com", () => {
-    const links = stayLinks({ place: "Porto", checkIn: "2026-10-14", checkOut: "2026-10-17", adults: 4, prefill: true });
+    const links = stayLinks({ place: "Porto", checkIn: "2026-10-14", checkOut: "2026-10-17", adults: 4 });
     const airbnb = new URL(links.find((l) => l.site === "Airbnb")!.url);
     expect(decodeURIComponent(airbnb.pathname)).toContain("/s/Porto/homes");
     expect([airbnb.searchParams.get("checkin"), airbnb.searchParams.get("checkout"), airbnb.searchParams.get("adults")]).toEqual(["2026-10-14", "2026-10-17", "4"]);
@@ -64,7 +50,6 @@ describe("stayLinks", () => {
       checkIn: "2026-10-14",
       checkOut: "2026-10-17",
       adults: 4,
-      prefill: true,
     });
     expect(booking.site).toBe("Booking.com");
     const b = new URL(booking.url).searchParams;
@@ -81,28 +66,36 @@ describe("stayLinks", () => {
 
 describe("eventFlightLinks", () => {
   it("needs both ends", () => {
-    expect(eventFlightLinks({ origin: "", destination: "Rome", date: "2026-10-14", prefill: true })).toBeNull();
+    expect(eventFlightLinks({ origin: "", destination: "Rome", date: "2026-10-14" })).toBeNull();
   });
 
   it("gives every flight site, and asks Google Flights for the one leg", () => {
-    const links = eventFlightLinks({ origin: "London", destination: "Rome", date: "2026-10-14", prefill: true })!;
+    const links = eventFlightLinks({ origin: "London", destination: "Rome", date: "2026-10-14" })!;
     expect(links.map((l) => l.site)).toEqual(["Google Flights", "Skyscanner", "Kayak", "Kiwi.com"]);
     expect(decodeURIComponent(links[0].url)).toContain("Flights from London to Rome on 2026-10-14");
     expect(links[1].url).toContain("outboundDate=2026-10-14");
   });
 
-  it("opens every site empty without prefill", () => {
-    const links = eventFlightLinks({ origin: "London", destination: "Rome", date: "2026-10-14", prefill: false })!;
-    for (const { url } of links) expect(new URL(url).search).toBe("");
-  });
 });
 
 describe("bookingPlan", () => {
   const trip = { startDate: "2026-10-14", endDate: "2026-10-16" };
 
+  it("fills in every link for every member, Pro or not (#716)", () => {
+    const plan = bookingPlan({
+      trip,
+      days: [day(1, "2026-10-14", 7, "Lisbon"), day(2, "2026-10-15", 7, "Lisbon")],
+      today: "2026-09-01",
+      adults: 2,
+    });
+    const [stop] = plan!.stays as StayRow[];
+    expect(decodeURIComponent(plan!.flights[0].url)).toContain("Flights to Lisbon on 2026-10-14");
+    expect(stop.kind === "stop" && new URL(stop.links[0].url).searchParams.get("ss")).toBe("Lisbon");
+  });
+
   it("is nothing without dates", () => {
     expect(
-      bookingPlan({ trip: { startDate: null, endDate: null }, days: [], today: "2026-09-01", adults: 2, prefill: true }),
+      bookingPlan({ trip: { startDate: null, endDate: null }, days: [], today: "2026-09-01", adults: 2 }),
     ).toBeNull();
   });
 
@@ -112,7 +105,6 @@ describe("bookingPlan", () => {
       days: [day(1, "2026-10-14", 7, "Lisbon"), day(2, "2026-10-15", 8, "Osaka")],
       today: "2026-09-01",
       adults: 2,
-      prefill: false,
     });
     const stays = plan!.stays as StayRow[];
     expect(stays.map((s) => [s.checkIn, s.checkOut])).toEqual([
@@ -122,21 +114,7 @@ describe("bookingPlan", () => {
   });
 
   it("is nothing once the trip has started", () => {
-    expect(bookingPlan({ trip, days: [], today: "2026-10-14", adults: 2, prefill: true })).toBeNull();
-  });
-
-  it("keeps every link but fills none in without prefill", () => {
-    const plan = bookingPlan({
-      trip,
-      days: [day(1, "2026-10-14", 7, "Lisbon"), day(2, "2026-10-15", 7, "Lisbon")],
-      today: "2026-09-01",
-      adults: 2,
-      prefill: false,
-    });
-    const [stop] = plan!.stays as StayRow[];
-    const links = [...plan!.flights, ...(stop.kind === "stop" ? stop.links : [])];
-    expect(links).toHaveLength(9);
-    for (const { url } of links) expect(new URL(url).search).toBe("");
+    expect(bookingPlan({ trip, days: [], today: "2026-10-14", adults: 2 })).toBeNull();
   });
 
   it("says stays are unset when no night has a place", () => {
@@ -145,7 +123,6 @@ describe("bookingPlan", () => {
       days: [day(1, "2026-10-14", null), day(2, "2026-10-15", null)],
       today: "2026-09-01",
       adults: 2,
-      prefill: true,
     });
     expect(plan!.stays).toBe("unset");
     expect(plan!.flights).toHaveLength(4);
@@ -162,7 +139,6 @@ describe("bookingPlan", () => {
       ],
       today: "2026-09-01",
       adults: 3,
-      prefill: true,
     });
     expect(decodeURIComponent(plan!.flights[0].url)).toContain("Flights to Lisbon");
     const [stop, gap] = plan!.stays as StayRow[];
@@ -183,7 +159,6 @@ describe("bookingPlan", () => {
       ),
       today: "2026-11-01",
       adults: 6,
-      prefill: true,
     });
     const [stop] = plan!.stays as StayRow[];
     expect(stop).toMatchObject({ checkIn: "2026-12-29", checkOut: "2027-01-05" });
@@ -195,7 +170,6 @@ describe("bookingPlan", () => {
       days: [day(1, "2026-10-14", 7, "Lisbon"), day(2, "2026-10-15", 7, "Lisbon"), day(3, "2026-10-16", 8, "Porto")],
       today: "2026-09-01",
       adults: 2,
-      prefill: true,
     });
     expect((plan!.stays as StayRow[]).map((s) => s.checkOut)).toEqual(["2026-10-16"]);
   });
@@ -217,7 +191,7 @@ describe("bookingPlan, hotels", () => {
     eventDayId,
   });
   const plan = (files: ReturnType<typeof hotel>[]) =>
-    bookingPlan({ trip, days, today: "2026-09-01", adults: 2, prefill: true, files })!.stays as StayRow[];
+    bookingPlan({ trip, days, today: "2026-09-01", adults: 2, files })!.stays as StayRow[];
 
   it("gives each stop the day an upload files under: its first", () => {
     expect(plan([]).map((s) => (s.kind === "stop" ? s.dayId : null))).toEqual([1, 3]);

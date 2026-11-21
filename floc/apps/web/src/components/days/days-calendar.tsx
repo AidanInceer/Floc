@@ -91,7 +91,6 @@ export function DaysCalendar({
   openEventId,
   initialDate,
   groupSize,
-  bookingPrefill,
   tripEnd,
 }: {
   days: CalendarDay[];
@@ -115,7 +114,6 @@ export function DaysCalendar({
   openEventId?: number | null;
   initialDate?: string;
   groupSize: number;
-  bookingPrefill: boolean;
   tripEnd: string | null;
 }) {
   const router = useRouter();
@@ -542,7 +540,6 @@ export function DaysCalendar({
             days={days}
             searchPlaces={searchPlaces}
             groupSize={groupSize}
-            bookingPrefill={bookingPrefill}
             onClose={() => setBanding(null)}
             onSave={(writes, place) => {
               const span = { ...banding, ...writes[0]! };

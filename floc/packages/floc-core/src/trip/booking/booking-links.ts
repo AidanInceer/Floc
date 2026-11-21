@@ -34,7 +34,6 @@ const FLIGHT_HOMES: BookingLink[] = [
   { site: "Kayak", url: "https://www.kayak.co.uk/flights" },
   { site: "Kiwi.com", url: "https://www.kiwi.com/en/" },
 ];
-const SKYSCANNER_HOME = "https://www.skyscanner.net/flights";
 
 function skyscannerDays(outbound: string, inbound?: string): string {
   const url = new URL("https://www.skyscanner.net/g/referrals/v1/flights/day-view");
@@ -43,21 +42,15 @@ function skyscannerDays(outbound: string, inbound?: string): string {
   return url.toString();
 }
 
-type Prefill = { prefill: boolean };
-
 export function flightLinks({
   destination,
   start,
   end,
-  prefill,
 }: {
   destination: string | null;
   start: string;
   end: string;
-} & Prefill): BookingLink[] {
-  if (!prefill) {
-    return [{ site: "Google Flights", url: GOOGLE_FLIGHTS }, { site: "Skyscanner", url: SKYSCANNER_HOME }, ...FLIGHT_HOMES];
-  }
+}): BookingLink[] {
   const to = destination ? ` to ${destination}` : "";
   return [
     { site: "Google Flights", url: googleFlights(`Flights${to} on ${start} returning ${end}`) },
@@ -71,22 +64,12 @@ export function stayLinks({
   checkIn,
   checkOut,
   adults,
-  prefill,
 }: {
   place: string;
   checkIn: string;
   checkOut: string;
   adults: number;
-} & Prefill): BookingLink[] {
-  if (!prefill) {
-    return [
-      { site: "Booking.com", url: "https://www.booking.com/" },
-      { site: "Trip.com", url: "https://www.trip.com/hotels/" },
-      { site: "Airbnb", url: "https://www.airbnb.co.uk/" },
-      { site: "Hotels.com", url: "https://uk.hotels.com/" },
-      HOSTELWORLD,
-    ];
-  }
+}): BookingLink[] {
   const booking = new URL("https://www.booking.com/searchresults.html");
   booking.searchParams.set("ss", place);
   booking.searchParams.set("checkin", checkIn);
@@ -126,14 +109,12 @@ export function eventFlightLinks({
   origin,
   destination,
   date,
-  prefill,
 }: {
   origin: string;
   destination: string;
   date: string;
-} & Prefill): BookingLink[] | null {
+}): BookingLink[] | null {
   if (!origin || !destination) return null;
-  if (!prefill) return [{ site: "Google Flights", url: GOOGLE_FLIGHTS }, { site: "Skyscanner", url: SKYSCANNER_HOME }, ...FLIGHT_HOMES];
   return [
     { site: "Google Flights", url: googleFlights(`Flights from ${origin} to ${destination} on ${date}`) },
     { site: "Skyscanner", url: skyscannerDays(date) },
@@ -150,7 +131,6 @@ export function bookingPlan({
   days,
   today,
   adults,
-  prefill,
   files = [],
 }: {
   trip: { startDate: string | null; endDate: string | null };
@@ -158,13 +138,13 @@ export function bookingPlan({
   today: string;
   adults: number;
   files?: (LegFile & { id: number; name: string })[];
-} & Prefill): BookingPlan | null {
+}): BookingPlan | null {
   const { startDate, endDate } = trip;
   if (!startDate || !endDate || today >= startDate) return null;
 
   const stops = deriveStops(days, endDate);
   const firstPlace = stops.find((s) => s.placeName)?.placeName ?? null;
-  const flights = flightLinks({ destination: firstPlace, start: startDate, end: endDate, prefill });
+  const flights = flightLinks({ destination: firstPlace, start: startDate, end: endDate });
   if (!firstPlace) return { flights, stays: "unset" };
 
   const stays = stops.filter((s) => s.nights > 0).map((s): StayRow => {
@@ -177,7 +157,7 @@ export function bookingPlan({
       placeName: s.placeName,
       checkIn,
       checkOut,
-      links: stayLinks({ place: s.placeName, checkIn, checkOut, adults, prefill }),
+      links: stayLinks({ place: s.placeName, checkIn, checkOut, adults }),
       dayId: s.dayIds[0],
       hotel: booked ? { id: booked.id, name: booked.name } : null,
     };

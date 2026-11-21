@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { proFeatureSentence } from "@floc/core/billing/pro-features";
+
 import { landingFaq } from "./faq";
 
 describe("landingFaq", () => {
@@ -12,6 +14,12 @@ describe("landingFaq", () => {
   it("names your own cost estimate and budget among what Pro adds (#574)", () => {
     const pro = landingFaq({ sellingPro: true, monthly: "£3.99" }).find((q) => q.key === "pro");
     expect(pro?.answer).toMatch(/your own cost estimate and budget for each trip/);
+  });
+
+  it("names what Pro adds from the one Pro list, not a list of its own (#717)", () => {
+    const pro = landingFaq({ sellingPro: true, monthly: "£3.99" }).find((q) => q.key === "pro");
+    expect(pro?.answer).toContain(proFeatureSentence());
+    expect(pro?.answer).not.toMatch(/searches/);
   });
 
   it("quotes the Pro price when Stripe has one", () => {

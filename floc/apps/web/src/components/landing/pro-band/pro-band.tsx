@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { PRO_FEATURES, type ProFeatureKey } from "@floc/core/billing/pro-features";
 import { PAGE_ICON_ART } from "@floc/core/notes/pages/page-icons";
 
 import { IconArtMark } from "@/components/system/icon-art";
@@ -16,13 +17,15 @@ type Item = { icon: ReactNode; name: string; eg: ReactNode };
 
 const glyph = (name: GlyphName) => <Glyph name={name} className="size-[14px]" />;
 
-const NOW: (Item & { tone: "red" | "yellow" | "green" | "blue" | "grey" })[] = [
-  { icon: <NavGlyph name="money" />, tone: "red", name: "Estimate your cost", eg: "See what the trip costs you and whether it fits your budget." },
-  { icon: <WeatherGlyph condition="sun" size={14} />, tone: "yellow", name: "See the forecast", eg: "Weather for every day you are away." },
-  { icon: glyph("flight"), tone: "green", name: "Search with details filled in", eg: "Flight and hotel sites open with your dates, places and number of people." },
-  { icon: <NavGlyph name="packing" />, tone: "blue", name: "Get a packing list", eg: "Floc writes your list from where you go and the weather there." },
-  { icon: <NavGlyph name="files" />, tone: "grey", name: "Store your own files", eg: "Increased file and photo storage limits." },
-];
+const LOOK: Record<ProFeatureKey, { icon: ReactNode; tone: "red" | "yellow" | "green" | "blue" | "grey" }> = {
+  "money.estimate": { icon: <NavGlyph name="money" />, tone: "red" },
+  "dates.weather": { icon: <WeatherGlyph condition="sun" size={14} />, tone: "yellow" },
+  "packing.autoGenerate": { icon: <NavGlyph name="packing" />, tone: "blue" },
+  "bookings.autoFile": { icon: glyph("mail"), tone: "green" },
+  "files.extraStorage": { icon: <NavGlyph name="files" />, tone: "grey" },
+};
+
+const NOW = PRO_FEATURES.map((f) => ({ ...LOOK[f.key], name: f.name, eg: f.detail }));
 
 const SOON: Item[] = [
   { icon: glyph("live"), name: "Follow the trip live", eg: "Share where you are with the group while the trip runs." },
@@ -54,7 +57,7 @@ export function ProBand({ prices, signedIn }: { prices: PlanPrice[]; signedIn: b
             <div className="mb-8 max-w-[36rem]">
               <h2 id="pro-band-h" className="band-title text-balance">Pro, for anyone who wants it.</h2>
               <p className="mt-3.5 max-w-[30rem] text-[17px] leading-normal opacity-75">
-                Everyone on the trip uses Floc free. Pro adds five tools that only you see.
+                Everyone on the trip uses Floc free. Pro adds tools that only you see.
               </p>
             </div>
             <h3 className="mb-3.5 text-[16px] font-semibold">In Pro now</h3>
