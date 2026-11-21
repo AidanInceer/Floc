@@ -107,16 +107,10 @@ const WIDTHS = [
 
 const TRIP_TABS = ["", "/dates", "/days", "/ideas", "/money", "/packing", "/files", "/notes"];
 
-async function skipWelcome(page: Page) {
-  const welcome = page.getByRole("dialog", { name: "Welcome to Floc" });
-  await page.addLocatorHandler(welcome, () => welcome.getByRole("button", { name: "Skip" }).click());
-}
-
 const settle = (page: Page) =>
   page.evaluate(() => new Promise<void>((done) => requestAnimationFrame(() => requestAnimationFrame(() => done()))));
 
 async function portugal(page: Page) {
-  await skipWelcome(page);
   await page.goto("/trips");
   await page.getByText("Portugal, late summer").first().click();
   await expect(page).toHaveURL(/\/trip\/\d+/);
@@ -190,11 +184,13 @@ for (const size of WIDTHS) {
 
       test("a long trip name still fits", async ({ page }) => {
         const name = `Bosnia and Herzegovina, Montenegro and the long way round ${size.width}`;
-        await skipWelcome(page);
         await page.goto("/trips");
+        await page.getByLabel("Name", { exact: true }).fill(name);
         await page.getByRole("button", { name: "New trip" }).click();
-        await page.getByRole("dialog").getByLabel("Name").fill(name);
-        await page.getByRole("button", { name: "Create trip" }).click();
+        const start = page.getByRole("dialog", { name: "Start a trip" });
+        await start.getByRole("button", { name: "Next" }).click();
+        await start.getByRole("button", { name: "Next" }).click();
+        await start.getByRole("button", { name: "Create trip" }).click();
         await expect(page).toHaveURL(/\/trip\/\d+/);
         await expect(page.getByRole("heading", { level: 1 })).toContainText("Bosnia And Herzegovina");
         await expectClean(page, "long-named trip");

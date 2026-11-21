@@ -5,6 +5,9 @@ import { nadia, priya, signIn } from "./people";
 async function signedIn(page: Page, email: string) {
   await signIn(page, email);
   await expect(page).toHaveURL(/\/trips$/);
+  const welcome = page.getByRole("dialog", { name: "Welcome to Floc" });
+  await welcome.getByRole("button", { name: "Close" }).click();
+  await expect(welcome).toBeHidden();
 }
 
 setup("the right password lands on your trips", async ({ page }) => {

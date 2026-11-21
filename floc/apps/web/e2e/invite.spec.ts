@@ -11,11 +11,6 @@ test("a member shares the trip, and a stranger gives a name to answer, seeing no
   });
   const memberPage = await members.newPage();
 
-  const welcome = memberPage.getByRole("dialog", { name: "Welcome to Floc" });
-  await memberPage.addLocatorHandler(welcome, async () => {
-    await welcome.getByRole("button", { name: "Skip" }).click();
-  });
-
   await memberPage.goto("/trips");
   await memberPage.getByText("Portugal, late summer").click();
   await expect(memberPage).toHaveURL(/\/trip\/\d+/);
