@@ -107,7 +107,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - The page holds still. Switching a tab, day or filter never jumps the scroll or shifts the content above.
 - A card that opens something opens from anywhere on it, not only its title.
 - An Explore trip's page has a quiet way back to every trip above its card, top left (Aidan).
-- An Explore tile frames enough land to tell the country by: a short trip zooms in no further than four tenths of the land's frame, even where its stops then touch (Aidan).
+- An Explore tile frames enough land to tell the country by: a short trip zooms in no further than four tenths of the land's frame, even where its stops then touch (Aidan). Every edge on an outline map, coast or land border, is one hairline: 0.75, `rule-strong`, drawn over all the land (`LandPaths`), so the trip's country never has a heavier coast (Aidan).
 - Alignment is exact: rows, counts and controls in a group share edges and heights.
 - Pictures: one consistent treatment. Image controls sit in one bar under the image, never arrows on top. Map pins stay plain numbers. Explore's globe marks each trip with a pin shape, not a dot; trips that start in one town sit side by side. It zooms by its two buttons, never by the scroll wheel (Aidan). Your own trip shows no stock photos — photos there are the person's choice.
 - Explore filters sit in a left rail, never along the top.
