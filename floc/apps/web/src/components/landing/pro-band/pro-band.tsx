@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { HORIZON_DAYS } from "@floc/core/itinerary/weather";
 import { PAGE_ICON_ART } from "@floc/core/notes/pages/page-icons";
 
 import { IconArtMark } from "@/components/system/icon-art";
@@ -18,7 +19,7 @@ const glyph = (name: GlyphName) => <Glyph name={name} className="size-[14px]" />
 
 const NOW: (Item & { tone: "red" | "yellow" | "green" | "blue" | "grey" })[] = [
   { icon: <NavGlyph name="money" />, tone: "red", name: "Estimate your cost", eg: "See what the trip costs you and whether it fits your budget." },
-  { icon: <WeatherGlyph condition="sun" size={14} />, tone: "yellow", name: "See the forecast", eg: "Weather for every day you are away." },
+  { icon: <WeatherGlyph condition="sun" size={14} />, tone: "yellow", name: "See the forecast", eg: `Each stop's forecast, up to ${HORIZON_DAYS} days ahead.` },
   { icon: glyph("flight"), tone: "green", name: "Search with details filled in", eg: "Flight and hotel sites open with your dates, places and number of people." },
   { icon: <NavGlyph name="packing" />, tone: "blue", name: "Get a packing list", eg: "Floc writes your list from where you go and the weather there." },
   { icon: <NavGlyph name="files" />, tone: "grey", name: "Store your own files", eg: "Increased file and photo storage limits." },

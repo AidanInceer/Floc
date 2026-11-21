@@ -19,8 +19,8 @@ import { countWord } from "@floc/core/text/count-word";
 export function AsideHead({ title, id, meta }: { title: string; id?: string; meta?: ReactNode }) {
   return (
     <div className="flex min-h-[26px] items-center justify-between gap-2">
-      <h3 id={id} className={panelTitleClass}>{title}</h3>
-      {meta}
+      <h3 id={id} className={cx(panelTitleClass, "min-w-0")}>{title}</h3>
+      {meta ? <span className="shrink-0">{meta}</span> : null}
     </div>
   );
 }

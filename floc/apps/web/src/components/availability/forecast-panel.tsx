@@ -1,61 +1,73 @@
 "use client";
 
+import { Fragment } from "react";
 import { AsideHead } from "@/components/availability/dates-board-parts";
 import { ChevronIcon } from "@/components/system/icons";
 import { cx } from "@/components/system/ui";
 import { WeatherGlyph } from "@/components/system/icons/weather";
 import { dayParts, formatDate, type IsoDate } from "@floc/core/dates/dates";
-import type { DailyForecast, HourlyPoint } from "@/server/itinerary/weather";
+import { stopStarts } from "@floc/core/itinerary/forecast/forecast-stops";
+import { shortPlace } from "@floc/core/itinerary/names/place-name";
+import type { DailyForecast, HourlyPoint, TripForecast } from "@/server/itinerary/weather";
 
 const label = "font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint";
 
 export function ForecastPanel({
   days,
   byDate,
-  hourly,
-  placeName,
-  horizonEnd,
+  weather,
   selected,
   onSelect,
 }: {
   days: IsoDate[];
   byDate: Record<IsoDate, DailyForecast>;
-  hourly: Record<IsoDate, HourlyPoint[]>;
-  placeName: string;
-  horizonEnd: IsoDate;
+  weather: TripForecast;
   selected: IsoDate | null;
   onSelect: (date: IsoDate | null) => void;
 }) {
   const day = selected ? byDate[selected] : undefined;
-  if (selected && day) return <DayHours date={selected} day={day} points={hourly[selected] ?? []} back={() => onSelect(null)} />;
+  if (selected && day) return <DayHours date={selected} day={day} points={weather.hourly[selected] ?? []} back={() => onSelect(null)} />;
+  const nights = days.flatMap((date) => {
+    const placeName = weather.nightPlaces[date];
+    return placeName ? [{ date, placeName }] : [];
+  });
+  const stopAt = stopStarts(nights);
 
   return (
     <div className="p-4">
-      <AsideHead title={placeName} meta={<span className="nums font-mono text-[11px] text-ink-soft">To {formatDate(horizonEnd)}</span>} />
+      <AsideHead title={weather.placeName} meta={<span className="nums font-mono text-[11px] text-ink-soft">To {formatDate(weather.horizonEnd)}</span>} />
       <ul className="mt-2">
         {days.map((d, i) => {
           const w = byDate[d];
           const { weekday, day: n } = dayParts(d);
           const when = <span className="nums font-mono text-ink">{weekday} {n}</span>;
-          const row = cx("grid w-full items-center gap-2.5 rounded-sm px-2 py-2 text-left text-[13px]", i > 0 && "border-t border-rule");
+          const ruled = i > 0 && !stopAt.has(d);
+          const row = cx("grid w-full items-center gap-2.5 rounded-sm px-2 py-2 text-left text-[13px]", ruled && "border-t border-rule");
           return (
-            <li key={d}>
-              {w ? (
-                <button type="button" onClick={() => onSelect(d)} className={cx(row, "grid-cols-[3.4rem_16px_minmax(0,1fr)_auto] hover:bg-sheet-3")}>
-                  {when}
-                  <span className="text-ink-soft"><WeatherGlyph condition={w.condition} /></span>
-                  <span className="truncate text-ink-soft">{w.label}</span>
-                  <span className="nums">
-                    {w.hi}°<small className="ml-1 text-[11px] text-ink-faint">{w.lo}°</small>
+            <Fragment key={d}>
+              {stopAt.has(d) ? (
+                <li className={cx("px-2 pb-1 pt-2 text-[13px] font-medium text-ink [overflow-wrap:anywhere]", i > 0 && "border-t border-rule")}>
+                  {shortPlace(weather.nightPlaces[d])}
+                </li>
+              ) : null}
+              <li>
+                {w ? (
+                  <button type="button" onClick={() => onSelect(d)} className={cx(row, "grid-cols-[3.4rem_16px_minmax(0,1fr)_auto] hover:bg-sheet-3")}>
+                    {when}
+                    <span className="text-ink-soft"><WeatherGlyph condition={w.condition} /></span>
+                    <span className="truncate text-ink-soft">{w.label}</span>
+                    <span className="nums">
+                      {w.hi}°<small className="ml-1 text-[11px] text-ink-faint">{w.lo}°</small>
+                    </span>
+                  </button>
+                ) : (
+                  <span className={cx(row, "grid-cols-[3.4rem_minmax(0,1fr)] text-ink-faint")}>
+                    {when}
+                    <span>{d <= weather.horizonEnd ? "No forecast right now" : "Beyond the forecast"}</span>
                   </span>
-                </button>
-              ) : (
-                <span className={cx(row, "grid-cols-[3.4rem_minmax(0,1fr)] text-ink-faint")}>
-                  {when}
-                  <span>Beyond the forecast</span>
-                </span>
-              )}
-            </li>
+                )}
+              </li>
+            </Fragment>
           );
         })}
       </ul>
@@ -76,7 +88,7 @@ function DayHours({ date, day, points, back }: { date: IsoDate; day: DailyForeca
         All days
       </button>
       <p className={label}>
-        {weekday} {n}
+        {weekday} {n} · {shortPlace(day.placeName)}
       </p>
       <div className="mb-3 mt-1.5 flex items-center gap-3">
         <span className="text-ink-soft">

@@ -58,7 +58,7 @@ export function ProSection({
       ) : (
         <>
           <ProText>
-            {view.line ? `${view.line} ` : ""}Pro adds the weather forecast on your dates, a packing list filled
+            {view.line ? `${view.line} ` : ""}Pro adds each stop's forecast on your dates, a packing list filled
             in for you, and flight and stay searches with your place and dates filled in. The trip stays free for everyone on it.
           </ProText>
           <ProOffer accountToken={status.accountToken} claim={claim} onClaimed={onClaimed} />
