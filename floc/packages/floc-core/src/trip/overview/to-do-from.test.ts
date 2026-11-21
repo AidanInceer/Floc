@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { leftToSortFrom } from "./left-to-sort-from";
+import { toDoFrom } from "./to-do-from";
 
-describe("leftToSortFrom", () => {
+describe("toDoFrom", () => {
   it("lists what you pay on Money, names the person, and counts claimed packing as sorted", () => {
-    const result = leftToSortFrom({
+    const result = toDoFrom({
       trip: { startDate: "2026-11-01", endDate: "2026-11-05" },
       today: "2026-10-24",
       viewerId: "me",
@@ -15,6 +15,7 @@ describe("leftToSortFrom", () => {
         { payer: "me", payee: "priya", currency: "GBP", amountMinor: 12000, netted: false, parts: [] },
         { payer: "priya", payee: "me", currency: "GBP", amountMinor: 0, netted: false, parts: [] },
       ],
+      bag: null,
       shared: [{ label: "Towels", claimed: true }],
       legs: [{ no: 1, placeName: "Lisbon, Portugal", arrive: "2026-11-01", leave: "2026-11-05", nights: 4, stay: null, mode: null }],
     });
@@ -23,7 +24,7 @@ describe("leftToSortFrom", () => {
   });
 
   it("stops asking who brings what once the trip is over, and still shows what you owe", () => {
-    const result = leftToSortFrom({
+    const result = toDoFrom({
       trip: { startDate: "2026-10-24", endDate: "2026-10-30" },
       today: "2026-11-04",
       viewerId: "me",
@@ -31,6 +32,7 @@ describe("leftToSortFrom", () => {
       markedUserIds: [],
       ideas: [],
       settle: [{ payer: "me", payee: "priya", currency: "GBP", amountMinor: 12000, netted: false, parts: [] }],
+      bag: null,
       shared: [{ label: "Speaker", claimed: false }, { label: "Towels", claimed: true }],
       legs: [],
     });
@@ -39,7 +41,7 @@ describe("leftToSortFrom", () => {
   });
 
   it("still asks who brings what on the trip's last day", () => {
-    const result = leftToSortFrom({
+    const result = toDoFrom({
       trip: { startDate: "2026-10-24", endDate: "2026-10-30" },
       today: "2026-10-30",
       viewerId: "me",
@@ -47,9 +49,10 @@ describe("leftToSortFrom", () => {
       markedUserIds: [],
       ideas: [],
       settle: [],
+      bag: null,
       shared: [{ label: "Speaker", claimed: false }],
       legs: [],
     });
-    expect(result.open.map((g) => g.text)).toEqual(["Speaker is up for grabs"]);
+    expect(result.open.map((g) => g.text)).toEqual(["1 shared thing to bring"]);
   });
 });

@@ -1,4 +1,4 @@
-import type { GapKind } from "../trip/overview/left-to-sort";
+import type { GapKind } from "../trip/overview/to-do";
 
 export type SectionColour = "blue" | "yellow" | "green" | "red";
 
@@ -18,6 +18,7 @@ export const SORT_COLOURS: Readonly<Record<GapKind, SectionColour>> = {
   ideas: SECTION_COLOURS.ideas,
   money: SECTION_COLOURS.money,
   packing: SECTION_COLOURS.packing,
-  stay: SECTION_COLOURS.overview,
+  plan: SECTION_COLOURS.days,
+  stay: SECTION_COLOURS.dates,
   travel: SECTION_COLOURS.days,
 };

@@ -1,4 +1,4 @@
-import type { Gap, GapNudge } from "@floc/core/trip/overview/left-to-sort";
+import type { Gap, GapNudge } from "@floc/core/trip/overview/to-do";
 import { NudgeChips } from "@/components/trip/nudge/nudge-chips";
 import { SortTile } from "./sort-card";
 

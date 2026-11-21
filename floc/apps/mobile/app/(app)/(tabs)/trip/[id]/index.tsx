@@ -2,8 +2,8 @@ import { markedUserIds } from "@floc/core/dates/availability";
 import { nightsBetween } from "@floc/core/dates/dates";
 import { yourPosition } from "@floc/core/money/position";
 import { today } from "@floc/core/dates/dates";
-import { leftToSortFrom } from "@floc/core/trip/overview/left-to-sort-from";
-import type { Gap } from "@floc/core/trip/overview/left-to-sort";
+import { toDoFrom } from "@floc/core/trip/overview/to-do-from";
+import type { Gap } from "@floc/core/trip/overview/to-do";
 import { groupStatuses } from "@floc/core/trip/group/group-status";
 import { INVITE_LINK_RESET } from "@floc/core/trip/group/invite-link";
 import { pastelOf } from "@floc/core/design/pastels";
@@ -11,13 +11,13 @@ import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
 import { transportModes, tripLegs } from "@floc/core/trip/overview/legs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { Alert, ScrollView, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Alert, ScrollView, View, type LayoutChangeEvent } from "react-native";
 
 import { GoingLine } from "@/components/trip/going-section";
 import { IdeasSection } from "@/components/trip/ideas/ideas-section";
 import { EstimateRow } from "@/components/trip/overview/estimate-row";
-import { LeftToSort } from "@/components/trip/left-to-sort";
+import { ToDoBanner } from "@/components/trip/to-do-banner";
 import { BookingsCard } from "@/components/trip/overview/bookings-card";
 import { FilesLine } from "@/components/trip/overview/files-line";
 import { OverviewCard } from "@/components/trip/overview-card";
@@ -34,6 +34,7 @@ import type { inferRouterOutputs } from "@trpc/server";
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
 import { routeOf } from "@/lib/trip/overview-route";
+import { bagOf, toDoGo, type OverviewSection } from "@/lib/trip/to-do-go";
 import { useTripWrite } from "@/lib/trip/trip-write";
 import { space } from "@/lib/theme";
 
@@ -54,6 +55,9 @@ export default function Overview() {
   const { data: session } = useSession();
   const availability = useQuery(trpc.availability.list.queryOptions({ tripId }, { enabled: ready }));
   const [draft, setDraft] = useState<TripDraft | null>(null);
+  const scroll = useRef<ScrollView>(null);
+  const sections = useRef(new Map<OverviewSection, number>());
+  const mark = (section: OverviewSection) => (e: LayoutChangeEvent) => void sections.current.set(section, e.nativeEvent.layout.y);
 
   if (trip.isPending) return <Loading />;
   if (trip.isError) return <Failed onRetry={() => trip.refetch()} />;
@@ -63,10 +67,15 @@ export default function Overview() {
   const { legs, wholeTrip } = tripLegsFrom(days.data, files.data, trip.data.endDate);
   const route = routeOf(legs, days.data ?? [], places.data ?? []);
   const events = new Map((days.data ?? []).map((d) => [d.id, d.events]));
+  const onGo = (gap: Gap) => {
+    const where = toDoGo(gap);
+    if ("tab" in where) return go(where.tab);
+    scroll.current?.scrollTo({ y: sections.current.get(where.section) ?? 0, animated: false });
+  };
 
   return (
-    <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.xl }}>
-      <SortLine tripId={tripId} trip={trip.data} legs={legs} onGo={go} />
+    <ScrollView ref={scroll} contentContainerStyle={{ padding: space.lg, gap: space.xl }}>
+      <ToDoLine tripId={tripId} trip={trip.data} legs={legs} onGo={onGo} />
 
       <OverviewCard
         trip={trip.data}
@@ -89,7 +98,9 @@ export default function Overview() {
 
       <TripMapSection route={route} tone={pastelOf(tripPastel(readTripColor(trip.data.colorKey), tripId))} />
 
-      <IdeasSection tripId={tripId} datesUnset={!trip.data.startDate && !trip.data.endDate} />
+      <View onLayout={mark("ideas")}>
+        <IdeasSection tripId={tripId} datesUnset={!trip.data.startDate && !trip.data.endDate} />
+      </View>
 
       {legs.length > 0 ? <BookingsCard tripId={tripId} legs={legs} wholeTrip={wholeTrip} onOpenFiles={() => go("files")} /> : null}
 
@@ -193,7 +204,7 @@ function statusesFor(trip: Outputs["trips"]["get"], availability: Outputs["avail
   });
 }
 
-function SortLine({
+function ToDoLine({
   tripId,
   trip,
   legs,
@@ -202,7 +213,7 @@ function SortLine({
   tripId: number;
   trip: Outputs["trips"]["get"];
   legs: ReturnType<typeof tripLegsFrom>["legs"];
-  onGo: (route: string) => void;
+  onGo: (gap: Gap) => void;
 }) {
   const { data: session } = useSession();
   const pairs = useQuery(trpc.money.pairs.queryOptions({ tripId }));
@@ -211,7 +222,7 @@ function SortLine({
   const ideas = useQuery(trpc.ideas.list.queryOptions({ tripId }));
   const nudges = useQuery(trpc.nudges.targets.queryOptions({ tripId }));
   if (!pairs.data || !availability.data || !packing.data || !ideas.data || !session) return null;
-  const list = leftToSortFrom({
+  const list = toDoFrom({
     trip,
     today: today(),
     viewerId: session.user.id,
@@ -219,10 +230,10 @@ function SortLine({
     markedUserIds: markedUserIds(availability.data),
     ideas: ideas.data,
     settle: pairs.data.rows,
+    bag: bagOf(packing.data.mine),
     shared: packing.data.shared.map((l) => ({ label: l.label, claimed: l.claims.length > 0 })),
     legs,
     nudges: nudges.data,
   });
-  const go = (gap: Gap) => (gap.tab === "overview" ? undefined : onGo(gap.tab));
-  return <LeftToSort tripId={tripId} list={list} onGo={go} />;
+  return <ToDoBanner tripId={tripId} list={list} onGo={onGo} />;
 }
