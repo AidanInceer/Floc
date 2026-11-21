@@ -1,4 +1,5 @@
 import type { BillingStatus } from "@floc/api/port";
+import { proFeatureSummary } from "@floc/core/billing/pro-features";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { DrawerChevron } from "../system/drawer";
@@ -34,7 +35,7 @@ export function ProRow({ status, onPress }: { status: BillingStatus | undefined;
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={{ color: c["pro-ink"], fontFamily: fonts.sansBold, fontSize: size.body }}>Floc Pro</Text>
         <Text style={{ color: c["pro-ink"], fontFamily: fonts.sans, fontSize: size.small }}>
-          {pro ? "You're on Pro" : "Weather, auto packing and filled-in searches"}
+          {pro ? "You're on Pro" : proFeatureSummary()}
         </Text>
       </View>
       <View style={{ transform: [{ rotate: "-90deg" }] }}>
