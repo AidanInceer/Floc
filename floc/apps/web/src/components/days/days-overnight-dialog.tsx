@@ -23,7 +23,6 @@ export function OvernightDialog({
   days,
   searchPlaces,
   groupSize,
-  bookingPrefill,
   onClose,
   onSave,
   onClear,
@@ -32,7 +31,6 @@ export function OvernightDialog({
   days: CalendarDay[];
   searchPlaces: PlaceSearch;
   groupSize: number;
-  bookingPrefill: boolean;
   onClose: () => void;
   onSave: (writes: StayWrite[], place: OvernightPlace) => void;
   onClear: () => void;
@@ -98,7 +96,6 @@ export function OvernightDialog({
           checkIn={pick.start}
           checkOut={stayCheckOut(pick.end, tripLast)}
           adults={groupSize}
-          prefill={bookingPrefill}
         />
       ) : null}
 
@@ -119,7 +116,7 @@ export function OvernightDialog({
   );
 }
 
-function FindStay(props: { place: string; checkIn: string; checkOut: string; adults: number; prefill: boolean }) {
+function FindStay(props: { place: string; checkIn: string; checkOut: string; adults: number }) {
   return (
     <section className="border-t border-rule bg-sheet-2 px-5 py-3.5 text-center max-sm:px-4">
       <p className="text-sm font-medium">Find a stay in {props.place}</p>

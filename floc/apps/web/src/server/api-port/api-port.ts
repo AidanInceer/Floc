@@ -97,9 +97,8 @@ import {
   softDeleteTrip,
 } from "@/server/trips/trips";
 
-function toDetail(access: TripAccess, bookingPrefill: boolean): TripDetail {
+function toDetail(access: TripAccess): TripDetail {
   return {
-    bookingPrefill,
     id: access.trip.id,
     name: access.trip.name,
     startDate: access.trip.startDate,
@@ -299,7 +298,7 @@ export const webPort: FlocPort = {
 
   async loadTrip(viewerId, tripId): Promise<TripDetail | null> {
     const access = await findTripAccess(tripId, viewerId);
-    return access ? toDetail(access, await canUseFeature("booking.prefill", tripId)) : null;
+    return access ? toDetail(access) : null;
   },
 
   async listDays(viewerId, tripId): Promise<ItineraryDay[]> {

@@ -22,7 +22,6 @@ const TRIP: TripDetail = {
       tone: "who-1",
     },
   ],
-  bookingPrefill: false,
 };
 
 function fakePort(overrides: Partial<FlocPort> = {}): FlocPort {

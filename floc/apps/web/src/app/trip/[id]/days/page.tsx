@@ -21,7 +21,6 @@ import { ButtonLink, EmptyState, PageTitle, cx, menuDangerItemClass, panelBandCl
 import { calendarFeedUrlFor } from "@/server/itinerary/feed/calendar-feed-link";
 import { NoteThread, type NoteRow, type Viewer } from "@/components/notes/note-thread";
 import { requireTripAccess, type TripMember } from "@/server/access";
-import { canUseFeature } from "@/server/billing/entitlements";
 import type { DayEventRow } from "@/server/itinerary/itinerary";
 import { loadCalendar } from "@/server/itinerary/calendar-read";
 import type { TripDocument } from "@/server/documents/documents";
@@ -50,9 +49,8 @@ export default async function DaysPage({
 
   const query = await searchParams;
   const openEventId = Number(query.event) || null;
-  const [calendar, bookingPrefill, sites, feedUrl, dayBookings] = await Promise.all([
+  const [calendar, sites, feedUrl, dayBookings] = await Promise.all([
     loadCalendar(access, openEventId),
-    canUseFeature("booking.prefill", trip.id),
     bookingSitesOf(viewer.id),
     calendarFeedUrlFor(trip.id, viewer.id),
     listDayBookings(trip.id, viewer.id),
@@ -184,7 +182,6 @@ export default async function DaysPage({
             loose={selected.loose}
             filesEnabled={documentsEnabled()}
             viewer={commenter}
-            bookingPrefill={bookingPrefill}
           />,
         } : null}
         removeDayControls={removeDayControls}
@@ -196,7 +193,6 @@ export default async function DaysPage({
         openEventId={selected?.event.id ?? null}
         initialDate={query.date}
         groupSize={members.length}
-        bookingPrefill={bookingPrefill}
       />
       </BookingSitesProvider>
       </div>
@@ -224,7 +220,6 @@ function EventPanel({
   loose,
   filesEnabled,
   viewer,
-  bookingPrefill,
 }: {
   tripId: number;
   date: string;
@@ -236,7 +231,6 @@ function EventPanel({
   loose: FileChoice[];
   filesEnabled: boolean;
   viewer: Viewer;
-  bookingPrefill: boolean;
 }) {
   const isTransport = event.type === "transport";
   const from = originPlaceName ?? event.placeName ?? "";
@@ -248,7 +242,6 @@ function EventPanel({
           origin: from,
           destination: to,
           date,
-          prefill: bookingPrefill,
         })
       : null;
 
