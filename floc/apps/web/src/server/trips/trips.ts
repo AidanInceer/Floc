@@ -10,6 +10,7 @@ import { trip, tripMembership } from "@/db/schema";
 import type { TripRole } from "@/db/schema";
 import { assertRoom, bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
+import { removeGuestsOn } from "@/server/guests/guests";
 import { kickFromTripNotes } from "@/server/notes/live/live-kick";
 import { insertFirstPage } from "@/server/notes/pages/page-first";
 import type { Tx } from "@/server/notifications/activity";
@@ -157,12 +158,15 @@ export async function updateTrip(tripId: number, patch: TripPatch): Promise<void
 
 export async function resetInviteToken(tripId: number): Promise<string> {
   const minted = crypto.randomUUID();
-  const [row] = await db
-    .update(trip)
-    .set({ inviteToken: minted, ...touch() })
-    .where(and(eq(trip.id, tripId), isNull(trip.deletedAt)))
-    .returning({ inviteToken: trip.inviteToken });
-  return row?.inviteToken ?? minted;
+  return db.transaction(async (tx) => {
+    const [row] = await tx
+      .update(trip)
+      .set({ inviteToken: minted, ...touch() })
+      .where(and(eq(trip.id, tripId), isNull(trip.deletedAt)))
+      .returning({ inviteToken: trip.inviteToken });
+    if (row) await removeGuestsOn(tx, tripId);
+    return row?.inviteToken ?? minted;
+  });
 }
 
 export async function setTripArchived(

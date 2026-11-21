@@ -472,7 +472,7 @@ export const webPort: FlocPort = {
   async resetInviteLink(viewerId, tripId) {
     assertAdmin(await scoped(viewerId, tripId));
     const minted = await resetInviteToken(tripId);
-    refresh({ kind: "tripOverview", tripId });
+    refresh({ kind: "tripOverview", tripId }, { kind: "tripDates", tripId });
     return mintShareToken(minted);
   },
 

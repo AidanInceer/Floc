@@ -292,8 +292,18 @@ export async function acceptInvite(tripId: number, userId: string): Promise<bool
   return true;
 }
 
+async function takesNewPeople(tripId: number): Promise<boolean> {
+  const open = await db
+    .select({ id: trip.id })
+    .from(trip)
+    .where(and(eq(trip.id, tripId), isNull(trip.deletedAt), isNull(trip.archivedAt)))
+    .get();
+  return open !== undefined;
+}
+
 export async function joinWithLink(tripId: number, userId: string): Promise<void> {
   if (await isLiveMember(tripId, userId)) return;
+  if (!(await takesNewPeople(tripId))) throw new Refusal("This trip is not taking new people.");
   await admit(tripId, userId);
 }
 

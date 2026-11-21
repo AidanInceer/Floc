@@ -97,7 +97,7 @@ export async function resetInviteLink(formData: FormData) {
 
   await resetInviteToken(access.trip.id);
 
-  refresh({ kind: "tripOverview", tripId: access.trip.id });
+  refresh({ kind: "tripOverview", tripId: access.trip.id }, { kind: "tripDates", tripId: access.trip.id });
 }
 
 export async function renameTrip(formData: FormData) {
