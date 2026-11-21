@@ -1,19 +1,23 @@
-import { bestWindow, freeDaysByUser, monthOf, thisMonth } from "@floc/core/dates/availability";
-import { paintRange } from "@floc/core/dates/calendar-gestures";
+import { daysInMonth, freeDaysByUser, monthOf, thisMonth } from "@floc/core/dates/availability";
 import { dateRange, formatDateRange, nightsBetween, today } from "@floc/core/dates/dates";
 import { datesMoment } from "@floc/core/dates/dates-moment";
 import { forecastTab, groupTab, spanLabel, tripTab, yourDaysTab, type GroupAnswer } from "@floc/core/dates/dates-tabs";
+import type { PaintMode } from "@floc/core/dates/finding/day-paint";
+import type { LengthChoice } from "@floc/core/dates/finding/trip-length";
 import { bookingPlan } from "@floc/core/trip/booking/booking-links";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, ScrollView, Text, View } from "react-native";
 
+import { BestDatesCard } from "@/components/dates/best-dates-card";
 import { DatesBars } from "@/components/dates/dates-bars";
 import { DatesCard } from "@/components/dates/dates-card";
 import { DatesPanel } from "@/components/dates/dates-panels";
 import { NudgeWord } from "@/components/trip/nudge/nudge-word";
 import { DatesStubs, type DatesStub } from "@/components/dates/dates-stubs";
+import { LengthTiles } from "@/components/dates/length-tiles";
+import { MarkSwitch } from "@/components/dates/mark-bar";
 import { CalendarBelow, CalendarTop, useCalendarFill } from "@/components/days/calendar-fill";
 import { forecastIndex, type ForecastIndex } from "@/components/days/dates-weather";
 import { WEATHER_LOOK, type ForecastDay } from "@/components/days/weather-panel";
@@ -23,7 +27,10 @@ import { Button, Failed, Loading } from "@/components/system/ui";
 import { BookingPanel } from "@/components/trip/booking-panel";
 import { trpc } from "@/lib/api";
 import { useSession } from "@/lib/auth";
-import { dayLookOf, freeCounts, type DatesView } from "@/lib/dates/day-look";
+import { bestWindows, type BestWindow } from "@/lib/dates/best-windows";
+import { answeredCount, dayLookOf, freeCounts, preferCounts, storedMarks, type DatesView } from "@/lib/dates/day-look";
+import { useDayPaint } from "@/lib/dates/use-day-paint";
+import { useSaveMarks } from "@/lib/dates/use-save-marks";
 import { nextRange, type DateRange } from "@/lib/dates/range";
 import { fonts, size, space } from "@/lib/theme";
 import { windowWarning } from "@/lib/trip/window-change";
@@ -128,6 +135,25 @@ function DatesHead({ start, end, changing, folded, onToggle }: { start: string |
   );
 }
 
+function shownWindow(windows: BestWindow[], at: number, start: string | null, end: string | null) {
+  const index = Math.max(0, Math.min(at, windows.length - 1));
+  const best = windows[index] ?? null;
+  return {
+    best,
+    index,
+    current: !!best && best.start === start && best.end === end,
+  };
+}
+
+function MineLead({ show, mode, onMode }: { show: boolean; mode: PaintMode; onMode: (mode: PaintMode) => void }) {
+  return show ? <MarkSwitch mode={mode} onMode={onMode} /> : null;
+}
+
+function DatesHeadMarks(p: { show: boolean; tripId: number; me: string | undefined; choices: LengthChoice[] | undefined }) {
+  if (!p.show || !p.me || !p.choices) return null;
+  return <LengthTiles tripId={p.tripId} viewerId={p.me} choices={p.choices} />;
+}
+
 export default function Dates() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const tripId = Number(id);
@@ -143,22 +169,18 @@ export default function Dates() {
   const weather = useQuery(trpc.itinerary.forecast.queryOptions({ tripId }, { enabled: ready }));
   const days = useQuery(trpc.itinerary.days.queryOptions({ tripId }, { enabled: ready }));
   const files = useQuery(trpc.files.list.queryOptions({ tripId }, { enabled: ready }));
+  const lengths = useQuery(trpc.availability.lengths.queryOptions({ tripId }, { enabled: ready }));
   const cal = useCalendarFill(tripId);
 
   const [view, setView] = useState<DatesView>("mine");
   const [changing, setChanging] = useState(false);
   const [openDay, setOpenDay] = useState<string | null>(null);
   const [month, setMonth] = useState<string | null>(null);
-  const [edits, setEdits] = useState<Record<string, boolean>>({});
   const [range, setRange] = useState<DateRange | null>(null);
+  const [bestAt, setBestAt] = useState(0);
+  const painter = useDayPaint();
 
-  const saveMarks = useMutation({
-    ...trpc.availability.set.mutationOptions(),
-    onSuccess: () => {
-      setEdits({});
-      void queryClient.invalidateQueries({ queryKey: trpc.availability.list.queryKey({ tripId }) });
-    },
-  });
+  const saveMarks = useSaveMarks(tripId, painter.clear);
   const saveWindow = useMutation({
     ...trpc.trips.update.mutationOptions(),
     onSuccess: () => {
@@ -176,24 +198,31 @@ export default function Dates() {
   const marked = rows.data.filter((row) => row.available);
   const shown = openingMonth(month, startDate, marked.map((row) => row.date));
   const mineSaved = marked.filter((row) => row.userId === me).map((row) => row.date);
-  const mineOn = (date: string): boolean => edits[date] ?? mineSaved.includes(date);
-  const unsaved = Object.keys(edits).length;
+  const stored = storedMarks(rows.data, me);
+  const markOf = (date: string) => painter.edits[date] ?? stored(date);
+  const diff = painter.diff(stored);
+  const unsaved = diff.changed;
 
   const people = peopleOf(trip.data.members, guests.data, freeDaysByUser(rows.data));
   const memberCount = people.length;
   const group = people.map((p) => ({ id: p.id, name: p.name, answered: p.days !== null }));
-  const best = bestWindow(rows.data);
+  const names = new Map(people.map((p) => [p.id, p.name] as const));
+  const windows = bestWindows(rows.data, lengths.data ?? [], today(), (userId) => names.get(userId), me);
+  const shownBest = shownWindow(windows, bestAt, startDate, endDate);
+  const { best, index: bestIndex } = shownBest;
 
   const forecast = forecastIndex(weather.data);
   const tripDays = tripDaysOf(startDate, endDate);
   const ctx = {
     view,
-    counts: freeCounts(rows.data, me, edits),
+    counts: freeCounts(rows.data, me, painter.edits),
     memberCount,
     tripStart: startDate,
     tripEnd: endDate,
     now: today(),
-    isFree: mineOn,
+    markOf,
+    prefers: preferCounts(rows.data, me, markOf),
+    answered: answeredCount(people, me, mineSaved.length + diff.add.length > diff.remove.length),
     range: view === "trip" ? range : null,
     hiOf: hiFor(tripDays, forecast.byDate),
   };
@@ -219,15 +248,7 @@ export default function Dates() {
       setRange((current) => nextRange(current, anchor, target));
       return;
     }
-    setEdits((current) => paintRange(current, anchor, target, !mineOn(anchor), dateRange));
-  }
-
-  function saveEdits() {
-    const dates = Object.keys(edits);
-    const on = dates.filter((date) => edits[date]);
-    const off = dates.filter((date) => !edits[date]);
-    if (on.length > 0) saveMarks.mutate({ tripId, dates: on, available: true });
-    if (off.length > 0) saveMarks.mutate({ tripId, dates: off, available: false });
+    painter.press(anchor, target, markOf);
   }
 
   function setWindow(start: string | null, end: string | null) {
@@ -257,6 +278,10 @@ export default function Dates() {
 
   const parts = {
     stubs: <DatesStubs stubs={stubs} open={view} onOpen={open} />,
+    head: (
+      <DatesHeadMarks show={view === "mine"} tripId={tripId} me={me} choices={lengths.data} />
+    ),
+    lead: <MineLead show={view === "mine"} mode={painter.mode} onMode={painter.setMode} />,
     bar: (
       <DatesBars
         view={view}
@@ -264,7 +289,8 @@ export default function Dates() {
         range={range}
         dated={startDate !== null}
         busy={{ marks: saveMarks.isPending, window: saveWindow.isPending }}
-        onSave={saveEdits}
+        onSave={() => saveMarks.mutate(diff)}
+        onFill={() => painter.fill(markOf, daysInMonth(shown).filter((date) => date >= today()))}
         onCommit={() => range && setWindow(range.start, range.end)}
         onDiscard={() => setRange(null)}
       />
@@ -273,15 +299,22 @@ export default function Dates() {
       <DatesPanel
         view={view}
         trip={{ start: startDate, end: endDate }}
-        isFree={mineOn}
-        best={best}
+        isFree={(date) => markOf(date) !== "off"}
+        bestCard={
+          <BestDatesCard
+            windows={windows}
+            at={bestIndex}
+            onStep={(delta) => setBestAt((bestIndex + delta + windows.length) % windows.length)}
+            current={shownBest.current}
+            onSet={useBest}
+          />
+        }
         people={people}
         nudgeFor={(id) => {
           const person = nudges.data?.dates.find((n) => n.userId === id);
           return person ? <NudgeWord tripId={tripId} task="dates" person={person} /> : null;
         }}
         weather={{ view: weather.data, byDate: forecast.byDate, openDay }}
-        onUseBest={useBest}
         onClear={() => setWindow(null, null)}
         onSeePro={() => router.push("/settings")}
       />
@@ -300,6 +333,7 @@ export default function Dates() {
         onMonth={setMonth}
         look={(date) => dayLookOf(board ? ctx : { ...ctx, view: "group" }, date)}
         onPaint={paint}
+        onRelease={painter.release}
         open={board ? parts : null}
       />
       {board ? <CalendarBelow cal={cal} show={view === "mine"} empty={fresh} month={shown} /> : null}

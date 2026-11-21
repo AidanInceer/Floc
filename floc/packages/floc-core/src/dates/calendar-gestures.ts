@@ -80,13 +80,13 @@ export function advanceRangePick(
     : { start: current.start, end: date };
 }
 
-export function paintRange(
-  base: Record<string, boolean>,
+export function paintRange<T>(
+  base: Record<string, T>,
   anchor: string,
   target: string,
-  value: boolean,
+  value: T,
   datesBetween: (from: string, to: string) => string[],
-): Record<string, boolean> {
+): Record<string, T> {
   const { start, end } = rangeFromAnchor(anchor, target);
   const next = { ...base };
   for (const date of datesBetween(start, end)) next[date] = value;

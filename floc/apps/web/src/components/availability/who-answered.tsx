@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { AsideHead } from "@/components/availability/dates-board-parts";
 import { Avatar, Badge } from "@/components/system/ui";
 import type { TripMember } from "@/server/access";
 import type { Guest } from "@/server/guests/guests";
@@ -26,14 +27,14 @@ export function WhoAnswered({
 
   return (
     <section className="p-4">
-      <div className="flex items-baseline justify-between gap-2">
-        <h2 className="font-mono text-[11px] uppercase tracking-[0.06em] text-ink-faint">
-          Who has answered
-        </h2>
-        <span className="nums font-mono text-[11px] text-ink-faint">
-          {answered} of {members.length + guests.length}
-        </span>
-      </div>
+      <AsideHead
+        title="Who has answered"
+        meta={
+          <span className="nums font-mono text-[11px] text-ink-soft">
+            {answered} of {members.length + guests.length}
+          </span>
+        }
+      />
       <ul className="mt-2 divide-y divide-rule">
         {members.map((m) => {
           const days = marked[m.userId];

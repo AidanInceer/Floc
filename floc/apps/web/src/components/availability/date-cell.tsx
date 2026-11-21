@@ -26,6 +26,7 @@ export type DateCellProps = {
   mark: DayMark;
   join: { left: boolean; right: boolean };
   mine: boolean;
+  liked?: boolean;
   past: boolean;
   today: boolean;
   cut: boolean;
@@ -36,16 +37,16 @@ export type DateCellProps = {
   selected?: boolean;
 };
 
-function MineDisc({ onTrip }: { onTrip: boolean }) {
-  return (
-    <span
-      aria-hidden
-      className={cx(
-        "absolute left-1/2 top-1/2 size-8 -translate-x-1/2 -translate-y-1/2 rounded-full",
-        onTrip ? "bg-sheet" : "bg-current/15",
-      )}
-    />
-  );
+function MineDisc({ onTrip, liked }: { onTrip: boolean; liked: boolean }) {
+  const look = liked
+    ? onTrip ? "bg-sheet" : "border-[1.5px] border-ink bg-sheet"
+    : onTrip ? "border border-sheet" : "border border-ink-faint";
+  return <span aria-hidden className={cx("absolute left-1/2 top-1/2 size-8 -translate-x-1/2 -translate-y-1/2 rounded-full", look)} />;
+}
+
+function numberInk(p: DateCellProps, key: string): string | false {
+  if (!p.mine || !p.liked) return false;
+  return key === "trip" ? "font-semibold text-green" : "font-semibold text-ink";
 }
 
 export function DateCell(p: DateCellProps) {
@@ -63,8 +64,8 @@ export function DateCell(p: DateCellProps) {
           live && !key && "group-hover:bg-sheet-2",
         )}
       />
-      {p.mine ? <MineDisc onTrip={key === "trip"} /> : null}
-      <span className={cx("nums relative", p.mine && key === "trip" && "text-green", p.cut && "line-through", p.today && "underline decoration-1 underline-offset-4")}>
+      {p.mine ? <MineDisc onTrip={key === "trip"} liked={!!p.liked} /> : null}
+      <span className={cx("nums relative", numberInk(p, key), p.cut && "line-through", p.today && "underline decoration-1 underline-offset-4")}>
         {Number(p.date.slice(8, 10))}
       </span>
       {p.hi !== undefined ? (

@@ -52,7 +52,7 @@ export function tripTab(
   return {
     value: "No dates yet",
     short: "No dates",
-    note: best ? `Best fit ${spanLabel(best.start, best.end)}` : "Pick the days",
+    note: best ? `Best dates ${spanLabel(best.start, best.end)}` : "Pick the days",
     open: true,
   };
 }

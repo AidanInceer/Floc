@@ -10,6 +10,7 @@ const ctx = (over: Partial<DayContext> = {}): DayContext => ({
   tripEnd: "2027-09-11",
   now: "2027-08-23",
   isFree: (d) => d === "2027-09-05",
+  isLiked: () => false,
   picking: false,
   inPick: () => false,
   pending: () => false,
@@ -22,6 +23,22 @@ describe("dayLook", () => {
   it("draws the trip the same on every tab", () => {
     for (const tab of ["mine", "group", "trip", "forecast"] as const)
       expect(dayLook(ctx({ tab }), "2027-09-05").mark).toEqual({ kind: "trip" });
+  });
+
+  it("tells a day you prefer from one you can do", () => {
+    const liked = dayLook(ctx({ isLiked: (d) => d === "2027-09-05" }), "2027-09-05");
+    expect(liked).toMatchObject({ mine: true, liked: true });
+    expect(liked.label).toContain("you prefer it");
+    expect(dayLook(ctx(), "2027-09-05")).toMatchObject({ mine: true, liked: false });
+  });
+
+  it("shades a day darker when people prefer it, and says so", () => {
+    expect(dayLook(ctx({ tab: "group", answered: 2 }), "2027-09-12").mark).toEqual({ kind: "some", step: 1 });
+    const liked = dayLook(ctx({ tab: "group", answered: 2, prefers: (d) => (d === "2027-09-12" ? 1 : 0) }), "2027-09-12");
+    expect(liked.mark).toEqual({ kind: "some", step: 2 });
+    expect(liked.label).toContain("1 prefers it");
+    const loved = dayLook(ctx({ tab: "group", answered: 3, tallies: { "2027-09-12": 3 }, prefers: () => 3 }), "2027-09-12");
+    expect(loved.mark).toEqual({ kind: "some", step: 3 });
   });
 
   it("draws a some-free day with its step outside the trip", () => {

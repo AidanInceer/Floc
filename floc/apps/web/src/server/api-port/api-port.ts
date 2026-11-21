@@ -54,7 +54,8 @@ import { listExpenses, listSettlements, listSplits } from "@/server/money/money"
 import { removeEvent, saveEvent } from "@/server/itinerary/event-save";
 import { settleUpFor, settleWithFor } from "@/server/money/settle-up";
 import { recordTransfers, removeExpense, saveExpense } from "@/server/money/money-save";
-import { listAvailability, setAvailability } from "@/server/itinerary/availability";
+import { listAvailability, setAvailability, setPreferredDays } from "@/server/itinerary/availability";
+import { listLengthChoices, setLengthChoice } from "@/server/itinerary/trip-length";
 import { listGuests } from "@/server/guests/guests";
 import { listDocuments } from "@/server/documents/documents";
 import { listTripPlaces, searchPlaces as geocode } from "@/server/itinerary/places";
@@ -353,6 +354,23 @@ export const webPort: FlocPort = {
   async setAvailability(viewerId, tripId, dates, available) {
     await scoped(viewerId, tripId);
     await setAvailability(tripId, viewerId, dates, available);
+    refresh({ kind: "tripDates", tripId });
+  },
+
+  async setPreferredDays(viewerId, tripId, dates, preferred) {
+    await scoped(viewerId, tripId);
+    await setPreferredDays(tripId, viewerId, dates, preferred);
+    refresh({ kind: "tripDates", tripId });
+  },
+
+  async listLengthChoices(viewerId, tripId) {
+    await scoped(viewerId, tripId);
+    return listLengthChoices(tripId);
+  },
+
+  async setLengthChoice(viewerId, tripId, length, picked) {
+    await scoped(viewerId, tripId);
+    await setLengthChoice(tripId, viewerId, length, picked);
     refresh({ kind: "tripDates", tripId });
   },
 

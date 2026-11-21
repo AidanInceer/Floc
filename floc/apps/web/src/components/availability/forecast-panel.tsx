@@ -1,5 +1,6 @@
 "use client";
 
+import { AsideHead } from "@/components/availability/dates-board-parts";
 import { ChevronIcon } from "@/components/system/icons";
 import { cx } from "@/components/system/ui";
 import { WeatherGlyph } from "@/components/system/icons/weather";
@@ -30,10 +31,7 @@ export function ForecastPanel({
 
   return (
     <div className="p-4">
-      <div className="flex items-baseline justify-between gap-2">
-        <p className={label}>{placeName}</p>
-        <p className={label}>To {formatDate(horizonEnd)}</p>
-      </div>
+      <AsideHead title={placeName} meta={<span className="nums font-mono text-[11px] text-ink-soft">To {formatDate(horizonEnd)}</span>} />
       <ul className="mt-2">
         {days.map((d, i) => {
           const w = byDate[d];
