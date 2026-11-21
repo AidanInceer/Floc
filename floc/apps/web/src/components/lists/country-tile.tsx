@@ -14,7 +14,7 @@ import { CountryOutline } from "./country-outline";
 import { StartTripButton } from "./start-trip-button";
 import { countWord } from "@floc/core/text/count-word";
 
-const PLAIN_LAND = "fill-sheet-2 stroke-rule-strong";
+const PLAIN_LAND = "fill-sheet-2";
 
 const exploreTrips = (n: number) => (n === 0 ? "No Explore trips" : countWord(n, "Explore trip"));
 
