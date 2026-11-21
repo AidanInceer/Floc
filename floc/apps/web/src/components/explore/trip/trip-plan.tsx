@@ -9,8 +9,9 @@ import { TripCopyBar, TripCopyCard } from "@/components/explore/trip/trip-copy-c
 import { Arrival, StopPanel } from "@/components/explore/trip/trip-stop";
 import { ArrowUpIcon } from "@/components/system/icons";
 import { Button, SectionHeading } from "@/components/system/ui";
+import { isStill } from "@/lib/motion/still";
 
-const calm = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const calm = isStill;
 
 export function TripPlan({ trip, plan, signedIn, startOpen }: { trip: PresetTrip; plan: PresetPlan; signedIn: boolean; startOpen?: boolean }) {
   const tone = regionTone(trip.region);

@@ -7,12 +7,13 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { MotionToggle } from "@/components/explore/motion-toggle";
 import { TripHero } from "@/components/explore/trip/trip-hero";
 import { TripKnow } from "@/components/explore/trip/trip-know";
 import { TripPlan } from "@/components/explore/trip/trip-plan";
 import { SavedTripsProvider } from "@/components/explore/save/saved-trips";
 import { ChevronIcon } from "@/components/system/icons";
-import { buttonClass, cx } from "@/components/system/ui";
+import { buttonClass } from "@/components/system/ui";
 import { ListingWishProvider } from "@/components/lists/wish/listing-wish";
 import { wishListParam } from "@/lib/landing/start-trip";
 import { listWishListsFor, wishListPeopleToAsk } from "@/server/wish-lists/wish-lists";
@@ -70,10 +71,13 @@ export default async function ExploreTripPage({ params, searchParams }: Props) {
     <SavedTripsProvider ids={saved} signedIn={!!userId}>
       <ListingWishProvider value={{ lists, along, me: session?.user?.name ?? "", people }}>
         <div className="mx-auto w-full max-w-[84rem] px-4 pb-32 pt-6 sm:px-6 lg:pb-24">
-          <Link href="/explore" className={cx(buttonClass("ghost"), "mb-3")}>
-            <ChevronIcon direction="left" size={12} />
-            Every trip
-          </Link>
+          <div className="mb-3 flex items-center gap-2">
+            <Link href="/explore" className={buttonClass("ghost")}>
+              <ChevronIcon direction="left" size={12} />
+              Every trip
+            </Link>
+            <MotionToggle signedIn={!!userId} />
+          </div>
           <TripHero trip={trip} figures={plan.inPlan} rates={rates} />
           <TripPlan trip={trip} plan={plan} signedIn={!!userId} startOpen={query.start !== undefined} />
           <TripKnow know={tripKnow(trip.id)} />

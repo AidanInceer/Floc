@@ -7,11 +7,11 @@ import { reelTick } from "@/lib/landing/globe/reel";
 import type { LatLng } from "@floc/globe/sphere";
 
 import type { Globe } from "../globe/use-spin-globe";
+import { isStill } from "@/lib/motion/still";
 
 export type Face = { card: number; kind: "rest" | "tick" | "land" | "in"; key: number };
 type Change = [slot: number, card: number, kind: Face["kind"]];
 
-const STILL = "(prefers-reduced-motion: reduce)";
 const pick = (n: number) => crypto.getRandomValues(new Uint32Array(1))[0]! % n;
 
 export function useBorrowHand(places: LatLng[], globe: RefObject<Globe | null>) {
@@ -40,7 +40,7 @@ export function useBorrowHand(places: LatLng[], globe: RefObject<Globe | null>) 
       l.hand = next;
       g.setHand(next);
       g.spin(win);
-      if (matchMedia(STILL).matches) return swap(next.flatMap((card, slot) => (stops[slot] === null ? [] : [[slot, card, "rest"] as Change])));
+      if (isStill()) return swap(next.flatMap((card, slot) => (stops[slot] === null ? [] : [[slot, card, "rest"] as Change])));
       const t0 = performance.now();
       const ticks = stops.map(() => 0);
       const roll = () => {

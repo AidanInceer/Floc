@@ -10,8 +10,7 @@ import { tripCodes } from "./country";
 import { drawOutline } from "./drawing";
 import { passCanvas } from "./pass-canvas";
 import { useLand } from "./use-land";
-
-const STILL = "(prefers-reduced-motion: reduce)";
+import { isStill } from "@/lib/motion/still";
 
 type Box = { width: number; height: number };
 
@@ -43,7 +42,7 @@ export function PassMap({ trip }: { trip: PresetTrip }) {
   useEffect(() => {
     const node = canvas.current;
     if (!node || !box || !d?.frame) return;
-    const moving = shown.current !== null && shown.current !== trip.id && !matchMedia(STILL).matches;
+    const moving = shown.current !== null && shown.current !== trip.id && !isStill();
     shown.current = trip.id;
     const scene = { route, land: d, frame: d.frame, box, tone: toneOf(trip) };
     let stop = passCanvas(node, { ...scene, moving });

@@ -68,6 +68,13 @@ describe("settings", () => {
     expect((await webPort.loadMySettings(world.member)).notifyNextTrip).toBe(false);
   });
 
+  it("keeps animations on until you turn them off", async () => {
+    expect((await webPort.loadMySettings(world.member)).reduceMotion).toBe(false);
+
+    await webPort.updateReduceMotion(world.member, true);
+    expect((await webPort.loadMySettings(world.member)).reduceMotion).toBe(true);
+  });
+
   it("refuses to unlink the last sign-in method", async () => {
     await db.insert(schema.account).values({
       id: "acc-only",

@@ -18,6 +18,7 @@ import { Button } from "@/components/system/ui";
 import { useListingRates } from "@/components/explore/listing-rates";
 import { useSavedTrips } from "@/components/explore/save/saved-trips";
 import { nounFor } from "@floc/core/text/count-word";
+import { isStill } from "@/lib/motion/still";
 
 const sheetClass =
   "m-0 mt-auto max-h-[90dvh] w-full max-w-none overflow-y-auto rounded-t-md bg-sheet p-0 text-ink backdrop:bg-black/40 sm:mx-auto sm:max-w-lg lg:hidden";
@@ -58,7 +59,7 @@ export function ExploreFinder({
   const moreLike = (id: string) => {
     setLike(id);
     setSort("match");
-    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const still = isStill();
     top.current?.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
   };
 

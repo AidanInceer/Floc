@@ -50,6 +50,15 @@ export function BellIcon({ muted = false, ...props }: IconProps & { muted?: bool
   );
 }
 
+export function MotionIcon({ still = false, ...props }: IconProps & { still?: boolean }) {
+  return (
+    <LineIcon {...props}>
+      <path d="M2.2 10.8c1.6-4.4 4.6-6.6 9-6.6M9.6 2.4l1.8 1.8-1.8 1.8" />
+      {still ? <path d="M2 2l10 10" /> : null}
+    </LineIcon>
+  );
+}
+
 export function PlusIcon(props: IconProps) {
   return (
     <LineIcon {...props}>

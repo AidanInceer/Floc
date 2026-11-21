@@ -7,6 +7,7 @@ import { TICKET_SORTED_MS } from "@/lib/landing/hero/ticket-beats";
 
 import { SCENE_END_MS } from "./beats";
 import "./hero-ticket.css";
+import { isStill } from "@/lib/motion/still";
 
 const LAST_WORD = HEADLINE_WORDS[HEADLINE_WORDS.length - 1];
 const typed = typingScript(HEADLINE_WORDS, START_DELAY_MS, SCENE_END_MS);
@@ -27,7 +28,7 @@ export function TypedWord() {
       mark.current!.style.visibility = frame.sweep > 0 ? "visible" : "hidden";
       mark.current!.style.clipPath = `polygon(0 0, ${edge}% 0, ${edge - 4}% 100%, 0 100%)`;
     };
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (isStill()) {
       paint(script.doneAt);
       return;
     }

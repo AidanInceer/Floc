@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { flightPoint, PLANE_D, TRAIL_D, TRAIL_H, TRAIL_W } from "@/lib/landing/hero/flight-path";
 
 import { FLIGHT_MS } from "./beats";
+import { isStill } from "@/lib/motion/still";
 
 export function Flight({ flying }: { flying: boolean }) {
   const box = useRef<HTMLDivElement>(null);
@@ -22,7 +23,7 @@ export function Flight({ flying }: { flying: boolean }) {
       tr.style.clipPath = `inset(0 ${Math.max(0, 100 - left)}% 0 0)`;
     };
     if (!flying) return place(0);
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return place(1);
+    if (isStill()) return place(1);
     const start = performance.now();
     let frame = 0;
     const tick = (now: number) => {

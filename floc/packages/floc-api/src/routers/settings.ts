@@ -77,6 +77,12 @@ export const settingsRouter = router({
       await ctx.port.updateHomeCurrency(ctx.viewer.id, input.currency);
     }),
 
+  motion: protectedProcedure
+    .input(z.object({ reduce: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.port.updateReduceMotion(ctx.viewer.id, input.reduce);
+    }),
+
   notifications: protectedProcedure
     .input(z.object({ push: z.boolean(), email: z.boolean(), reminders: z.boolean(), nextTrip: z.boolean().optional() }))
     .mutation(async ({ ctx, input }) => {
