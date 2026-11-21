@@ -24,6 +24,7 @@ import {
 import { auth } from "@/server/auth/auth";
 import { memberSession } from "@/server/auth/member-session";
 import { bounded, LIMITS } from "@/server/limits";
+import { AlreadyRemoved, isRemovedDay, isRemovedEvent, isRemovedPackingLine } from "@/server/removed-rows";
 import { requestMemo } from "@/server/request-scope";
 import { localPath } from "@floc/core/text/local-path";
 import { whoTone } from "@floc/core/people/who";
@@ -262,22 +263,37 @@ const resolveNote = cache(async (tripId: number, noteId: number) => {
     .get();
 });
 
-type Missing = () => never;
+type WasRemoved = () => Promise<boolean>;
+type Missing = (wasRemoved: WasRemoved) => never | Promise<never>;
 
 const refuseMissing: Missing = () => {
   throw new Refusal("That is not on this trip.", "missing");
 };
 
+const removedOrNotFound: Missing = async (wasRemoved) => {
+  if (await wasRemoved()) throw new AlreadyRemoved();
+  notFound();
+};
+
+const neverRemoved: WasRemoved = async () => false;
+
 function scopedTo(tripId: number, viewerId: string, missing: Missing) {
-  const found = async <T>(row: Promise<T | undefined>): Promise<T> => (await row) ?? missing();
+  const found = async <T>(row: Promise<T | undefined>, wasRemoved: WasRemoved = neverRemoved): Promise<T> =>
+    (await row) ?? missing(wasRemoved);
   return {
-    day: (dayId: number) => found(resolveDay(tripId, dayId)),
-    event: (eventId: number) => found(resolveEvent(tripId, eventId)),
+    day: (dayId: number) => found(resolveDay(tripId, dayId), () => isRemovedDay(tripId, dayId)),
+    event: (eventId: number) => found(resolveEvent(tripId, eventId), () => isRemovedEvent(tripId, eventId)),
     expense: (expenseId: number) => found(resolveExpense(tripId, expenseId)),
     note: (noteId: number) => found(resolveNote(tripId, noteId)),
-    packingLine: (lineId: number) => found(resolvePackingLine(tripId, viewerId, lineId)),
+    packingLine: (lineId: number) =>
+      found(resolvePackingLine(tripId, viewerId, lineId), () => isRemovedPackingLine(tripId, viewerId, lineId)),
     document: (documentId: number) => found(resolveDocument(tripId, viewerId, documentId)),
   };
+}
+
+export async function requireTripEdit(tripId: number | string): Promise<TripAccess> {
+  const access = await requireTripAccess(tripId);
+  return { ...access, ...scopedTo(access.trip.id, access.viewer.id, removedOrNotFound) };
 }
 
 function memberQuery() {
