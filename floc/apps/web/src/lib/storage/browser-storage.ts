@@ -17,3 +17,21 @@ export function writeStored(key: FunctionalKey, value: string): void {
   } catch {
   }
 }
+
+const heldForTab = new Map<string, string>();
+
+export function readForTab(key: string): string | null {
+  try {
+    return sessionStorage.getItem(key) ?? heldForTab.get(key) ?? null;
+  } catch {
+    return heldForTab.get(key) ?? null;
+  }
+}
+
+export function writeForTab(key: string, value: string): void {
+  heldForTab.set(key, value);
+  try {
+    sessionStorage.setItem(key, value);
+  } catch {
+  }
+}

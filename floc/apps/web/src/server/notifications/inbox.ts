@@ -23,11 +23,14 @@ export type InboxPage = { items: InboxItem[]; next: string | null };
 
 const visibleTo = (userId: string) => and(eq(notification.userId, userId), stillVisible());
 
-function parseCursor(cursor: string | null) {
-  const match = cursor?.match(/^(\d+)-(\d+)$/);
+export type InboxCursor = string | string[] | null | undefined;
+
+function parseCursor(cursor: InboxCursor) {
+  const match = typeof cursor === "string" ? /^(\d+)-(\d+)$/.exec(cursor) : null;
   if (!match) return undefined;
   const at = new Date(Number(match[1]));
   const id = Number(match[2]);
+  if (Number.isNaN(at.getTime()) || !Number.isSafeInteger(id)) return undefined;
   return or(
     lt(activity.lastModifiedAt, at),
     and(eq(activity.lastModifiedAt, at), lt(notification.id, id)),
@@ -46,7 +49,7 @@ function toItem(r: Awaited<ReturnType<typeof notificationRows>>[number]): InboxI
   };
 }
 
-export async function listInbox(userId: string, cursor: string | null): Promise<InboxPage> {
+export async function listInbox(userId: string, cursor: InboxCursor): Promise<InboxPage> {
   const rows = await notificationRows(and(visibleTo(userId), parseCursor(cursor)), INBOX_PAGE);
 
   const items = rows.map(toItem);
