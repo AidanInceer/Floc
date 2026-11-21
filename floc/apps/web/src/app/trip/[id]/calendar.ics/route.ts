@@ -9,7 +9,8 @@ export async function GET(
 ) {
   const { id } = await params;
   const viewer = await requireUser(`/trip/${id}/days`);
-  const ics = await memberCalendar(Number(id), viewer.id);
+  const tripId = Number(id);
+  const ics = Number.isSafeInteger(tripId) ? await memberCalendar(tripId, viewer.id) : null;
   if (!ics) notFound();
 
   return new Response(ics, {

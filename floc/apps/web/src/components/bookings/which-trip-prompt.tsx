@@ -7,6 +7,7 @@ import { useEffect, useRef } from "react";
 import { WaitingFileRow } from "@/components/bookings/waiting-file-row";
 import type { TripChoice, WaitingFile } from "@floc/core/documents/booking/booking-inbox";
 import { Card, cx } from "@/components/system/ui";
+import { readForTab, writeForTab } from "@/lib/storage/browser-storage";
 
 const ASKED = "floc.bookings.asked";
 
@@ -19,7 +20,7 @@ export function WhichTripPrompt({ files, trips }: { files: WaitingFile[]; trips:
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog || dialog.open || onBookings || files.length === 0) return;
-    if (Number(window.sessionStorage.getItem(ASKED) ?? 0) >= newest) return;
+    if (Number(readForTab(ASKED) ?? 0) >= newest) return;
     dialog.showModal();
   }, [files.length, newest, onBookings]);
 
@@ -28,7 +29,7 @@ export function WhichTripPrompt({ files, trips }: { files: WaitingFile[]; trips:
   }, [files.length, onBookings]);
 
   const dismiss = () => {
-    window.sessionStorage.setItem(ASKED, String(newest));
+    writeForTab(ASKED, String(newest));
     ref.current?.close();
   };
 
@@ -39,7 +40,7 @@ export function WhichTripPrompt({ files, trips }: { files: WaitingFile[]; trips:
     <dialog
       ref={ref}
       aria-labelledby="which-trip-title"
-      onClose={() => window.sessionStorage.setItem(ASKED, String(newest))}
+      onClose={() => writeForTab(ASKED, String(newest))}
       onClick={(event) => { if (event.target === event.currentTarget) dismiss(); }}
       className={cx("m-0 max-h-[90dvh] w-full max-w-lg bg-transparent p-0 backdrop:bg-black/40 sm:m-auto", clip)}
       style={{ marginTop: "auto" }}
