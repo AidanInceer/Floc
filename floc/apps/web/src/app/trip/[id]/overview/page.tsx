@@ -32,9 +32,9 @@ import { BookingsCard } from "@/components/trip/overview/stops/bookings-card";
 import { OverviewStops } from "@/components/trip/overview/stops/overview-stops";
 import { OverviewMap } from "@/components/trip/overview/overview-map";
 import { TripArrival } from "@/components/trip/overview/trip-arrival";
-import { LeftToSort } from "@/components/trip/overview/left-to-sort";
+import { ToDoBanner } from "@/components/trip/overview/to-do-banner";
 import { RecapFoot } from "@/components/trip/overview/recap/recap-foot";
-import { leftToSortFor, readSharedPacking } from "./left-to-sort-for";
+import { readPacking, toDoFor } from "./to-do-for";
 import { PanelPlaceholder, StreamedEstimate, StreamedGroup } from "./streamed";
 import { canUseFeature } from "@/server/billing/entitlements";
 import { readEstimate } from "@/server/money/estimate/estimate-view";
@@ -64,7 +64,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
   }));
 
   const now = today();
-  const sharedPacking = readSharedPacking(tripId);
+  const packing = readPacking(tripId, viewer.id);
   const [availabilityRows, expenseRows, tripDays, splitRows, settlementRows, welcome, ideas, docs, homes] =
     await Promise.all([
       listAvailability(tripId),
@@ -107,7 +107,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
     markedUserIds: marked,
     owedBy: settle.rows.filter((r) => r.payee === viewer.id).map((r) => r.payer),
   });
-  const sortList = leftToSortFor({
+  const toDo = toDoFor({
     trip,
     today: now,
     viewerId: viewer.id,
@@ -117,19 +117,17 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
     settle: settle.rows,
     legs,
     nudges,
-  }, await sharedPacking);
+  }, await packing);
 
   return (
     <div className="mx-auto flex w-full max-w-[84rem] flex-col gap-7 px-4 pb-20 pt-6 sm:px-6">
-      <LeftToSort tripId={tripId} list={sortList} />
+      <ToDoBanner tripId={tripId} list={toDo} />
       <section className="rounded-md bg-sheet shadow-raised ring-1 ring-rule">
         <TripArrival href={`/trip/${tripId}/overview`} />
         <div data-overview-band className="relative grid rounded-t-md bg-sheet-2 lg:min-h-[34rem] lg:grid-cols-[minmax(0,1fr)_23.5rem]">
           <OverviewMap
-            tripId={tripId}
             route={route}
             tone={tone}
-            datesUnset={datesUnset}
           />
           <div data-overview-card className="relative z-10 bg-sheet lg:col-start-2 lg:m-5 lg:self-start lg:rounded-md lg:shadow-lift lg:ring-1 lg:ring-rule">
             <OverviewCard

@@ -1,18 +1,13 @@
 import type { OverviewRoute } from "@floc/core/trip/overview/route";
 import type { TripColor } from "@floc/core/trip/trip-color";
-import { ButtonLink } from "@/components/system/ui";
 import { OverviewGlobe } from "@/components/trip/overview/globe/overview-globe";
 
 export function OverviewMap({
-  tripId,
   route,
   tone,
-  datesUnset,
 }: {
-  tripId: number;
   route: OverviewRoute;
   tone: TripColor;
-  datesUnset: boolean;
 }) {
   const unpinned = route.missing.length > 0 ? <Unpinned names={route.missing} /> : null;
   if (route.stops.length === 0) {
@@ -21,16 +16,7 @@ export function OverviewMap({
         {route.missing.length > 0 ? (
           unpinned
         ) : (
-          <>
-            <p className="max-w-xs text-sm text-ink-soft">
-              {datesUnset
-                ? "No dates yet. Pick them, then say where you sleep each night, and the map fills in."
-                : "No stops yet. The map fills in as the group decides where to stay."}
-            </p>
-            <ButtonLink href={`/trip/${tripId}/${datesUnset ? "dates" : "days"}`} variant="primary">
-              {datesUnset ? "Pick the dates" : "Plan the days"}
-            </ButtonLink>
-          </>
+          <p className="max-w-xs text-sm text-ink-soft">No stops yet</p>
         )}
       </div>
     );

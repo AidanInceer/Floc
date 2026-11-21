@@ -1,18 +1,17 @@
-import Link from "next/link";
-
-import type { GapKind } from "@floc/core/trip/overview/left-to-sort";
+import type { GapKind } from "@floc/core/trip/overview/to-do";
 import { SORT_COLOURS } from "@floc/core/design/section-colours";
 import { NavGlyph } from "@/components/system/icons/nav";
 import { BedIcon, EventGlyph } from "@/components/system/icons/days";
 import { StarIcon } from "@/components/system/icons/explore-trip";
 import { CheckIcon } from "@/components/system/icons";
-import { cx } from "@/components/system/ui";
+import { ButtonLink, cx } from "@/components/system/ui";
 
 const GLYPH: Record<GapKind, React.ReactNode> = {
   days: <NavGlyph name="dates" />,
   ideas: <StarIcon size={13} />,
   money: <NavGlyph name="money" />,
   packing: <NavGlyph name="packing" />,
+  plan: <NavGlyph name="days" />,
   stay: <BedIcon size={13} />,
   travel: <EventGlyph type="transport" transportType={null} size={13} />,
 };
@@ -37,11 +36,11 @@ export function SortCard({ item, href, action }: { item: Item; href?: string; ac
         </span>
       ) : null}
       {done ? (
-        <span className="text-xs text-ink-faint max-sm:col-start-3 max-sm:row-start-1 sm:col-start-6">Sorted</span>
+        <span className="text-xs text-ink-faint max-sm:col-start-3 max-sm:row-start-1 sm:col-start-6">Done</span>
       ) : (
-        <Link href={href} className="whitespace-nowrap text-ink-soft underline-offset-4 hover:text-ink hover:underline max-sm:col-start-3 max-sm:row-start-1 sm:col-start-6">
+        <ButtonLink href={href} variant="secondary" className="whitespace-nowrap max-sm:col-start-3 max-sm:row-start-1 sm:col-start-6">
           {action}
-        </Link>
+        </ButtonLink>
       )}
     </li>
   );

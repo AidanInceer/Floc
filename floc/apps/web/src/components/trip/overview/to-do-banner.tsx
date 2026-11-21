@@ -2,19 +2,19 @@
 
 import { useId, type MouseEvent } from "react";
 
-import type { Gap, LeftToSort as SortList, Sorted } from "@floc/core/trip/overview/left-to-sort";
+import type { Gap, ToDoList, Sorted } from "@floc/core/trip/overview/to-do";
 import { ButtonLink, cx, iconButtonClass } from "@/components/system/ui";
 import { ChevronIcon } from "@/components/system/icons";
-import { STACK_COLUMNS, SortCard } from "./sort/sort-card";
-import { NudgeCard } from "./sort/nudge-card";
+import { STACK_COLUMNS, SortCard } from "./to-do/sort-card";
+import { NudgeCard } from "./to-do/nudge-card";
 import { NudgeAll } from "@/components/trip/nudge/nudge-all";
-import { SortCubes } from "./sort/sort-cubes";
-import { useDeal } from "./sort/use-deal";
+import { SortCubes } from "./to-do/sort-cubes";
+import { useDeal } from "./to-do/use-deal";
 
 const hrefOf = (tripId: number, gap: Gap): string =>
   gap.tab === "overview" ? `#${gap.anchor ?? ""}` : `/trip/${tripId}/${gap.tab}${gap.anchor ? `#${gap.anchor}` : ""}`;
 
-export function LeftToSort({ tripId, list }: { tripId: number; list: SortList }) {
+export function ToDoBanner({ tripId, list }: { tripId: number; list: ToDoList }) {
   const { open, toggle, drawer, list: stack, chevron } = useDeal();
   const id = useId();
   const next = list.open[0];
@@ -25,12 +25,12 @@ export function LeftToSort({ tripId, list }: { tripId: number; list: SortList })
     if (!(e.target as HTMLElement).closest("a, button")) toggle();
   };
   return (
-    <section aria-label="Left to sort" className="group/sort relative mb-2.5">
+    <section aria-label="To do" className="group/sort relative mb-2.5">
       <div className="relative z-[2] rounded-md bg-sheet px-4 py-2.5 shadow-raised ring-1 ring-rule sm:pl-5">
         <div onClick={toggleFromStrip} className="flex min-h-10 cursor-pointer flex-wrap items-center gap-x-4 gap-y-2">
           <SortCubes total={total} filled={sorted} />
           <span className="flex-none text-sm text-ink-soft">
-            <b className="nums font-display text-[17px] text-ink">{sorted}</b> of {total} sorted
+            <b className="nums font-display text-[17px] text-ink">{sorted}</b> of {total} done
           </span>
           <span className="order-3 min-w-0 basis-full text-sm text-ink-faint sm:order-none sm:flex-1 sm:basis-auto sm:truncate">
             {next.mine ? "Next for you:" : "Next:"} <b className="font-medium text-ink">{next.text}</b>
@@ -86,7 +86,7 @@ function SortedDeck({ done }: { done: Sorted[] }) {
         className="relative z-[2] flex w-full items-center gap-3 rounded-md border sm:col-span-full border-dashed border-pen-edge bg-pen-soft px-3.5 py-2.5 text-left text-sm text-ink-soft hover:border-pen"
       >
         <SortCubes total={done.length} filled={done.length} />
-        <span className="flex-1">{done.length} already sorted</span>
+        <span className="flex-1">{done.length} done</span>
         <span ref={chevron} className="grid place-items-center">
           <ChevronIcon direction="down" size={13} />
         </span>
