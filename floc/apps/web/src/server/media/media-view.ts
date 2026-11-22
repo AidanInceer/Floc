@@ -1,6 +1,6 @@
 import "server-only";
 
-import { groupMedia, MEDIA_LIMITS, mediaRatio, videoClock, type MediaGroup, type MediaKind, type MediaStop } from "@floc/core/media/media";
+import { groupMedia, MEDIA_LIMITS, mediaRatio, mediaShape, videoClock, type MediaGroup, type MediaKind, type MediaStop } from "@floc/core/media/media";
 
 import type { TripAccess } from "@/server/access";
 import { canUseFeature } from "@/server/billing/entitlements";
@@ -12,6 +12,7 @@ export type MediaItem = {
   placeId: number | null;
   kind: MediaKind;
   ratio: number;
+  shape: number;
   src: string;
   thumb: string;
   clock: string | null;
@@ -42,6 +43,7 @@ export async function readMediaView(
       placeId: row.placeId,
       kind: row.kind,
       ratio: mediaRatio(row.width, row.height),
+      shape: mediaShape(row.width, row.height),
       src,
       thumb: row.kind === "photo" ? `${src}?size=thumb` : `${src}#t=0.1`,
       clock: row.kind === "video" ? videoClock(row.durationSeconds) : null,
