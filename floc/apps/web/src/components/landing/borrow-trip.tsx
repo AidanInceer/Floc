@@ -2,16 +2,19 @@
 
 import { useEffect, useMemo, useRef } from "react";
 
-import { Button, ButtonLink, cx } from "@/components/system/ui";
-import { placeWords, type BorrowCard as Card } from "@/lib/landing/borrow";
+import { Button, ButtonLink } from "@/components/system/ui";
+import type { BorrowCard as Card } from "@/lib/landing/borrow";
 import { HAND } from "@/lib/landing/globe/hand";
 
 import { BorrowRail } from "./borrow/borrow-rail";
 import { BorrowTile } from "./borrow/borrow-tile";
+import { PlaceWord } from "./borrow/place-word";
 import { StartButton } from "./borrow/start-button";
 import { tone } from "./borrow/tones";
+import { TourPause } from "./borrow/tour-pause";
 import { useBorrowHand } from "./borrow/use-borrow-hand";
 import { useBorrowWay } from "./borrow/use-borrow-way";
+import { useTourHold } from "./borrow/use-tour-hold";
 import { useSpinGlobe, type GlobeEvents } from "./globe/use-spin-globe";
 import { Glyph } from "@/components/system/icons/landing";
 import "./borrow-trip.css";
@@ -21,9 +24,10 @@ const LONDON = { lat: 51.507, lng: -0.128 };
 export function BorrowTrip({ cards, signedIn, explore }: { cards: Card[]; signedIn: boolean; explore: string }) {
   const places = useMemo(() => cards.flatMap((c) => (c.stops[0] ? [{ lat: c.stops[0].lat, lng: c.stops[0].lng }] : [])), [cards]);
   const events = useRef<GlobeEvents>({});
-  const { canvas, lit, globe } = useSpinGlobe(LONDON, places, events);
+  const { canvas, lit, said, globe } = useSpinGlobe(LONDON, places, events);
   const { faces, spin, settle } = useBorrowHand(places, globe);
   const { way, stage, back, enter, leave, go, changed } = useBorrowWay(globe, cards);
+  const { paused, flipPaused, watch } = useTourHold(globe);
   useEffect(() => {
     events.current = { onSettle: settle, onWay: changed };
   }, [settle, changed]);
@@ -54,19 +58,14 @@ export function BorrowTrip({ cards, signedIn, explore }: { cards: Card[]; signed
         Borrow a trip
         <span className="borrow-to">
           {" "}to{" "}
-          <span className={cx("borrow-word transition-colors duration-500", litTone)}>
-            <span key={card.id} className="borrow-roll">
-              <span aria-hidden="true">{placeWords(card.place)}</span>
-              <span className="sr-only">{card.place}</span>
-            </span>
-          </span>
+          <PlaceWord card={card} tone={litTone} />
         </span>
       </h2>
-      <span aria-live="polite" className="sr-only">{card.place}</span>
+      <span aria-live="polite" className="sr-only">{cards[said]?.place}</span>
       <p className="mx-auto mt-3.5 max-w-[40ch] text-md text-ink-soft">A finished route to start from. Change anything.</p>
       <div ref={stage} className="borrow-stage" data-deep={way ? "" : undefined} data-on={way?.on ? "" : undefined}>
         <div className="borrow-scene">
-          <ul className="borrow-list" data-side="left" inert={Boolean(way)}>
+          <ul className="borrow-list" data-side="left" inert={Boolean(way)} {...watch}>
             {tiles(0, half)}
           </ul>
           <div className="borrow-globe-box">
@@ -82,17 +81,18 @@ export function BorrowTrip({ cards, signedIn, explore }: { cards: Card[]; signed
               </>
             )}
           </div>
-          <ul className="borrow-list" data-side="right" inert={Boolean(way)}>
+          <ul className="borrow-list" data-side="right" inert={Boolean(way)} {...watch}>
             {tiles(half, HAND)}
           </ul>
           <aside className="borrow-panel">
             {open && way && <BorrowRail card={open} tone={litTone} step={way.step} onStep={go} signedIn={signedIn} />}
           </aside>
         </div>
-        <div className="borrow-bar" inert={Boolean(way)}>
-          <Button onClick={() => spin(lit)} className="borrow-go">
-            Spin for me
-          </Button>
+        <div className="borrow-bar" inert={Boolean(way)} {...watch}>
+          <span className="borrow-spin">
+            <TourPause paused={paused} onFlip={flipPaused} />
+            <Button onClick={() => spin(lit)}>Spin for me</Button>
+          </span>
           <ButtonLink href={explore} variant="primary" className="borrow-every px-6">
             See every trip
           </ButtonLink>

@@ -49,7 +49,7 @@ export function useBorrowHand(places: LatLng[], globe: RefObject<Globe | null>) 
         let passing: number[] | null = null;
         stops.forEach((stopAt, slot) => {
           if (stopAt === null) return;
-          if (elapsed >= stopAt) {
+          if (isStill() || elapsed >= stopAt) {
             stops[slot] = null;
             return changes.push([slot, next[slot]!, "land"]);
           }
