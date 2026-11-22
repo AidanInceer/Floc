@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { groupCount, needsRemoveConfirm, sharedSaid, splitFigures } from "./row-words";
+import { groupCount, needsRemoveConfirm, splitFigures } from "./row-words";
 
 describe("groupCount", () => {
   it("shows packed over total", () => {
@@ -18,20 +18,6 @@ describe("groupCount", () => {
 
   it("is empty for no lines", () => {
     expect(groupCount([])).toEqual({ text: "", full: false });
-  });
-});
-
-describe("sharedSaid", () => {
-  it("says nothing for a line nobody has", () => {
-    expect(sharedSaid({ others: [] })).toBe("");
-  });
-
-  it("names the others bringing it too", () => {
-    expect(sharedSaid({ others: ["Sofia", "Raj"] })).toBe("with Sofia, Raj");
-  });
-
-  it("never repeats packed", () => {
-    expect(sharedSaid({ others: ["Raj"] })).toBe("with Raj");
   });
 });
 

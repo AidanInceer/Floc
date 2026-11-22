@@ -3,6 +3,7 @@ import { TEXT_CAPS } from "@floc/core/text/text";
 import { z } from "zod";
 
 import { router, tripProcedure } from "../trpc";
+import { kitName } from "./kits";
 
 const lineId = z.number().int().positive();
 
@@ -113,20 +114,12 @@ export const packingRouter = router({
     }),
 
   saveKit: tripProcedure
-    .input(
-      z.object({
-        name: z
-          .string()
-          .trim()
-          .min(1, "Give the kit a name.")
-          .max(TEXT_CAPS.packingKitName, "That name is too long."),
-      }),
-    )
+    .input(z.object({ name: kitName }))
     .mutation(({ ctx, input }) => ctx.port.savePackingKit(ctx.viewer.id, input.tripId, input.name)),
 
   deleteKit: tripProcedure
     .input(z.object({ kitId: z.number().int().positive() }))
     .mutation(async ({ ctx, input }) => {
-      await ctx.port.deletePackingKit(ctx.viewer.id, input.kitId);
+      await ctx.port.deleteKit(ctx.viewer.id, input.kitId);
     }),
 });

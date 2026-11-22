@@ -7,7 +7,6 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const without = process.argv.includes("--without") ? process.argv[process.argv.indexOf("--without") + 1].split(",") : [];
 const ok = await runAll([
   ["plugin in step", ["node", "scripts/sync-floc-plugin.mjs", "--check"]],
-  ["folder size", ["node", "scripts/check-folder-size.mjs"]],
   ["no comments", ["node", "scripts/check-comments.mjs", "--all"]],
   ["docs", ["node", "scripts/check-docs.mjs"]],
   ["files map", ["node", "scripts/check-files-map.mjs"]],

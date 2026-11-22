@@ -9,6 +9,8 @@ export type WishMemberStatus = (typeof WISH_MEMBER_STATUSES)[number];
 
 export const WISH_CAPS = { name: 60, text: 280, url: 2000, label: 120, presetId: 80 } as const;
 
+export const WISH_ADD_LABEL = "Add an idea, a place or a link";
+
 export type WishItemInput =
   | { kind: "explore"; presetId: string }
   | { kind: "country"; code: string }

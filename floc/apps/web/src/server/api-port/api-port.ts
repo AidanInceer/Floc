@@ -17,7 +17,7 @@ import type {
   PlaceHit,
 } from "@floc/api/port";
 
-import { copyListing } from "@/server/explore/listing-copy";
+import { startTripFromListing } from "@/server/explore/listing-copy";
 import { saveTrip, startTrip } from "@/server/trips/trip-save";
 
 import { assertAdmin, findTripAccess, type TripAccess } from "@/server/access";
@@ -47,7 +47,7 @@ import { daysPort } from "@/server/api-port/days/api-port-days";
 import { notificationsPort } from "@/server/api-port/notifications/notifications";
 import { refresh } from "@/server/freshness";
 import { emailConfigured } from "@/server/auth/email";
-import { findTripByShareLink, inviteToTrip, joinWithLink } from "@/server/trips/invites";
+import { findTripByShareLink, joinWithLink } from "@/server/trips/invites";
 import { mintShareToken } from "@/server/trips/invite-link";
 import {
   listDaysWithEvents,
@@ -87,11 +87,11 @@ import {
   setTier,
   stepQuantity,
 } from "@/server/packing/packing-save";
-import { insertPackingKit, insertPackingKitItem, softDeletePackingKit } from "@/server/packing/packing-kits";
+import { insertPackingKit, insertPackingKitItem } from "@/server/packing/packing-kits";
 import { canUseFeature } from "@/server/billing/entitlements";
 import { readVibeTags } from "@floc/core/trip/vibe-tags";
 import { travelMapFor } from "@/server/itinerary/travel-map";
-import { leaveTripAs, removeMembership, setMemberRoleAdmin } from "@/server/trips/roster";
+import { leaveTripAs, promoteToAdmin, removeMembership } from "@/server/trips/roster";
 import {
   listTripsFor,
   resetInviteToken,
@@ -261,10 +261,6 @@ export const webPort: FlocPort = {
     return true;
   },
 
-  async deletePackingKit(viewerId, kitId) {
-    await softDeletePackingKit(kitId, viewerId);
-  },
-
   async loadMyProfile(viewerId): Promise<MyProfile> {
     const profile = await ensureProfile(viewerId);
     const map = await travelMapFor(viewerId);
@@ -306,13 +302,11 @@ export const webPort: FlocPort = {
   async setTripStarred(viewerId, tripId, starred) {
     await scoped(viewerId, tripId);
     await setTripStarred(tripId, viewerId, starred);
-    refresh({ kind: "tripList" });
   },
 
   async setTripMuted(viewerId, tripId, muted) {
     await scoped(viewerId, tripId);
     await setTripMuted(tripId, viewerId, muted);
-    refresh({ kind: "tripList" });
   },
 
   async loadTrip(viewerId, tripId): Promise<TripDetail | null> {
@@ -380,7 +374,6 @@ export const webPort: FlocPort = {
   async setPreferredDays(viewerId, tripId, dates, preferred) {
     await scoped(viewerId, tripId);
     await setPreferredDays(tripId, viewerId, dates, preferred);
-    refresh({ kind: "tripDates", tripId });
   },
 
   async listLengthChoices(viewerId, tripId) {
@@ -391,7 +384,6 @@ export const webPort: FlocPort = {
   async setLengthChoice(viewerId, tripId, length, picked) {
     await scoped(viewerId, tripId);
     await setLengthChoice(tripId, viewerId, length, picked);
-    refresh({ kind: "tripDates", tripId });
   },
 
   async listFiles(viewerId, tripId): Promise<TripFile[]> {
@@ -426,9 +418,7 @@ export const webPort: FlocPort = {
 
   async setOvernight(viewerId, tripId, input) {
     await scoped(viewerId, tripId);
-    if (await applyOvernight(tripId, input.startDate, input.endDate, input.place)) {
-      refresh({ kind: "itinerary", tripId });
-    }
+    await applyOvernight(tripId, input.startDate, input.endDate, input.place);
   },
 
   async createTrip(viewerId, input: NewTrip) {
@@ -436,12 +426,8 @@ export const webPort: FlocPort = {
   },
 
   async startTripFromPreset(viewerId, choice, along = []) {
-    await ensureProfile(viewerId);
-    const id = await copyListing(viewerId, choice);
-    if (id === null) return null;
-    refresh({ kind: "tripList" });
-    if (along.length && (await inviteToTrip({ tripId: id, fromUserId: viewerId, toUserIds: along }))) refresh({ kind: "invites" });
-    return { id };
+    const id = await startTripFromListing(viewerId, choice, along);
+    return id === null ? null : { id };
   },
 
   async updateTrip(viewerId, tripId, patch: TripPatch) {
@@ -451,13 +437,11 @@ export const webPort: FlocPort = {
   async archiveTrip(viewerId, tripId, archived) {
     assertAdmin(await scoped(viewerId, tripId));
     await setTripArchived(tripId, archived);
-    refresh({ kind: "tripList" });
   },
 
   async deleteTrip(viewerId, tripId) {
     assertAdmin(await scoped(viewerId, tripId));
     await softDeleteTrip(tripId);
-    refresh({ kind: "tripList" });
   },
 
   async leaveTrip(viewerId, tripId) {
@@ -471,27 +455,22 @@ export const webPort: FlocPort = {
         .filter((m) => m.userId !== viewerId)
         .map((m) => ({ userId: m.userId, role: m.role, joinedAt: m.joinedAt })),
     });
-    refresh({ kind: "tripList" });
   },
 
   async removeMember(viewerId, tripId, userId) {
     assertAdmin(await scoped(viewerId, tripId));
     if (userId === viewerId) return webPort.leaveTrip(viewerId, tripId);
     await removeMembership(tripId, userId, viewerId);
-    refresh({ kind: "tripHeader", tripId });
   },
 
   async promoteMember(viewerId, tripId, userId) {
     assertAdmin(await scoped(viewerId, tripId));
-    await setMemberRoleAdmin(tripId, userId);
-    refresh({ kind: "tripHeader", tripId });
+    await promoteToAdmin(tripId, userId);
   },
 
   async resetInviteLink(viewerId, tripId) {
     assertAdmin(await scoped(viewerId, tripId));
-    const minted = await resetInviteToken(tripId);
-    refresh({ kind: "tripOverview", tripId }, { kind: "tripDates", tripId });
-    return mintShareToken(minted);
+    return mintShareToken(await resetInviteToken(tripId));
   },
 
   async joinByToken(viewerId, token) {

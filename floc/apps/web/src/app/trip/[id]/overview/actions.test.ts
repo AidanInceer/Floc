@@ -14,14 +14,17 @@ vi.mock("@/server/auth/email", async (importOriginal) => ({
 }));
 
 import {
+  addIdea,
   inviteFriends,
   kickMember,
   leaveTrip,
   nudge,
   promoteMember,
+  removeIdea,
   renameTrip,
   resetInviteLink,
   setTripTags,
+  voteIdea,
 } from "./actions";
 
 let world: Scenario;
@@ -194,6 +197,52 @@ describe("renaming and tagging", () => {
 
     await setTripTags(form({ tripId: ours() }));
     expect((await tripRow(world.ours.id))?.tags).toEqual([]);
+  });
+});
+
+describe("ideas", () => {
+  beforeEach(() => signIn(world.member));
+
+  const ideas = () => db.select().from(schema.idea).where(eq(schema.idea.tripId, world.ours.id)).all();
+  const votes = () => db.select().from(schema.ideaVote).all();
+
+  async function pitch(title = "Boat day") {
+    await addIdea(form({ tripId: ours(), title }));
+    const [row] = await ideas();
+    return row!;
+  }
+
+  it("adds an idea from any member", async () => {
+    const row = await pitch();
+    expect(row).toMatchObject({ title: "Boat day", createdBy: world.member, deletedAt: null });
+  });
+
+  it("refuses a blank idea without writing", async () => {
+    await expect(addIdea(form({ tripId: ours(), title: "   " }))).resolves.toEqual({
+      error: "An idea needs a line of text.",
+    });
+    expect(await ideas()).toEqual([]);
+  });
+
+  it("votes for an idea, and a second vote takes it back", async () => {
+    const row = await pitch();
+    await voteIdea(form({ tripId: ours(), ideaId: String(row.id) }));
+    expect((await votes()).map((v) => [v.userId, v.deletedAt === null])).toEqual([[world.member, true]]);
+
+    await voteIdea(form({ tripId: ours(), ideaId: String(row.id) }));
+    expect((await votes())[0]?.deletedAt).not.toBeNull();
+  });
+
+  it("removes an idea", async () => {
+    const row = await pitch();
+    await removeIdea(form({ tripId: ours(), ideaId: String(row.id) }));
+    expect((await ideas())[0]?.deletedAt).not.toBeNull();
+  });
+
+  it("is refused on a trip the viewer is not on (rule 5)", async () => {
+    signIn(world.outsider);
+    await expectNotFound(() => addIdea(form({ tripId: ours(), title: "Sneaky" })));
+    expect(await ideas()).toEqual([]);
   });
 });
 

@@ -3,7 +3,6 @@ import "server-only";
 import type { FlocPort, SavedKit } from "@floc/api/port";
 
 import type { PackCategory } from "@floc/core/packing/packing";
-import { refresh } from "@/server/freshness";
 import {
   insertPackingKit,
   insertPackingKitItem,
@@ -42,18 +41,15 @@ export const kitsPort: KitsPort = {
 
   async createKit(viewerId, name) {
     const id = await insertPackingKit(viewerId, name);
-    refresh({ kind: "packingKits" });
     return id === null ? null : { id };
   },
 
   async renameKit(viewerId, kitId, name) {
     await renamePackingKit(kitId, viewerId, name);
-    refresh({ kind: "packingKits" });
   },
 
   async deleteKit(viewerId, kitId) {
     await softDeletePackingKit(kitId, viewerId);
-    refresh({ kind: "packingKits" });
   },
 
   async addKitItem(viewerId, kitId, input) {
@@ -64,16 +60,13 @@ export const kitsPort: KitsPort = {
       input.category,
       input.quantity,
     );
-    refresh({ kind: "packingKits" });
   },
 
   async removeKitItem(viewerId, itemId) {
     await softDeletePackingKitItem(itemId, viewerId);
-    refresh({ kind: "packingKits" });
   },
 
   async stepKitItemQuantity(viewerId, itemId, delta) {
     await stepPackingKitItemQuantity(itemId, viewerId, delta);
-    refresh({ kind: "packingKits" });
   },
 };

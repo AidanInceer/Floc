@@ -7,18 +7,13 @@ import { readNudgeTask, type NudgeResult } from "@floc/core/trip/nudge/nudge";
 import { refreshNudged, sendNudges } from "@/server/trips/nudges";
 import { capText } from "@floc/core/text/text";
 import { readTripName } from "@floc/core/trip/trip-name";
-import {
-  findIdea,
-  insertIdea,
-  softDeleteIdea,
-  toggleIdeaVote,
-} from "@/server/ideas/ideas";
+import { castIdeaVote, deleteIdea, saveIdea } from "@/server/ideas/ideas";
 import { LIMITS } from "@/server/limits";
 import { inviteToTrip } from "@/server/trips/invites";
 import {
   leaveTripAs,
+  promoteToAdmin,
   removeMembership,
-  setMemberRoleAdmin,
 } from "@/server/trips/roster";
 import { saveTrip } from "@/server/trips/trip-save";
 import { resetInviteToken } from "@/server/trips/trips";
@@ -70,11 +65,6 @@ export async function kickMember(formData: FormData) {
   assertAdmin(access);
 
   await removeMembership(access.trip.id, userId, access.viewer.id);
-
-  refresh(
-    { kind: "tripOverview", tripId: access.trip.id },
-    { kind: "profileTrips" },
-  );
 }
 
 export async function promoteMember(formData: FormData) {
@@ -84,9 +74,7 @@ export async function promoteMember(formData: FormData) {
   const access = await requireTripAccess(tripId);
   assertAdmin(access);
 
-  await setMemberRoleAdmin(access.trip.id, userId);
-
-  refresh({ kind: "tripOverview", tripId: access.trip.id });
+  await promoteToAdmin(access.trip.id, userId);
 }
 
 export async function resetInviteLink(formData: FormData) {
@@ -96,8 +84,6 @@ export async function resetInviteLink(formData: FormData) {
   assertAdmin(access);
 
   await resetInviteToken(access.trip.id);
-
-  refresh({ kind: "tripOverview", tripId: access.trip.id }, { kind: "tripDates", tripId: access.trip.id });
 }
 
 export async function renameTrip(formData: FormData) {
@@ -124,10 +110,6 @@ export async function leaveTrip(formData: FormData) {
     others: access.members.filter((m) => m.userId !== access.viewer.id),
   });
 
-  refresh(
-    { kind: "tripList" },
-    { kind: "profileTrips" },
-  );
   redirect("/trips");
 }
 
@@ -139,13 +121,7 @@ export async function addIdea(formData: FormData) {
 
   const access = await requireTripAccess(tripId);
 
-  await insertIdea({
-    tripId: access.trip.id,
-    createdBy: access.viewer.id,
-    title,
-  });
-
-  refresh({ kind: "ideas", tripId: access.trip.id });
+  await saveIdea(access.trip.id, access.viewer.id, title);
 }
 
 export async function voteIdea(formData: FormData) {
@@ -153,12 +129,7 @@ export async function voteIdea(formData: FormData) {
   const ideaId = Number(formData.get("ideaId"));
 
   const access = await requireTripAccess(tripId);
-  const target = await findIdea(access.trip.id, ideaId);
-  if (!target) return;
-
-  await toggleIdeaVote(target.id, access.viewer.id);
-
-  refresh({ kind: "ideas", tripId: access.trip.id });
+  await castIdeaVote(access.trip.id, access.viewer.id, ideaId);
 }
 
 export async function removeIdea(formData: FormData) {
@@ -166,10 +137,5 @@ export async function removeIdea(formData: FormData) {
   const ideaId = Number(formData.get("ideaId"));
 
   const access = await requireTripAccess(tripId);
-  const target = await findIdea(access.trip.id, ideaId);
-  if (!target) return;
-
-  await softDeleteIdea(access.trip.id, target.id);
-
-  refresh({ kind: "ideas", tripId: access.trip.id });
+  await deleteIdea(access.trip.id, ideaId);
 }

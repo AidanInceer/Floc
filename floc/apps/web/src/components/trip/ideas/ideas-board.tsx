@@ -9,6 +9,8 @@ import { PillToggle } from "@/components/system/segment-track";
 import { readStored, writeStored } from "@/lib/storage/browser-storage";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import {
+  IDEA_SORTS,
+  IDEA_SORT_LABELS,
   readIdeaSort,
   sortIdeas,
   type IdeaRow,
@@ -45,10 +47,7 @@ export function IdeasBoard({ tripId, ideas }: { tripId: number; ideas: IdeaRow[]
               value={sort}
               onChange={choose}
               className="!w-auto self-start [&>button]:flex-none"
-              options={[
-                { value: "votes", label: "Most votes" },
-                { value: "newest", label: "Newest" },
-              ]}
+              options={IDEA_SORTS.map((value) => ({ value, label: IDEA_SORT_LABELS[value] }))}
             />
           ) : null}
           <ul className="divide-y divide-rule rounded-md border border-rule bg-sheet">

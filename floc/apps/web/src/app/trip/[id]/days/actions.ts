@@ -38,9 +38,7 @@ export async function setDayOvernight(
   place: OvernightPlaceInput | null,
 ) {
   const access = await requireTripAccess(tripId);
-  if (await applyOvernight(access.trip.id, startDate, endDate, place)) {
-    refresh({ kind: "itinerary", tripId: access.trip.id });
-  }
+  await applyOvernight(access.trip.id, startDate, endDate, place);
 }
 
 export async function addEvent(tripId: number, dayId: number, input: EventFields) {

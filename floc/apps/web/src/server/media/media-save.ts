@@ -8,7 +8,6 @@ import { canUseFeature } from "@/server/billing/entitlements";
 import { documentsEnabled } from "@/server/documents/document-store";
 import { refresh } from "@/server/freshness";
 import { LIMITS } from "@/server/limits";
-import { cleanPhoto } from "./media-photo";
 import { insertMedia, liveMedia, mediaHeld, placeIsOnTrip, softDeleteMedia } from "./media-rows";
 import {
   dropFile, dropMediaFiles, keepAs, mediaPath, newMediaKey, receiveUpload,
@@ -16,6 +15,26 @@ import {
 } from "./media-store";
 
 type Access = Pick<TripAccess, "trip" | "viewer">;
+
+const LONG_EDGE = 2048;
+const THUMB_EDGE = 640;
+const MAX_INPUT_PIXELS = 120_000_000;
+
+type CleanPhoto = { width: number; height: number; sizeBytes: number };
+
+async function cleanPhoto(input: string, output: string, thumb: string): Promise<CleanPhoto> {
+  const { default: sharp } = await import("sharp");
+  const source = () => sharp(input, { failOn: "error", limitInputPixels: MAX_INPUT_PIXELS }).rotate();
+  const info = await source()
+    .resize(LONG_EDGE, LONG_EDGE, { fit: "inside", withoutEnlargement: true })
+    .webp({ quality: 84 })
+    .toFile(output);
+  await source()
+    .resize(THUMB_EDGE, THUMB_EDGE, { fit: "inside", withoutEnlargement: true })
+    .webp({ quality: 74 })
+    .toFile(thumb);
+  return { width: info.width, height: info.height, sizeBytes: info.size };
+}
 
 export type MediaUpload = {
   body: ReadableStream<Uint8Array>;

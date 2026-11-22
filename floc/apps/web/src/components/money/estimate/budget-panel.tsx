@@ -12,7 +12,7 @@ import type { EstimateView } from "@/server/money/estimate/estimate-view";
 import { lineDetail, styleSentence, withLineBudget } from "@floc/core/money/estimate/line-words";
 import { isFlying, type PlanLine } from "@floc/core/money/estimate/plan";
 import { awaitingWords, lineLabel, NOT_IN_BUDGET, removedLabel } from "@floc/core/money/estimate/travel";
-import { fitWords, wholeMoney, wholeRange } from "@floc/core/money/estimate/words";
+import { fitWords, WAITING_LINES_TITLE, wholeMoney, wholeRange } from "@floc/core/money/estimate/words";
 
 const PENCIL = (
   <svg viewBox="0 0 14 14" className="size-[13px]" fill="none" stroke="currentColor" strokeWidth={1.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -112,7 +112,7 @@ function WaitingLines({ tripId, view }: { tripId: number; view: EstimateView }) 
   if (waiting.length === 0) return null;
   return (
     <span className="ml-auto flex flex-wrap items-center gap-x-3.5 gap-y-1.5 max-sm:ml-0 max-sm:basis-full">
-      <span>Not in your budget</span>
+      <span>{WAITING_LINES_TITLE}</span>
       {waiting.map((line) => (
         <span key={line.line} className="inline-flex items-center gap-1.5">
           <SpendLineGlyph line={line.line} travel={view.plan.travel} />

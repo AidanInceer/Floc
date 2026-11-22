@@ -1,4 +1,4 @@
-import { linkShown, readWishLink, WISH_CAPS } from "@floc/core/lists/wish-list";
+import { linkShown, readWishLink, WISH_ADD_LABEL, WISH_CAPS } from "@floc/core/lists/wish-list";
 import { countryName } from "@floc/core/people/countries";
 import { peopleCount, toggleTripPeople, type TripPeopleSelection } from "@floc/core/people/group-ticks";
 import { whoTone } from "@floc/core/people/who";
@@ -60,7 +60,7 @@ export default function WishListScreen() {
       </View>
 
       <View style={{ gap: space.sm }}>
-        <Field label="Add an idea, a place or a link" value={typed} onChangeText={setTyped} maxLength={WISH_CAPS.url} autoCapitalize="none" />
+        <Field label={WISH_ADD_LABEL} value={typed} onChangeText={setTyped} maxLength={WISH_CAPS.url} autoCapitalize="none" />
         {link ? <Field label="Label" value={label} onChangeText={setLabel} maxLength={WISH_CAPS.label} /> : null}
         <Button
           label={link ? "Add link" : "Add"}

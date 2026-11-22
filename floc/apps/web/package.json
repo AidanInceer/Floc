@@ -1,6 +1,6 @@
 {
   "name": "floc-web",
-  "version": "0.258.0",
+  "version": "0.258.1",
   "private": true,
   "description": "Floc v1 — group travel planner. Next.js App Router + Turso (libSQL) + Drizzle + Better Auth.",
   "type": "module",
@@ -24,7 +24,7 @@
     "check:icons": "node scripts/check-icons.mjs",
     "check:contrast": "node --experimental-strip-types scripts/check-contrast.mjs",
     "check:bundle": "node scripts/check-bundle.mjs",
-    "db:generate": "drizzle-kit generate",
+    "db:generate": "drizzle-kit generate && node scripts/prune-snapshots.mjs",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",

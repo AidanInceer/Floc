@@ -12,7 +12,10 @@ import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 
 import { db } from "@/db";
 import { day, dayEvent, place, tripPage } from "@/db/schema";
+import { ensureProfile } from "@/server/auth/profile";
+import { refresh } from "@/server/freshness";
 import type { Tx } from "@/server/notifications/activity";
+import { inviteToTrip } from "@/server/trips/invites";
 import { insertTripWithAdmin } from "@/server/trips/trips";
 
 async function insertPlan(tx: Tx, tripId: number, plan: CopyPlan): Promise<void> {
@@ -60,4 +63,13 @@ export async function copyListing(viewerId: string, choice: CopyChoice, today: I
     await insertPlan(tx, tripId, copyPlan(listing, detail, window.startDate, { events: choice.events }));
     return tripId;
   });
+}
+
+export async function startTripFromListing(viewerId: string, choice: CopyChoice, along: string[]): Promise<number | null> {
+  await ensureProfile(viewerId);
+  const tripId = await copyListing(viewerId, choice);
+  if (tripId === null) return null;
+  refresh({ kind: "tripList" });
+  if (along.length && (await inviteToTrip({ tripId, fromUserId: viewerId, toUserIds: along }))) refresh({ kind: "invites" });
+  return tripId;
 }

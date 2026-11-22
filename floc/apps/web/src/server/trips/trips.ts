@@ -10,6 +10,7 @@ import { trip, tripMembership } from "@/db/schema";
 import type { TripRole } from "@/db/schema";
 import { assertRoom, bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
+import { refresh } from "@/server/freshness";
 import { removeGuestsOn } from "@/server/guests/guests";
 import { kickFromTripNotes } from "@/server/notes/live/live-kick";
 import { insertFirstPage } from "@/server/notes/pages/page-first";
@@ -76,6 +77,7 @@ export async function setTripMuted(tripId: number, userId: string, muted: boolea
         isNull(tripMembership.deletedAt),
       ),
     );
+  refresh({ kind: "tripList" });
 }
 
 export async function setTripStarred(tripId: number, userId: string, starred: boolean) {
@@ -89,6 +91,7 @@ export async function setTripStarred(tripId: number, userId: string, starred: bo
         isNull(tripMembership.deletedAt),
       ),
     );
+  refresh({ kind: "tripList" });
 }
 
 export type NewTripRow = {
@@ -158,7 +161,7 @@ export async function updateTrip(tripId: number, patch: TripPatch): Promise<void
 
 export async function resetInviteToken(tripId: number): Promise<string> {
   const minted = crypto.randomUUID();
-  return db.transaction(async (tx) => {
+  const token = await db.transaction(async (tx) => {
     const [row] = await tx
       .update(trip)
       .set({ inviteToken: minted, ...touch() })
@@ -167,6 +170,8 @@ export async function resetInviteToken(tripId: number): Promise<string> {
     if (row) await removeGuestsOn(tx, tripId);
     return row?.inviteToken ?? minted;
   });
+  refresh({ kind: "tripOverview", tripId }, { kind: "tripDates", tripId });
+  return token;
 }
 
 export async function setTripArchived(
@@ -177,6 +182,7 @@ export async function setTripArchived(
     .update(trip)
     .set({ archivedAt: archived ? new Date() : null, ...touch() })
     .where(and(eq(trip.id, tripId), isNull(trip.deletedAt)));
+  refresh({ kind: "tripList" }, { kind: "tripOverview", tripId });
 }
 
 export async function softDeleteTrip(tripId: number): Promise<void> {
@@ -185,4 +191,5 @@ export async function softDeleteTrip(tripId: number): Promise<void> {
     .set({ deletedAt: new Date(), ...touch() })
     .where(eq(trip.id, tripId));
   kickFromTripNotes(tripId);
+  refresh({ kind: "tripList" });
 }

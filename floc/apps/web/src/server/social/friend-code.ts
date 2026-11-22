@@ -8,6 +8,7 @@ import type { FriendSearch } from "@floc/api/port";
 import { db } from "@/db";
 import { user, userProfile } from "@/db/schema";
 import { ensureProfile } from "@/server/auth/profile";
+import { refresh } from "@/server/freshness";
 import { writeLimiter } from "@/server/http/write-limiter";
 import { friendStateWith, openPendingRequest, peopleByIds } from "@/server/social/friends";
 
@@ -72,7 +73,9 @@ export async function requestByCode(viewerId: string, code: string) {
   const query = readFriendQuery(code);
   if (query?.kind !== "code") return null;
   const { person } = await lookupFriendTag(viewerId, query.code);
-  if (!person || person.state !== "none") return person;
-  await openPendingRequest(viewerId, person.id, "code");
-  return { ...person, state: "outgoing" as const };
+  if (!person) return null;
+  const opens = person.state === "none";
+  if (opens) await openPendingRequest(viewerId, person.id, "code");
+  refresh({ kind: "friendship", otherId: person.id });
+  return opens ? { ...person, state: "outgoing" as const } : person;
 }

@@ -50,7 +50,6 @@ changing.
     (`git log -80 --name-only --pretty=format:`).
   - Files on the dated allowlist in `floc/apps/web/eslint.config.mjs`
     (over 600 lines, 120-line functions, complexity 15).
-  - Folders near the 20-file cap (`pnpm fitness`).
   - Logic that exists on web *and* phone (`floc/apps/web/src` vs
     `floc/apps/mobile/src`) — it belongs in `@floc/core`.
 

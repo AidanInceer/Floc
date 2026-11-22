@@ -12,12 +12,8 @@ import { busyMark, menuItemClass } from "@/components/system/ui";
 import type { Currency } from "@floc/core/money/currency";
 import type { PlanLine } from "@floc/core/money/estimate/plan";
 import type { TravelMode } from "@floc/core/money/estimate/travel";
-import { progressWords, wholeMoney, wholeRange } from "@floc/core/money/estimate/words";
+import { AMOUNT_FIELD_WORDS, BUDGET_THIS_LINE, progressWords, wholeMoney, wholeRange, type AmountField } from "@floc/core/money/estimate/words";
 import { toMajorInput } from "@floc/core/money/money";
-
-type Field = "figure" | "budget";
-
-const FIELD_WORDS: Record<Field, string> = { figure: "Your figure", budget: "Line budget" };
 
 function MenuAction({ onPick, children }: { onPick: () => void; children: React.ReactNode }) {
   return (
@@ -44,7 +40,7 @@ export function BudgetLine({ tripId, line, currency, words, name, homeAction }: 
   name: React.ReactNode;
   homeAction?: React.ReactNode;
 }) {
-  const [editing, setEditing] = useState<Field | null>(null);
+  const [editing, setEditing] = useState<AmountField | null>(null);
   const { save, pending, problem, clear } = useLineSave(tripId, line.line);
   const wantsFigure = line.missing === "travel" && !line.plan;
   const field = editing ?? (wantsFigure ? "figure" : null);
@@ -69,7 +65,7 @@ export function BudgetLine({ tripId, line, currency, words, name, homeAction }: 
         {field ? (
           <LineAmountField
             key={field}
-            words={FIELD_WORDS[field]}
+            words={AMOUNT_FIELD_WORDS[field]}
             currency={currency}
             initial={held == null ? "" : toMajorInput(held, currency)}
             state={{ focus: editing !== null, busy: pending }}
@@ -82,7 +78,7 @@ export function BudgetLine({ tripId, line, currency, words, name, homeAction }: 
       <div className="max-sm:col-start-3 max-sm:row-start-1">
         <Menu label={`More for ${words.label}`}>
           <MenuAction onPick={() => setEditing("figure")}>Change figure</MenuAction>
-          <MenuAction onPick={() => setEditing("budget")}>Budget for this line</MenuAction>
+          <MenuAction onPick={() => setEditing("budget")}>{BUDGET_THIS_LINE}</MenuAction>
           <MenuAction onPick={() => save({ notNeeded: "true" })}>Not needed on this trip</MenuAction>
         </Menu>
       </div>

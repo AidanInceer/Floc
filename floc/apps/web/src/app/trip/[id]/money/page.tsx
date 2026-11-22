@@ -18,6 +18,7 @@ import type { NudgePerson } from "@floc/core/trip/nudge/nudge";
 import { NudgeWord } from "@/components/trip/nudge/nudge-word";
 import { paidIn, type SettleRow } from "@floc/core/money/group-settle";
 import { formatMoney } from "@floc/core/money/money";
+import { settleSides, SETTLE_OTHERS_TITLE, SETTLE_OWE_TITLE, SETTLE_OWED_TITLE } from "@floc/core/money/settle-words";
 import { PairSettleForm, SettleUpForm } from "@/components/money/settlement-form";
 import { ActivityFeed } from "@/components/money/money-activity";
 import { ExpenseForm } from "@/components/money/expense-form";
@@ -294,16 +295,16 @@ function SettleUpPanel({
     </section>
   );
 
-  const others = settle.rows.filter((r) => r.payer !== viewerId && r.payee !== viewerId);
+  const { owe, owed, others } = settleSides(settle.rows, viewerId);
   return (
     <div className="flex flex-col gap-4">
       <div className="grid gap-4 md:grid-cols-2">
-        {column("You owe", "All square", "You have paid your share.", settle.rows.filter((r) => r.payer === viewerId))}
-        {column("You are owed", "Nothing to chase", "Everyone has paid you back.", settle.rows.filter((r) => r.payee === viewerId))}
+        {column(SETTLE_OWE_TITLE, "All square", "You have paid your share.", owe)}
+        {column(SETTLE_OWED_TITLE, "Nothing to chase", "Everyone has paid you back.", owed)}
       </div>
       {others.length > 0 ? (
         <section className="rounded-md border border-rule bg-sheet px-6 py-4">
-          <h3 className="text-xs font-medium text-ink-soft">Between the others</h3>
+          <h3 className="text-xs font-medium text-ink-soft">{SETTLE_OTHERS_TITLE}</h3>
           <ul className="mt-1 flex flex-col">
             {others.map((r) => (
               <li key={`${r.payer}-${r.payee}`} className="flex items-baseline justify-between gap-3 py-1.5 text-sm text-ink-soft">

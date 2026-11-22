@@ -13,6 +13,7 @@ import {
   type FriendshipOrigin,
 } from "@/db/schema";
 import { today } from "@floc/core/dates/dates";
+import { refresh } from "@/server/freshness";
 import { bounded, LIMITS } from "@/server/limits";
 import { recordActivity } from "@/server/notifications/activity";
 
@@ -357,9 +358,10 @@ export async function acceptPendingRequest(
       affected: [requesterId],
     });
   });
+  refresh({ kind: "friendship", otherId: requesterId });
 }
 
-export async function dropPendingRequest(
+async function dropPendingRequest(
   requesterId: string,
   addresseeId: string,
 ): Promise<void> {
@@ -369,9 +371,20 @@ export async function dropPendingRequest(
     .where(pendingRequest(requesterId, addresseeId));
 }
 
+export async function declineFriendRequest(viewerId: string, requesterId: string): Promise<void> {
+  await dropPendingRequest(requesterId, viewerId);
+  refresh({ kind: "friendship", otherId: requesterId });
+}
+
+export async function cancelFriendRequest(viewerId: string, targetId: string): Promise<void> {
+  await dropPendingRequest(viewerId, targetId);
+  refresh({ kind: "friendship", otherId: targetId });
+}
+
 export async function dropFriendship(a: string, b: string): Promise<void> {
   await db
     .update(friendship)
     .set({ deletedAt: new Date(), lastModifiedAt: new Date() })
     .where(and(eq(friendship.status, "accepted"), eitherWay(a, b)));
+  refresh({ kind: "friendship", otherId: b });
 }

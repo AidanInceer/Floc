@@ -5,7 +5,7 @@ import { EventSheet } from "./event-sheet";
 import { OvernightForm, type OvernightChoice } from "./overnight-form";
 import type { StayWrite } from "@floc/core/itinerary/stay/overnight-pick";
 import { trpc } from "@/lib/api";
-import { shortPlace } from "@floc/core/itinerary/names/place-name";
+import { shortPlace, STOP_NOT_SET } from "@floc/core/itinerary/names/place-name";
 
 export type OvernightDay = {
   id: number;
@@ -75,7 +75,7 @@ export function OvernightLine({
   return (
     <EventSheet
       open
-      title={stop?.placeName ? shortPlace(stop.placeName) : "Not set"}
+      title={stop?.placeName ? shortPlace(stop.placeName) : STOP_NOT_SET}
       onClose={onClose}
     >
     <OvernightForm

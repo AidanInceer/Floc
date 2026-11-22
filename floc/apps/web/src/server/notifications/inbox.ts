@@ -7,6 +7,7 @@ import { activity, notification } from "@/db/schema";
 import { notificationText } from "@floc/core/notifications/notification-text";
 import { INBOX_PAGE, type ActivityKind } from "@floc/core/notifications/rules";
 import { touch } from "@/server/audit";
+import { refresh } from "@/server/freshness";
 import { countNotifications, notificationRows, stillVisible } from "@/server/notifications/visible";
 
 export type InboxItem = {
@@ -75,6 +76,7 @@ export async function markInboxSeen(userId: string): Promise<void> {
     .set({ seenAt: new Date(), ...touch() })
     .where(and(eq(notification.userId, userId), isNull(notification.seenAt), isNull(notification.deletedAt)))
     .run();
+  refresh({ kind: "bell" });
 }
 
 export async function markAllRead(userId: string): Promise<void> {
@@ -84,6 +86,7 @@ export async function markAllRead(userId: string): Promise<void> {
     .set({ readAt: now, seenAt: now, ...touch() })
     .where(and(eq(notification.userId, userId), isNull(notification.readAt), isNull(notification.deletedAt)))
     .run();
+  refresh({ kind: "inbox" });
 }
 
 export async function openNotification(userId: string, notificationId: number): Promise<string | null> {
@@ -99,8 +102,7 @@ export async function openNotification(userId: string, notificationId: number): 
     )
     .returning({ id: notification.id })
     .get();
-  if (!opened) return null;
-
-  const [row] = await notificationRows(eq(notification.id, opened.id), 1);
+  const [row] = opened ? await notificationRows(eq(notification.id, opened.id), 1) : [];
+  refresh({ kind: "inbox" });
   return row?.href ?? null;
 }

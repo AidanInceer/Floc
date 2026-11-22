@@ -3,7 +3,7 @@
 import { notFound, redirect } from "next/navigation";
 
 import { isIsoDate } from "@floc/core/dates/dates";
-import { Refusal, isRefusal } from "@floc/core/errors/refusal";
+import { Refusal, isRefusal, orRefusal } from "@floc/core/errors/refusal";
 import { guestName } from "@floc/core/people/guests";
 
 import { getInviteGuest, getSession, requireUser } from "@/server/access";
@@ -37,18 +37,8 @@ async function tripFor(token: string) {
   return found;
 }
 
-const asForm = async (work: () => Promise<void>): Promise<{ error?: string }> => {
-  try {
-    await work();
-    return {};
-  } catch (error) {
-    if (isRefusal(error)) return { error: error.message };
-    throw error;
-  }
-};
-
 export async function guestStart(token: string, name: unknown): Promise<{ error?: string }> {
-  return asForm(async () => {
+  return orRefusal(async () => {
     const found = await tripFor(token);
     if (await getInviteGuest()) return;
     const given = guestName(name);
@@ -60,7 +50,7 @@ export async function guestStart(token: string, name: unknown): Promise<{ error?
 }
 
 async function asGuest(token: string, write: (tripId: number, guestId: string) => Promise<void>) {
-  return asForm(async () => {
+  return orRefusal(async () => {
     const found = await tripFor(token);
     const guest = await getInviteGuest();
     if (!guest) throw new Refusal("Give your name first.");

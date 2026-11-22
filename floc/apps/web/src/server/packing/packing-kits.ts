@@ -13,6 +13,7 @@ import {
 } from "@floc/core/packing/packing";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
+import { refresh } from "@/server/freshness";
 
 export type PackingKitSummary = { id: number; name: string; itemCount: number };
 type PackingKitItem = KitItem & { id: number };
@@ -143,6 +144,7 @@ export async function insertPackingKit(
     .values({ ownerId, name })
     .returning({ id: packingKit.id })
     .get();
+  refresh({ kind: "packingKits" });
   return row.id;
 }
 
@@ -161,6 +163,7 @@ export async function renamePackingKit(
         isNull(packingKit.deletedAt),
       ),
     );
+  refresh({ kind: "packingKits" });
 }
 
 export async function softDeletePackingKit(
@@ -184,6 +187,7 @@ export async function softDeletePackingKit(
         isNull(packingKitItem.deletedAt),
       ),
     );
+  refresh({ kind: "packingKits" });
 }
 
 export async function insertPackingKitItem(
@@ -198,6 +202,7 @@ export async function insertPackingKitItem(
   await db
     .insert(packingKitItem)
     .values({ packingKitId: kit.id, label, category, quantity });
+  refresh({ kind: "packingKits" });
 }
 
 async function ownedKitItem(
@@ -230,6 +235,7 @@ export async function softDeletePackingKitItem(
     .update(packingKitItem)
     .set({ deletedAt: new Date(), ...touch() })
     .where(eq(packingKitItem.id, owned.id));
+  refresh({ kind: "packingKits" });
 }
 
 export async function stepPackingKitItemQuantity(
@@ -247,6 +253,7 @@ export async function stepPackingKitItemQuantity(
       ...touch(),
     })
     .where(eq(packingKitItem.id, owned.id));
+  refresh({ kind: "packingKits" });
 }
 
 export async function applyPackingKitToBag(args: {

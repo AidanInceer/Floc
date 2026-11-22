@@ -694,7 +694,7 @@ describe("packing setup through the port (#220, #229)", () => {
     await webPort.savePackingKit(world.admin, world.ours.id, "Camping");
     const kitId = (await webPort.loadPacking(world.admin, world.ours.id)).kits[0].id;
 
-    await webPort.deletePackingKit(world.member, kitId);
+    await webPort.deleteKit(world.member, kitId);
 
     expect((await webPort.loadPacking(world.admin, world.ours.id)).kits).toHaveLength(1);
   });

@@ -4,9 +4,7 @@ import { AsideHead } from "@/components/availability/dates-board-parts";
 import { Avatar, Badge } from "@/components/system/ui";
 import type { TripMember } from "@/server/access";
 import type { Guest } from "@/server/guests/guests";
-import { countWord } from "@floc/core/text/count-word";
-
-const daysLabel = (days: number): string => (days === 0 ? "No days" : countWord(days, "day"));
+import { daysLabel } from "@floc/core/dates/words";
 
 export function WhoAnswered({
   members,

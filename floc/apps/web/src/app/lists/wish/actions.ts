@@ -1,9 +1,8 @@
 "use server";
 
-import { isRefusal } from "@floc/core/errors/refusal";
+import { orRefusal } from "@floc/core/errors/refusal";
 
 import { requireUser } from "@/server/access";
-import { refresh } from "@/server/freshness";
 import { startWishListWith } from "@/server/wish-lists/wish-list-start";
 import { toggleWishVote } from "@/server/wish-lists/wish-list-votes";
 import {
@@ -18,36 +17,31 @@ import {
 
 export type WishOutcome = { error?: string; id?: number };
 
-async function asWishWrite(write: (viewerId: string) => Promise<number | void>, alsoInbox = false): Promise<WishOutcome> {
+async function asWishWrite(write: (viewerId: string) => Promise<number | void>): Promise<WishOutcome> {
   const viewer = await requireUser("/lists/wish");
-  try {
+  return orRefusal(async () => {
     const id = await write(viewer.id);
-    refresh({ kind: "wishLists" });
-    if (alsoInbox) refresh({ kind: "inbox" });
     return typeof id === "number" ? { id } : {};
-  } catch (error) {
-    if (isRefusal(error)) return { error: error.message };
-    throw error;
-  }
+  });
 }
 
 export async function createWishListAction(inviteIds: string[]): Promise<WishOutcome> {
-  return asWishWrite((me) => createWishList(me, { inviteIds }), true);
+  return asWishWrite((me) => createWishList(me, { inviteIds }));
 }
 
 export async function startWishListWithAction(friendId: string): Promise<WishOutcome> {
-  return asWishWrite((me) => startWishListWith(me, friendId), true);
+  return asWishWrite((me) => startWishListWith(me, friendId));
 }
 
 export async function inviteToWishListAction(listId: number, inviteIds: string[]): Promise<WishOutcome> {
-  return asWishWrite((me) => inviteToWishList(me, listId, inviteIds), true);
+  return asWishWrite((me) => inviteToWishList(me, listId, inviteIds));
 }
 
 export async function respondToWishInviteAction(listId: number, accept: boolean): Promise<WishOutcome> {
   return asWishWrite(async (me) => {
     await respondToWishInvite(me, listId, accept);
     return accept ? listId : undefined;
-  }, true);
+  });
 }
 
 export async function leaveWishListAction(listId: number): Promise<WishOutcome> {

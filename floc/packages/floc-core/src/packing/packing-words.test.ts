@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { cubeCount, suggestedNote, thingCount } from "./packing-words";
+import { cubeCount, suggestedNote, thingCount, withOthers } from "./packing-words";
+
+describe("withOthers", () => {
+  it("says nothing for a line nobody else has", () => {
+    expect(withOthers([])).toBe("");
+  });
+
+  it("names the others bringing it too", () => {
+    expect(withOthers(["Sofia", "Raj"])).toBe("with Sofia, Raj");
+  });
+});
 
 describe("thingCount", () => {
   it("says one thing, or how many things", () => {

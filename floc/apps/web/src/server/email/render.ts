@@ -5,7 +5,6 @@ import { appUrl } from "@/lib/env";
 import * as b from "./blocks";
 import type { OutboundEmail } from "./model";
 import { fontFaces, painter } from "./palette";
-import { renderText } from "./text";
 
 type Options = { now: Date; theme?: Theme; base?: string };
 
@@ -16,6 +15,34 @@ const PHONE =
 
 const OUTLOOK_OPEN = '<!--[if mso]><table role="presentation" width="560" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->';
 const OUTLOOK_CLOSE = "<!--[if mso]></td></tr></table><![endif]-->";
+
+const NL = "\n";
+
+function details(e: OutboundEmail): (string | null)[] {
+  return [
+    e.trip ? `${e.trip.name} · ${e.trip.dates}` : null,
+    e.box ? `${e.box.title} · ${e.box.status}` : null,
+    e.facts?.length ? e.facts.map(([k, v]) => `${k}: ${v}`).join(NL) : null,
+    e.quote?.length ? e.quote.map((l) => `> ${l}`).join(NL) : null,
+    e.rows?.length ? e.rows.map((r) => `- ${r.text}${r.tag ? ` (${r.tag.word})` : ""}${r.note ? `: ${r.note}` : ""}`).join(NL) : null,
+    e.steps?.length ? ["What to do", ...e.steps.map((s, i) => `${i + 1}. ${s}`)].join(NL) : null,
+  ];
+}
+
+function renderText(e: OutboundEmail): string {
+  const letter = e.layout === "letter";
+  const foot = [e.why, e.settingsUrl ? `Turn off email in Settings: ${e.settingsUrl}` : null, "Floc · floc.live"].filter(Boolean);
+  const blocks = [
+    letter ? null : (e.heading ?? e.subject),
+    e.lines.length ? e.lines.join(NL + NL) : null,
+    ...details(e),
+    e.cta ? `${e.cta.label}: ${e.cta.url}` : null,
+    e.note ?? null,
+    letter ? "— Floc" : null,
+    `--${NL}${foot.join(NL)}`,
+  ];
+  return `${blocks.filter(Boolean).join(NL + NL)}${NL}`;
+}
 
 function card(paint: b.Paint, e: OutboundEmail, now: Date): string {
   const facts = e.facts ?? [];

@@ -5,6 +5,7 @@ import { ChevronIcon } from "@/components/system/icons";
 import { ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
 import { iconButtonClass } from "@/components/system/ui";
 import { spanLabel } from "@floc/core/dates/dates-tabs";
+import { NO_DAYS_MARKED } from "@floc/core/dates/words";
 
 export type BestDate = {
   start: string;
@@ -49,7 +50,7 @@ export function BestDatesCard({
     return (
       <section className="p-4">
         <AsideHead title="Best dates" />
-        <p className="mt-1 text-[13px] text-ink-soft">No days marked yet</p>
+        <p className="mt-1 text-[13px] text-ink-soft">{NO_DAYS_MARKED}</p>
       </section>
     );
 

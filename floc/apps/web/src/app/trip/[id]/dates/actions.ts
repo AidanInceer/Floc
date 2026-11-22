@@ -41,8 +41,6 @@ async function setPreferredDates(tripId: number, dates: string[], preferred: boo
   const access = await requireTripAccess(tripId);
 
   await setPreferredDays(access.trip.id, access.viewer.id, dates, preferred);
-
-  refresh({ kind: "tripDates", tripId: access.trip.id }, { kind: "tripOverview", tripId: access.trip.id });
 }
 
 export async function saveAvailability(
@@ -63,8 +61,6 @@ export async function setTripLength(tripId: number, length: TripLength, picked: 
   const access = await requireTripAccess(tripId);
 
   await setLengthChoice(access.trip.id, access.viewer.id, length, picked);
-
-  refresh({ kind: "tripDates", tripId: access.trip.id });
 }
 
 export async function setTripDates(
@@ -105,17 +101,13 @@ export async function removeTripGuest(tripId: number, guestId: string) {
 
 export async function fillFromGoogleCalendar(tripId: number, month: string): Promise<CalendarFill> {
   const access = await requireTripAccess(tripId);
-  const result = await fillFromCalendar({
+  return fillFromCalendar({
     tripId: access.trip.id,
     userId: access.viewer.id,
     startDate: access.trip.startDate,
     endDate: access.trip.endDate,
     month,
   });
-  if (result.status === "filled") {
-    refresh({ kind: "tripDates", tripId: access.trip.id }, { kind: "tripOverview", tripId: access.trip.id });
-  }
-  return result;
 }
 
 export async function keepCalendarAllDayOnly(on: boolean): Promise<void> {

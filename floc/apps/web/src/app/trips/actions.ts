@@ -15,7 +15,6 @@ import {
   softDeleteTrip,
 } from "@/server/trips/trips";
 import { GROUP_CAP, TRIP_INVITE_CAP } from "@floc/core/people/group-ticks";
-import { refresh } from "@/server/freshness";
 
 export async function createTrip(formData: FormData): Promise<void> {
   const viewer = await requireUser("/trips");
@@ -86,8 +85,6 @@ export async function starTrip(formData: FormData): Promise<void> {
 
   const access = await requireTripAccess(tripId);
   await setTripStarred(access.trip.id, access.viewer.id, starred);
-
-  refresh({ kind: "tripList" });
 }
 
 export async function muteTrip(formData: FormData): Promise<void> {
@@ -96,8 +93,6 @@ export async function muteTrip(formData: FormData): Promise<void> {
 
   const access = await requireTripAccess(tripId);
   await setTripMuted(access.trip.id, access.viewer.id, muted);
-
-  refresh({ kind: "tripList" });
 }
 
 export async function archiveTrip(formData: FormData): Promise<void> {
@@ -107,10 +102,6 @@ export async function archiveTrip(formData: FormData): Promise<void> {
 
   await setTripArchived(access.trip.id, true);
 
-  refresh(
-    { kind: "tripList" },
-    { kind: "tripOverview", tripId: access.trip.id },
-  );
   redirect(redirectTo(formData, "/trips/archived"));
 }
 
@@ -119,11 +110,6 @@ export async function restoreTrip(tripId: number): Promise<void> {
   assertAdmin(access);
 
   await setTripArchived(access.trip.id, false);
-
-  refresh(
-    { kind: "tripList" },
-    { kind: "tripOverview", tripId: access.trip.id },
-  );
 }
 
 export async function deleteTrip(formData: FormData): Promise<void> {
@@ -133,6 +119,5 @@ export async function deleteTrip(formData: FormData): Promise<void> {
 
   await softDeleteTrip(access.trip.id);
 
-  refresh({ kind: "tripList" });
   redirect(redirectTo(formData, "/trips"));
 }

@@ -102,8 +102,6 @@ export type PackingPort = {
 
   savePackingKit(viewerId: string, tripId: number, name: string): Promise<boolean>;
 
-  deletePackingKit(viewerId: string, kitId: number): Promise<void>;
-
   listMyKits(viewerId: string): Promise<SavedKit[]>;
 
   createKit(viewerId: string, name: string): Promise<{ id: number } | null>;

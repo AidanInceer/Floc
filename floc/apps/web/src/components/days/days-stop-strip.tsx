@@ -7,7 +7,7 @@ import type { CalendarDay } from "@/components/days/days-calendar-shared";
 import { deriveStops, nightsLabel, type Stop } from "@floc/core/itinerary/stops";
 import { stopWeek, type WeekSegment } from "@floc/core/itinerary/stop-weeks";
 import type { BandSpan } from "@floc/core/itinerary/overnight-band";
-import { shortPlace } from "@floc/core/itinerary/names/place-name";
+import { shortPlace, STOP_NOT_SET } from "@floc/core/itinerary/names/place-name";
 import { dayParts } from "@floc/core/dates/dates";
 
 export function tripStops(days: CalendarDay[], tripEnd: string | null): Stop[] {
@@ -147,7 +147,7 @@ export function StopPill({ segment, onStop, className }: { segment: WeekSegment;
     >
       {cutLeft ? <ChevronIcon direction="left" size={11} className="shrink-0 opacity-70 max-sm:hidden" /> : null}
       <BedIcon size={12} className="shrink-0" />
-      <b className={cx("min-w-0 flex-1 truncate font-semibold", span === 1 && "max-sm:hidden")}>{name ?? "Not set"}</b>
+      <b className={cx("min-w-0 flex-1 truncate font-semibold", span === 1 && "max-sm:hidden")}>{name ?? STOP_NOT_SET}</b>
       {name && stop.nights > 0 ? (
         <small aria-hidden className={cx("nums flex shrink-0 items-center gap-0.5 text-[11px]", span <= 2 && "max-sm:hidden")}>
           {stop.nights}

@@ -1,6 +1,7 @@
 import { tripCoverage } from "@floc/core/dates/availability";
 import { formatDate, nightsBetween, type IsoDate } from "@floc/core/dates/dates";
 import { spanLabel } from "@floc/core/dates/dates-tabs";
+import { daysLabel } from "@floc/core/dates/words";
 import { whoTone } from "@floc/core/people/who";
 import type { TripForecastView } from "@floc/api/port";
 import type { ReactNode } from "react";
@@ -64,7 +65,7 @@ export function TripBlock({ start, end, onClear }: { start: IsoDate | null; end:
 
 function daysWord(days: number | null): string {
   if (days === null) return "Waiting";
-  return days === 0 ? "No days" : countWord(days, "day");
+  return daysLabel(days);
 }
 
 export function WhoAnswered({ people, nudgeFor }: { people: Person[]; nudgeFor?: (id: string) => ReactNode }) {
