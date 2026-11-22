@@ -12,9 +12,7 @@ import {
   softDeletePackingLine,
   stepPersonalQuantity,
 } from "@/server/packing/packing";
-import { getPackSettings } from "@/server/packing/packing";
 import {
-  autoFillPersonalBag,
   fillPersonalBag,
   packingPlanFor,
   takePackingIdea,
@@ -169,45 +167,6 @@ describe("a second fill never costs you an edit", () => {
 
     expect(await fill()).toBe(1);
     expect((await myBag()).map((l) => l.label)).toContain("t-shirt");
-  });
-});
-
-describe("the automatic fill happens once, ever", () => {
-  const auto = async () =>
-    autoFillPersonalBag({
-      tripId: world.ours.id,
-      ownerId: world.admin,
-      tier: "balanced",
-      plan: await packingPlanFor((await tripRow())!),
-    });
-
-  it("reports through the membership whether it has run", async () => {
-    expect(
-      (await getPackSettings(world.ours.id, world.admin)).generatedAt,
-    ).toBeNull();
-
-    await auto();
-
-    expect(
-      (await getPackSettings(world.ours.id, world.admin)).generatedAt,
-    ).toBeInstanceOf(Date);
-  });
-
-  it("fills on the first open and never again", async () => {
-    await auto();
-    const first = await myBag();
-    expect(first.length).toBeGreaterThan(0);
-
-    await auto();
-    expect(await myBag()).toHaveLength(first.length);
-  });
-
-  it("leaves a bag you deliberately emptied empty", async () => {
-    await auto();
-    for (const line of await myBag()) await softDeletePackingLine(line.id, "u-admin");
-
-    await auto();
-    expect(await myBag()).toEqual([]);
   });
 });
 

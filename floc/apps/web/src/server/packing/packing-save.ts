@@ -16,14 +16,17 @@ import {
   insertPersonalPackingLine,
   renamePackingLineLabel,
   setClaimPacked,
+  setPackIdeasShown,
   setPackTier,
   setPersonalPacked,
   softDeletePackingLine,
   softDeletePackingLines,
   softDeleteSuggestedLines,
+  softDeleteUnpackedLines,
   softDeleteWholeList,
   stepPersonalQuantity,
   unclaimPackingLine,
+  unpackPersonalLines,
 } from "@/server/packing/packing";
 import { fillPersonalBag, packingPlanFor, takePackingIdea } from "@/server/packing/packing-generator";
 import { applyPackingKitToBag } from "@/server/packing/packing-kits";
@@ -85,6 +88,7 @@ export async function stepQuantity(access: Access, lineId: number, delta: 1 | -1
 
 export async function resetList(access: Access, mine: boolean): Promise<void> {
   await softDeleteWholeList(access.trip.id, mine ? access.viewer.id : null, access.viewer.id);
+  if (mine) await setPackIdeasShown(access.trip.id, access.viewer.id, false);
   changed(access);
 }
 
@@ -105,6 +109,24 @@ export async function takeIdea(access: Access, label: string): Promise<void> {
 
 export async function removeSuggested(access: Access): Promise<void> {
   await softDeleteSuggestedLines(access.trip.id, access.viewer.id);
+  await setPackIdeasShown(access.trip.id, access.viewer.id, false);
+  changed(access);
+}
+
+export async function removeUnpacked(access: Access): Promise<void> {
+  await softDeleteUnpackedLines(access.trip.id, access.viewer.id);
+  await setPackIdeasShown(access.trip.id, access.viewer.id, false);
+  changed(access);
+}
+
+export async function unpackBag(access: Access): Promise<void> {
+  await unpackPersonalLines(access.trip.id, access.viewer.id);
+  changed(access);
+}
+
+export async function setIdeasShown(access: Access, shown: boolean): Promise<void> {
+  if (shown) await assertFeature("packing.autoGenerate", access.trip.id);
+  await setPackIdeasShown(access.trip.id, access.viewer.id, shown);
   changed(access);
 }
 

@@ -28,7 +28,6 @@ export type MySettings = {
   pastTripsShow: PastTripsShow;
   vibeTags: string[];
   packTier: PackTier;
-  packAutoGenerate: boolean;
   reduceMotion: boolean;
   homeCurrency: Currency;
   notifyPush: boolean;
@@ -120,7 +119,7 @@ export type AccountPort = {
 
   updatePackingDefaults(
     viewerId: string,
-    input: { tier: PackTier; autoGenerate: boolean },
+    input: { tier: PackTier },
   ): Promise<void>;
 
   toggleBookingSite(viewerId: string, kind: SiteKind, site: BookingSite): Promise<BookingSites>;

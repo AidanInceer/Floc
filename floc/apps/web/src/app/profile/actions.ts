@@ -70,10 +70,7 @@ export async function updatePacking(formData: FormData): Promise<{ error?: strin
   const packTier = parsePackTier(formData.get("packTier"));
   if (!packTier) return { error: "Pick a packing style." };
 
-  await updateProfileFields(viewer.id, {
-    packTier,
-    packAutoGenerate: formData.get("packAutoGenerate") === "on",
-  });
+  await updateProfileFields(viewer.id, { packTier });
 
   refresh({ kind: "profile" });
   return {};

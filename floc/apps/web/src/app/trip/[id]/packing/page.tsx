@@ -1,20 +1,17 @@
 import { requireTripAccess } from "@/server/access";
 import { readPackingBoard } from "@/server/packing/packing-board";
-import { packedLineCount, packingCubes } from "@floc/core/packing/packing";
+import { packingCubes } from "@floc/core/packing/packing";
+import { bagMenu } from "@floc/core/packing/packing-bag";
 import { arrangePackingLanes } from "@floc/core/packing/packing-lanes";
 import { suggestedNote } from "@floc/core/packing/packing-words";
-import {
-  PackingBulkBar,
-  PackingBagMore,
-} from "@/components/packing/packing-controls";
+import { PackingBulkBar } from "@/components/packing/packing-controls";
+import { PackingBagMore } from "@/components/packing/packing-bag-more";
 import { PackingAddField } from "@/components/packing/packing-add-field";
 import { PackingFillMenu } from "@/components/packing/packing-fill-menu";
-import { PackingCount } from "@/components/packing/packing-card";
 import { PackingCube } from "@/components/packing/packing-cube";
 import { PackingLane } from "@/components/packing/packing-lane";
 import { PackingClaimCard } from "@/components/packing/packing-claim-card";
 import { Avatar, PageTitle } from "@/components/system/ui";
-import { LockIcon } from "@/components/system/icons/packing";
 import { PackingIdeaRow } from "@/components/packing/packing-idea-row";
 import { PersonalPackingRow } from "@/components/packing/packing-personal-row";
 import type { PackingClaimant } from "@/components/packing/packing-claim-card";
@@ -34,6 +31,9 @@ import {
   applyPackingKit,
   takePackingIdea,
   removeSuggestedPackingLines,
+  removeUnpackedPackingLines,
+  setPackingIdeasShown,
+  unpackMyPackingBag,
 } from "./actions";
 
 export const metadata = { title: "Packing" };
@@ -49,7 +49,7 @@ export default async function PackingPage({
   const access = await requireTripAccess(id, `/trip/${id}/packing`);
   const tripId = access.trip.id;
 
-  const { lines, claims, mine, kits, tier, packingPro, ideas } =
+  const { lines, claims, mine, kits, tier, packingPro, ideas, ideaCount, ideasShown } =
     await readPackingBoard(access.trip, access.viewer.id);
 
   const path = `/trip/${tripId}/packing`;
@@ -57,7 +57,10 @@ export default async function PackingPage({
   const selectHref = (select: boolean) => (select ? `${path}?sharedPick=1` : path);
 
   const bagCubes = packingCubes(mine, ideas);
-  const suggestedCount = mine.filter((l) => l.origin === "suggested" && l.packedAt === null).length;
+  const bagItems = bagMenu(
+    mine.map((l) => ({ packed: l.packedAt !== null, suggested: l.origin === "suggested" })),
+    { available: ideaCount > 0, shown: ideasShown },
+  );
   const takeIdea = takePackingIdea.bind(null, tripId);
 
   const toneOf = new Map(access.members.map((m) => [m.userId, m.tone]));
@@ -75,12 +78,10 @@ export default async function PackingPage({
     claimsByLine.set(c.packingLineId, list);
   }
 
-  const bagPacked = mine.filter((l) => l.packedAt !== null).length;
   const sharedItems = lines.map((line) => ({
     ...line,
     claims: claimsByLine.get(line.id) ?? [],
   }));
-  const sharedPacked = packedLineCount(sharedItems);
   const lanes = arrangePackingLanes(sharedItems, access.members);
   const memberIds = new Set(access.members.map((member) => member.userId));
   const cardActions = {
@@ -97,25 +98,26 @@ export default async function PackingPage({
       <section className="grid gap-4">
         <header className="flex flex-wrap items-baseline gap-3">
           <h2 className="text-xl">Your bag</h2>
-          <PackingCount total={mine.length} packed={bagPacked} />
-          <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-ink-faint max-sm:self-center">
-            <LockIcon />
-            Only you
-          </span>
           <div className="ml-auto flex self-center flex-wrap items-center justify-end gap-x-2 gap-y-2">
             <PackingFillMenu
               kits={kits}
               apply={applyPackingKit.bind(null, tripId)}
               auto={packingPro ? {
                 tier,
-                ideaCount: ideas.length,
+                ideaCount,
                 setTier: setTripPackTier.bind(null, tripId),
                 addAll: fillMyPackingList.bind(null, tripId),
               } : null}
             />
             <PackingBagMore
-              reset={mine.length > 0 ? resetPackingList.bind(null, tripId, true) : null}
-              suggested={{ count: suggestedCount, remove: removeSuggestedPackingLines.bind(null, tripId) }}
+              items={bagItems}
+              actions={{
+                suggestions: setPackingIdeasShown.bind(null, tripId, !ideasShown),
+                unpack: unpackMyPackingBag.bind(null, tripId),
+                removeSuggested: removeSuggestedPackingLines.bind(null, tripId),
+                removeUnpacked: removeUnpackedPackingLines.bind(null, tripId),
+                empty: resetPackingList.bind(null, tripId, true),
+              }}
             />
           </div>
         </header>
@@ -162,7 +164,6 @@ export default async function PackingPage({
       <section className="mt-10">
         <header className="flex flex-wrap items-baseline gap-3">
           <h2 className="text-xl">Shared packing</h2>
-          <PackingCount total={lines.length} packed={sharedPacked} />
           {lines.length > 0 ? (
             <div className="ml-auto self-center">
               <PackingBulkBar

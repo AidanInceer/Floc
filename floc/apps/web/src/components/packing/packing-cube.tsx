@@ -38,7 +38,7 @@ export function PackingCube({
         {ideaCount > 0 ? (
           <span className="inline-flex items-center gap-1 text-[11px] text-pen">
             <SparkIcon size={10} />
-            {ideaCount} {nounFor(ideaCount, "idea")}
+            {ideaCount} {nounFor(ideaCount, "suggestion")}
           </span>
         ) : null}
         {total > 0 ? (

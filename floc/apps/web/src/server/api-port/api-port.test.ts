@@ -5,7 +5,6 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db, schema } from "@/db";
 import { givePro, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { webPort } from "@/server/api-port/api-port";
-import { ensureProfile } from "@/server/auth/profile";
 import { mintShareToken, readShareToken } from "@/server/trips/invite-link";
 
 let world: Scenario;
@@ -589,17 +588,45 @@ describe("renaming a packing line through the port (#362)", () => {
 });
 
 describe("auto packing ideas through the port (#469)", () => {
-  it("fills a Pro member's bag on first open, once, as the web page does (#221)", async () => {
+  it("suggests nothing on a Pro member's first open, and still counts what Add all would add", async () => {
     await givePro(world.admin);
-    await ensureProfile(world.admin);
-    await db.update(schema.userProfile).set({ packAutoGenerate: true }).where(sql`user_id = ${world.admin}`);
 
     const first = await webPort.loadPacking(world.admin, world.ours.id);
-    expect(first.mine.length).toBeGreaterThan(0);
-    expect(first.mine.every((l) => l.suggested)).toBe(true);
 
-    await webPort.removePackingLines(world.admin, world.ours.id, first.mine.map((l) => l.id));
-    expect((await webPort.loadPacking(world.admin, world.ours.id)).mine).toEqual([]);
+    expect(first.mine).toEqual([]);
+    expect(first.ideas).toEqual([]);
+    expect(first.ideasShown).toBe(false);
+    expect(first.ideaCount).toBeGreaterThan(0);
+  });
+
+  it("shows suggestions once asked, and fills the bag only on Add all", async () => {
+    await givePro(world.admin);
+
+    await webPort.setPackingIdeasShown(world.admin, world.ours.id, true);
+    const shown = await webPort.loadPacking(world.admin, world.ours.id);
+    expect(shown.ideasShown).toBe(true);
+    expect(shown.ideas).toHaveLength(shown.ideaCount);
+    expect(shown.mine).toEqual([]);
+
+    await webPort.fillMyBag(world.admin, world.ours.id);
+    const filled = await webPort.loadPacking(world.admin, world.ours.id);
+    expect(filled.mine).toHaveLength(shown.ideaCount);
+    expect(filled.ideaCount).toBe(0);
+  });
+
+  it("removes unpacked lines and unpacks the rest through the port", async () => {
+    await givePro(world.admin);
+    await webPort.fillMyBag(world.admin, world.ours.id);
+    const [first, ...rest] = (await webPort.loadPacking(world.admin, world.ours.id)).mine;
+    await webPort.setPackingPacked(world.admin, world.ours.id, first.id, true);
+
+    await webPort.removeUnpackedPacking(world.admin, world.ours.id);
+    const kept = (await webPort.loadPacking(world.admin, world.ours.id)).mine;
+    expect(rest.length).toBeGreaterThan(0);
+    expect(kept.map((l) => l.id)).toEqual([first.id]);
+
+    await webPort.unpackMyBag(world.admin, world.ours.id);
+    expect((await webPort.loadPacking(world.admin, world.ours.id)).mine[0].packed).toBe(false);
   });
 
   it("shows no ideas on a free trip", async () => {
@@ -608,8 +635,7 @@ describe("auto packing ideas through the port (#469)", () => {
 
   it("takes one idea as a suggested line, and removes it again", async () => {
     await givePro(world.admin);
-    await ensureProfile(world.admin);
-    await db.update(schema.userProfile).set({ packAutoGenerate: false }).where(sql`user_id = ${world.admin}`);
+    await webPort.setPackingIdeasShown(world.admin, world.ours.id, true);
     const before = await webPort.loadPacking(world.admin, world.ours.id);
     expect(before.ideas.map((i) => i.label)).toContain("toothbrush");
     expect(before.plan.gap).toBe("no-dates");

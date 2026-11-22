@@ -158,7 +158,7 @@ export function AccountSettings({ email, profile, linkedAccounts, calendarGrante
         </SettingsRow>
 
         <SettingsRow {...row("trips")} title="Trips" summary={tripsSummary(PACK_TIER_LABELS[profile.packTier], profile.homeCurrency)}>
-          <TripsFields packTier={profile.packTier} packAutoGenerate={profile.packAutoGenerate} homeCurrency={profile.homeCurrency} />
+          <TripsFields packTier={profile.packTier} homeCurrency={profile.homeCurrency} />
         </SettingsRow>
 
         <EstimateRow {...row("estimate")} settings={estimate} />

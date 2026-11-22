@@ -57,7 +57,7 @@ export const settingsRouter = router({
     }),
 
   packing: protectedProcedure
-    .input(z.object({ tier: z.enum(PACK_TIERS), autoGenerate: z.boolean() }))
+    .input(z.object({ tier: z.enum(PACK_TIERS) }))
     .mutation(async ({ ctx, input }) => {
       await ctx.port.updatePackingDefaults(ctx.viewer.id, input);
     }),
