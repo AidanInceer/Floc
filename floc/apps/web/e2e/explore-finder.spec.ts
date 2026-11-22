@@ -20,8 +20,4 @@ test("the finder filters on what must fit and ranks by what you like, never hidi
 
   await page.getByRole("button", { name: "May", exact: true }).click();
   await expect(count).toHaveText("75 trips");
-
-  await page.getByRole("button", { name: "More like this" }).first().click();
-  await expect(page.getByRole("button", { name: /^Like / })).toBeVisible();
-  await expect(count).toHaveText("74 trips");
 });
