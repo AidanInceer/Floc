@@ -7,6 +7,7 @@ import {
   setOvernightPlaceOn,
   type ItineraryDay,
 } from "@/server/itinerary/itinerary";
+import { refresh } from "@/server/freshness";
 import { upsertPlace } from "@/server/itinerary/places";
 
 export type OvernightPlaceInput =
@@ -40,6 +41,7 @@ export async function applyOvernight(
     targets.map((d) => d.id),
     placeId,
   );
+  refresh({ kind: "itinerary", tripId });
   return true;
 }
 

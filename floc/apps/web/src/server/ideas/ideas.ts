@@ -7,6 +7,7 @@ import { idea, ideaVote } from "@/db/schema";
 import { assertRoom } from "@/server/limits";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { touch } from "@/server/audit";
+import { refresh } from "@/server/freshness";
 
 export const IDEA_TITLE_MAX = TEXT_CAPS.ideaTitle;
 
@@ -63,4 +64,25 @@ export async function toggleIdeaVote(ideaId: number, userId: string): Promise<vo
       target: [ideaVote.ideaId, ideaVote.userId],
       set: { deletedAt, ...touch() },
     });
+}
+
+export async function saveIdea(tripId: number, userId: string, title: string): Promise<void> {
+  await insertIdea({ tripId, createdBy: userId, title });
+  refresh({ kind: "ideas", tripId });
+}
+
+export async function castIdeaVote(tripId: number, userId: string, ideaId: number): Promise<void> {
+  const target = await findIdea(tripId, ideaId);
+  if (!target) return;
+
+  await toggleIdeaVote(target.id, userId);
+  refresh({ kind: "ideas", tripId });
+}
+
+export async function deleteIdea(tripId: number, ideaId: number): Promise<void> {
+  const target = await findIdea(tripId, ideaId);
+  if (!target) return;
+
+  await softDeleteIdea(tripId, target.id);
+  refresh({ kind: "ideas", tripId });
 }

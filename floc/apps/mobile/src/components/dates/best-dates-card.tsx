@@ -1,4 +1,5 @@
 import { spanLabel } from "@floc/core/dates/dates-tabs";
+import { NO_DAYS_MARKED } from "@floc/core/dates/words";
 import { View } from "react-native";
 
 import { ChevronGlyph } from "../system/glyphs";
@@ -46,7 +47,7 @@ export function BestDatesCard({
     return (
       <View style={{ padding: space.lg, gap: space.xs }}>
         <Body bold>Best dates</Body>
-        <Body tone="ink-2">No days marked yet</Body>
+        <Body tone="ink-2">{NO_DAYS_MARKED}</Body>
       </View>
     );
   return (

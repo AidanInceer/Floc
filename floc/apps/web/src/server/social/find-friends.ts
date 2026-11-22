@@ -6,10 +6,14 @@ import { alias } from "drizzle-orm/sqlite-core";
 import { db } from "@/db";
 import { friendship, tripMembership, user, userProfile } from "@/db/schema";
 import { relationTo, showsAttribute } from "@/server/auth/visibility";
+import { refresh } from "@/server/freshness";
 import { LIMITS } from "@/server/limits";
 import {
   acceptedFriendIdsOf,
+  findUserById,
+  friendshipBetween,
   friendStatesFor,
+  openPendingRequest,
   type FriendState,
   type Person,
 } from "@/server/social/friends";
@@ -146,4 +150,16 @@ export async function mayAskToBeFriends(viewerId: string, targetId: string): Pro
   const theirSet = new Set(theirs);
   const mutual = mine.filter((id) => theirSet.has(id));
   return (await withOpenFriendLists(mutual)).length > 0;
+}
+
+export async function requestFriend(viewerId: string, targetId: string): Promise<boolean> {
+  if (!(await mayAskToBeFriends(viewerId, targetId))) return false;
+
+  const target = await findUserById(targetId);
+  if (!target) return false;
+  if (await friendshipBetween(viewerId, target.id)) return false;
+
+  await openPendingRequest(viewerId, target.id);
+  refresh({ kind: "friendship", otherId: target.id });
+  return true;
 }

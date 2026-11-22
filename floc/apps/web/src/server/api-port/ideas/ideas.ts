@@ -3,9 +3,8 @@ import "server-only";
 import type { FlocPort, Idea } from "@floc/api/port";
 
 import { scoped } from "@/server/api-port/api-port-scope";
-import { findIdea, insertIdea, softDeleteIdea, toggleIdeaVote } from "@/server/ideas/ideas";
+import { castIdeaVote, deleteIdea, saveIdea } from "@/server/ideas/ideas";
 import { listIdeas } from "@/server/ideas/ideas-read";
-import { refresh } from "@/server/freshness";
 
 type IdeasPort = Pick<FlocPort, "listIdeas" | "addIdea" | "voteIdea" | "removeIdea">;
 
@@ -27,25 +26,16 @@ export const ideasPort: IdeasPort = {
 
   async addIdea(viewerId, tripId, title) {
     const access = await scoped(viewerId, tripId);
-    await insertIdea({ tripId: access.trip.id, createdBy: access.viewer.id, title });
-    refresh({ kind: "ideas", tripId: access.trip.id });
+    await saveIdea(access.trip.id, access.viewer.id, title);
   },
 
   async voteIdea(viewerId, tripId, ideaId) {
     const access = await scoped(viewerId, tripId);
-    const target = await findIdea(access.trip.id, ideaId);
-    if (!target) return;
-
-    await toggleIdeaVote(target.id, access.viewer.id);
-    refresh({ kind: "ideas", tripId: access.trip.id });
+    await castIdeaVote(access.trip.id, access.viewer.id, ideaId);
   },
 
   async removeIdea(viewerId, tripId, ideaId) {
     const access = await scoped(viewerId, tripId);
-    const target = await findIdea(access.trip.id, ideaId);
-    if (!target) return;
-
-    await softDeleteIdea(access.trip.id, target.id);
-    refresh({ kind: "ideas", tripId: access.trip.id });
+    await deleteIdea(access.trip.id, ideaId);
   },
 };

@@ -2,13 +2,26 @@ import { readIdeaSort, type IdeaSort } from "@floc/core/trip/ideas";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { Button, Failed, Loading, TextBox } from "../../system/ui";
+import { useTheme } from "../../system/theme";
+import { NudgeLine } from "../nudge/nudge-chips";
 import { IdeasPanel } from "./ideas-panel";
-import { IdeasWaiting } from "./ideas-waiting";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
+
+function IdeasWaiting({ tripId }: { tripId: number }) {
+  const { c } = useTheme();
+  const nudges = useQuery(trpc.nudges.targets.queryOptions({ tripId }));
+  const unvoted = nudges.data?.ideas ?? [];
+  if (unvoted.length === 0) return null;
+  return (
+    <View style={{ paddingTop: space.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.rule }}>
+      <NudgeLine tripId={tripId} task="ideas" people={unvoted} />
+    </View>
+  );
+}
 
 export function IdeasSection({ tripId, datesUnset }: { tripId: number; datesUnset: boolean }) {
   const queryClient = useQueryClient();

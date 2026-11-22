@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { FULL_CONSENT, NO_CONSENT, type ConsentChoice } from "@floc/core/consent/consent";
 
@@ -11,10 +11,26 @@ import { chooseConsent } from "@/lib/consent/consent-cookie";
 
 import { ConsentChoices } from "./consent-choices";
 import { useConsent } from "./use-consent";
-import { useFooterRoom } from "./use-footer-room";
 import "./consent-banner.css";
 
 const ANSWER = "min-w-[8rem] flex-1 py-2.5 sm:min-w-[10rem] sm:flex-none";
+
+const ROOM = "--consent-room";
+
+function useFooterRoom() {
+  const observer = useRef<ResizeObserver | null>(null);
+
+  return useCallback((node: HTMLElement | null) => {
+    observer.current?.disconnect();
+    observer.current = null;
+    if (!node) {
+      document.body.style.removeProperty(ROOM);
+      return;
+    }
+    observer.current = new ResizeObserver(() => document.body.style.setProperty(ROOM, `${node.offsetHeight}px`));
+    observer.current.observe(node);
+  }, []);
+}
 
 export function ConsentBanner({ fromServer }: { fromServer: ConsentChoice | null }) {
   const consent = useConsent(fromServer);

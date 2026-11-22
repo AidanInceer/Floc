@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { AsideHead } from "@/components/availability/dates-board-parts";
 import { CheckIcon } from "@/components/system/icons";
 import { cx } from "@/components/system/ui";
+import { DATES_NOT_SAVED } from "@floc/core/dates/words";
 import {
   TRIP_LENGTHS,
   TRIP_LENGTH_SPECS,
@@ -85,7 +86,7 @@ export function LengthTiles({
           );
         })}
       </div>
-      {failed ? <p className="mt-2 text-[13px] text-red">That did not save. Try again.</p> : null}
+      {failed ? <p className="mt-2 text-[13px] text-red">{DATES_NOT_SAVED}</p> : null}
       {summary ? <p className="mt-2 text-[13px] text-ink-soft">{summary}</p> : null}
     </div>
   );

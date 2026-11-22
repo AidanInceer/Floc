@@ -16,20 +16,18 @@ import type {
 import { scoped } from "@/server/api-port/api-port-scope";
 import {
   acceptPendingRequest,
+  cancelFriendRequest,
+  declineFriendRequest,
   dropFriendship,
-  dropPendingRequest,
-  findUserById,
   friendStateWith,
-  friendshipBetween,
   listFriendsFor,
   listFriendshipsFor,
-  openPendingRequest,
   peopleByIds,
   splitFriendships,
   syncCompletedCoTripFriendships,
   type Person,
 } from "@/server/social/friends";
-import { mayAskToBeFriends } from "@/server/social/find-friends";
+import { requestFriend } from "@/server/social/find-friends";
 import { friendCodeFor, requestByCode } from "@/server/social/friend-code";
 import { searchFriends } from "@/server/social/friend-search";
 import {
@@ -108,15 +106,7 @@ export const socialPort: SocialPort = {
   },
 
   async requestFriend(viewerId, targetId) {
-    if (!(await mayAskToBeFriends(viewerId, targetId))) return;
-
-    const target = await findUserById(targetId);
-    if (!target) return;
-    if (await friendshipBetween(viewerId, target.id)) return;
-
-    await openPendingRequest(viewerId, target.id);
-
-    refresh({ kind: "friendship", otherId: target.id });
+    await requestFriend(viewerId, targetId);
   },
 
   async findFriends(viewerId, query): Promise<FriendSearch> {
@@ -124,29 +114,16 @@ export const socialPort: SocialPort = {
   },
 
   async requestFriendByCode(viewerId, code) {
-    const found = await requestByCode(viewerId, code);
-    if (found) refresh({ kind: "friendship", otherId: found.id });
+    await requestByCode(viewerId, code);
   },
 
-  async acceptFriend(viewerId, requesterId) {
-    await acceptPendingRequest(requesterId, viewerId);
-    refresh({ kind: "friendship", otherId: requesterId });
-  },
+  acceptFriend: (viewerId, requesterId) => acceptPendingRequest(requesterId, viewerId),
 
-  async declineFriend(viewerId, requesterId) {
-    await dropPendingRequest(requesterId, viewerId);
-    refresh({ kind: "friendship", otherId: requesterId });
-  },
+  declineFriend: (viewerId, requesterId) => declineFriendRequest(viewerId, requesterId),
 
-  async cancelFriendRequest(viewerId, targetId) {
-    await dropPendingRequest(viewerId, targetId);
-    refresh({ kind: "friendship", otherId: targetId });
-  },
+  cancelFriendRequest: (viewerId, targetId) => cancelFriendRequest(viewerId, targetId),
 
-  async removeFriend(viewerId, otherId) {
-    await dropFriendship(viewerId, otherId);
-    refresh({ kind: "friendship", otherId });
-  },
+  removeFriend: (viewerId, otherId) => dropFriendship(viewerId, otherId),
 
   async loadGroups(viewerId): Promise<FriendGroup[]> {
     const groups = await listGroupsFor(viewerId);
@@ -158,26 +135,13 @@ export const socialPort: SocialPort = {
     return trips.map((t) => ({ ...t, people: t.people.map(toPerson) }));
   },
 
-  async createGroup(viewerId, input) {
-    const id = await createGroup(viewerId, input);
-    refresh({ kind: "friendGroups" });
-    return id;
-  },
+  createGroup: (viewerId, input) => createGroup(viewerId, input),
 
-  async saveGroup(viewerId, groupId, input) {
-    await saveGroup(viewerId, groupId, input);
-    refresh({ kind: "friendGroups" });
-  },
+  saveGroup: (viewerId, groupId, input) => saveGroup(viewerId, groupId, input),
 
-  async setGroupMember(viewerId, groupId, userId, on) {
-    await setGroupMember(viewerId, groupId, userId, on);
-    refresh({ kind: "friendGroups" });
-  },
+  setGroupMember: (viewerId, groupId, userId, on) => setGroupMember(viewerId, groupId, userId, on),
 
-  async deleteGroup(viewerId, groupId) {
-    await deleteGroup(viewerId, groupId);
-    refresh({ kind: "friendGroups" });
-  },
+  deleteGroup: (viewerId, groupId) => deleteGroup(viewerId, groupId),
 
   async loadProfileOf(viewerId, userId): Promise<PublicProfileView | null> {
     if (userId === viewerId) return null;
@@ -268,13 +232,9 @@ export const socialPort: SocialPort = {
 
   async acceptTripInvite(viewerId, tripId) {
     await acceptInvite(tripId, viewerId);
-    refresh({ kind: "tripList" }, { kind: "invites" });
   },
 
-  async declineTripInvite(viewerId, tripId) {
-    await declineInvite(tripId, viewerId);
-    refresh({ kind: "invites" });
-  },
+  declineTripInvite: (viewerId, tripId) => declineInvite(tripId, viewerId),
 
   async previewInvite(token): Promise<InvitePreview | null> {
     const found = await findTripByShareLink(token);

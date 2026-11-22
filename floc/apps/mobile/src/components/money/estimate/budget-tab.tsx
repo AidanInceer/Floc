@@ -1,4 +1,5 @@
 import { isFlying } from "@floc/core/money/estimate/plan";
+import { ESTIMATE_LOCK_BODY, ESTIMATE_LOCK_TITLE } from "@floc/core/money/estimate/words";
 import type { EstimateView } from "@floc/core/money/estimate/view";
 import { parseMoney } from "@floc/core/money/money";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -17,8 +18,8 @@ function Lock() {
   const router = useRouter();
   return (
     <Card>
-      <Body bold>Cost estimate and budget</Body>
-      <Body tone="ink-2">See roughly what this trip will cost you, set your own budget and track it. Only you see it. A Floc Pro feature.</Body>
+      <Body bold>{ESTIMATE_LOCK_TITLE}</Body>
+      <Body tone="ink-2">{ESTIMATE_LOCK_BODY}</Body>
       <Button label="See Floc Pro" variant="quiet" fit="small" onPress={() => router.push({ pathname: "/settings", params: { pro: "1" } })} />
     </Card>
   );

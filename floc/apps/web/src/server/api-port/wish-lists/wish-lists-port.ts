@@ -2,7 +2,6 @@ import "server-only";
 
 import type { FlocPort } from "@floc/api/port";
 
-import { refresh } from "@/server/freshness";
 import { startWishListWith } from "@/server/wish-lists/wish-list-start";
 import { toggleWishVote } from "@/server/wish-lists/wish-list-votes";
 import {
@@ -32,24 +31,17 @@ type WishListsPort = Pick<
   | "wishListPeopleToAsk"
 >;
 
-async function changed<T>(write: Promise<T>, inbox = false): Promise<T> {
-  const out = await write;
-  refresh({ kind: "wishLists" });
-  if (inbox) refresh({ kind: "inbox" });
-  return out;
-}
-
 export const wishListsPort: WishListsPort = {
   loadWishLists: (viewerId) => listWishListsFor(viewerId),
   loadWishList: (viewerId, listId) => wishListFor(viewerId, listId),
-  createWishList: (viewerId, inviteIds) => changed(createWishList(viewerId, { inviteIds }), true),
-  startWishListWith: (viewerId, friendId) => changed(startWishListWith(viewerId, friendId), true),
-  inviteToWishList: (viewerId, listId, inviteIds) => changed(inviteToWishList(viewerId, listId, inviteIds), true),
-  respondToWishInvite: (viewerId, listId, accept) => changed(respondToWishInvite(viewerId, listId, accept), true),
-  leaveWishList: (viewerId, listId) => changed(leaveWishList(viewerId, listId)),
-  renameWishList: (viewerId, listId, name) => changed(renameWishList(viewerId, listId, name)),
-  addWishItem: (viewerId, listId, item) => changed(addWishItem(viewerId, listId, item)),
-  removeWishItem: (viewerId, listId, itemId) => changed(removeWishItem(viewerId, listId, itemId)),
-  toggleWishVote: (viewerId, listId, itemId) => changed(toggleWishVote(viewerId, listId, itemId)),
+  createWishList: (viewerId, inviteIds) => createWishList(viewerId, { inviteIds }),
+  startWishListWith: (viewerId, friendId) => startWishListWith(viewerId, friendId),
+  inviteToWishList: (viewerId, listId, inviteIds) => inviteToWishList(viewerId, listId, inviteIds),
+  respondToWishInvite: (viewerId, listId, accept) => respondToWishInvite(viewerId, listId, accept),
+  leaveWishList: (viewerId, listId) => leaveWishList(viewerId, listId),
+  renameWishList: (viewerId, listId, name) => renameWishList(viewerId, listId, name),
+  addWishItem: (viewerId, listId, item) => addWishItem(viewerId, listId, item),
+  removeWishItem: (viewerId, listId, itemId) => removeWishItem(viewerId, listId, itemId),
+  toggleWishVote: (viewerId, listId, itemId) => toggleWishVote(viewerId, listId, itemId),
   wishListPeopleToAsk: (viewerId, listId) => wishListPeopleToAsk(viewerId, listId),
 };

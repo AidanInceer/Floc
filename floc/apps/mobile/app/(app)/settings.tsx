@@ -21,16 +21,15 @@ import { trpc } from "@/lib/api";
 import { signOutHere } from "@/lib/sign-out";
 import { proView } from "@/lib/billing/pro";
 import { notificationSummary, privacySummary, travelStyleSummary, tripsSummary } from "@floc/core/people/settings-summary";
+import { THEME_LABELS } from "@floc/core/design/theme-words";
 import { MoonGlyph, SunGlyph } from "@/components/system/glyphs";
 import { space } from "@/lib/theme";
 
 const THEMES = [
-  { value: "light", label: "Light", icon: (color: string) => <SunGlyph color={color} /> },
-  { value: "dark", label: "Dark", icon: (color: string) => <MoonGlyph color={color} /> },
-  { value: "system", label: "Auto" },
+  { value: "light", label: THEME_LABELS.light, icon: (color: string) => <SunGlyph color={color} /> },
+  { value: "dark", label: THEME_LABELS.dark, icon: (color: string) => <MoonGlyph color={color} /> },
+  { value: "system", label: THEME_LABELS.system },
 ] satisfies { value: ThemeChoice; label: string; icon?: (color: string) => ReactNode }[];
-
-const THEME_LABELS: Record<ThemeChoice, string> = { light: "Light", dark: "Dark", system: "Auto" };
 
 const CURRENCY_OPTIONS = CURRENCIES.map((code) => ({ value: code, label: code }));
 

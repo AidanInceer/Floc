@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactElement } from "react";
 
 import { cx } from "@/components/system/ui";
+import { THEME_LABELS } from "@floc/core/design/theme-words";
 import { DeviceIcon, SunIcon } from "@/components/system/icons/account";
 import { MoonIcon } from "@/components/system/icons";
 import {
@@ -13,12 +14,6 @@ import {
   type ThemeChoice,
 } from "@/lib/theme";
 import "./theme-switch.css";
-
-const LABELS: Record<ThemeChoice, string> = {
-  light: "Light",
-  dark: "Dark",
-  system: "Auto",
-};
 
 const ICONS: Record<ThemeChoice, (props: { size?: number }) => ReactElement> = {
   light: SunIcon,
@@ -73,12 +68,12 @@ export function ThemeSwitch({ className, words }: { className?: string; words?: 
             data-choice={option}
             aria-pressed={choice === null ? undefined : choice === option}
             onClick={() => choose(option)}
-            aria-label={words ? undefined : LABELS[option]}
-            title={words ? undefined : LABELS[option]}
+            aria-label={words ? undefined : THEME_LABELS[option]}
+            title={words ? undefined : THEME_LABELS[option]}
             className={cx("theme-choice relative z-10 flex h-7 items-center justify-center rounded-sm", words ? "gap-1.5 px-2.5 text-[13px]" : "w-8")}
           >
             <Icon />
-            {words ? LABELS[option] : null}
+            {words ? THEME_LABELS[option] : null}
           </button>
         );
       })}

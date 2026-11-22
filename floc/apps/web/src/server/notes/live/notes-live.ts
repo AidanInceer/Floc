@@ -1,4 +1,5 @@
 import { Hocuspocus } from "@hocuspocus/server";
+import { and, eq, isNull } from "drizzle-orm";
 import * as Y from "yjs";
 
 import { stampEpoch } from "@floc/core/notes/live/live-epoch";
@@ -8,7 +9,8 @@ import { parsePageBody, serialisePage } from "@floc/core/notes/pages/page-blocks
 import { readPageYjs, seedPageYjs } from "@floc/core/notes/pages/page-yjs";
 import { log } from "../../observability/log";
 
-import { isOpenPage } from "./live-access";
+import { db } from "@/db";
+import { tripPage } from "@/db/schema";
 import { isLiveMember } from "@/server/trips/live-member";
 import { onNotesKick } from "./live-kick";
 import { onPagesChanged } from "./live-ping";
@@ -22,6 +24,15 @@ const RECHECK_MS = 60_000;
 const PAGES_CHANGED = "pages";
 
 const MEASURE_EVERY_BYTES = 256 * 1024;
+
+async function isOpenPage(tripId: number, pageId: number): Promise<boolean> {
+  const row = await db
+    .select({ id: tripPage.id })
+    .from(tripPage)
+    .where(and(eq(tripPage.id, pageId), eq(tripPage.tripId, tripId), isNull(tripPage.deletedAt), isNull(tripPage.archivedAt)))
+    .get();
+  return !!row;
+}
 
 async function mayOpen(target: LiveDocument | null, userId: string): Promise<boolean> {
   if (!target) return false;

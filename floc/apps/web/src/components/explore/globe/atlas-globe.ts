@@ -7,12 +7,39 @@ import type { TripRoute } from "@/lib/explore/route/trip-route";
 import { flightAt, flightMs } from "@/lib/landing/globe/flight";
 import { greatCircle, type LatLng } from "@floc/globe/sphere";
 
-import { drawFlight, moveFlags } from "./atlas-paint";
 import { domeFit, fineAt, lift, over, riseFor, zoomed, type Fit } from "./dome";
 import { fitOf, poseOf, tripLayer, type TripTint } from "./trip-layer";
 
 type Scene = { home: LatLng; places: LatLng[]; flags: HTMLElement; clear: () => Box };
 const LANDED = { route: 1, landing: 1, done: true };
+
+type Painter = NonNullable<ReturnType<typeof globePainter>>;
+
+const clamp = (v: number) => Math.min(1, Math.max(0, v));
+const at = (q: { x: number; y: number }) => `translate(${q.x.toFixed(1)}px, ${q.y.toFixed(1)}px)`;
+
+type Flying = { route: number; landing: number };
+
+function drawFlight(paint: Painter, view: LatLng, home: LatLng, path: LatLng[], f: Flying, alpha: number) {
+  if (!alpha) return;
+  paint.faded(alpha, () => {
+    if (f.route) paint.route(view, path, f.route);
+    paint.pin(view, home, 4, true);
+  });
+  if (f.route && alpha === 1) paint.plane(view, path, f.route, f.landing);
+}
+
+function moveFlags(paint: Painter, flags: HTMLElement, places: LatLng[], view: LatLng, fade: number) {
+  places.forEach((place, i) => {
+    const el = flags.children[i] as HTMLElement | undefined;
+    if (!el) return;
+    const q = paint.place(view, place);
+    const seen = clamp((q.z - 0.15) * 6) * fade;
+    el.style.transform = at(q);
+    el.style.opacity = seen.toFixed(2);
+    el.hidden = seen === 0;
+  });
+}
 
 export function atlasGlobe(canvas: HTMLCanvasElement, { home, places, flags, clear }: Scene) {
   const paint = globePainter(canvas);

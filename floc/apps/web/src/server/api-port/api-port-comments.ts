@@ -7,16 +7,7 @@ import type { NoteRow } from "@floc/core/notes/notes";
 
 import { scoped } from "@/server/api-port/api-port-scope";
 import { loadThreads } from "@/server/notes/notes-read";
-import {
-  findNote,
-  insertNote,
-  resolveParent,
-  softDeleteNoteAndReplies,
-  toggleReaction,
-  updateNoteBody,
-  NOTE_BODY_MAX,
-} from "@/server/notes/notes";
-import { refresh } from "@/server/freshness";
+import { addThreadNote, deleteOwnNote, editOwnNote, reactToNote } from "@/server/notes/notes";
 
 type CommentsPort = Pick<
   FlocPort,
@@ -61,65 +52,31 @@ export const commentsPort: CommentsPort = {
     const access = await scoped(viewerId, tripId);
     const event = await access.event(dayEventId);
 
-    let parentId: number | null = null;
-    if (replyTo !== null) {
-      const resolved = await resolveParent({
-        tripId: access.trip.id,
-        scope: "day_event",
-        scopeId: event.id,
-        replyTo,
-      });
-      if (resolved === undefined) return "That comment has gone.";
-      parentId = resolved;
-    }
-
-    await insertNote({
+    return addThreadNote({
       tripId: access.trip.id,
-      createdBy: access.viewer.id,
+      viewerId: access.viewer.id,
       scope: "day_event",
       scopeId: event.id,
-      parentId,
+      replyTo,
       body,
     });
-
-    refresh({ kind: "thread", tripId: access.trip.id, scope: "day_event" });
-    return null;
   },
 
   async editComment(viewerId, tripId, commentId, body) {
     const access = await scoped(viewerId, tripId);
-    const row = await findNote(access.trip.id, commentId);
-    if (!row) return "That comment has gone.";
-    if (row.createdBy !== access.viewer.id) {
-      return "You can only edit your own comments.";
-    }
-
-    if (body.slice(0, NOTE_BODY_MAX) === row.body) return null;
-
-    await updateNoteBody(row.id, body);
-    refresh({ kind: "thread", tripId: access.trip.id, scope: row.scope });
-    return null;
+    return editOwnNote(access.trip.id, access.viewer.id, commentId, body);
   },
 
   async deleteComment(viewerId, tripId, commentId) {
     const access = await scoped(viewerId, tripId);
-    const row = await findNote(access.trip.id, commentId);
-    if (!row) return;
-
-    if (row.createdBy !== access.viewer.id) {
+    const outcome = await deleteOwnNote(access.trip.id, access.viewer.id, commentId);
+    if (outcome === "forbidden") {
       throw new Refusal("You can only delete your own comments.", "forbidden");
     }
-
-    await softDeleteNoteAndReplies(row.id);
-    refresh({ kind: "thread", tripId: access.trip.id, scope: row.scope });
   },
 
   async reactToComment(viewerId, tripId, commentId, kind: ReactionKind) {
     const access = await scoped(viewerId, tripId);
-    const row = await findNote(access.trip.id, commentId);
-    if (!row) return;
-
-    await toggleReaction(row.id, access.viewer.id, kind);
-    refresh({ kind: "thread", tripId: access.trip.id, scope: row.scope });
+    await reactToNote(access.trip.id, access.viewer.id, commentId, kind);
   },
 };

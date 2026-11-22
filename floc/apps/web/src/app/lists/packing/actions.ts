@@ -17,7 +17,6 @@ import {
   softDeletePackingKitItem,
   stepPackingKitItemQuantity,
 } from "@/server/packing/packing-kits";
-import { refresh } from "@/server/freshness";
 
 export async function createPackingKit(formData: FormData) {
   const viewer = await requireUser("/lists/packing");
@@ -26,7 +25,6 @@ export async function createPackingKit(formData: FormData) {
 
   const id = await insertPackingKit(viewer.id, name);
 
-  refresh({ kind: "packingKits" });
   if (id !== null) redirect(`/lists/packing#kit-${id}`);
 }
 
@@ -36,16 +34,12 @@ export async function renameKit(kitId: number, formData: FormData) {
   if (!name) return;
 
   await renamePackingKit(kitId, viewer.id, name);
-
-  refresh({ kind: "packingKits" });
 }
 
 export async function deleteKit(kitId: number) {
   const viewer = await requireUser("/lists/packing");
 
   await softDeletePackingKit(kitId, viewer.id);
-
-  refresh({ kind: "packingKits" });
 }
 
 export async function addKitItem(kitId: number, formData: FormData) {
@@ -60,16 +54,12 @@ export async function addKitItem(kitId: number, formData: FormData) {
     parsePackCategory(formData.get("category")),
     clampPackQuantity(Number(formData.get("quantity") ?? 1)),
   );
-
-  refresh({ kind: "packingKits" });
 }
 
 export async function removeKitItem(itemId: number) {
   const viewer = await requireUser("/lists/packing");
 
   await softDeletePackingKitItem(itemId, viewer.id);
-
-  refresh({ kind: "packingKits" });
 }
 
 export async function stepKitItemQuantity(itemId: number, formData: FormData) {
@@ -78,6 +68,4 @@ export async function stepKitItemQuantity(itemId: number, formData: FormData) {
   if (!delta) throw new Error("That isn't a quantity step");
 
   await stepPackingKitItemQuantity(itemId, viewer.id, delta);
-
-  refresh({ kind: "packingKits" });
 }

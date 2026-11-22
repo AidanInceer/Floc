@@ -9,9 +9,12 @@ import { assertRoom } from "@/server/limits";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { tripHref, threadTab } from "@floc/core/notifications/notification-href";
 import { touch } from "@/server/audit";
+import { refresh } from "@/server/freshness";
 import { recordActivity } from "@/server/notifications/activity";
 
 export const NOTE_BODY_MAX = TEXT_CAPS.noteBody;
+
+const GONE = "That comment has gone.";
 
 export async function findNote(tripId: number, noteId: number) {
   return db
@@ -120,4 +123,55 @@ export async function toggleReaction(
       target: [noteReaction.noteId, noteReaction.userId, noteReaction.kind],
       set: { deletedAt, ...touch() },
     });
+}
+
+export async function addThreadNote(args: {
+  tripId: number;
+  viewerId: string;
+  scope: NoteScope;
+  scopeId: number;
+  replyTo: number | null;
+  body: string;
+}): Promise<string | null> {
+  const { tripId, scope, scopeId, replyTo } = args;
+  let parentId: number | null = null;
+  if (replyTo !== null) {
+    const resolved = await resolveParent({ tripId, scope, scopeId, replyTo });
+    if (resolved === undefined) return GONE;
+    parentId = resolved;
+  }
+
+  await insertNote({ tripId, createdBy: args.viewerId, scope, scopeId, parentId, body: args.body });
+  refresh({ kind: "thread", tripId, scope });
+  return null;
+}
+
+export async function editOwnNote(tripId: number, viewerId: string, noteId: number, body: string): Promise<string | null> {
+  const row = await findNote(tripId, noteId);
+  if (!row) return GONE;
+  if (row.createdBy !== viewerId) return "You can only edit your own comments.";
+
+  if (body.slice(0, NOTE_BODY_MAX) === row.body) return null;
+
+  await updateNoteBody(row.id, body);
+  refresh({ kind: "thread", tripId, scope: row.scope });
+  return null;
+}
+
+export async function deleteOwnNote(tripId: number, viewerId: string, noteId: number): Promise<"forbidden" | null> {
+  const row = await findNote(tripId, noteId);
+  if (!row) return null;
+  if (row.createdBy !== viewerId) return "forbidden";
+
+  await softDeleteNoteAndReplies(row.id);
+  refresh({ kind: "thread", tripId, scope: row.scope });
+  return null;
+}
+
+export async function reactToNote(tripId: number, viewerId: string, noteId: number, kind: ReactionKind): Promise<void> {
+  const row = await findNote(tripId, noteId);
+  if (!row) return;
+
+  await toggleReaction(row.id, viewerId, kind);
+  refresh({ kind: "thread", tripId, scope: row.scope });
 }

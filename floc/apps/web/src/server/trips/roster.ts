@@ -7,6 +7,7 @@ import { trip, tripMembership } from "@/db/schema";
 import { assertRoom, bounded, LIMITS } from "@/server/limits";
 import { tripHref } from "@floc/core/notifications/notification-href";
 import { touch } from "@/server/audit";
+import { refresh } from "@/server/freshness";
 import { kickFromTripNotes } from "@/server/notes/live/live-kick";
 import { recordActivity, type Tx } from "@/server/notifications/activity";
 import { countMembershipsOf } from "@/server/trips/trips";
@@ -82,6 +83,7 @@ export async function removeMembership(
 ): Promise<void> {
   const removed = await db.transaction((tx) => markRemoved(tx, tripId, userId, by));
   if (removed) kickFromTripNotes(tripId, userId);
+  refresh({ kind: "tripOverview", tripId }, { kind: "tripHeader", tripId }, { kind: "profileTrips" });
 }
 
 export async function setMemberRoleAdmin(
@@ -92,6 +94,11 @@ export async function setMemberRoleAdmin(
     .update(tripMembership)
     .set({ role: "admin", ...touch() })
     .where(liveMembership(tripId, userId));
+}
+
+export async function promoteToAdmin(tripId: number, userId: string): Promise<void> {
+  await setMemberRoleAdmin(tripId, userId);
+  refresh({ kind: "tripOverview", tripId }, { kind: "tripHeader", tripId });
 }
 
 export async function leaveTripAs(args: {
@@ -126,6 +133,7 @@ export async function leaveTripAs(args: {
     return true;
   });
   if (left) kickFromTripNotes(tripId, userId);
+  refresh({ kind: "tripList" }, { kind: "profileTrips" });
 }
 
 export async function handOverAndLeaveAllTrips(userId: string): Promise<void> {

@@ -7,6 +7,7 @@ import { db } from "@/db";
 import { tripLengthChoice } from "@/db/schema";
 import { bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
+import { refresh } from "@/server/freshness";
 
 export async function listLengthChoices(tripId: number): Promise<LengthChoice[]> {
   const rows = await db
@@ -31,6 +32,7 @@ export async function setLengthChoice(tripId: number, userId: string, length: Tr
           isNull(tripLengthChoice.deletedAt),
         ),
       );
+    refresh({ kind: "tripDates", tripId });
     return;
   }
   await db
@@ -40,4 +42,5 @@ export async function setLengthChoice(tripId: number, userId: string, length: Tr
       target: [tripLengthChoice.tripId, tripLengthChoice.userId, tripLengthChoice.length],
       set: { deletedAt: null, ...touch() },
     });
+  refresh({ kind: "tripDates", tripId });
 }

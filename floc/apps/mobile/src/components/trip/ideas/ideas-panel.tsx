@@ -1,4 +1,4 @@
-import { sortIdeas, voteLabel, type IdeaRow, type IdeaSort } from "@floc/core/trip/ideas";
+import { IDEA_SORTS, IDEA_SORT_LABELS, sortIdeas, voteLabel, type IdeaRow, type IdeaSort } from "@floc/core/trip/ideas";
 import { commentTime } from "@floc/core/notes/notes";
 import { Pressable, StyleSheet, View } from "react-native";
 
@@ -58,10 +58,7 @@ export function IdeasPanel({
             <Segmented
               value={sort}
               onChange={onSort}
-              options={[
-                { value: "votes", label: "Most votes" },
-                { value: "newest", label: "Newest" },
-              ]}
+              options={IDEA_SORTS.map((value) => ({ value, label: IDEA_SORT_LABELS[value] }))}
             />
           ) : null}
           {ideas.length === 0 ? (

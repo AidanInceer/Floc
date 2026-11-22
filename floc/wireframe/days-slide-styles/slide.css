@@ -1,6 +1,0 @@
-.proto-bar .tune { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 10px; font-family: var(--type); font-size: 11px; }
-.proto-bar .tune label { display: inline-flex; align-items: center; gap: 6px; }
-.proto-bar .tune input[type="range"] { width: 140px; accent-color: var(--pen); }
-.proto-bar .tune output { min-width: 6ch; }
-.proto-bar .tune select, .proto-bar .tune button { font: inherit; color: inherit; background: transparent; border: 1px solid currentColor; border-radius: var(--radius-sm); padding: 3px 6px; cursor: pointer; }
-.proto-bar .tune option { color: var(--ink); background: var(--sheet); }

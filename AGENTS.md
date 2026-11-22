@@ -27,15 +27,19 @@ pnpm --filter floc-web db:query "<select>"   # read local.db
 
 **Never add a comment to code.** No line, block, JSDoc or JSX comment, in any `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs` or `.cjs` file, wireframes and scripts included. Say it in a name, a test, the commit message, the PR or an ADR. The only exceptions are tool directives the code cannot work without: `eslint-disable`, `@ts-expect-error`, `/// <reference`, `// NOSONAR` and the like (`DIRECTIVE` in `scripts/check-comments.mjs`), with no prose after them. `scripts/check-comments.mjs` enforces this on every edit (Claude hook), every commit (pre-commit) and every PR (`repository` check, `--all`). Never widen `DIRECTIVE` to let prose through.
 
+## Docs
+
+**Write docs only for a new feature, and only what the code cannot say.** A few lines on an existing page. Never a new page, README or `.md` file unasked. A fix, refactor or chore adds none: correct a line the change makes untrue, nothing more. No plan, analysis or summary files in the repo. ADRs, the system map and `FILES.md` keep their own rules.
+
 ## UI and UX
 
 Before any UI work — web, phone, mockup or marketing — read the [design card](.claude/rules/design.md). Tokens only; no outside UI library unless building it would take months.
 
 ## Code standards
 
-- **Single responsibility.** A name that needs "and" is two files. Group by feature, nest freely; split a folder past 20 flat files.
+- **Single responsibility, at the size of a feature.** Group by feature. Keep a helper in the file that calls it; give it its own file only when a second file needs it.
 - **Dependency inversion at seams.** `@floc/core` stays pure; components never fetch.
-- **YAGNI, KISS, composition over configuration.** About 6 props per component — past that, split.
+- **YAGNI, KISS, composition over configuration.**
 - **Test first** (`/floc:tdd`). A bug fix starts with a failing test. One behaviour per test, through the public interface; logic behind a component moves somewhere testable.
 - **Never lower a limit.** Coverage 80%, file 600 lines, function 120, complexity 15. Fix the code; never raise a threshold, a baseline or the ESLint allowlist.
 - **Performance never gets worse.** A change must not slow the site: server reads over client fetches, no heavy import behind a rare branch, every unbounded list capped (`LIMITS` in `server/limits.ts`).
@@ -45,7 +49,7 @@ Before any UI work — web, phone, mockup or marketing — read the [design card
 - **Mock-ups, variants, options → `/floc:prototype`**, whatever the wording.
 - **One task, one worktree.** Shape decisions and tickets in the main checkout. Edit tracked code, including wireframes, in `pnpm workspace:new <name>`. Preview with `pnpm workspace:start web` or `pnpm workspace:start wireframes` and the address from `pnpm workspace:status`. Never edit the main checkout's `.claude/launch.json`.
 - **Branches:** `feature/*`, `fix/*`, `chore/*` → PR to `develop`; `develop` → `main` only through `/floc:release`; `hotfix/*` from and to `main`. Never push to either directly; merge conflicts in, never rebase.
-- **Ship** with `/floc:push`: commit, PR to `develop`, then the `floc:ci-watch` agent in the background. It reports red (you fix and push again) or merged (then `pnpm delivery finish`: docs, worktree closed, summary). Never push when asked for local review only. Docs are written with the code (`/floc:sync-docs`) and pushed after the merge.
+- **Ship** with `/floc:push`: commit, PR to `develop`, then the `floc:ci-watch` agent in the background. It reports red (you fix and push again) or merged (then `pnpm delivery finish`: docs, worktree closed, summary). Never push when asked for local review only. Docs a new feature needs are written with the code (`/floc:sync-docs`) and pushed after the merge.
 - **Commit subject:** `#<issue|no-ticket>: <feat|fix|docs|refactor|chore|test>: <description>`. Only a ticket picked up this session or given in chat; it needs a `Closes AidanInceer/Floc#<issue>` line.
 
 ## Guardrail gates

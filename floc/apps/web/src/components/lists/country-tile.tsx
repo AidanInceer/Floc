@@ -2,19 +2,34 @@
 
 import { listingsIn, regionOf } from "@floc/core/trip/explore/listing-countries";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 
 import { footLineClass, lastLineClass } from "@/components/explore/all/explore-tile";
 import { regionLand } from "@/components/explore/listing";
+import { drawCountry } from "@/components/explore/outline/drawing";
+import { LandPaths } from "@/components/explore/outline/land-paths";
+import { useLand } from "@/components/explore/outline/use-land";
 import { heartClass } from "@/components/explore/save/save-heart";
 import { ReactionGlyph } from "@/components/system/icons/reaction";
 import { cx } from "@/components/system/ui";
 
-import { CountryOutline } from "./country-outline";
 import { StartTripButton } from "./start-trip-button";
 import { countWord } from "@floc/core/text/count-word";
 
 const PLAIN_LAND = "fill-sheet-2";
+
+const BOX = { width: 240, height: 170 };
+
+function CountryOutline({ code, name, fill }: { code: string; name: string; fill: string }) {
+  const land = useLand("fine");
+  const d = useMemo(() => drawCountry(code, land, BOX), [land, code]);
+
+  return (
+    <svg viewBox={`0 0 ${BOX.width} ${BOX.height}`} preserveAspectRatio="xMidYMid slice" role="img" aria-label={name} className="block size-full">
+      {d ? <LandPaths home={d.home} other={d.other} fill={fill} /> : null}
+    </svg>
+  );
+}
 
 const exploreTrips = (n: number) => (n === 0 ? "No Explore trips" : countWord(n, "Explore trip"));
 

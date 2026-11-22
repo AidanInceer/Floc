@@ -1,4 +1,5 @@
 import type { TokenName } from "@floc/core/design/tokens";
+import { EVERYONE_FREE_WORDS, MARK_WORDS, SOME_FREE_WORDS } from "@floc/core/dates/words";
 import { StyleSheet, Text, View } from "react-native";
 
 import { useTheme } from "../system/theme";
@@ -25,20 +26,20 @@ export function DatesKey() {
   const { c } = useTheme();
   return (
     <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: space.xs, paddingVertical: space.md }}>
-      <Item word="Can do">
+      <Item word={MARK_WORDS.free}>
         <View style={{ width: MARK, height: MARK, borderRadius: radius.pill, borderWidth: 1, borderColor: c["ink-3"] }} />
       </Item>
-      <Item word="Prefer">
+      <Item word={MARK_WORDS.prefer}>
         <View style={{ width: MARK, height: MARK, borderRadius: radius.pill, borderWidth: 1.5, borderColor: c.ink, backgroundColor: c.sheet }} />
       </Item>
-      <Item word="Some free">
+      <Item word={SOME_FREE_WORDS}>
         <View style={{ flexDirection: "row", gap: 2 }}>
           <Swatch ground="some-free-1" width={6} edge="rule-2" />
           <Swatch ground="some-free-2" width={6} edge="rule-2" />
           <Swatch ground="some-free-3" width={6} />
         </View>
       </Item>
-      <Item word="Everyone free">
+      <Item word={EVERYONE_FREE_WORDS}>
         <Swatch ground="pastel-green" edge="pastel-green-edge" />
       </Item>
       <Item word="The trip">
