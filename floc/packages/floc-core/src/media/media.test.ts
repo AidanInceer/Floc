@@ -6,6 +6,7 @@ import {
   groupMedia,
   MEDIA_LIMITS,
   mediaRatio,
+  mediaShape,
   mediaType,
   refuseType,
   rejectMedia,
@@ -120,6 +121,18 @@ describe("a picture's shape and a video's length", () => {
 
   it("falls back when the shape is unknown", () => {
     expect(mediaRatio(null, null)).toBe(1.5);
+  });
+
+  it("keeps a panorama's full shape for the open picture", () => {
+    expect(mediaShape(3000, 1000)).toBe(3);
+  });
+
+  it("keeps a tall picture's full shape for the open picture", () => {
+    expect(mediaShape(1000, 2500)).toBe(0.4);
+  });
+
+  it("falls back for the open picture when the shape is unknown", () => {
+    expect(mediaShape(null, null)).toBe(1.5);
   });
 
   it("writes a video's length as minutes and seconds", () => {
