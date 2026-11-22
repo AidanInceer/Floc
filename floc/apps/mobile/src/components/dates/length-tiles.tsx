@@ -1,4 +1,5 @@
 import { TRIP_LENGTHS, TRIP_LENGTH_SPECS, lengthSummary, type LengthChoice, type TripLength } from "@floc/core/dates/finding/trip-length";
+import { DATES_NOT_SAVED } from "@floc/core/dates/words";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -87,7 +88,7 @@ export function LengthTiles({ tripId, viewerId, choices }: { tripId: number; vie
           <Tile key={length} length={length} on={mine[length]} onPress={() => press(length)} />
         ))}
       </View>
-      {failed ? <Body tone="red">That did not save. Try again.</Body> : null}
+      {failed ? <Body tone="red">{DATES_NOT_SAVED}</Body> : null}
       {summary ? <Body tone="ink-2">{summary}</Body> : null}
     </View>
   );

@@ -9,6 +9,7 @@ import { ProStar } from "@/components/system/pro-star";
 import { Button, LegendKey, busyMark, cx, panelTitleClass, trackSegmentClass } from "@/components/system/ui";
 import { SegmentTrack } from "@/components/system/segment-track";
 import type { PaintMode } from "@floc/core/dates/finding/day-paint";
+import { EVERYONE_FREE_WORDS, MARK_WORDS, SOME_FREE_WORDS } from "@floc/core/dates/words";
 import { WeatherGlyph } from "@/components/system/icons/weather";
 import { formatMonth, formatShortMonth, tripCoverage, type IsoMonth } from "@floc/core/dates/availability";
 import { formatDate, type IsoDate } from "@floc/core/dates/dates";
@@ -50,8 +51,8 @@ export function MonthPager({ month, page, lead, menu }: { month: IsoMonth; page:
 export const PagerHint = ({ hint }: { hint: string }) => (hint ? <span className="hidden text-[13px] text-ink-faint sm:block">{hint}</span> : null);
 
 const MARK_MODES: { value: PaintMode; label: string; swatch: string }[] = [
-  { value: "free", label: "Can do", swatch: "border border-ink-faint" },
-  { value: "prefer", label: "Prefer", swatch: "border-[1.5px] border-ink bg-sheet" },
+  { value: "free", label: MARK_WORDS.free, swatch: "border border-ink-faint" },
+  { value: "prefer", label: MARK_WORDS.prefer, swatch: "border-[1.5px] border-ink bg-sheet" },
 ];
 
 const ownSwatch = (look: string) => <span aria-hidden className={cx("size-3 shrink-0 rounded-full", look)} />;
@@ -157,9 +158,9 @@ export function DatesKey() {
           {swatch("bg-some-free-2")}
           {swatch("bg-some-free-3")}
         </span>
-        Some free
+        {SOME_FREE_WORDS}
       </span>
-      <LegendKey swatch="bg-pastel-green border-pastel-green" label="Everyone free" />
+      <LegendKey swatch="bg-pastel-green border-pastel-green" label={EVERYONE_FREE_WORDS} />
       <LegendKey swatch="bg-green border-green" label="The trip" />
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { readWishLink, WISH_CAPS, type WishItemInput } from "@floc/core/lists/wish-list";
+import { readWishLink, WISH_ADD_LABEL, WISH_CAPS, type WishItemInput } from "@floc/core/lists/wish-list";
 import { COUNTRIES } from "@floc/core/people/countries";
 import { useState, useTransition } from "react";
 
@@ -55,7 +55,7 @@ export function WishAddBox({ listId, listings }: { listId: number; listings: Lis
     >
       <div className="flex flex-wrap gap-2">
         <label className="min-w-0 flex-[1_1_16rem]">
-          <span className="typed mb-1.5 block">Add an idea, a place or a link</span>
+          <span className="typed mb-1.5 block">{WISH_ADD_LABEL}</span>
           <Input value={typed} onChange={(e) => setTyped(e.target.value)} maxLength={WISH_CAPS.url} autoComplete="off" />
         </label>
         {link ? (

@@ -6,10 +6,6 @@ export function groupCount(packed: (boolean | null)[]): { text: string; full: bo
   return cubeCount(packed.filter(Boolean).length, packed.length);
 }
 
-export function sharedSaid({ others }: { others: string[] }): string {
-  return others.length > 0 ? `with ${others.join(", ")}` : "";
-}
-
 export function needsRemoveConfirm(claims: { userId: string }[], viewerId: string | undefined): boolean {
   return claims.some((claim) => claim.userId !== viewerId);
 }

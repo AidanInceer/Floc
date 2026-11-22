@@ -10,7 +10,7 @@ import {
   saveTripStyle,
   saveTripTravel,
 } from "@/server/money/estimate/estimate-save";
-import { isRefusal, Refusal } from "@floc/core/errors/refusal";
+import { orRefusal, Refusal } from "@floc/core/errors/refusal";
 import type { Currency } from "@floc/core/money/currency";
 import { isEstimateLine } from "@floc/core/money/estimate/lines";
 import { isCabin, isPace, isStayStyle } from "@floc/core/money/estimate/style";
@@ -18,16 +18,6 @@ import { isTravelMode } from "@floc/core/money/estimate/travel";
 import { parseMoney } from "@floc/core/money/money";
 
 type Result = { error?: string };
-
-async function answer(run: () => Promise<void>): Promise<Result> {
-  try {
-    await run();
-    return {};
-  } catch (error) {
-    if (isRefusal(error)) return { error: error.message };
-    throw error;
-  }
-}
 
 function amount(raw: FormDataEntryValue | null, currency: Currency): number | null {
   const text = String(raw ?? "").trim();
@@ -45,12 +35,12 @@ async function homeOf(userId: string): Promise<Currency> {
 
 export async function saveBudgetForm(tripId: number, formData: FormData): Promise<Result> {
   const access = await requireTripAccess(tripId);
-  return answer(async () => saveBudget(access, amount(formData.get("amount"), await homeOf(access.viewer.id))));
+  return orRefusal(async () => saveBudget(access, amount(formData.get("amount"), await homeOf(access.viewer.id))));
 }
 
 export async function saveLineForm(tripId: number, formData: FormData): Promise<Result> {
   const access = await requireTripAccess(tripId);
-  return answer(async () => {
+  return orRefusal(async () => {
     const line = formData.get("line");
     if (!isEstimateLine(line)) throw new Refusal("That line is not part of the estimate.");
     const currency = await homeOf(access.viewer.id);
@@ -64,7 +54,7 @@ export async function saveLineForm(tripId: number, formData: FormData): Promise<
 
 export async function saveTravelForm(tripId: number, formData: FormData): Promise<Result> {
   const access = await requireTripAccess(tripId);
-  return answer(async () => {
+  return orRefusal(async () => {
     const travel = formData.get("travel");
     if (!isTravelMode(travel)) throw new Refusal("Pick how you are getting there.");
     await saveTripTravel(access, travel);
@@ -74,7 +64,7 @@ export async function saveTravelForm(tripId: number, formData: FormData): Promis
 export async function saveStyleForm(tripId: number, formData: FormData): Promise<Result> {
   const access = await requireTripAccess(tripId);
   const [cabin, stay, pace] = [formData.get("cabin"), formData.get("stay"), formData.get("pace")];
-  return answer(() =>
+  return orRefusal(() =>
     saveTripStyle(access, {
       ...(isCabin(cabin) && { cabin }),
       ...(isStayStyle(stay) && { stay }),
@@ -85,25 +75,25 @@ export async function saveStyleForm(tripId: number, formData: FormData): Promise
 
 export async function resetTripStyle(tripId: number): Promise<Result> {
   const access = await requireTripAccess(tripId);
-  return answer(() => saveTripStyle(access, null));
+  return orRefusal(() => saveTripStyle(access, null));
 }
 
 export async function saveNightsForm(tripId: number, formData: FormData): Promise<Result> {
   const access = await requireTripAccess(tripId);
   const raw = String(formData.get("nights") ?? "").trim();
-  return answer(() => saveTripNights(access, raw ? Number(raw) : null));
+  return orRefusal(() => saveTripNights(access, raw ? Number(raw) : null));
 }
 
 export async function saveHomeAirportForm(formData: FormData): Promise<Result> {
   const viewer = await requireUser();
   const raw = String(formData.get("airport") ?? "").trim();
-  return answer(() => saveTravelProfile(viewer.id, { homeAirport: raw || null }));
+  return orRefusal(() => saveTravelProfile(viewer.id, { homeAirport: raw || null }));
 }
 
 export async function saveTravelStyleForm(formData: FormData): Promise<Result> {
   const viewer = await requireUser();
   const [cabin, stay, pace] = [formData.get("cabin"), formData.get("stay"), formData.get("pace")];
-  return answer(() =>
+  return orRefusal(() =>
     saveTravelProfile(viewer.id, {
       ...(isCabin(cabin) && { cabin }),
       ...(isStayStyle(stay) && { stay }),

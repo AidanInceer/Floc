@@ -1,14 +1,25 @@
 import type { BookingPlan } from "@floc/core/trip/booking/booking-links";
 import { useState } from "react";
-import { View } from "react-native";
+import { Text, View } from "react-native";
 
 import { Card, Segmented, SectionTitle } from "../system/ui";
 import { TextLink } from "../system/text-controls";
-import { OffsiteNote } from "./booking-links";
+import { useTheme } from "../system/theme";
 import { StayRows } from "./booking/stay-rows";
 import { BookingSitesButton } from "./booking-sites-sheet";
 import { SiteLinks } from "./site-links";
-import { space } from "@/lib/theme";
+import { fonts, size, space } from "@/lib/theme";
+
+const OFFSITE_NOTE = "Opens another site. Floc isn't paid for these links.";
+
+function OffsiteNote({ centred }: { centred?: boolean }) {
+  const { c } = useTheme();
+  return (
+    <Text style={{ color: c["ink-3"], fontFamily: fonts.sans, fontSize: size.label, textAlign: centred ? "center" : "left" }}>
+      {OFFSITE_NOTE}
+    </Text>
+  );
+}
 
 type Kind = "flights" | "stays";
 

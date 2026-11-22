@@ -1,15 +1,40 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
 
-import { openFirst } from "@floc/core/trip/nudge/fit-count";
+import { fitCount, openFirst } from "@floc/core/trip/nudge/fit-count";
 import type { NudgePerson, NudgeTask } from "@floc/core/trip/nudge/nudge";
 import { Menu } from "@/components/system/client-ui";
 import { CheckIcon } from "@/components/system/icons";
 import { Avatar, busyMark, Button, cx, menuItemClass } from "@/components/system/ui";
 import { NudgedMark, NudgeNote } from "./nudged-mark";
-import { useFitCount } from "./use-fit-count";
 import { useNudgePress } from "./use-nudge-press";
+
+const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+const MENU_WIDTH = 26;
+const GAP = 6;
+
+function useFitCount(box: RefObject<HTMLElement | null>, ruler: RefObject<HTMLElement | null>, total: number): number {
+  const [shown, setShown] = useState(total);
+
+  useIsoLayoutEffect(() => {
+    const room = box.current;
+    const marks = ruler.current;
+    if (!room || !marks) return;
+    const measure = () => {
+      const widths = [...marks.children].map((c) => c.getBoundingClientRect().width);
+      setShown(fitCount(widths, room.clientWidth, GAP, MENU_WIDTH));
+    };
+    measure();
+    const watch = new ResizeObserver(measure);
+    watch.observe(room);
+    watch.observe(marks);
+    return () => watch.disconnect();
+  }, [box, ruler, total]);
+
+  return shown;
+}
 
 const chipClass =
   "inline-flex h-[31px] shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border pl-1.5 pr-2.5 text-sm transition-colors";

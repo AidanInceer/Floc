@@ -11,7 +11,7 @@ import { InlineRename } from "../system/inline-rename";
 import { useTheme } from "../system/theme";
 import { CheckBox, GhostIcon, LineFrame, TextAction } from "./line-frame";
 import { SuggestedMark } from "./suggested-mark";
-import { sharedSaid } from "@/lib/packing/row-words";
+import { withOthers } from "@floc/core/packing/packing-words";
 import { fonts, size, space } from "@/lib/theme";
 
 export type SharedLine = {
@@ -104,9 +104,7 @@ export function SharedRow({
   const open = !laneUserId;
   const yours = !!laneUserId && laneUserId === viewerId;
   const packed = laneClaim?.packed ?? false;
-  const said = sharedSaid({
-    others: line.claims.filter((claim) => claim.userId !== laneUserId).map((claim) => claim.name),
-  });
+  const said = withOthers(line.claims.filter((claim) => claim.userId !== laneUserId).map((claim) => claim.name));
   const joinable = !open && !mine;
 
   if (selecting) {

@@ -3,7 +3,7 @@ import { styleSentence } from "@floc/core/money/estimate/line-words";
 import { isFlying, type PlanLine } from "@floc/core/money/estimate/plan";
 import { awaitingWords, removedLabel } from "@floc/core/money/estimate/travel";
 import type { EstimateView } from "@floc/core/money/estimate/view";
-import { fitWords, wholeMoney, wholeRange } from "@floc/core/money/estimate/words";
+import { fitWords, WAITING_LINES_TITLE, wholeMoney, wholeRange } from "@floc/core/money/estimate/words";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { PenGlyph } from "@/components/system/glyphs";
@@ -85,7 +85,7 @@ function WaitingLines({ view, act }: { view: EstimateView; act: LineActions }) {
   if (waiting.length === 0) return null;
   return (
     <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: space.md, rowGap: space.sm }}>
-      <Small tone="ink-2">Not in your budget</Small>
+      <Small tone="ink-2">{WAITING_LINES_TITLE}</Small>
       {waiting.map((line) => (
         <View key={line.line} style={{ flexDirection: "row", alignItems: "center", gap: space.xs }}>
           <LineGlyph line={line.line} travel={view.plan.travel} color={c["ink-2"]} />

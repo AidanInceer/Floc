@@ -1,6 +1,6 @@
 "use server";
 
-import { isRefusal } from "@floc/core/errors/refusal";
+import { orRefusal } from "@floc/core/errors/refusal";
 
 import { requireUser } from "@/server/access";
 import { refresh } from "@/server/freshness";
@@ -20,15 +20,12 @@ export type WishOutcome = { error?: string; id?: number };
 
 async function asWishWrite(write: (viewerId: string) => Promise<number | void>, alsoInbox = false): Promise<WishOutcome> {
   const viewer = await requireUser("/lists/wish");
-  try {
+  return orRefusal(async () => {
     const id = await write(viewer.id);
     refresh({ kind: "wishLists" });
     if (alsoInbox) refresh({ kind: "inbox" });
     return typeof id === "number" ? { id } : {};
-  } catch (error) {
-    if (isRefusal(error)) return { error: error.message };
-    throw error;
-  }
+  });
 }
 
 export async function createWishListAction(inviteIds: string[]): Promise<WishOutcome> {

@@ -7,7 +7,7 @@ import { protectedProcedure, router } from "../trpc";
 const kitId = z.number().int().positive();
 const itemId = z.number().int().positive();
 
-const kitName = z
+export const kitName = z
   .string()
   .trim()
   .min(1, "Give the list a name.")

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { formatDate, formatShortRange } from "@floc/core/dates/dates";
 import { hopLabel, type Leg } from "@floc/core/trip/overview/legs";
 import type { TripDocument } from "@/server/documents/documents";
@@ -6,8 +8,16 @@ import { TravelModeIcon } from "@/components/system/icons/travel-mode";
 import { StopDay } from "./stop-day";
 import { nightsLabel } from "@floc/core/itinerary/stops";
 import { StopNo } from "./stop-parts";
-import { StopRibbon } from "./stop-ribbon";
 import { shortPlace } from "@floc/core/itinerary/names/place-name";
+
+function StopRibbon({ tripId, fileName }: { tripId: number; fileName: string }) {
+  const label = `Booked: ${fileName}`;
+  return (
+    <Link href={`/trip/${tripId}/files`} title={label} aria-label={label} className="group absolute -top-px right-4 px-1 pb-1">
+      <span className="block h-[30px] w-4 bg-pastel-green-ink transition-colors group-hover:bg-ink [clip-path:polygon(0_0,100%_0,100%_100%,50%_calc(100%-6px),0_100%)]" />
+    </Link>
+  );
+}
 
 export function Arrival({ leg }: { leg: Leg<TripDocument> }) {
   return (

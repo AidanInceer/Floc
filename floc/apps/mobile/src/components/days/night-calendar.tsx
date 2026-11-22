@@ -1,6 +1,6 @@
 import { WEEKDAY_LABELS, formatMonth, monthGrid, monthOf } from "@floc/core/dates/availability";
 import { formatDate, type IsoDate } from "@floc/core/dates/dates";
-import { shortPlace } from "@floc/core/itinerary/names/place-name";
+import { shortPlace, STOP_NOT_SET } from "@floc/core/itinerary/names/place-name";
 import { rangeMark, weekRuns, type WeekRun } from "@floc/core/itinerary/stay/stay-calendar";
 import { Pressable, Text, View } from "react-native";
 
@@ -104,7 +104,7 @@ function WeekBars({ runs }: { runs: WeekRun[] }) {
               }}
             >
               <Text numberOfLines={1} style={{ color: run.on ? c["pen-deep"] : set ? c["ink-2"] : c["highlight-ink"], fontFamily: run.on ? fonts.sansBold : fonts.sans, fontSize: 12 }}>
-                {run.place ? shortPlace(run.place) : "Not set"}
+                {run.place ? shortPlace(run.place) : STOP_NOT_SET}
               </Text>
             </View>
           </View>

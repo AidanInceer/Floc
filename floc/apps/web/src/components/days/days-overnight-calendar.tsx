@@ -5,7 +5,7 @@ import type { CalendarDay } from "@/components/days/days-calendar-shared";
 import { formatMonth, monthGrid, monthOf } from "@floc/core/dates/availability";
 import type { IsoDate } from "@floc/core/dates/dates";
 import { rangeMark, weekRuns, type WeekRun } from "@floc/core/itinerary/stay/stay-calendar";
-import { shortPlace } from "@floc/core/itinerary/names/place-name";
+import { shortPlace, STOP_NOT_SET } from "@floc/core/itinerary/names/place-name";
 
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -90,7 +90,7 @@ function WeekBars({ runs }: { runs: WeekRun[] }) {
                   : "border border-dashed border-highlight-edge bg-highlight leading-4 text-highlight-ink",
             )}
           >
-            {run.place ? shortPlace(run.place) : "Not set"}
+            {run.place ? shortPlace(run.place) : STOP_NOT_SET}
           </span>
         ) : (
           <span key={i} style={{ gridColumn: `span ${run.span}` }} />

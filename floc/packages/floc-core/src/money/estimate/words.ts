@@ -1,6 +1,14 @@
 import { currencySymbol, minorPerMajor, type Currency } from "../currency";
 import type { BudgetFit, LineProgress, Range } from "./budget";
 
+export type AmountField = "figure" | "budget";
+
+export const AMOUNT_FIELD_WORDS: Record<AmountField, string> = { figure: "Your figure", budget: "Line budget" };
+export const BUDGET_THIS_LINE = "Budget for this line";
+export const WAITING_LINES_TITLE = "Not in your budget";
+export const ESTIMATE_LOCK_TITLE = "Cost estimate and budget";
+export const ESTIMATE_LOCK_BODY = "See roughly what this trip will cost you, set your own budget and track it. Only you see it. A Floc Pro feature.";
+
 export function wholeMoney(minor: number, currency: Currency): string {
   const amount = Math.round(minor / minorPerMajor(currency)).toLocaleString("en-GB");
   const symbol = currencySymbol(currency);

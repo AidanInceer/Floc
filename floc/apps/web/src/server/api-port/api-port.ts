@@ -87,7 +87,7 @@ import {
   setTier,
   stepQuantity,
 } from "@/server/packing/packing-save";
-import { insertPackingKit, insertPackingKitItem, softDeletePackingKit } from "@/server/packing/packing-kits";
+import { insertPackingKit, insertPackingKitItem } from "@/server/packing/packing-kits";
 import { canUseFeature } from "@/server/billing/entitlements";
 import { readVibeTags } from "@floc/core/trip/vibe-tags";
 import { travelMapFor } from "@/server/itinerary/travel-map";
@@ -259,10 +259,6 @@ export const webPort: FlocPort = {
     }
     refresh({ kind: "packing", tripId });
     return true;
-  },
-
-  async deletePackingKit(viewerId, kitId) {
-    await softDeletePackingKit(kitId, viewerId);
   },
 
   async loadMyProfile(viewerId): Promise<MyProfile> {

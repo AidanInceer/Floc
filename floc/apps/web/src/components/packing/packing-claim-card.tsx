@@ -1,6 +1,7 @@
 "use client";
 
 import { PACK_CATEGORY_LABELS, packingStatusLabel, type PackCategory } from "@floc/core/packing/packing";
+import { withOthers } from "@floc/core/packing/packing-words";
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import { TEXT_CAPS } from "@floc/core/text/text";
 
@@ -35,7 +36,7 @@ function claimStatus(claimants: PackingClaimant[], personClaim: PackingClaimant 
   const others = claimants.filter((c) => c.userId !== personClaim.userId).map((c) => c.name);
   return {
     short: `${status}${others.length ? ` · +${others.length}` : ""}`,
-    full: `${status}${others.length ? ` · with ${others.join(", ")}` : ""}`,
+    full: `${status}${others.length ? ` · ${withOthers(others)}` : ""}`,
   };
 }
 

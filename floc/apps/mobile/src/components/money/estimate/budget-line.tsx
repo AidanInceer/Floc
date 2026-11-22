@@ -4,7 +4,7 @@ import type { EstimateLine } from "@floc/core/money/estimate/lines";
 import type { PlanLine } from "@floc/core/money/estimate/plan";
 import { lineLabel, NOT_IN_BUDGET, removedLabel, TRAVEL_LABELS, TRAVEL_MODES, type TravelMode } from "@floc/core/money/estimate/travel";
 import type { EstimateView } from "@floc/core/money/estimate/view";
-import { progressWords, wholeMoney, wholeRange } from "@floc/core/money/estimate/words";
+import { AMOUNT_FIELD_WORDS, BUDGET_THIS_LINE, progressWords, wholeMoney, wholeRange, type AmountField } from "@floc/core/money/estimate/words";
 import { toMajorInput } from "@floc/core/money/money";
 import { useEffect, useRef, useState } from "react";
 import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
@@ -18,7 +18,6 @@ import { fonts, radius, size, space } from "@/lib/theme";
 import { Bar, Detail, LineGlyph, LineIcon, Small, Status } from "./budget-marks";
 import { useReveal } from "./budget-scroll";
 
-export type AmountField = "figure" | "budget";
 export type Report = (problem: string | null) => void;
 export type LineActions = {
   amount: (line: EstimateLine, field: AmountField, raw: string, report: Report) => void;
@@ -26,7 +25,6 @@ export type LineActions = {
   travel: (mode: TravelMode, report: Report) => void;
 };
 
-const FIELD_WORDS: Record<AmountField, string> = { figure: "Your figure", budget: "Line budget" };
 const MENU_ROW = { minHeight: 48, flexDirection: "row", alignItems: "center", gap: space.sm, paddingHorizontal: space.lg } as const;
 
 function useSaving() {
@@ -83,7 +81,7 @@ function TravelPicker({ travel, busy, onPick }: { travel: TravelMode; busy: bool
 
 function LineMenu({ label, open, onClose, onPick }: { label: string; open: boolean; onClose: () => void; onPick: (choice: AmountField | "remove") => void }) {
   const { c } = useTheme();
-  const items: [AmountField | "remove", string][] = [["figure", "Change figure"], ["budget", "Budget for this line"], ["remove", "Not needed on this trip"]];
+  const items: [AmountField | "remove", string][] = [["figure", "Change figure"], ["budget", BUDGET_THIS_LINE], ["remove", "Not needed on this trip"]];
   return (
     <Sheet open={open} onClose={onClose}>
       <View style={{ paddingHorizontal: space.lg, paddingBottom: space.sm }}><Body bold>{label}</Body></View>
@@ -115,7 +113,7 @@ function AmountInput({ field, currency, initial, state, onSave, onCancel }: {
   const reveal = useReveal();
   const [raw, setRaw] = useState(initial);
   const symbol = currencySymbol(currency);
-  const words = symbol ? FIELD_WORDS[field] : `${FIELD_WORDS[field]}, ${currency}`;
+  const words = symbol ? AMOUNT_FIELD_WORDS[field] : `${AMOUNT_FIELD_WORDS[field]}, ${currency}`;
 
   useEffect(() => {
     if (!state.focus) return;
@@ -135,7 +133,7 @@ function AmountInput({ field, currency, initial, state, onSave, onCancel }: {
         {symbol ? <Text style={{ color: c["ink-2"], fontFamily: fonts.type, fontSize: size.small }}>{symbol}</Text> : null}
         <TextInput
           ref={input}
-          accessibilityLabel={FIELD_WORDS[field]}
+          accessibilityLabel={AMOUNT_FIELD_WORDS[field]}
           value={raw}
           onChangeText={setRaw}
           onFocus={() => reveal(input.current)}

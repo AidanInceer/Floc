@@ -6,17 +6,32 @@ import {
 } from "@floc/core/packing/packing";
 import { suggestedNote } from "@floc/core/packing/packing-words";
 import { useState, type ReactNode } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View, type TextStyle } from "react-native";
 
 import { MoreGlyph } from "../system/glyphs";
 import { Sheet } from "../system/sheet";
 import { useTheme } from "../system/theme";
 import { Card, SectionTitle } from "../system/ui";
-import { FigureText } from "./figure-text";
 import { SuggestedNote } from "./suggested-mark";
 import { TextAction } from "./line-frame";
-import { groupCount } from "@/lib/packing/row-words";
+import { groupCount, splitFigures } from "@/lib/packing/row-words";
 import { fonts, size, space } from "@/lib/theme";
+
+function FigureText({ text, style }: { text: string; style: TextStyle }) {
+  return (
+    <Text style={style}>
+      {splitFigures(text).map((part, i) =>
+        part.figure ? (
+          <Text key={i} style={{ fontFamily: fonts.type, fontVariant: ["tabular-nums"] }}>
+            {part.text}
+          </Text>
+        ) : (
+          part.text
+        ),
+      )}
+    </Text>
+  );
+}
 
 export type SectionMenuItem = { label: string; danger: boolean; onPress: () => void };
 

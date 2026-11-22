@@ -1,14 +1,17 @@
 import "server-only";
 
+import { and, count, eq, gt, sql } from "drizzle-orm";
+
 import { readBoardingPass } from "@floc/core/documents/booking/boarding-pass";
 import { bookingCategory, storeBookingDetails, type BookingDetails } from "@floc/core/documents/booking/booking-details";
-import { INBOUND_FILES_PER_MAIL } from "@floc/core/documents/booking/booking-inbox";
+import { INBOUND_FILES_PER_MAIL, INBOUND_MAILS_PER_HOUR } from "@floc/core/documents/booking/booking-inbox";
 import { tripForBooking } from "@floc/core/documents/booking/booking-trip";
 import { readSchemaOrg } from "@floc/core/documents/booking/schema-org";
 import { cleanFileName, rejectUpload } from "@floc/core/documents/documents";
 import { today } from "@floc/core/dates/dates";
 
 import { db } from "@/db";
+import { inboundMail, user } from "@/db/schema";
 import { findTripAccess } from "@/server/access";
 import { emails, type OutboundEmail } from "@/server/auth/email";
 import { mailCap } from "@/server/auth/mail/mail-cap";
@@ -20,9 +23,42 @@ import { saveWaitingBooking } from "../bookings/booking-inbox";
 import { tripsToPlaceIn } from "../bookings/booking-inbox-rows";
 import { saveDocument } from "../document-save";
 import { bookingsAddressForReply, isBookingsAddress } from "./inbound-address";
-import { claimInboundMail, overInboundLimit, releaseInboundMail } from "./inbound-mail-rows";
-import { userIdForEmail } from "./inbound-sender";
 import type { ReceivedMail } from "./resend-received";
+
+const HOUR_MS = 60 * 60 * 1000;
+
+async function claimInboundMail(emailId: string): Promise<boolean> {
+  const rows = await db
+    .insert(inboundMail)
+    .values({ emailId })
+    .onConflictDoNothing()
+    .returning({ emailId: inboundMail.emailId })
+    .all();
+  return rows.length === 1;
+}
+
+async function releaseInboundMail(emailId: string): Promise<void> {
+  await db.delete(inboundMail).where(eq(inboundMail.emailId, emailId)).run();
+}
+
+async function overInboundLimit(emailId: string, userId: string, now = new Date()): Promise<boolean> {
+  await db.update(inboundMail).set({ userId }).where(eq(inboundMail.emailId, emailId)).run();
+  const row = await db
+    .select({ n: count() })
+    .from(inboundMail)
+    .where(and(eq(inboundMail.userId, userId), gt(inboundMail.createdAt, new Date(now.getTime() - HOUR_MS))))
+    .get();
+  return (row?.n ?? 0) > INBOUND_MAILS_PER_HOUR;
+}
+
+async function userIdForEmail(email: string): Promise<string | null> {
+  const row = await db
+    .select({ id: user.id })
+    .from(user)
+    .where(and(eq(sql`lower(${user.email})`, email.trim().toLowerCase()), eq(user.emailVerified, true)))
+    .get();
+  return row?.id ?? null;
+}
 
 export type InboundMail = { emailId: string; from: string; to: string[] };
 

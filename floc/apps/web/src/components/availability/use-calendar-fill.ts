@@ -1,8 +1,16 @@
 "use client";
 
+import { createAuthClient } from "better-auth/react";
 import { useEffect, useRef, useState } from "react";
 
-import { askGoogleForCalendar } from "@/components/availability/google-consent";
+import { GOOGLE_CALENDAR_CONSENT } from "@floc/core/dates/calendar-import";
+
+const client = createAuthClient();
+
+async function askGoogleForCalendar(callbackURL: string, errorCallbackURL: string): Promise<boolean> {
+  const { error } = await client.linkSocial({ ...GOOGLE_CALENDAR_CONSENT, callbackURL, errorCallbackURL });
+  return !error;
+}
 
 export type CalendarFillResult =
   | { status: "filled"; free: number; busy: number }

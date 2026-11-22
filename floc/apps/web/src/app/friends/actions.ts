@@ -22,7 +22,7 @@ import { groupIdeasFor, sendGroupIdeas, type GroupIdeas, type SentGroupIdeas } f
 import { savedTripIds } from "@/server/explore/explore-saves";
 import { listingRates, viewerCurrency } from "@/server/money/viewer-currency";
 import { refresh } from "@/server/freshness";
-import { isRefusal } from "@floc/core/errors/refusal";
+import { orRefusal } from "@floc/core/errors/refusal";
 
 export async function requestFriendById(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
@@ -95,14 +95,11 @@ type Outcome = { error?: string; id?: number };
 
 async function asGroupWrite(write: (viewerId: string) => Promise<number | void>): Promise<Outcome> {
   const viewer = await requireUser();
-  try {
+  return orRefusal(async () => {
     const id = await write(viewer.id);
     refresh({ kind: "friendGroups" });
     return typeof id === "number" ? { id } : {};
-  } catch (error) {
-    if (isRefusal(error)) return { error: error.message };
-    throw error;
-  }
+  });
 }
 
 export async function createGroupAction(input: GroupInput): Promise<Outcome> {
@@ -135,13 +132,10 @@ export async function groupIdeasAction(groupId: number): Promise<GroupIdeasFound
 
 export async function sendGroupIdeasAction(groupId: number): Promise<{ sent?: SentGroupIdeas; error?: string }> {
   const viewer = await requireUser();
-  try {
+  return orRefusal(async () => {
     const sent = await sendGroupIdeas(viewer.id, groupId);
     refresh({ kind: "wishLists" });
     refresh({ kind: "inbox" });
     return { sent };
-  } catch (error) {
-    if (isRefusal(error)) return { error: error.message };
-    throw error;
-  }
+  });
 }

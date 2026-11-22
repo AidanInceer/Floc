@@ -2,6 +2,7 @@ import type { AvatarIcon } from "../people/avatar-icon";
 
 export const IDEA_SORTS = ["votes", "newest"] as const;
 export type IdeaSort = (typeof IDEA_SORTS)[number];
+export const IDEA_SORT_LABELS: Record<IdeaSort, string> = { votes: "Most votes", newest: "Newest" };
 
 export type IdeaRow = {
   id: number;

@@ -1,5 +1,6 @@
 import { formatMoney } from "@floc/core/money/money";
 import type { SettleRow } from "@floc/core/money/group-settle";
+import { settleSides, SETTLE_OTHERS_TITLE, SETTLE_OWE_TITLE, SETTLE_OWED_TITLE } from "@floc/core/money/settle-words";
 import { whoTone } from "@floc/core/people/who";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -57,21 +58,19 @@ export function BalanceCard({ rows, viewerId, nameOf, busy, onSettle, nudgeFor }
       </Card>
     );
   }
-  const owe = rows.filter((r) => r.payer === viewerId);
-  const owed = rows.filter((r) => r.payee === viewerId);
-  const others = rows.filter((r) => r.payer !== viewerId && r.payee !== viewerId);
+  const { owe, owed, others } = settleSides(rows, viewerId);
   const key = (r: SettleRow) => `${r.payer}-${r.payee}`;
   return (
     <Card style={{ padding: 0, gap: 0, overflow: "hidden" }}>
-      <Part first title="You owe" empty="Nothing. You're square.">
+      <Part first title={SETTLE_OWE_TITLE}empty="Nothing. You're square.">
         {owe.map((r) => <PayRow key={key(r)} row={r} paying nameOf={nameOf} busy={busy} onSettle={onSettle} />)}
       </Part>
-      <Part title="You are owed" empty="Nothing to chase.">
+      <Part title={SETTLE_OWED_TITLE}empty="Nothing to chase.">
         {owed.map((r) => <PayRow key={key(r)} row={r} paying={false} nameOf={nameOf} busy={busy} onSettle={onSettle} nudgeFor={nudgeFor} />)}
       </Part>
       {others.length > 0 ? (
         <View style={{ backgroundColor: c["sheet-2"], borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.rule, paddingHorizontal: space.lg, paddingVertical: space.md, gap: space.sm }}>
-          <Text accessibilityRole="header" style={{ color: c["ink-2"], fontFamily: fonts.sansBold, fontSize: size.small }}>Between the others</Text>
+          <Text accessibilityRole="header" style={{ color: c["ink-2"], fontFamily: fonts.sansBold, fontSize: size.small }}>{SETTLE_OTHERS_TITLE}</Text>
           {others.map((r) => (
             <View key={key(r)} style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
               <Text numberOfLines={1} style={{ flex: 1, color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.small }}>

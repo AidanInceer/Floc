@@ -2,29 +2,53 @@
 
 import { useState } from "react";
 import { thisMonth, type IsoMonth } from "@floc/core/dates/availability";
-import { formatDateRange, nightsBetween } from "@floc/core/dates/dates";
+import { formatDateRange, nightsBetween, type IsoDate } from "@floc/core/dates/dates";
 import { countWord } from "@floc/core/text/count-word";
 import { pickRange, type DateRange } from "@floc/core/trip/start/pick-range";
 import { startDots, startSteps, type StartStep } from "@floc/core/trip/start/start-steps";
 
 import { createTrip } from "@/app/trips/actions";
 import { startTripFromPreset } from "@/app/explore/actions";
+import { StartCalendar } from "@/components/explore/copy/start-calendar";
 import { SubmitButton } from "@/components/system/client-ui";
 import { GroupIcon } from "@/components/system/icons/account";
 import { NavGlyph } from "@/components/system/icons/nav";
 import { PinIcon } from "@/components/system/icons/onboarding";
 import { Button } from "@/components/system/ui";
+import { RangeCalendar } from "../range-calendar";
 import { StepFoot } from "../step-dots";
 import { StepHead } from "../step-head";
 import { StepModal } from "../step-modal";
 import { StartAsk } from "./start-ask";
-import { StartDates } from "./start-dates";
 import { StartName } from "./start-name";
 import { StartPlaces } from "./start-places";
 import { StartWho, type StartPerson } from "./start-who";
 
 export type StartListing = { id: string; title: string; nights: number; stops: string[] };
 export type StartSeed = { name?: string; along?: string[] };
+
+function StartDates({ nights, month, start, end, onMonth, onPick, onNone }: {
+  nights: number | null;
+  month: IsoMonth;
+  start: IsoDate | null;
+  end: IsoDate | null;
+  onMonth: (month: IsoMonth) => void;
+  onPick: (date: IsoDate) => void;
+  onNone: () => void;
+}) {
+  return (
+    <div className="grid gap-2">
+      {nights !== null ? (
+        <StartCalendar month={month} onMonth={onMonth} start={start} nights={nights} onPick={onPick} />
+      ) : (
+        <RangeCalendar month={month} onMonth={onMonth} start={start} end={end} onPick={onPick} />
+      )}
+      <Button type="button" variant="ghost" className="justify-self-center" onClick={onNone}>
+        No dates yet
+      </Button>
+    </div>
+  );
+}
 
 function whenText(range: DateRange): string {
   if (!range.start) return "Not decided yet";
