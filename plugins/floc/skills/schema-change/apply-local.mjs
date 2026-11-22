@@ -2,8 +2,11 @@ import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { basename, join, resolve } from "node:path";
 
+import { localDbFile } from "../../../../floc/apps/web/scripts/local-db.mjs";
+
 const web = resolve(import.meta.dirname, "../../../../floc/apps/web");
-const database = join(web, "local.db");
+const envFile = join(web, ".env");
+const database = localDbFile(web, existsSync(envFile) ? readFileSync(envFile, "utf8") : "");
 const file = process.argv[2];
 
 if (!file || !existsSync(file)) {
@@ -35,4 +38,4 @@ for (const sql of statements) {
     throw error;
   }
 }
-console.log(`${basename(file)}: ${applied} of ${statements.length} statements applied to local.db`);
+console.log(`${basename(file)}: ${applied} of ${statements.length} statements applied to ${database}`);
