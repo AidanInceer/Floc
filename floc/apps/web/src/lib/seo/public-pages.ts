@@ -15,14 +15,14 @@ const STATIC_PUBLIC_PAGES: PublicLink[] = [
   ...LEGAL_LINKS.map(({ href, label }) => ({ path: href, label })),
 ];
 
+const AUTH_PATHS = ["/login", "/signup"];
+
 const EXPLORE_PAGES: PublicLink[] = PRESET_TRIPS.map((trip) => ({ path: `/explore/${trip.id}`, label: trip.title }));
 
 export const PRIVATE_PREFIXES = [
   "/trip",
   "/trips",
   "/invite",
-  "/login",
-  "/signup",
   "/forgot-password",
   "/reset-password",
   "/settings",
@@ -36,7 +36,7 @@ export const PRIVATE_PREFIXES = [
 ] as const;
 
 export function indexablePaths(): string[] {
-  return [...STATIC_PUBLIC_PAGES, ...EXPLORE_PAGES].map((page) => page.path);
+  return [...STATIC_PUBLIC_PAGES.map((page) => page.path), ...AUTH_PATHS, ...EXPLORE_PAGES.map((page) => page.path)];
 }
 
 export function sitemapSections(): SitemapSection[] {
@@ -77,4 +77,9 @@ export function publicMetadata({ path, title, description, card }: PublicPage): 
     twitter: { card: "summary_large_image", title: shared, description, images: [image.url] },
     robots: { index: true, follow: true },
   };
+}
+
+export function authMetadata(page: PublicPage, redirect: string | undefined): Metadata {
+  if (redirect === undefined) return publicMetadata(page);
+  return { title: page.title, robots: { index: false, follow: false } };
 }

@@ -2,15 +2,15 @@ import { describe, expect, it } from "vitest";
 
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 
-import { PRIVATE_PREFIXES, indexablePaths, publicMetadata, robotsTxt, sitemapSections, sitemapXml } from "./public-pages";
+import { PRIVATE_PREFIXES, authMetadata, indexablePaths, publicMetadata, robotsTxt, sitemapSections, sitemapXml } from "./public-pages";
 
 const BASE = "https://floc.example";
 
 describe("indexablePaths", () => {
   const paths = indexablePaths();
 
-  it("lists the landing page, Explore and the legal pages", () => {
-    for (const path of ["/", "/explore", "/terms", "/privacy", "/cookies", "/contact", "/legal"]) {
+  it("lists the landing page, Explore, sign in, sign up and the legal pages", () => {
+    for (const path of ["/", "/explore", "/login", "/signup", "/terms", "/privacy", "/cookies", "/contact", "/legal"]) {
       expect(paths).toContain(path);
     }
   });
@@ -45,8 +45,13 @@ describe("sitemapXml", () => {
 describe("robotsTxt", () => {
   const text = robotsTxt(BASE);
 
-  it("disallows trip, invite, auth, account and settings routes", () => {
-    for (const path of ["/trip", "/trips", "/invite", "/login", "/signup", "/settings", "/profile", "/api"]) {
+  it("lets crawlers reach sign in and sign up", () => {
+    expect(text).not.toContain("Disallow: /login");
+    expect(text).not.toContain("Disallow: /signup");
+  });
+
+  it("disallows trip, invite, password, account and settings routes", () => {
+    for (const path of ["/trip", "/trips", "/invite", "/forgot-password", "/reset-password", "/settings", "/profile", "/api"]) {
       expect(text).toContain(`Disallow: ${path}`);
     }
   });
@@ -85,12 +90,39 @@ describe("publicMetadata", () => {
   });
 });
 
+describe("authMetadata", () => {
+  const page = { path: "/signup", title: "Sign up", description: "Start planning." };
+
+  it("indexes the plain page at its canonical url", () => {
+    const meta = authMetadata(page, undefined);
+    expect(meta.robots).toEqual({ index: true, follow: true });
+    expect(meta.alternates?.canonical).toBe("/signup");
+  });
+
+  it("keeps a page that carries an invite redirect out of search", () => {
+    const meta = authMetadata(page, "/invite/secret-token");
+    expect(meta.robots).toEqual({ index: false, follow: false });
+    expect(meta.alternates).toBeUndefined();
+    expect(meta.openGraph).toBeUndefined();
+  });
+
+  it("keeps a page with an empty redirect out of search", () => {
+    expect(authMetadata(page, "").robots).toEqual({ index: false, follow: false });
+  });
+});
+
 describe("sitemapSections", () => {
   const sections = sitemapSections();
   const links = sections.flatMap((section) => section.links);
 
-  it("lists the same pages as sitemap.xml, apart from itself", () => {
-    const onPage = new Set([...links.map((link) => link.path), "/sitemap"]);
+  it("leaves sign in and sign up off the visible list", () => {
+    const paths = links.map((link) => link.path);
+    expect(paths).not.toContain("/login");
+    expect(paths).not.toContain("/signup");
+  });
+
+  it("lists the same pages as sitemap.xml, apart from itself, sign in and sign up", () => {
+    const onPage = new Set([...links.map((link) => link.path), "/sitemap", "/login", "/signup"]);
     expect(onPage).toEqual(new Set(indexablePaths()));
   });
 
