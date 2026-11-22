@@ -106,9 +106,12 @@ export function groupMedia<T extends { placeId: number | null }>(items: T[], sto
   return [...groups, whole];
 }
 
+export function mediaShape(width: number | null, height: number | null): number {
+  return width && height ? width / height : 1.5;
+}
+
 export function mediaRatio(width: number | null, height: number | null): number {
-  if (!width || !height) return 1.5;
-  return Math.min(2.2, Math.max(0.6, width / height));
+  return Math.min(2.2, Math.max(0.6, mediaShape(width, height)));
 }
 
 export function videoClock(seconds: number | null): string | null {
