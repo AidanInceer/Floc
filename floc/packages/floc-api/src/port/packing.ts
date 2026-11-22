@@ -41,6 +41,8 @@ export type PackingBoard = {
   kits: PackingKit[];
   canAutoFill: boolean;
   ideas: PackingIdea[];
+  ideaCount: number;
+  ideasShown: boolean;
   plan: PackingPlanSummary;
 };
 
@@ -89,6 +91,12 @@ export type PackingPort = {
   takePackingIdea(viewerId: string, tripId: number, label: string): Promise<void>;
 
   removeSuggestedPacking(viewerId: string, tripId: number): Promise<void>;
+
+  removeUnpackedPacking(viewerId: string, tripId: number): Promise<void>;
+
+  unpackMyBag(viewerId: string, tripId: number): Promise<void>;
+
+  setPackingIdeasShown(viewerId: string, tripId: number, shown: boolean): Promise<void>;
 
   applyPackingKit(viewerId: string, tripId: number, kitId: number): Promise<void>;
 

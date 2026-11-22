@@ -1,5 +1,4 @@
 import { updateCurrency, updatePacking } from "@/app/profile/actions";
-import { ToggleRow } from "@/components/auth/account-ui";
 import { SegmentTrack } from "@/components/system/segment-track";
 import { Select, cx, trackRadioClass } from "@/components/system/ui";
 import { CURRENCIES, currencyOptionLabel, type Currency } from "@floc/core/money/currency";
@@ -12,11 +11,9 @@ const stackOnPhone = "max-sm:grid-cols-1";
 
 export function TripsFields({
   packTier,
-  packAutoGenerate,
   homeCurrency,
 }: {
   packTier: PackTier;
-  packAutoGenerate: boolean;
   homeCurrency: Currency;
 }) {
   return (
@@ -35,12 +32,6 @@ export function TripsFields({
             ))}
           </SegmentTrack>
         </div>
-        <ToggleRow
-          name="packAutoGenerate"
-          label="Fill my bag in for me"
-          hint="When I open a trip’s packing."
-          defaultChecked={packAutoGenerate}
-        />
       </AutoSaveForm>
 
       <AutoSaveForm action={updateCurrency}>

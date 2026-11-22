@@ -17,12 +17,15 @@ import {
   listPackingLines,
   listPersonalPackingLines,
 } from "@/server/packing/packing";
-import { getPackTier } from "@/server/packing/packing";
+import { getPackSettings, getPackTier } from "@/server/packing/packing";
 import {
   addPackingLine,
   fillMyPackingList,
   removeSuggestedPackingLines,
+  removeUnpackedPackingLines,
+  setPackingIdeasShown,
   takePackingIdea,
+  unpackMyPackingBag,
   removePackingLines,
   resetPackingList,
   addPersonalPackingLine,
@@ -332,6 +335,94 @@ describe("taking ideas and taking them back (#469)", () => {
     signIn(world.outsider);
     await expectNotFound(() => takePackingIdea(world.ours.id, "toothbrush"));
     await expectNotFound(() => removeSuggestedPackingLines(world.ours.id));
+  });
+});
+
+describe("your bag's menu", () => {
+  const bag = () => listPersonalPackingLines(world.ours.id, world.admin);
+  const labels = async () => (await bag()).map((l) => l.label).sort();
+  const shownAt = async () => (await getPackSettings(world.ours.id, world.admin)).ideasShownAt;
+
+  async function mixedBag() {
+    await givePro(world.admin);
+    await insertPersonalPackingLine(world.ours.id, world.admin, "Linen shirt", "clothes");
+    await takePackingIdea(world.ours.id, "toothbrush");
+    await takePackingIdea(world.ours.id, "passport");
+    const passport = (await bag()).find((l) => l.label === "passport")!;
+    await setPersonalPackingPacked(world.ours.id, passport.id, true);
+    await setPackingIdeasShown(world.ours.id, true);
+  }
+
+  beforeEach(() => signIn(world.admin));
+
+  it("empties the bag, packed or not, turns suggestions off and soft-deletes (rule 8)", async () => {
+    await mixedBag();
+
+    await resetPackingList(world.ours.id, true);
+
+    expect(await bag()).toEqual([]);
+    expect(await shownAt()).toBeNull();
+    expect(await listPackingLines(world.ours.id)).toHaveLength(1);
+    const rows = await db.select().from(schema.packingLine).where(eq(schema.packingLine.ownerId, world.admin)).all();
+    expect(rows).toHaveLength(3);
+  });
+
+  it("removes everything not packed, yours or suggested, and turns suggestions off", async () => {
+    await mixedBag();
+
+    await removeUnpackedPackingLines(world.ours.id);
+
+    expect(await labels()).toEqual(["passport"]);
+    expect(await shownAt()).toBeNull();
+  });
+
+  it("removes unpacked suggestions only, and turns suggestions off", async () => {
+    await mixedBag();
+
+    await removeSuggestedPackingLines(world.ours.id);
+
+    expect(await labels()).toEqual(["Linen shirt", "passport"]);
+    expect(await shownAt()).toBeNull();
+  });
+
+  it("unpacks everything, keeps every line and leaves suggestions alone", async () => {
+    await mixedBag();
+
+    await unpackMyPackingBag(world.ours.id);
+
+    const lines = await bag();
+    expect(lines).toHaveLength(3);
+    expect(lines.every((l) => l.packedAt === null)).toBe(true);
+    expect(await shownAt()).toBeInstanceOf(Date);
+  });
+
+  it("leaves your suggestions on when the shared list is cleared", async () => {
+    await mixedBag();
+
+    await resetPackingList(world.ours.id, false);
+
+    expect(await shownAt()).toBeInstanceOf(Date);
+  });
+
+  it("refuses to turn suggestions on without Pro", async () => {
+    await expect(setPackingIdeasShown(world.ours.id, true)).rejects.toThrow("Floc Pro");
+    expect(await shownAt()).toBeNull();
+  });
+
+  it("still turns suggestions off after Pro lapses", async () => {
+    await mixedBag();
+    await db.delete(schema.subscription);
+
+    await setPackingIdeasShown(world.ours.id, false);
+
+    expect(await shownAt()).toBeNull();
+  });
+
+  it("refuses a trip you're not on (rule 5)", async () => {
+    signIn(world.outsider);
+    await expectNotFound(() => setPackingIdeasShown(world.ours.id, false));
+    await expectNotFound(() => removeUnpackedPackingLines(world.ours.id));
+    await expectNotFound(() => unpackMyPackingBag(world.ours.id));
   });
 });
 

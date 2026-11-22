@@ -1,5 +1,4 @@
 import {
-  packedLineCount,
   type PackingLineGroup,
   type PackTier,
 } from "@floc/core/packing/packing";
@@ -17,6 +16,7 @@ import { ListsButton } from "@/components/packing/lists-button";
 import { PackingSection } from "@/components/packing/packing-section";
 import { IdeaRow } from "@/components/packing/packing-idea-row";
 import { PackingSetup, PackingUpgrade } from "@/components/packing/packing-setup";
+import { useBagMenu } from "@/components/packing/use-bag-menu";
 import { Sheet } from "@/components/system/sheet";
 import { Failed, Loading } from "@/components/system/ui";
 import { AddItem } from "@/components/packing/add-item";
@@ -84,7 +84,6 @@ export default function Packing() {
 
   const [picking, setPicking] = useState<Picking>(null);
   const [kitsOpen, setKitsOpen] = useState(false);
-  const [ideasHidden, setIdeasHidden] = useState(false);
 
   const again = () =>
     queryClient.invalidateQueries({ queryKey: trpc.packing.list.queryKey({ tripId }) });
@@ -103,7 +102,6 @@ export default function Packing() {
   const setTier = useMutation({ ...trpc.packing.setTier.mutationOptions(), onSuccess: again });
   const fill = useMutation({ ...trpc.packing.fillMyBag.mutationOptions(), onSuccess: again });
   const takeIdea = useMutation({ ...trpc.packing.takeIdea.mutationOptions(), onSuccess: again });
-  const removeSuggested = useMutation({ ...trpc.packing.removeSuggested.mutationOptions(), onSuccess: again });
   const applyKit = useMutation({
     ...trpc.packing.applyKit.mutationOptions(),
     onSuccess: () => {
@@ -126,18 +124,13 @@ export default function Packing() {
     ...trpc.packing.reset.mutationOptions(),
     onSuccess: closePicking,
   });
+  const bagItems = useBagMenu(tripId, board.data, closePicking);
 
   if (board.isPending) return <Loading />;
   if (board.isError) return <Failed onRetry={() => board.refetch()} />;
 
   const viewerId = me.data?.id;
-  const sharedPacked = packedLineCount(board.data.shared);
-  const minePacked = board.data.mine.filter((line) => line.packed).length;
   const sharedGroups = sharedClaimGroups(board.data.shared, viewerId);
-  const unsuggest = {
-    count: board.data.mine.filter((line) => line.suggested && !line.packed).length,
-    onPress: () => removeSuggested.mutate({ tripId }),
-  };
 
   const toggle = (list: "shared" | "mine", lineId: number) =>
     setPicking((current) => {
@@ -151,15 +144,11 @@ export default function Packing() {
     setPicking(on ? { list, ids: new Set() } : null);
 
   const busyBulk = dropMany.isPending || empty.isPending;
-  const confirmClear = (mine: boolean) =>
-    Alert.alert(
-      mine ? "Clear your whole bag?" : "Clear the shared list for everyone?",
-      mine ? "The shared list stays." : "Everyone's shared items will be removed.",
-      [
-        { text: "Keep it", style: "cancel" },
-        { text: "Clear list", style: "destructive", onPress: () => empty.mutate({ tripId, mine }) },
-      ],
-    );
+  const confirmClearShared = () =>
+    Alert.alert("Clear the shared list for everyone?", "Everyone's shared items will be removed.", [
+      { text: "Keep it", style: "cancel" },
+      { text: "Clear list", style: "destructive", onPress: () => empty.mutate({ tripId, mine: false }) },
+    ]);
 
   const confirmRemoveShared = (line: SharedLine) => {
     const remove = () => drop.mutate({ tripId, lineId: line.id });
@@ -178,16 +167,12 @@ export default function Packing() {
             why={whyLine(board.data.plan)}
             tier={board.data.tier}
             onTier={(tier: PackTier) => setTier.mutate({ tripId, tier })}
-            ideas={{ count: board.data.ideas.length, hidden: ideasHidden, onToggle: () => setIdeasHidden((h) => !h) }}
+            ideaCount={board.data.ideaCount}
             fill={{ busy: fill.isPending, onPress: () => fill.mutate({ tripId }) }}
-            removeSuggested={unsuggest}
             error={fill.isError ? fill.error.message : takeIdea.isError ? takeIdea.error.message : null}
           />
         ) : (
-          <PackingUpgrade
-            onUpgrade={() => router.push("/settings")}
-            removeSuggested={unsuggest}
-          />
+          <PackingUpgrade onUpgrade={() => router.push("/settings")} />
         )}
 
         <AddItem
@@ -202,15 +187,13 @@ export default function Packing() {
             <ListsButton count={board.data.kits.length} onPress={() => setKitsOpen(true)} />
           }
           isPacked={(line) => line.packed}
-          aside="Only you can see this list."
           lines={board.data.mine}
-          packed={minePacked}
           selecting={picking?.list === "mine"}
           onSelecting={(on) => startPicking("mine", on)}
-          onClear={() => confirmClear(true)}
+          menuItems={bagItems}
           emptyWord="Your bag is empty."
           ideas={{
-            list: ideasHidden ? [] : board.data.ideas,
+            list: board.data.ideas,
             render: (idea) => (
               <IdeaRow
                 key={idea.label}
@@ -239,10 +222,9 @@ export default function Packing() {
           heading="Shared packing"
           isPacked={lanePacked}
           lines={board.data.shared}
-          packed={sharedPacked}
           selecting={picking?.list === "shared"}
           onSelecting={(on) => startPicking("shared", on)}
-          onClear={() => confirmClear(false)}
+          menuItems={board.data.shared.length > 0 ? [{ label: "Clear list", danger: true, onPress: confirmClearShared }] : []}
           emptyWord="Nothing on the group’s list yet."
           groupsOverride={sharedGroups}
           renderLine={(line) => (

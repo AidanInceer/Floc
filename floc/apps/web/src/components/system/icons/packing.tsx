@@ -8,15 +8,6 @@ export function SparkIcon({ size = 13, className }: { size?: number; className?:
   );
 }
 
-export function LockIcon({ size = 13, className }: { size?: number; className?: string }) {
-  return (
-    <LineIcon size={size} className={className}>
-      <rect x="3" y="6.2" width="8" height="5.8" rx="1.4" />
-      <path d="M4.8 6.2V4.6a2.2 2.2 0 0 1 4.4 0v1.6" />
-    </LineIcon>
-  );
-}
-
 export function ListIcon({ size = 13, className }: { size?: number; className?: string }) {
   return (
     <LineIcon size={size} className={className}>
