@@ -5,7 +5,7 @@ import { ensureProfile } from "@/server/auth/profile";
 import { readEstimateChoices, readTravelProfile } from "@/server/money/estimate/estimate-store";
 import { givePro, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 
-import { saveBudget, saveOwnLine, saveTravelProfile, saveTripNights, saveTripStyle } from "./estimate-save";
+import { saveBudget, saveOwnLine, saveTravelProfile, saveTripNights, saveTripStyle, saveTripTravel } from "./estimate-save";
 
 let world: Scenario;
 
@@ -30,6 +30,8 @@ describe("estimate writes", () => {
     await expect(saveBudget(access, 50000)).rejects.toThrow("Floc Pro");
     await expect(saveOwnLine(access, "stay", { figure: 1000 })).rejects.toThrow("Floc Pro");
     await expect(saveTripStyle(access, { cabin: "first" })).rejects.toThrow("Floc Pro");
+    await expect(saveTripTravel(access, "train")).rejects.toThrow("Floc Pro");
+    await expect(saveOwnLine(access, "stay", { notNeeded: true })).rejects.toThrow("Floc Pro");
     await expect(saveTravelProfile(world.member, { homeAirport: "LHR" })).rejects.toThrow("Floc Pro");
   });
 
@@ -40,7 +42,7 @@ describe("estimate writes", () => {
     await saveOwnLine(access, "flights", { figure: 15000 });
     const mine = await readEstimateChoices(world.ours.id, world.admin);
     expect(mine.budget).toEqual({ amountMinor: 110000, currency: "GBP" });
-    expect(mine.own.flights).toEqual({ figure: 15000, budget: null, currency: "GBP" });
+    expect(mine.own.flights).toEqual({ figure: 15000, budget: null, currency: "GBP", notNeeded: false });
   });
 
   it("refuse an amount that is not a whole, sensible number of minor units (rule 1)", async () => {

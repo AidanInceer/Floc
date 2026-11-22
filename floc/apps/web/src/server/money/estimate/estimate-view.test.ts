@@ -6,7 +6,7 @@ import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { ensureProfile, updateProfileFields } from "@/server/auth/profile";
 import { clearRatesMemo } from "@/server/money/fx";
 import { writeExpense } from "@/server/money/money";
-import { setBudget, setOwnLine, setTravelProfile } from "@/server/money/estimate/estimate-store";
+import { setBudget, setOwnLine, setTravelProfile, setTripTravel } from "@/server/money/estimate/estimate-store";
 import { readEstimate } from "@/server/money/estimate/estimate-view";
 
 let world: Scenario;
@@ -79,6 +79,33 @@ describe("readEstimate", () => {
     expect(food.plan).toEqual([30000, 30000]);
     expect(view.plan.budget).toBe(110000);
     expect(view.plan.left).toBe(110000 - 9800);
+  });
+
+  it("takes a removed line out of the estimate and keeps its spending in Spent (ADR-057)", async () => {
+    await placeLisbon();
+    await setTravelProfile(world.admin, { homeAirport: "LHR" });
+    await writeExpense({
+      tripId: world.ours.id, createdBy: world.member,
+      fields: { dayId: null, paidBy: world.member, description: "Flat", amountMinor: 20000, currency: "GBP", splitType: "even", category: "lodging", notes: null },
+      splits: [{ userId: world.admin, owedAmountMinor: 9800 }, { userId: world.member, owedAmountMinor: 10200 }],
+    });
+    const before = await readEstimate(trip(), world.admin);
+    await setOwnLine(world.ours.id, world.admin, "stay", { notNeeded: true }, "GBP");
+    const after = await readEstimate(trip(), world.admin);
+    const stay = after.plan.lines.find((l) => l.line === "stay")!;
+    expect(stay).toMatchObject({ needed: false, plan: null, spent: 9800 });
+    expect(after.plan.spent).toBe(before.plan.spent);
+    expect(after.plan.total[1]).toBeLessThan(before.plan.total[1]);
+  });
+
+  it("reads how the member travels and asks for a figure in place of a flight guide", async () => {
+    await placeLisbon();
+    await setTravelProfile(world.admin, { homeAirport: "LHR" });
+    await setTripTravel(world.ours.id, world.admin, "train");
+    const view = await readEstimate(trip(), world.admin);
+    expect(view.plan.travel).toBe("train");
+    expect(view.plan.awaiting).toBe("train");
+    expect(view.plan.lines[0]).toMatchObject({ plan: null, missing: "travel" });
   });
 
   it("converts the guide and an older budget to a new home currency", async () => {

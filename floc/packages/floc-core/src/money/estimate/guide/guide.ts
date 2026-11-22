@@ -6,11 +6,12 @@ import {
   ACTIVITY_DAY, CABIN_FARE, FOOD_DAY, HOME_AIRPORTS, HUBS, PRICE_LEVEL, STAY_NIGHT, TRANSPORT_DAY, type Hub,
 } from "./price-guide";
 import type { TravelStyle } from "../style";
+import type { TravelMode } from "../travel";
 
 export type GuideStop = { countryCode: string | null; lat: number | null; lng: number | null; name: string | null; nights: number };
-export type GuideInput = { home: string | null; style: TravelStyle; nights: number; stops: GuideStop[] };
+export type GuideInput = { home: string | null; style: TravelStyle; nights: number; stops: GuideStop[]; travel?: TravelMode };
 
-export type Missing = "home" | "flight-guide" | "place" | "rate";
+export type Missing = "home" | "flight-guide" | "place" | "rate" | "travel";
 export type FlightRoute = { from: string; out: string; back: string };
 export type GuideLine = { line: EstimateLine; range: Range | null; missing?: Missing; route?: FlightRoute };
 export type Guide = { lines: GuideLine[] };
@@ -40,6 +41,7 @@ function priceLevel(stop: GuideStop): number {
 }
 
 function flights(input: GuideInput, stops: GuideStop[]): GuideLine {
+  if (input.travel && input.travel !== "flights") return { line: "flights", range: null, missing: "travel" };
   if (!input.home) return { line: "flights", range: null, missing: "home" };
   const home = input.home.toUpperCase();
   const airport = HOME_AIRPORTS.find((a) => a.code === home);

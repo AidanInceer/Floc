@@ -81,6 +81,9 @@
     "estimate.setStyle": {
       "mobile": "yes"
     },
+    "estimate.setTravel": {
+      "mobile": "yes"
+    },
     "estimate.settings": {
       "mobile": "yes"
     },

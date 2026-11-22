@@ -15,11 +15,11 @@ function Choice<T extends string>({ name, label, options, labels, value }: { nam
   );
 }
 
-export function StyleForm({ tripId, style }: { tripId: number; style: TravelStyle & { tripOnly: boolean } }) {
+export function StyleForm({ tripId, style, flying = true }: { tripId: number; style: TravelStyle & { tripOnly: boolean }; flying?: boolean }) {
   return (
     <div className="grid gap-4">
       <ActionForm action={saveStyleForm.bind(null, tripId)} className="grid gap-4" keepAnswers>
-        <Choice name="cabin" label="Cabin" options={CABINS} labels={CABIN_LABELS} value={style.cabin} />
+        {flying ? <Choice name="cabin" label="Cabin" options={CABINS} labels={CABIN_LABELS} value={style.cabin} /> : null}
         <Choice name="stay" label="Stay" options={STAY_STYLES} labels={STAY_LABELS} value={style.stay} />
         <Choice name="pace" label="Pace" options={PACES} labels={PACE_LABELS} value={style.pace} />
         <div className="flex items-center justify-between gap-3">

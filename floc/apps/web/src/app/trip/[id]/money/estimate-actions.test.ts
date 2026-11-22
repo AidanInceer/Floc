@@ -4,7 +4,7 @@ import { ensureProfile } from "@/server/auth/profile";
 import { readEstimateChoices, readTravelProfile } from "@/server/money/estimate/estimate-store";
 import { expectNotFound, givePro, migrateTestDb, resetDb, seedScenario, signIn, type Scenario } from "@/test/db";
 
-import { saveBudgetForm, saveHomeAirportForm, saveLineForm, saveNightsForm, saveStyleForm, saveTravelStyleForm, resetTripStyle } from "./estimate-actions";
+import { saveBudgetForm, saveHomeAirportForm, saveLineForm, saveNightsForm, saveStyleForm, saveTravelForm, saveTravelStyleForm, resetTripStyle } from "./estimate-actions";
 
 let world: Scenario;
 
@@ -40,6 +40,25 @@ describe("estimate actions", () => {
     expect((await readEstimateChoices(world.ours.id, world.admin)).own.stay).toMatchObject({ figure: 40000, budget: 45000 });
     await saveLineForm(world.ours.id, form({ line: "stay", figure: "", budget: "" }));
     expect((await readEstimateChoices(world.ours.id, world.admin)).own.stay).toBeUndefined();
+  });
+
+  it("change one field of a line without touching the other", async () => {
+    await saveLineForm(world.ours.id, form({ line: "stay", figure: "400", budget: "450" }));
+    await saveLineForm(world.ours.id, form({ line: "stay", figure: "380" }));
+    expect((await readEstimateChoices(world.ours.id, world.admin)).own.stay).toMatchObject({ figure: 38000, budget: 45000 });
+  });
+
+  it("take a line out of the budget and add it back", async () => {
+    await saveLineForm(world.ours.id, form({ line: "food", notNeeded: "true" }));
+    expect((await readEstimateChoices(world.ours.id, world.admin)).own.food?.notNeeded).toBe(true);
+    await saveLineForm(world.ours.id, form({ line: "food", notNeeded: "false" }));
+    expect((await readEstimateChoices(world.ours.id, world.admin)).own.food).toBeUndefined();
+  });
+
+  it("save how you get there, and refuse a way that does not exist", async () => {
+    expect(await saveTravelForm(world.ours.id, form({ travel: "ferry" }))).toEqual({});
+    expect((await readEstimateChoices(world.ours.id, world.admin)).travel).toBe("ferry");
+    expect(await saveTravelForm(world.ours.id, form({ travel: "rocket" }))).toEqual({ error: "Pick how you are getting there." });
   });
 
   it("refuse a line that is not one of the five", async () => {
