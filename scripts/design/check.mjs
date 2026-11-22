@@ -1,7 +1,9 @@
+import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { grown, newRules, shrunk } from "./baseline.mjs";
 import { findViolations } from "./rules.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -48,17 +50,31 @@ for (const [dir, pattern] of SCAN) {
 }
 
 const baseline = existsSync(BASELINE) ? JSON.parse(readFileSync(BASELINE, "utf8")) : null;
+const base = process.env.FLOC_CHECK_BASE ?? "origin/develop";
+
+function atBase(path) {
+  const shown = spawnSync("git", ["show", `${base}:${path}`], { cwd: ROOT, encoding: "utf8", windowsHide: true });
+  return shown.status === 0 ? shown.stdout : null;
+}
+
+const fresh = newRules(atBase("scripts/design/rules.mjs"), readFileSync(join(ROOT, "scripts/design/rules.mjs"), "utf8"));
 
 if (process.argv.includes("--write-baseline")) {
-  const next = {};
-  const known = new Set(Object.keys(baseline ?? {}).map((key) => key.split(" ")[0]));
-  for (const [key, n] of Object.entries(counts)) {
-    const allowed = baseline && known.has(key.split(" ")[0]) ? Math.min(n, baseline[key] ?? 0) : n;
-    if (allowed > 0) next[key] = allowed;
-  }
+  const next = shrunk(baseline, counts, fresh);
   writeFileSync(BASELINE, `${JSON.stringify(next, Object.keys(next).sort(), 2)}\n`);
-  console.log(`Design baseline: ${Object.values(next).reduce((a, b) => a + b, 0)} old findings kept. It only ever shrinks.`);
+  console.log(`Design baseline: ${Object.values(next).reduce((a, b) => a + b, 0)} old findings kept. It only shrinks, except a rule new since ${base} seeds its own.`);
   process.exit(0);
+}
+
+const baseBaseline = atBase("scripts/design/baseline.json");
+if (baseBaseline && baseline) {
+  const raised = grown(JSON.parse(baseBaseline), baseline, fresh);
+  if (raised.length) {
+    console.error(`scripts/design/baseline.json grew against ${base}:`);
+    for (const key of raised) console.error(`  ${key}`);
+    console.error("Fix the findings and take these entries back out. Only a rule new since the base may seed entries.");
+    process.exit(1);
+  }
 }
 
 const over = Object.keys(counts).filter((key) => counts[key] > (baseline?.[key] ?? 0));
