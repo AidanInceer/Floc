@@ -4,8 +4,7 @@ import type { FlocPort, MySettings } from "@floc/api/port";
 
 import { parseVibeTags, readVibeTags } from "@floc/core/trip/vibe-tags";
 import { listSignInMethods, unlinkSignIn } from "@/server/auth/sign-in-methods";
-import { refresh } from "@/server/freshness";
-import { ensureProfile, loadIdentity, updateProfileFields } from "@/server/auth/profile";
+import { ensureProfile, loadIdentity, saveFace, saveProfile, updateProfileFields } from "@/server/auth/profile";
 import { eraseAccount } from "@/server/auth/erase-account";
 import { finishWelcome, welcomeFor } from "@/server/auth/welcome/welcome";
 import { toggleBookingSite } from "@/server/auth/booking-sites";
@@ -67,50 +66,22 @@ export const settingsPort: SettingsPort = {
 
   toggleBookingSite: (viewerId, kind, site) => toggleBookingSite(viewerId, kind, site),
 
-  async updateIdentity(viewerId, input) {
-    await ensureProfile(viewerId);
-    await updateProfileFields(viewerId, { displayName: input.displayName });
-    refresh({ kind: "profile" });
-    refresh({ kind: "tripList" });
-  },
+  updateIdentity: (viewerId, input) => saveFace(viewerId, { displayName: input.displayName }),
 
-  async updateAvatarIcon(viewerId, icon) {
-    await ensureProfile(viewerId);
-    await updateProfileFields(viewerId, { avatarIcon: icon });
-    refresh({ kind: "profile" });
-    refresh({ kind: "tripList" });
-  },
+  updateAvatarIcon: (viewerId, icon) => saveFace(viewerId, { avatarIcon: icon }),
 
-  async updatePrivacy(viewerId, input) {
-    await ensureProfile(viewerId);
-    await updateProfileFields(viewerId, input);
-    refresh({ kind: "profile" });
-  },
+  updatePrivacy: (viewerId, input) => saveProfile(viewerId, input),
 
   async updateVibeTags(viewerId, tags) {
-    await ensureProfile(viewerId);
     const picked = parseVibeTags(tags);
-    await updateProfileFields(viewerId, { vibeTags: picked.length ? picked : null });
-    refresh({ kind: "profile" });
+    await saveProfile(viewerId, { vibeTags: picked.length ? picked : null });
   },
 
-  async updatePackingDefaults(viewerId, input) {
-    await ensureProfile(viewerId);
-    await updateProfileFields(viewerId, { packTier: input.tier });
-    refresh({ kind: "profile" });
-  },
+  updatePackingDefaults: (viewerId, input) => saveProfile(viewerId, { packTier: input.tier }),
 
-  async updateHomeCurrency(viewerId, currency) {
-    await ensureProfile(viewerId);
-    await updateProfileFields(viewerId, { homeCurrency: currency });
-    refresh({ kind: "profile" });
-  },
+  updateHomeCurrency: (viewerId, currency) => saveProfile(viewerId, { homeCurrency: currency }),
 
-  async updateReduceMotion(viewerId, reduceMotion) {
-    await ensureProfile(viewerId);
-    await updateProfileFields(viewerId, { reduceMotion });
-    refresh({ kind: "profile" });
-  },
+  updateReduceMotion: (viewerId, reduceMotion) => saveProfile(viewerId, { reduceMotion }),
 
   async updateNotifications(viewerId, input) {
     await ensureProfile(viewerId);
@@ -123,9 +94,7 @@ export const settingsPort: SettingsPort = {
   },
 
   async unlinkSignIn(viewerId, accountId) {
-    if (await unlinkSignIn(viewerId, accountId)) return false;
-    refresh({ kind: "accountSettings" });
-    return true;
+    return !(await unlinkSignIn(viewerId, accountId));
   },
 
   async deleteMyAccount(viewerId) {

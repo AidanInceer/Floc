@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { account } from "@/db/schema";
+import { refresh } from "@/server/freshness";
 
 export async function listSignInMethods(userId: string): Promise<{ id: string; providerId: string }[]> {
   return db
@@ -18,5 +19,6 @@ export async function unlinkSignIn(userId: string, accountId: string): Promise<s
   if (linked.length <= 1) return "You can't unlink your last sign-in method.";
   if (!linked.some((method) => method.id === accountId)) return "That sign-in method isn't linked.";
   await db.delete(account).where(eq(account.id, accountId));
+  refresh({ kind: "accountSettings" });
   return null;
 }

@@ -7,6 +7,7 @@ import { cache } from "react";
 import { db } from "@/db";
 import { user, userProfile } from "@/db/schema";
 import type { Currency, SignupChannel, UserProfile } from "@/db/schema";
+import { refresh, type Fact } from "@/server/freshness";
 
 export async function getProfile(
   userId: string,
@@ -42,6 +43,20 @@ export async function updateProfileFields(
     .set({ ...patch, lastModifiedAt: new Date() })
     .where(eq(userProfile.userId, userId));
 }
+
+type ProfilePatch = Parameters<typeof updateProfileFields>[1];
+
+async function saveAndRefresh(userId: string, patch: ProfilePatch, ...facts: Fact[]): Promise<void> {
+  await ensureProfile(userId);
+  await updateProfileFields(userId, patch);
+  refresh(...facts);
+}
+
+export const saveProfile = (userId: string, patch: ProfilePatch) =>
+  saveAndRefresh(userId, patch, { kind: "profile" });
+
+export const saveFace = (userId: string, patch: Pick<ProfilePatch, "displayName" | "avatarIcon">) =>
+  saveAndRefresh(userId, patch, { kind: "profile" }, { kind: "tripList" });
 
 export async function loadIdentity(
   userId: string,

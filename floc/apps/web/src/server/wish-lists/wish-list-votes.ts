@@ -6,6 +6,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { wishListItem, wishListItemVote } from "@/db/schema";
 import { touch } from "@/server/audit";
+import { refresh } from "@/server/freshness";
 
 import { seatOn } from "./wish-lists";
 
@@ -35,4 +36,5 @@ export async function toggleWishVote(userId: string, listId: number, itemId: num
         set: { deletedAt, ...touch() },
       });
   });
+  refresh({ kind: "wishLists" });
 }

@@ -8,6 +8,7 @@ import { and, count, eq, isNull, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { wishList, wishListItem, wishListMember } from "@/db/schema";
 import { touch } from "@/server/audit";
+import { refresh } from "@/server/freshness";
 import { assertRoom, LIMITS } from "@/server/limits";
 import { recordActivity, type Tx } from "@/server/notifications/activity";
 import { invitableIdsOf } from "@/server/social/groups";
@@ -96,7 +97,7 @@ export async function createWishList(userId: string, input: NewWishList): Promis
   assertRoom("wishListMembers", 1, invites.length);
   const items = dedupe((input.items ?? []).slice(0, LIMITS.wishListItems).map(checkedItem));
 
-  return db.transaction(async (tx) => {
+  const id = await db.transaction(async (tx) => {
     assertRoom("wishLists", await seatCount(tx, userId));
     const list = await tx.insert(wishList).values({ name: readWishListName(input.name) }).returning({ id: wishList.id }).get();
     await tx.insert(wishListMember).values({ listId: list.id, userId, status: "accepted" });
@@ -104,6 +105,8 @@ export async function createWishList(userId: string, input: NewWishList): Promis
     await sendInvites(tx, list.id, userId, invites);
     return list.id;
   });
+  refresh({ kind: "wishLists" }, { kind: "inbox" });
+  return id;
 }
 
 function dedupe(items: WishItemInput[]): WishItemInput[] {
@@ -119,7 +122,7 @@ function dedupe(items: WishItemInput[]): WishItemInput[] {
 
 export async function inviteToWishList(userId: string, listId: number, ids: string[]): Promise<number> {
   const wanted = await askable(userId, ids);
-  return db.transaction(async (tx) => {
+  const sent = await db.transaction(async (tx) => {
     await assertSeat(userId, listId, "accepted", tx);
     const seated = await tx.select({ userId: wishListMember.userId }).from(wishListMember).where(liveSeats(listId)).all();
     const already = new Set(seated.map((s) => s.userId));
@@ -129,6 +132,8 @@ export async function inviteToWishList(userId: string, listId: number, ids: stri
     if (fresh.length) await tx.update(wishList).set(touch()).where(eq(wishList.id, listId));
     return fresh.length;
   });
+  refresh({ kind: "wishLists" }, { kind: "inbox" });
+  return sent;
 }
 
 export async function respondToWishInvite(userId: string, listId: number, accept: boolean): Promise<void> {
@@ -150,6 +155,7 @@ export async function respondToWishInvite(userId: string, listId: number, accept
       );
     }
   });
+  refresh({ kind: "wishLists" }, { kind: "inbox" });
 }
 
 export async function leaveWishList(userId: string, listId: number): Promise<void> {
@@ -165,15 +171,17 @@ export async function leaveWishList(userId: string, listId: number): Promise<voi
       .where(and(liveSeats(listId), eq(wishListMember.status, "accepted"), ne(wishListMember.userId, userId)));
     if (n === 0) await tx.update(wishList).set({ deletedAt: new Date(), ...touch() }).where(eq(wishList.id, listId));
   });
+  refresh({ kind: "wishLists" });
 }
 
 export async function renameWishList(userId: string, listId: number, name: unknown): Promise<void> {
   await assertSeat(userId, listId, "accepted");
   await db.update(wishList).set({ name: readWishListName(name), ...touch() }).where(eq(wishList.id, listId));
+  refresh({ kind: "wishLists" });
 }
 
 export async function addWishItem(userId: string, listId: number, raw: unknown): Promise<number> {
-  return db.transaction(async (tx) => {
+  const id = await db.transaction(async (tx) => {
     await assertSeat(userId, listId, "accepted", tx);
     const item = checkedItem(raw);
     const live = and(eq(wishListItem.listId, listId), isNull(wishListItem.deletedAt));
@@ -188,6 +196,8 @@ export async function addWishItem(userId: string, listId: number, raw: unknown):
     await tx.update(wishList).set(touch()).where(eq(wishList.id, listId));
     return row.id;
   });
+  refresh({ kind: "wishLists" });
+  return id;
 }
 
 export async function removeWishItem(userId: string, listId: number, itemId: number): Promise<void> {
@@ -196,4 +206,5 @@ export async function removeWishItem(userId: string, listId: number, itemId: num
     .update(wishListItem)
     .set({ deletedAt: new Date(), ...touch() })
     .where(and(eq(wishListItem.id, itemId), eq(wishListItem.listId, listId), isNull(wishListItem.deletedAt)));
+  refresh({ kind: "wishLists" });
 }

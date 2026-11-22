@@ -12,15 +12,11 @@ import { unlinkSignIn } from "@/server/auth/sign-in-methods";
 import { eraseAccount } from "@/server/auth/erase-account";
 import { bookingSitesOf, toggleBookingSite } from "@/server/auth/booking-sites";
 import { setMarketingEmailConsent } from "@/server/consent/marketing-consent";
-import {
-  ensureProfile,
-  updateProfileFields,
-} from "@/server/auth/profile";
+import { ensureProfile, saveProfile, updateProfileFields } from "@/server/auth/profile";
 import { refresh } from "@/server/freshness";
 
 export async function updatePrivacy(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
-  await ensureProfile(viewer.id);
 
   const ring = (name: string): Visibility | null => {
     const value = String(formData.get(name) ?? "");
@@ -35,7 +31,7 @@ export async function updatePrivacy(formData: FormData): Promise<{ error?: strin
     return { error: "That isn't one of the visibility options." };
   }
 
-  await updateProfileFields(viewer.id, {
+  await saveProfile(viewer.id, {
     isPrivate: formData.get("isPrivate") === "on",
     visibilityVibeTags: vibeTags,
     visibilityTravelMap: travelMap,
@@ -44,18 +40,13 @@ export async function updatePrivacy(formData: FormData): Promise<{ error?: strin
     pastTripsShow: formData.get("pastTripsLatest") === "on" ? "latest" : "all",
     styleInGroupIdeas: formData.get("styleInGroupIdeas") === "on",
   });
-
-  refresh({ kind: "profile" });
   return {};
 }
 
 export async function unlinkAccount(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
   const refusal = await unlinkSignIn(viewer.id, String(formData.get("accountId") ?? ""));
-  if (refusal) return { error: refusal };
-
-  refresh({ kind: "accountSettings" });
-  return {};
+  return refusal ? { error: refusal } : {};
 }
 
 export async function updateNotifications(formData: FormData): Promise<void> {
@@ -91,10 +82,7 @@ export async function deleteAccount(): Promise<void> {
 export async function removeGoogleCalendar(): Promise<{ error?: string }> {
   const viewer = await requireUser();
   const refusal = await removeCalendarAccess(viewer.id);
-  if (refusal) return { error: refusal };
-
-  refresh({ kind: "accountSettings" });
-  return {};
+  return refusal ? { error: refusal } : {};
 }
 
 export async function toggleBookingSiteAction(kind: SiteKind, site: BookingSite): Promise<BookingSites> {

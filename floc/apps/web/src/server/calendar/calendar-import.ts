@@ -1,6 +1,7 @@
 import "server-only";
 
 import { auth, enabledProviders } from "@/server/auth/auth";
+import { refresh } from "@/server/freshness";
 import { calendarAccountOf, forgetCalendarScope } from "@/server/calendar/calendar-access";
 import { calendarAllDayOnly } from "@/server/calendar/calendar-options";
 import { listPrimaryEvents, revokeGoogleToken } from "@/server/calendar/google-calendar";
@@ -54,15 +55,18 @@ export async function fillFromCalendar(input: {
   const plan = planFill(range, await listMarkedDates(tripId, userId), new Set(busyDays(read.events, range, { allDayOnly: await calendarAllDayOnly(userId) })));
   await setAvailability(tripId, userId, plan.free, true);
   await setAvailability(tripId, userId, plan.busy, false);
+  refresh({ kind: "tripDates", tripId }, { kind: "tripOverview", tripId });
   return { status: "filled", free: plan.free.length, busy: plan.busy.length };
 }
 
 export async function removeCalendarAccess(userId: string): Promise<string | null> {
   const accountId = await calendarAccountOf(userId);
-  if (!accountId) return null;
-  const token = await accessTokenFor(userId, accountId);
-  if (token && !(await revokeGoogleToken(token))) return "Google didn't answer, so access is still on. Try again.";
-  await forgetCalendarScope(userId, accountId);
+  if (accountId) {
+    const token = await accessTokenFor(userId, accountId);
+    if (token && !(await revokeGoogleToken(token))) return "Google didn't answer, so access is still on. Try again.";
+    await forgetCalendarScope(userId, accountId);
+  }
+  refresh({ kind: "accountSettings" });
   return null;
 }
 

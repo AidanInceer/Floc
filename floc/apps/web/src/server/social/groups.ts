@@ -8,6 +8,7 @@ import { friendGroup, friendGroupMember, trip, tripMembership, user } from "@/db
 import { Refusal } from "@floc/core/errors/refusal";
 import { GROUP_NAME_CAP } from "@floc/core/people/group-ticks";
 import { touch } from "@/server/audit";
+import { refresh } from "@/server/freshness";
 import { assertRoom, LIMITS } from "@/server/limits";
 import { acceptedFriendIdsOf, peopleByIds, type Person } from "@/server/social/friends";
 
@@ -80,7 +81,7 @@ async function assertOwned(ownerId: string, groupId: number, reader: Pick<typeof
 
 export async function createGroup(ownerId: string, input: GroupInput): Promise<number> {
   const { name, memberIds } = await checked(ownerId, input);
-  return db.transaction(async (tx) => {
+  const id = await db.transaction(async (tx) => {
     const [{ n }] = await tx
       .select({ n: count() })
       .from(friendGroup)
@@ -90,6 +91,8 @@ export async function createGroup(ownerId: string, input: GroupInput): Promise<n
     await tx.insert(friendGroupMember).values(memberIds.map((userId) => ({ groupId: group.id, userId })));
     return group.id;
   });
+  refresh({ kind: "friendGroups" });
+  return id;
 }
 
 export async function saveGroup(ownerId: string, groupId: number, input: GroupInput): Promise<void> {
@@ -116,6 +119,7 @@ export async function saveGroup(ownerId: string, groupId: number, input: GroupIn
         ),
       );
   });
+  refresh({ kind: "friendGroups" });
 }
 
 async function liveMemberIds(groupId: number, reader: Pick<typeof db, "select">): Promise<string[]> {
@@ -158,6 +162,7 @@ export async function setGroupMember(ownerId: string, groupId: number, userId: s
     }
     await tx.update(friendGroup).set(touch()).where(ownedGroup(ownerId, groupId));
   });
+  refresh({ kind: "friendGroups" });
 }
 
 export async function deleteGroup(ownerId: string, groupId: number): Promise<void> {
@@ -166,6 +171,7 @@ export async function deleteGroup(ownerId: string, groupId: number): Promise<voi
     .update(friendGroup)
     .set({ deletedAt: new Date(), ...touch() })
     .where(ownedGroup(ownerId, groupId));
+  refresh({ kind: "friendGroups" });
 }
 
 export type Group = { id: number; name: string; members: Person[] };

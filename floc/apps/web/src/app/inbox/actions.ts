@@ -3,7 +3,6 @@
 import { redirect } from "next/navigation";
 
 import { requireUser } from "@/server/access";
-import { refresh } from "@/server/freshness";
 import {
   markAllRead,
   markInboxSeen,
@@ -16,18 +15,15 @@ export async function openNotification(formData: FormData): Promise<void> {
   if (!Number.isInteger(id) || id <= 0) return;
 
   const href = await markOpened(viewer.id, id);
-  refresh({ kind: "inbox" });
   redirect(href ?? "/inbox");
 }
 
 export async function seeInbox(): Promise<void> {
   const viewer = await requireUser("/inbox");
   await markInboxSeen(viewer.id);
-  refresh({ kind: "bell" });
 }
 
 export async function readEverything(): Promise<void> {
   const viewer = await requireUser("/inbox");
   await markAllRead(viewer.id);
-  refresh({ kind: "inbox" });
 }

@@ -4,10 +4,10 @@ import type { FlocPort } from "@floc/api/port";
 import { listingFits } from "@floc/core/trip/explore/fit/listing-fit";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 
-import { refresh } from "@/server/freshness";
 import { loadTaste, saveFinder } from "@/server/explore/explore-finder";
 import { savedTripIds, setTripSaved } from "@/server/explore/explore-saves";
 import { friendsWhoSaved } from "@/server/explore/friend-saves";
+import { refresh } from "@/server/freshness";
 import { listingRates, viewerCurrency } from "@/server/money/viewer-currency";
 
 type ExplorePort = Pick<FlocPort, "loadExplore" | "setExploreFinder" | "listSavedTrips" | "setTripSaved" | "friendsWhoSaved">;
@@ -26,10 +26,7 @@ export const explorePort: ExplorePort = {
 
   listSavedTrips: (viewerId) => savedTripIds(viewerId),
 
-  async setTripSaved(viewerId, presetId, saved) {
-    await setTripSaved(viewerId, presetId, saved);
-    refresh({ kind: "savedTrips" });
-  },
+  setTripSaved: (viewerId, presetId, saved) => setTripSaved(viewerId, presetId, saved),
 
   friendsWhoSaved: (viewerId) => friendsWhoSaved(viewerId),
 };

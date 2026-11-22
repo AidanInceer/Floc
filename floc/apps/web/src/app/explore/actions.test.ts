@@ -45,4 +45,11 @@ describe("copying a listing from a wish list (#623)", () => {
     const invites = await db.select({ to: schema.tripInvite.toUserId }).from(schema.tripInvite).all();
     expect(invites.map((i) => i.to)).toEqual([world.admin]);
   });
+
+  it("goes back to Explore and makes no trip for a listing that is gone", async () => {
+    const form = new FormData();
+    form.set("presetId", "no-such-listing");
+    await expect(startTripFromPreset(form)).rejects.toThrow(`${REDIRECT}:/explore`);
+    expect(await db.select().from(schema.trip).all()).toHaveLength(2);
+  });
 });

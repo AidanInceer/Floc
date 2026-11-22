@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { availability } from "@/db/schema";
 import { assertRoom, bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
+import { refresh } from "@/server/freshness";
 
 export type AvailabilityRow = {
   userId: string;
@@ -74,20 +75,22 @@ export async function setPreferredDays(
   dates: string[],
   preferred: boolean,
 ): Promise<void> {
-  if (preferred) return markDates(tripId, userId, dates, { available: true, preferred: true });
   const wanted = [...new Set(dates)];
-  if (wanted.length === 0) return;
-  await db
-    .update(availability)
-    .set({ preferred: false, ...touch() })
-    .where(
-      and(
-        eq(availability.tripId, tripId),
-        eq(availability.userId, userId),
-        inArray(availability.date, wanted),
-        isNull(availability.deletedAt),
-      ),
-    );
+  if (preferred) await markDates(tripId, userId, wanted, { available: true, preferred: true });
+  else if (wanted.length > 0) {
+    await db
+      .update(availability)
+      .set({ preferred: false, ...touch() })
+      .where(
+        and(
+          eq(availability.tripId, tripId),
+          eq(availability.userId, userId),
+          inArray(availability.date, wanted),
+          isNull(availability.deletedAt),
+        ),
+      );
+  }
+  refresh({ kind: "tripDates", tripId }, { kind: "tripOverview", tripId });
 }
 
 export async function clearAvailabilityFor(

@@ -7,6 +7,7 @@ import { day, dayEvent, place, trip, tripMembership, userCountryMark } from "@/d
 import { readCountryCode } from "@floc/core/people/countries";
 import { hasEnded } from "@floc/core/dates/dates";
 import { mergeMarks, strongest, type MapState, type TravelMap } from "@floc/core/itinerary/travel-map";
+import { refresh } from "@/server/freshness";
 import { bounded, LIMITS } from "@/server/limits";
 import type { CountryMarkState } from "@/db/schema";
 
@@ -161,7 +162,7 @@ export async function setManualMark(
     });
 }
 
-export async function clearManualMark(
+async function clearManualMark(
   userId: string,
   countryCode: string,
 ): Promise<void> {
@@ -175,11 +176,30 @@ export async function clearManualMark(
     );
 }
 
-export async function derivedStateFor(
+async function derivedStateFor(
   userId: string,
   countryCode: string,
 ): Promise<MapState | undefined> {
   const derived = await countriesForTrips(await currentTrips(userId));
   return derived[countryCode];
+}
+
+export async function markCountry(
+  userId: string,
+  code: string,
+  next: "green" | "yellow" | "blank",
+): Promise<void> {
+  const countryCode = readCountryCode(code);
+  if (!countryCode) return;
+
+  if (next === "green" || next === "yellow") {
+    await setManualMark(userId, countryCode, next);
+  } else if (await derivedStateFor(userId, countryCode)) {
+    await setManualMark(userId, countryCode, "none");
+  } else {
+    await clearManualMark(userId, countryCode);
+  }
+
+  refresh({ kind: "profile" });
 }
 

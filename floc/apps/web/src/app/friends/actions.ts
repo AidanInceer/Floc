@@ -3,15 +3,8 @@
 import type { FriendSearch } from "@floc/api/port";
 
 import { requireUser } from "@/server/access";
-import {
-  acceptPendingRequest,
-  dropFriendship,
-  dropPendingRequest,
-  findUserById,
-  friendshipBetween,
-  openPendingRequest,
-} from "@/server/social/friends";
-import { mayAskToBeFriends } from "@/server/social/find-friends";
+import { acceptPendingRequest, cancelFriendRequest, declineFriendRequest, dropFriendship } from "@/server/social/friends";
+import { requestFriend } from "@/server/social/find-friends";
 import { requestByCode } from "@/server/social/friend-code";
 import { searchFriends } from "@/server/social/friend-search";
 import type { ListingRates } from "@floc/core/trip/explore/listing-price";
@@ -27,18 +20,8 @@ import { orRefusal } from "@floc/core/errors/refusal";
 export async function requestFriendById(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
   const targetId = String(formData.get("targetId") ?? "");
-  if (!targetId || targetId === viewer.id) return {};
+  if (!(await requestFriend(viewer.id, targetId))) return {};
 
-  if (!(await mayAskToBeFriends(viewer.id, targetId))) return {};
-
-  const target = await findUserById(targetId);
-  if (!target) return {};
-
-  if (await friendshipBetween(viewer.id, target.id)) return {};
-
-  await openPendingRequest(viewer.id, target.id);
-
-  refresh({ kind: "friendship", otherId: target.id });
   const viaId = String(formData.get("viaId") ?? "");
   if (viaId) refresh({ kind: "friendship", otherId: viaId });
   return {};
@@ -51,8 +34,7 @@ export async function findFriends(query: string): Promise<FriendSearch> {
 
 export async function requestFriendByCode(formData: FormData): Promise<void> {
   const viewer = await requireUser();
-  const found = await requestByCode(viewer.id, String(formData.get("code") ?? ""));
-  if (found) refresh({ kind: "friendship", otherId: found.id });
+  await requestByCode(viewer.id, String(formData.get("code") ?? ""));
 }
 
 export async function acceptFriend(formData: FormData): Promise<void> {
@@ -60,26 +42,20 @@ export async function acceptFriend(formData: FormData): Promise<void> {
   const requesterId = String(formData.get("requesterId") ?? "");
 
   await acceptPendingRequest(requesterId, viewer.id);
-
-  refresh({ kind: "friendship", otherId: requesterId });
 }
 
 export async function declineFriend(formData: FormData): Promise<void> {
   const viewer = await requireUser();
   const requesterId = String(formData.get("requesterId") ?? "");
 
-  await dropPendingRequest(requesterId, viewer.id);
-
-  refresh({ kind: "friendship", otherId: requesterId });
+  await declineFriendRequest(viewer.id, requesterId);
 }
 
 export async function cancelRequest(formData: FormData): Promise<void> {
   const viewer = await requireUser();
   const targetId = String(formData.get("targetId") ?? "");
 
-  await dropPendingRequest(viewer.id, targetId);
-
-  refresh({ kind: "friendship", otherId: targetId });
+  await cancelFriendRequest(viewer.id, targetId);
 }
 
 export async function removeFriend(formData: FormData): Promise<void> {
@@ -87,8 +63,6 @@ export async function removeFriend(formData: FormData): Promise<void> {
   const otherId = String(formData.get("otherId") ?? "");
 
   await dropFriendship(viewer.id, otherId);
-
-  refresh({ kind: "friendship", otherId });
 }
 
 type Outcome = { error?: string; id?: number };
@@ -97,7 +71,6 @@ async function asGroupWrite(write: (viewerId: string) => Promise<number | void>)
   const viewer = await requireUser();
   return orRefusal(async () => {
     const id = await write(viewer.id);
-    refresh({ kind: "friendGroups" });
     return typeof id === "number" ? { id } : {};
   });
 }
