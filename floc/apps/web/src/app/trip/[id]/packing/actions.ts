@@ -10,13 +10,16 @@ import {
   removeLine,
   removeLines,
   removeSuggested,
+  removeUnpacked,
   renameLine,
   resetList,
   setClaim,
+  setIdeasShown,
   setPacked,
   setTier,
   stepQuantity,
   takeIdea,
+  unpackBag,
 } from "@/server/packing/packing-save";
 import { editTrip } from "@/server/trip-edit";
 
@@ -84,6 +87,18 @@ export async function takePackingIdea(tripId: number, label: string) {
 
 export async function removeSuggestedPackingLines(tripId: number) {
   await removeSuggested(await requireTripAccess(tripId));
+}
+
+export async function removeUnpackedPackingLines(tripId: number) {
+  await removeUnpacked(await requireTripAccess(tripId));
+}
+
+export async function unpackMyPackingBag(tripId: number) {
+  await unpackBag(await requireTripAccess(tripId));
+}
+
+export async function setPackingIdeasShown(tripId: number, shown: boolean) {
+  await setIdeasShown(await requireTripAccess(tripId), shown);
 }
 
 export async function removePackingLines(tripId: number, formData: FormData) {

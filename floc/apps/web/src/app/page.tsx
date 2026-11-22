@@ -3,8 +3,10 @@ import type { Metadata } from "next";
 import { getSession } from "@/server/access";
 import { proPrices } from "@/server/billing/billing";
 import type { ProPrice } from "@/server/billing/billing";
-import { allFeaturesFree } from "@/lib/env";
+import { allFeaturesFree, appUrl } from "@/lib/env";
 import { publicMetadata } from "@/lib/seo/public-pages";
+import { SITE_DESCRIPTION } from "@/lib/seo/site-description";
+import { siteSchema } from "@/lib/seo/site-schema";
 import { formatMoney } from "@floc/core/money/money";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { ButtonLink, cx } from "@/components/system/ui";
@@ -28,7 +30,7 @@ import "@/components/landing/landing.css";
 const LANDING = publicMetadata({
   path: "/",
   title: "Floc — Trip planning, sorted.",
-  description: "Floc keeps a group trip in one place: the notes, the route, the days, and who owes who.",
+  description: SITE_DESCRIPTION,
 });
 
 export const metadata: Metadata = {
@@ -74,6 +76,7 @@ export default async function LandingPage() {
 
   return (
     <div>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: siteSchema(appUrl()) }} />
       <div className="-mt-15 bg-sheet pb-4 pt-21 sm:pt-25 max-[900px]:pb-8">
         <section className="hero-ticket mx-auto max-w-[60rem] px-4 text-center sm:px-6 sm:pt-16">
           <div className="hero-ticket-head">

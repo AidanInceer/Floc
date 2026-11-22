@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "aaff30ed-a0ee-4b9a-b4c9-e127490ec02d",
+  "id": "cb774485-e2a6-4d67-9efa-5f2f82d35a80",
   "prevId": "6c1cff4f-6582-40c1-89ed-2c732d10bd8e",
   "tables": {
     "account": {
@@ -4237,171 +4237,6 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "trip_media": {
-      "name": "trip_media",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": true
-        },
-        "trip_id": {
-          "name": "trip_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "place_id": {
-          "name": "place_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "uploaded_by": {
-          "name": "uploaded_by",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "kind": {
-          "name": "kind",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "storage_key": {
-          "name": "storage_key",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "mime_type": {
-          "name": "mime_type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "size_bytes": {
-          "name": "size_bytes",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "width": {
-          "name": "width",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "height": {
-          "name": "height",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "duration_seconds": {
-          "name": "duration_seconds",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(unixepoch())"
-        },
-        "deleted_at": {
-          "name": "deleted_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "last_modified_at": {
-          "name": "last_modified_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(unixepoch())"
-        }
-      },
-      "indexes": {
-        "trip_media_trip_idx": {
-          "name": "trip_media_trip_idx",
-          "columns": [
-            "trip_id"
-          ],
-          "isUnique": false
-        },
-        "trip_media_place_idx": {
-          "name": "trip_media_place_idx",
-          "columns": [
-            "place_id"
-          ],
-          "isUnique": false
-        }
-      },
-      "foreignKeys": {
-        "trip_media_trip_id_trip_id_fk": {
-          "name": "trip_media_trip_id_trip_id_fk",
-          "tableFrom": "trip_media",
-          "tableTo": "trip",
-          "columnsFrom": [
-            "trip_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "trip_media_place_id_place_id_fk": {
-          "name": "trip_media_place_id_place_id_fk",
-          "tableFrom": "trip_media",
-          "tableTo": "place",
-          "columnsFrom": [
-            "place_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
-        "trip_media_uploaded_by_user_id_fk": {
-          "name": "trip_media_uploaded_by_user_id_fk",
-          "tableFrom": "trip_media",
-          "tableTo": "user",
-          "columnsFrom": [
-            "uploaded_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
     "trip_membership": {
       "name": "trip_membership",
       "columns": {
@@ -4443,6 +4278,13 @@
         },
         "pack_generated_at": {
           "name": "pack_generated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "pack_ideas_shown_at": {
+          "name": "pack_ideas_shown_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,

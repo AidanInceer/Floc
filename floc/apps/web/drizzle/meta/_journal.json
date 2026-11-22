@@ -467,8 +467,15 @@
     {
       "idx": 66,
       "version": "6",
-      "when": 1795376120249,
-      "tag": "0066_curly_guardian",
+      "when": 1795376113259,
+      "tag": "0066_cloudy_bloodscream",
+      "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "6",
+      "when": 1795381278236,
+      "tag": "0067_abnormal_night_thrasher",
       "breakpoints": true
     }
   ]

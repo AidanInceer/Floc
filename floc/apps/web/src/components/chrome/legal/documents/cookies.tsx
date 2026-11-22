@@ -34,9 +34,10 @@ export async function CookiesDocument() {
 
       <LegalSection title="3. Third-party and advertising cookies">
         <p>
-          We do not use advertising cookies, and we do not permit any third party to set cookies through our website.
-          When you choose to sign in with Google, Google may set its own cookies on its own website, under its own
-          policy.
+          We do not use advertising cookies, and we do not set cookies for any third party. When you choose to sign in
+          with Google, Google may set its own cookies on its own website, under its own policy. The map on a
+          trip&rsquo;s Overview loads from Google Maps, and Google may read or set its own cookies when it loads,
+          under Google&rsquo;s own policy.
         </p>
       </LegalSection>
 

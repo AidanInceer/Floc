@@ -19,6 +19,7 @@ export const DATA_RECEIVERS = [
   { who: "Apple and Google", job: "Payment processing in the app, and delivery of notifications", receives: "Your purchase, and the content of a notification" },
   { who: "Expo", job: "Routing notifications to Apple and Google", receives: "Your device push address and the content of a notification" },
   { who: "Google", job: "Sign-in with Google, and Google Calendar where connected", receives: "The fact that you signed in to Floc. We receive your name, email address, Google profile picture and free or busy times" },
+  { who: "Google Maps", job: "The map on a trip's Overview, and travel times between its stops", receives: "Your IP address and browser details when the map loads, and the map positions of the trip's stops" },
   { who: "OpenStreetMap (Nominatim)", job: "Place search", receives: "The search terms entered, without your identity" },
   { who: "MET Norway", job: "Weather forecasts", receives: "The map position of a stop, without your identity" },
   { who: "Frankfurter", job: "Exchange rates", receives: "No personal data" },

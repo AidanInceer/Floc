@@ -1,7 +1,7 @@
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import "server-only";
 
-import { and, asc, eq, inArray, isNull, sql, type SQL } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, isNull, sql, type SQL } from "drizzle-orm";
 
 import { db } from "@/db";
 import { packingClaim, packingLine, tripMembership, user, userProfile } from "@/db/schema";
@@ -249,6 +249,32 @@ export async function softDeleteSuggestedLines(tripId: number, ownerId: string):
   );
 }
 
+export async function softDeleteUnpackedLines(tripId: number, ownerId: string): Promise<number> {
+  return dropLines(
+    ownerId,
+    and(
+      eq(packingLine.tripId, tripId),
+      eq(packingLine.ownerId, ownerId),
+      isNull(packingLine.packedAt),
+      isNull(packingLine.deletedAt),
+    ),
+  );
+}
+
+export async function unpackPersonalLines(tripId: number, ownerId: string): Promise<void> {
+  await db
+    .update(packingLine)
+    .set({ packedAt: null, ...touch() })
+    .where(
+      and(
+        eq(packingLine.tripId, tripId),
+        eq(packingLine.ownerId, ownerId),
+        isNotNull(packingLine.packedAt),
+        isNull(packingLine.deletedAt),
+      ),
+    );
+}
+
 export async function softDeletePackingLine(lineId: number, by: string): Promise<void> {
   await dropLines(by, and(eq(packingLine.id, lineId), isNull(packingLine.deletedAt)));
 }
@@ -337,16 +363,27 @@ export async function setClaimPacked(
 export async function getPackSettings(
   tripId: number,
   userId: string,
-): Promise<{ tier: PackTier | null; generatedAt: Date | null }> {
+): Promise<{ tier: PackTier | null; ideasShownAt: Date | null }> {
   const row = await db
     .select({
       packTier: tripMembership.packTier,
-      packGeneratedAt: tripMembership.packGeneratedAt,
+      packIdeasShownAt: tripMembership.packIdeasShownAt,
     })
     .from(tripMembership)
     .where(liveMembership(tripId, userId))
     .get();
-  return { tier: row?.packTier ?? null, generatedAt: row?.packGeneratedAt ?? null };
+  return { tier: row?.packTier ?? null, ideasShownAt: row?.packIdeasShownAt ?? null };
+}
+
+export async function setPackIdeasShown(
+  tripId: number,
+  userId: string,
+  shown: boolean,
+): Promise<void> {
+  await db
+    .update(tripMembership)
+    .set({ packIdeasShownAt: shown ? new Date() : null, ...touch() })
+    .where(liveMembership(tripId, userId));
 }
 
 export async function getPackTier(

@@ -1,14 +1,15 @@
 import { easeInOut, easeOut, flightAt, flightMs } from "@/lib/landing/globe/flight";
+import { globeTour, nextInHand } from "@/lib/landing/globe/tour";
 import { faced, facing, greatCircle, nearest, type LatLng } from "@floc/globe/sphere";
 
 import { frameLoop } from "@/components/globe/frame-loop";
-import { globeDrag } from "@/components/globe/globe-drag";
 import { globeTurn } from "@/components/globe/globe-turn";
 import { globePainter } from "@/components/globe/paint-globe";
 import type { Piece } from "@/components/explore/outline/land";
 import type { BorrowCard } from "@/lib/landing/borrow";
 
 import { drawPins } from "./globe-pins";
+import { spinDrag } from "./spin-drag";
 import { tripTint } from "./trip-tint";
 import { tripView } from "./trip-view";
 import type { WayDom } from "./way-in";
@@ -20,11 +21,12 @@ type Scene = {
   home: LatLng;
   places: LatLng[];
   onLight: (index: number) => void;
+  onSay: (index: number) => void;
   onSettle: (index: number) => void;
   onWay: (state: "open" | "shut") => void;
 };
 
-export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, onSettle, onWay }: Scene) {
+export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, onSay, onSettle, onWay }: Scene) {
   const paint = globePainter(canvas);
   if (!paint || places.length === 0) return null;
   const loop = frameLoop(step);
@@ -35,9 +37,11 @@ export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, on
   let [pieces, land, hand]: [readonly Piece[], number[][][], number[]] = [[], [], []];
   let [started, still] = [false, false];
   let [at, lit, held, takeoff] = [0, -1, -1, 0];
+  const tour = globeTour(() => show(nextInHand(hand, at)));
 
   function light(i: number) {
     if (i !== lit) onLight((lit = i));
+    if (!tour.touring()) onSay(i);
   }
 
   function glide(to: LatLng, ms: number, turns = 0, curve = easeInOut) {
@@ -53,27 +57,14 @@ export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, on
   }
 
   function settle(ms: number) {
+    tour.byPerson();
     const i = nearest(face.view(), places);
     show(i, ms);
     onSettle(i);
   }
 
-  const drag = globeDrag(canvas, {
-    radius: paint.radius,
-    view: face.view,
-    turnTo(view) {
-      if (!trip.running()) face.turnTo(view);
-    },
-    onGrab() {
-      face.halt();
-      wake();
-    },
-    onRelease(speed) {
-      if (trip.isOpen()) return;
-      face.flick(speed);
-      if (Math.abs(speed) < 0.04 || still) settle(700);
-    },
-  });
+  const grabbed = () => (tour.byPerson(), wake());
+  const drag = spinDrag(canvas, paint.radius, face, trip, { grabbed, settle, still: () => still });
   canvas.addEventListener("click", trip.skip);
 
   function flight(now: number, settled: boolean) {
@@ -99,6 +90,7 @@ export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, on
     if (f.route) paint!.plane(view, paths[at]!, f.route, f.landing);
     trip.draw(view);
     const flying = started && settled && !f.done;
+    tour.rest([started, !still, settled, !open, f.route === 1, !trip.moving(), !face.moving()].every(Boolean));
     const busy = [drag.held(), face.moving(), trip.moving(), pulsing >= 0 && !still, flying];
     return busy.some(Boolean);
   }
@@ -107,8 +99,16 @@ export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, on
   wake();
 
   return {
-    show: (i: number) => show(i),
-    spin: (i: number) => show(i, 2800, 2, easeOut),
+    show: (i: number) => (tour.byPerson(), show(i)),
+    spin: (i: number) => (tour.byPerson(), show(i, 2800, 2, easeOut)),
+    seen: tour.seen,
+    holdTour: tour.hold,
+    setStill(next: boolean) {
+      still = next;
+      if (next) tour.rest(false);
+      if (next && started) show(at);
+      wake();
+    },
     passing: () => faced(face.view()),
     setHand(next: number[]) {
       hand = next;
@@ -119,6 +119,7 @@ export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, on
       wake();
     },
     open(i: number, card: Pick<BorrowCard, "place" | "region" | "route">, dom: WayDom) {
+      tour.byPerson();
       if (i !== at) [at, takeoff] = [i, 0];
       light(i);
       trip.open(card.route, () => tripTint(pieces, card), dom, still);
@@ -144,6 +145,7 @@ export function spinGlobe(canvas: HTMLCanvasElement, { home, places, onLight, on
       wake();
     },
     stop() {
+      tour.stop();
       loop.stop();
       canvas.removeEventListener("click", trip.skip);
       drag.stop();

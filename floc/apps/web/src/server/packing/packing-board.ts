@@ -10,14 +10,14 @@ import {
   listPackingLines,
   listPersonalPackingLines,
 } from "@/server/packing/packing";
-import { autoFillPersonalBag, packingPlanFor } from "@/server/packing/packing-generator";
+import { packingPlanFor } from "@/server/packing/packing-generator";
 import { listPackingKits } from "@/server/packing/packing-kits";
 
 export async function readPackingBoard(
   trip: { id: number; startDate: string | null; endDate: string | null },
   viewerId: string,
 ) {
-  const [lines, claims, settings, profile, plan, kits, bag, packingPro] = await Promise.all([
+  const [lines, claims, settings, profile, plan, kits, mine, packingPro] = await Promise.all([
     listPackingLines(trip.id),
     listPackingClaims(trip.id),
     getPackSettings(trip.id, viewerId),
@@ -29,14 +29,20 @@ export async function readPackingBoard(
   ]);
   const tier = resolvePackTier(settings.tier, profile.packTier);
 
-  let mine = bag;
-  if (packingPro && profile.packAutoGenerate && settings.generatedAt === null) {
-    await autoFillPersonalBag({ tripId: trip.id, ownerId: viewerId, tier, plan });
-    mine = await listPersonalPackingLines(trip.id, viewerId);
-  }
-
-  const ideas = packingPro
+  const available = packingPro
     ? packingIdeas({ nights: plan.nights, climate: plan.climate, tier }, mine.map((l) => l.label))
     : [];
-  return { lines, claims, mine, kits, tier, plan, packingPro, ideas };
+  const ideasShown = packingPro && settings.ideasShownAt !== null;
+  return {
+    lines,
+    claims,
+    mine,
+    kits,
+    tier,
+    plan,
+    packingPro,
+    ideas: ideasShown ? available : [],
+    ideaCount: available.length,
+    ideasShown,
+  };
 }

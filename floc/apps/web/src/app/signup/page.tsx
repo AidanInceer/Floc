@@ -1,16 +1,26 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthForm } from "@/components/auth/auth-form";
 import { AuthShell, authLinkClass } from "@/components/auth/auth-shell";
 import { authSwitchHref } from "@/lib/auth/auth-switch";
+import { authMetadata } from "@/lib/seo/public-pages";
 import { inviteTokenIn, inviteTrip } from "@/app/invite/[token]/invite-access";
 import { getInviteGuest, requireGuest } from "@/server/access";
 import { enabledProviders } from "@/server/auth/auth";
 import { captureChannel } from "./actions";
 
-export const metadata = { title: "Sign up" };
+type Props = { searchParams: Promise<{ redirect?: string }> };
 
-export default async function SignupPage({ searchParams }: { searchParams: Promise<{ redirect?: string }> }) {
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const { redirect } = await searchParams;
+  return authMetadata(
+    { path: "/signup", title: "Sign up", description: "Create a free Floc account and start planning your next group trip." },
+    redirect,
+  );
+}
+
+export default async function SignupPage({ searchParams }: Props) {
   await requireGuest();
   const { redirect } = await searchParams;
   const token = inviteTokenIn(redirect);
