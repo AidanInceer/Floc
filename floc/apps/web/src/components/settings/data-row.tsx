@@ -6,6 +6,7 @@ import { SettingsRow } from "@/components/settings/settings-row";
 import { Button, panelTitleClass } from "@/components/system/ui";
 import type { ConsentChoice } from "@floc/core/consent/consent";
 import { dataSummary } from "@floc/core/people/settings-summary";
+import { SUGGESTION_SOURCES } from "@floc/core/trip/explore/fit/match-words";
 
 export function DataRow({
   id,
@@ -33,6 +34,10 @@ export function DataRow({
             defaultChecked={advertisingEmail}
           />
         </AutoSaveForm>
+        <section aria-labelledby="data-suggestions" className="flex flex-col gap-3 border-t border-rule pt-5">
+          <h3 id="data-suggestions" className={panelTitleClass}>What shapes your suggestions</h3>
+          <p className="text-sm text-ink-soft">{SUGGESTION_SOURCES}</p>
+        </section>
         <section aria-labelledby="data-requests" className="flex flex-col gap-3 border-t border-rule pt-5">
           <h3 id="data-requests" className={panelTitleClass}>Coming soon</h3>
           <div className="flex flex-wrap gap-2">

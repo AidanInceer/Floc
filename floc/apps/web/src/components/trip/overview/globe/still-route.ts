@@ -30,7 +30,7 @@ export function drawStillRoute(
   const ink = readInk(canvas);
   const width = tagWidth(ctx, ink);
   const fit = frameRoute(route, clear);
-  const near = land.fine.length > 0 && fineAt(fit, domeFit(paint.box().w, clear));
+  const near = land.fine.length > 0 && fineAt(fit, domeFit(clear));
   paint.base(fit.view, near ? land.fine : land.world, () => fit, tint);
 
   if (quiet && route.stops.length === 1) {

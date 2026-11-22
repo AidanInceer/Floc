@@ -4,7 +4,7 @@ import { wishListTitle, type WishItemKind, type WishMemberStatus } from "@floc/c
 import { and, count, desc, eq, inArray, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
-import { wishList, wishListItem, wishListMember } from "@/db/schema";
+import { wishList, wishListItem, wishListItemVote, wishListMember } from "@/db/schema";
 import { bounded, LIMITS } from "@/server/limits";
 import { peopleByIds, type Person } from "@/server/social/friends";
 import { invitableIdsOf } from "@/server/social/groups";
@@ -18,6 +18,8 @@ export type WishItem = {
   url: string | null;
   label: string | null;
   addedBy: Person | null;
+  votes: number;
+  voted: boolean;
 };
 
 export type WishListView = {
@@ -118,11 +120,25 @@ export async function listWishListsFor(userId: string): Promise<{ lists: WishLis
   return { lists, invites };
 }
 
+async function votersOn(listId: number): Promise<Map<number, string[]>> {
+  const rows = await db
+    .select({ itemId: wishListItemVote.itemId, userId: wishListItemVote.userId })
+    .from(wishListItemVote)
+    .innerJoin(wishListItem, eq(wishListItem.id, wishListItemVote.itemId))
+    .where(and(eq(wishListItem.listId, listId), isNull(wishListItem.deletedAt), isNull(wishListItemVote.deletedAt)))
+    .limit(LIMITS.wishListItems * LIMITS.wishListMembers)
+    .all();
+  const voters = new Map<number, string[]>();
+  for (const row of rows) voters.set(row.itemId, [...(voters.get(row.itemId) ?? []), row.userId]);
+  return voters;
+}
+
 export async function wishListFor(userId: string, listId: number): Promise<WishListView | null> {
   if ((await seatOn(userId, listId)) !== "accepted") return null;
-  const [list, seats, items] = await Promise.all([
+  const [list, seats, voters, items] = await Promise.all([
     db.select({ name: wishList.name }).from(wishList).where(eq(wishList.id, listId)).get(),
     seatsOn([listId]),
+    votersOn(listId),
     db
       .select()
       .from(wishListItem)
@@ -154,6 +170,8 @@ export async function wishListFor(userId: string, listId: number): Promise<WishL
       url: i.url,
       label: i.label,
       addedBy: i.addedBy ? (people.get(i.addedBy) ?? null) : null,
+      votes: voters.get(i.id)?.length ?? 0,
+      voted: voters.get(i.id)?.includes(userId) ?? false,
     })),
   };
 }

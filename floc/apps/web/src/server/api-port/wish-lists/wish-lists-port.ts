@@ -4,6 +4,7 @@ import type { FlocPort } from "@floc/api/port";
 
 import { refresh } from "@/server/freshness";
 import { startWishListWith } from "@/server/wish-lists/wish-list-start";
+import { toggleWishVote } from "@/server/wish-lists/wish-list-votes";
 import {
   addWishItem,
   createWishList,
@@ -27,6 +28,7 @@ type WishListsPort = Pick<
   | "renameWishList"
   | "addWishItem"
   | "removeWishItem"
+  | "toggleWishVote"
   | "wishListPeopleToAsk"
 >;
 
@@ -48,5 +50,6 @@ export const wishListsPort: WishListsPort = {
   renameWishList: (viewerId, listId, name) => changed(renameWishList(viewerId, listId, name)),
   addWishItem: (viewerId, listId, item) => changed(addWishItem(viewerId, listId, item)),
   removeWishItem: (viewerId, listId, itemId) => changed(removeWishItem(viewerId, listId, itemId)),
+  toggleWishVote: (viewerId, listId, itemId) => changed(toggleWishVote(viewerId, listId, itemId)),
   wishListPeopleToAsk: (viewerId, listId) => wishListPeopleToAsk(viewerId, listId),
 };
