@@ -1,0 +1,1 @@
+ALTER TABLE `trip_membership` ADD `pack_ideas_shown_at` integer;

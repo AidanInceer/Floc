@@ -85,16 +85,19 @@ export function SubmitButton({
   variant = "primary",
   className,
   disabled,
+  role,
 }: {
   children: ReactNode;
   variant?: "primary" | "secondary" | "ghost" | "danger";
   className?: string;
   disabled?: boolean;
+  role?: "menuitem";
 }) {
   const pending = useFormPending();
   return (
     <Button
       type="submit"
+      role={role}
       variant={variant}
       disabled={pending || disabled}
       aria-busy={pending || undefined}
@@ -237,6 +240,7 @@ export function ConfirmSubmit({
   className,
   label,
   alternative,
+  role,
 }: {
   children: ReactNode;
   message: string;
@@ -247,6 +251,7 @@ export function ConfirmSubmit({
   className?: string;
   label?: string;
   alternative?: { label: string; action: (formData: FormData) => Promise<void> };
+  role?: "menuitem";
 }) {
   const { pending } = useFormStatus();
   const ref = useRef<HTMLDialogElement>(null);
@@ -262,6 +267,7 @@ export function ConfirmSubmit({
     <>
       <Button
         type="button"
+        role={role}
         variant={variant}
         disabled={pending}
         aria-busy={pending || undefined}
