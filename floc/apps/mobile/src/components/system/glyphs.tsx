@@ -333,6 +333,28 @@ export function ReactionGlyph({
   );
 }
 
+export function PlayGlyph({ color, size = 9 }: { color: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 14 14" fill={color}>
+      <Path d="M4.4 2.8v8.4L11 7Z" stroke={color} strokeWidth={STROKE} strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function BinGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+      <Path
+        d="M2.6 3.8h8.8M5.4 3.8V2.4h3.2v1.4M3.6 3.8l.6 8h5.6l.6-8"
+        stroke={color}
+        strokeWidth={STROKE}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 export function UploadGlyph({ color }: { color: string }) {
   return (
     <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">

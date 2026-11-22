@@ -6,8 +6,10 @@ import { loadLand } from "@/components/explore/outline/use-land";
 import { watchRedraw } from "@/components/globe/watch-redraw";
 import type { LatLng } from "@floc/globe/sphere";
 import { watchFirstView } from "@/lib/landing/scene/scene-start";
+import { watchStill } from "@/lib/motion/still";
 
 import { spinGlobe } from "./spin-globe";
+import { watchSeen } from "./watch-seen";
 
 export type Globe = NonNullable<ReturnType<typeof spinGlobe>>;
 
@@ -17,6 +19,7 @@ export function useSpinGlobe(home: LatLng, places: LatLng[], events: RefObject<G
   const canvas = useRef<HTMLCanvasElement>(null);
   const globe = useRef<Globe | null>(null);
   const [lit, setLit] = useState(0);
+  const [said, setSaid] = useState(0);
 
   useEffect(() => {
     const node = canvas.current;
@@ -26,6 +29,7 @@ export function useSpinGlobe(home: LatLng, places: LatLng[], events: RefObject<G
         home,
         places,
         onLight: setLit,
+        onSay: setSaid,
         onSettle: (i) => events.current.onSettle?.(i),
         onWay: (state) => events.current.onWay?.(state),
       });
@@ -33,6 +37,8 @@ export function useSpinGlobe(home: LatLng, places: LatLng[], events: RefObject<G
     globe.current = g;
     let live = true;
     const stopWatch = watchFirstView(node, { onStart: ({ still }) => g.start(still) });
+    const stopStill = watchStill(g.setStill);
+    const stopSeen = watchSeen(node, g.seen);
     const near = new IntersectionObserver(
       ([entry]) => {
         if (!entry?.isIntersecting) return;
@@ -48,6 +54,8 @@ export function useSpinGlobe(home: LatLng, places: LatLng[], events: RefObject<G
     return () => {
       live = false;
       stopWatch();
+      stopStill();
+      stopSeen();
       near.disconnect();
       stopRedraw();
       g.stop();
@@ -55,5 +63,5 @@ export function useSpinGlobe(home: LatLng, places: LatLng[], events: RefObject<G
     };
   }, [home, places, events]);
 
-  return { canvas, lit, globe };
+  return { canvas, lit, said, globe };
 }

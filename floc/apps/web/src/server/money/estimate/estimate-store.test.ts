@@ -10,6 +10,7 @@ import {
   setTravelProfile,
   setTripNights,
   setTripStyle,
+  setTripTravel,
 } from "@/server/money/estimate/estimate-store";
 
 let world: Scenario;
@@ -25,6 +26,7 @@ describe("a member's own estimate choices", () => {
     expect(await readEstimateChoices(world.ours.id, world.admin)).toEqual({
       style: { cabin: null, stay: null, pace: null },
       nights: null,
+      travel: null,
       budget: null,
       own: {},
     });
@@ -37,7 +39,7 @@ describe("a member's own estimate choices", () => {
 
     const mine = await readEstimateChoices(world.ours.id, world.admin);
     expect(mine.budget).toEqual({ amountMinor: 110000, currency: "GBP" });
-    expect(mine.own.stay).toEqual({ figure: 40000, budget: 45000, currency: "GBP" });
+    expect(mine.own.stay).toEqual({ figure: 40000, budget: 45000, currency: "GBP", notNeeded: false });
 
     const theirs = await readEstimateChoices(world.ours.id, world.member);
     expect(theirs.budget).toBeNull();
@@ -51,6 +53,42 @@ describe("a member's own estimate choices", () => {
 
     await setOwnLine(world.ours.id, world.admin, "food", { figure: 25000 }, "GBP");
     expect((await readEstimateChoices(world.ours.id, world.admin)).own.food?.figure).toBe(25000);
+  });
+
+  it("keep how a member travels on this trip for that member only", async () => {
+    await setTripTravel(world.ours.id, world.admin, "train");
+    expect((await readEstimateChoices(world.ours.id, world.admin)).travel).toBe("train");
+    expect((await readEstimateChoices(world.ours.id, world.member)).travel).toBeNull();
+    await setTripTravel(world.ours.id, world.admin, "flights");
+    expect((await readEstimateChoices(world.ours.id, world.admin)).travel).toBeNull();
+  });
+
+  it("forget the old figure, and keep the line's budget, when the way of travelling changes", async () => {
+    await setOwnLine(world.ours.id, world.admin, "flights", { figure: 15000, budget: 20000 }, "GBP");
+    await setTripTravel(world.ours.id, world.admin, "ferry");
+    expect((await readEstimateChoices(world.ours.id, world.admin)).own.flights).toMatchObject({ figure: null, budget: 20000 });
+  });
+
+  it("keep a figure when the same way of travelling is picked again", async () => {
+    await setTripTravel(world.ours.id, world.admin, "train");
+    await setOwnLine(world.ours.id, world.admin, "flights", { figure: 8000 }, "GBP");
+    await setTripTravel(world.ours.id, world.admin, "train");
+    expect((await readEstimateChoices(world.ours.id, world.admin)).own.flights?.figure).toBe(8000);
+  });
+
+  it("keep a line out of the budget with its figure until it is added back", async () => {
+    await setOwnLine(world.ours.id, world.admin, "stay", { figure: 40000 }, "GBP");
+    await setOwnLine(world.ours.id, world.admin, "stay", { notNeeded: true }, "GBP");
+    expect((await readEstimateChoices(world.ours.id, world.admin)).own.stay).toMatchObject({ figure: 40000, notNeeded: true });
+    await setOwnLine(world.ours.id, world.admin, "stay", { notNeeded: false }, "GBP");
+    expect((await readEstimateChoices(world.ours.id, world.admin)).own.stay).toMatchObject({ figure: 40000, notNeeded: false });
+  });
+
+  it("remember a removed line that has no figure, and forget it once added back", async () => {
+    await setOwnLine(world.ours.id, world.admin, "food", { notNeeded: true }, "GBP");
+    expect((await readEstimateChoices(world.ours.id, world.admin)).own.food?.notNeeded).toBe(true);
+    await setOwnLine(world.ours.id, world.admin, "food", { notNeeded: false }, "GBP");
+    expect((await readEstimateChoices(world.ours.id, world.admin)).own.food).toBeUndefined();
   });
 
   it("clear the budget", async () => {

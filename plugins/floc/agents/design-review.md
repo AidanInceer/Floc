@@ -38,7 +38,7 @@ Open every screenshot. For each, check against the card, in this order:
 - **Dark** — a repaint only; nothing lost or lower in contrast.
 - **States** — empty, long content, failure. Name the ones you could not see.
 
-Use the runner’s current design-check result. Rerun only if relevant source changed. Record the review with `pnpm delivery review --evidence-file <json>`; include reviewer, findings, screenshots and unverified surfaces.
+Use the runner’s current design-check result. Rerun only if relevant source changed.
 
 ## Report
 

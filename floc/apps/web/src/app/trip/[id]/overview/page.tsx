@@ -28,6 +28,9 @@ import { IdeasPanel } from "@/components/trip/ideas/ideas-panel";
 import { IdeasRow } from "@/components/trip/ideas/ideas-row";
 import { OverviewCard } from "@/components/trip/overview/overview-card";
 import { OverviewFiles } from "@/components/trip/overview/overview-files";
+import { shortPlace } from "@floc/core/itinerary/names/place-name";
+import { PhotosCard } from "@/components/trip/overview/media/photos-card";
+import { readMediaView } from "@/server/media/media-view";
 import { BookingsCard } from "@/components/trip/overview/stops/bookings-card";
 import { OverviewStops } from "@/components/trip/overview/stops/overview-stops";
 import { OverviewMap } from "@/components/trip/overview/overview-map";
@@ -46,6 +49,16 @@ import { nudgeTargetsFor } from "@/server/trips/nudges";
 import { NUDGE_TASKS } from "@floc/core/trip/nudge/nudge";
 
 export const metadata = { title: "Overview" };
+
+async function photosCard(
+  on: boolean,
+  access: Parameters<typeof readMediaView>[0],
+  legs: { placeId: number; no: number; placeName: string }[],
+) {
+  if (!on) return null;
+  const stops = legs.map((leg) => ({ placeId: leg.placeId, no: leg.no, name: shortPlace(leg.placeName) }));
+  return <PhotosCard tripId={access.trip.id} view={await readMediaView(access, stops)} />;
+}
 
 export default async function OverviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -97,6 +110,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
   const { legs, wholeTrip } = tripLegs({ days: routeDays, modes, files: docs, tripEnd: trip.endDate });
   const route = overviewRoute({ legs, days: routeDays, hops: transport });
   const google = googleMapsConfig();
+  const photos = await photosCard(files, access, legs);
   const estimate = canUseFeature("money.estimate", viewer.id).then((pro) =>
     pro ? readEstimate(trip, viewer.id, { expenses: expenseRows, splits: splitRows, days: routeDays }) : null,
   );
@@ -189,6 +203,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
         legs={legs}
         events={new Map(dayRows.map((d) => [d.id, d.events]))}
         bookings={files && !hasEnded(trip.endDate) ? <BookingsCard tripId={tripId} legs={legs} wholeTrip={wholeTrip} /> : null}
+        photos={photos}
       />
 
       {welcome ? <WelcomeModal {...welcome} /> : null}

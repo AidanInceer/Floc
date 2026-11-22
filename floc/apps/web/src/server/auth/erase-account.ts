@@ -21,7 +21,9 @@ import {
 import { revokeGoogleGrant } from "@/server/calendar/calendar-import";
 import { archivedKeysOwnedBy } from "@/server/documents/archive/archive-rows";
 import { waitingKeysOwnedBy } from "@/server/documents/bookings/booking-inbox-rows";
-import { dropDocument } from "@/server/documents/document-store";
+import { documentsEnabled, dropDocument } from "@/server/documents/document-store";
+import { eraseMediaBy } from "@/server/media/media-rows";
+import { dropMediaFiles } from "@/server/media/media-store";
 import { handOverAndLeaveAllTrips } from "@/server/trips/roster";
 
 export const ERASED_NAME = "Deleted user";
@@ -115,4 +117,6 @@ export async function eraseAccount(userId: string): Promise<void> {
   });
 
   await Promise.all([...privateFiles.map((file) => file.storageKey), ...archivedKeys].map(dropDocument));
+  const mediaKeys = await eraseMediaBy(userId, now);
+  if (documentsEnabled()) await Promise.all(mediaKeys.map(dropMediaFiles));
 }

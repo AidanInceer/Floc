@@ -11,10 +11,12 @@ import { CURRENCIES } from "@floc/core/money/currency";
 import { TRIP_LENGTHS } from "@floc/core/dates/finding/trip-length";
 import { DEFAULT_CATEGORY, EXPENSE_CATEGORIES } from "@floc/core/money/expense-category";
 import { DOC_CATEGORIES } from "@floc/core/documents/documents";
+import { MEDIA_KINDS } from "@floc/core/media/media";
 import { PACK_CATEGORIES, PACK_ORIGINS, PACK_TIERS } from "@floc/core/packing/packing";
 import { PLANS } from "@floc/core/billing/plans";
 import { CABINS, PACES, STAY_STYLES } from "@floc/core/money/estimate/style";
 import { ESTIMATE_LINES } from "@floc/core/money/estimate/lines";
+import { TRAVEL_MODES } from "@floc/core/money/estimate/travel";
 import { AVATAR_ICONS } from "@floc/core/people/avatar-icon";
 import { PAGE_ICONS } from "@floc/core/notes/pages/page-icons";
 import { WISH_ITEM_KINDS, WISH_MEMBER_STATUSES } from "@floc/core/lists/wish-list";
@@ -384,6 +386,7 @@ export const tripMembership = sqliteTable(
     estStay: text("est_stay", { enum: STAY_STYLES }),
     estPace: text("est_pace", { enum: PACES }),
     estNights: integer("est_nights"),
+    estTravel: text("est_travel", { enum: TRAVEL_MODES }),
     budgetMinor: integer("budget_minor"),
     budgetCurrency: text("budget_currency", { enum: CURRENCIES }),
     ...audit,
@@ -552,6 +555,32 @@ export const document = sqliteTable(
     index("document_owner_idx").on(t.tripId, t.ownerId),
     index("document_day_idx").on(t.dayId),
     index("document_day_event_idx").on(t.dayEventId),
+  ],
+);
+
+export const tripMedia = sqliteTable(
+  "trip_media",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    tripId: integer("trip_id")
+      .notNull()
+      .references(() => trip.id, { onDelete: "cascade" }),
+    placeId: integer("place_id").references((): AnySQLiteColumn => place.id, { onDelete: "set null" }),
+    uploadedBy: text("uploaded_by")
+      .notNull()
+      .references(() => user.id),
+    kind: text("kind", { enum: MEDIA_KINDS }).notNull(),
+    storageKey: text("storage_key").notNull(),
+    mimeType: text("mime_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    width: integer("width"),
+    height: integer("height"),
+    durationSeconds: integer("duration_seconds"),
+    ...audit,
+  },
+  (t) => [
+    index("trip_media_trip_idx").on(t.tripId),
+    index("trip_media_place_idx").on(t.placeId),
   ],
 );
 
@@ -801,6 +830,7 @@ export const estimateOverride = sqliteTable(
       .references(() => user.id, { onDelete: "cascade" }),
     line: text("line", { enum: ESTIMATE_LINES }).notNull(),
     figureMinor: integer("figure_minor"),
+    notNeeded: integer("not_needed", { mode: "boolean" }).notNull().default(false),
     budgetMinor: integer("budget_minor"),
     currency: text("currency", { enum: CURRENCIES }).notNull(),
     ...audit,

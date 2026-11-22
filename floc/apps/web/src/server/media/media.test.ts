@@ -1,0 +1,154 @@
+import { mkdtemp, readdir } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+
+import { eq } from "drizzle-orm";
+import sharp from "sharp";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+
+import { db, schema } from "@/db";
+import { findTripAccess, type TripAccess } from "@/server/access";
+import { eraseAccount } from "@/server/auth/erase-account";
+import { givePro, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+
+import { mediaTokenHolder, mintMediaToken } from "./media-link";
+import { listMedia, liveMedia } from "./media-rows";
+import { removeMedia, saveMedia } from "./media-save";
+
+let world: Scenario;
+let access: TripAccess;
+const previousDir = process.env.FLOC_FILES_DIR;
+
+beforeAll(migrateTestDb);
+afterAll(() => { process.env.FLOC_FILES_DIR = previousDir; });
+
+beforeEach(async () => {
+  process.env.FLOC_FILES_DIR = await mkdtemp(path.join(tmpdir(), "floc-media-"));
+  await resetDb();
+  world = await seedScenario();
+  access = (await findTripAccess(world.ours.id, world.member))!;
+});
+
+const stream = (bytes: Uint8Array) => new Blob([new Uint8Array(bytes)]).stream();
+const stored = async () => {
+  const dir = path.join(process.env.FLOC_FILES_DIR!, "media");
+  return readdir(dir).catch(() => [] as string[]);
+};
+
+const jpegWithExif = () =>
+  sharp({ create: { width: 3000, height: 1500, channels: 3, background: { r: 40, g: 120, b: 200 } } })
+    .withExif({ IFD3: { GPSLatitudeRef: "N", GPSLatitude: "38/1 43/1 0/1" }, IFD0: { Make: "FlocCam" } })
+    .jpeg()
+    .toBuffer();
+
+const upload = async (over: Partial<Parameters<typeof saveMedia>[1]> = {}, who = access) =>
+  saveMedia(who, {
+    body: stream(await jpegWithExif()),
+    mimeType: "image/jpeg",
+    declaredBytes: null,
+    placeId: null,
+    ...over,
+  });
+
+const fakeMp4 = () => new Uint8Array([0, 0, 0, 24, ...Buffer.from("ftypisom"), ...new Uint8Array(64)]);
+
+describe("adding a photo", () => {
+  it("strips EXIF, keeps the shape and caps the long edge at 2048 px", async () => {
+    const result = await upload();
+    expect(result.error).toBeUndefined();
+    const [row] = await listMedia(world.ours.id);
+    expect([row.width, row.height]).toEqual([2048, 1024]);
+    const live = await liveMedia(world.ours.id, row.id);
+    const file = path.join(process.env.FLOC_FILES_DIR!, live!.storageKey);
+    const meta = await sharp(file).metadata();
+    expect(meta.exif).toBeUndefined();
+    expect(meta.width).toBe(2048);
+  });
+
+  it("refuses a file that only claims to be an image, and keeps nothing", async () => {
+    const result = await upload({ body: stream(new TextEncoder().encode("<script>alert(1)</script>")) });
+    expect(result.error).toBe("That file is not a photo or video Floc can take.");
+    expect(await listMedia(world.ours.id)).toEqual([]);
+    expect(await stored()).toEqual([]);
+  });
+
+  it("refuses a free photo past 10 MB while it streams, and keeps nothing", async () => {
+    const big = new Uint8Array(10 * 1024 ** 2 + 1);
+    big.set([0xff, 0xd8, 0xff]);
+    const result = await upload({ body: stream(big) });
+    expect(result.error).toBe("Photos are capped at 10 MB on Free.");
+    expect(await stored()).toEqual([]);
+  });
+
+  it("refuses a stop that is not on this trip", async () => {
+    const elsewhere = await db.insert(schema.place).values({ name: "Oslo" }).returning().get();
+    const result = await upload({ placeId: elsewhere.id });
+    expect(result.error).toBe("That stop is not on this trip.");
+  });
+
+  it("refuses an archived trip", async () => {
+    await db.update(schema.trip).set({ archivedAt: new Date() }).where(eq(schema.trip.id, world.ours.id));
+    const fresh = (await findTripAccess(world.ours.id, world.member))!;
+    expect((await upload({}, fresh)).error).toBe("This trip is archived.");
+  });
+});
+
+describe("adding a video", () => {
+  it("needs Pro", async () => {
+    const result = await upload({ body: stream(fakeMp4()), mimeType: "video/mp4" });
+    expect(result.error).toBe("Video needs Pro.");
+  });
+
+  it("stores a Pro member's video as it came", async () => {
+    await givePro(world.member);
+    const bytes = fakeMp4();
+    const result = await upload({ body: stream(bytes), mimeType: "video/mp4", durationSeconds: 12, width: 1920, height: 1080 });
+    expect(result.error).toBeUndefined();
+    const [row] = await listMedia(world.ours.id);
+    expect(row).toMatchObject({ kind: "video", sizeBytes: bytes.byteLength, durationSeconds: 12, width: 1920 });
+  });
+});
+
+describe("removing and leaving", () => {
+  it("lets the uploader delete their own picture and its files", async () => {
+    await upload();
+    const [row] = await listMedia(world.ours.id);
+    await removeMedia(access, row.id);
+    expect(await listMedia(world.ours.id)).toEqual([]);
+    expect(await stored()).toEqual([]);
+  });
+
+  it("refuses another member's picture", async () => {
+    await upload();
+    const [row] = await listMedia(world.ours.id);
+    const admin = (await findTripAccess(world.ours.id, world.admin))!;
+    await expect(removeMedia(admin, row.id)).rejects.toThrow("Only the person who added it can delete it.");
+    expect(await listMedia(world.ours.id)).toHaveLength(1);
+  });
+
+  it("deletes an erased person's media and files", async () => {
+    await upload();
+    await eraseAccount(world.member);
+    expect(await listMedia(world.ours.id)).toEqual([]);
+    expect(await stored()).toEqual([]);
+  });
+});
+
+describe("media links", () => {
+  it("names the person it was made for, for one trip and purpose", () => {
+    const token = mintMediaToken("view", world.member, world.ours.id);
+    expect(mediaTokenHolder(token, "view", world.ours.id)).toBe(world.member);
+    expect(mediaTokenHolder(token, "upload", world.ours.id)).toBeNull();
+    expect(mediaTokenHolder(token, "view", world.ours.id + 1)).toBeNull();
+  });
+
+  it("keeps a view link the same between polls, so pictures do not reload", () => {
+    const start = 1_800_000_000_000;
+    expect(mintMediaToken("view", world.member, world.ours.id, start + 1000)).toBe(mintMediaToken("view", world.member, world.ours.id, start + 31_000));
+  });
+
+  it("stops holding once it has run out", () => {
+    const token = mintMediaToken("upload", world.member, world.ours.id, 0);
+    expect(mediaTokenHolder(token, "upload", world.ours.id)).toBeNull();
+  });
+});

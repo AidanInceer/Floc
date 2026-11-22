@@ -4,13 +4,13 @@ import type { FlocPort } from "@floc/api/port";
 
 import { scoped } from "@/server/api-port/api-port-scope";
 import { canUseFeature } from "@/server/billing/entitlements";
-import { saveBudget, saveOwnLine, saveTravelProfile, saveTripNights, saveTripStyle } from "@/server/money/estimate/estimate-save";
+import { saveBudget, saveOwnLine, saveTravelProfile, saveTripNights, saveTripStyle, saveTripTravel } from "@/server/money/estimate/estimate-save";
 import { readEstimateSettings } from "@/server/money/estimate/estimate-settings";
 import { readEstimate } from "@/server/money/estimate/estimate-view";
 
 type EstimatePort = Pick<
   FlocPort,
-  "loadEstimate" | "setEstimateBudget" | "setEstimateLine" | "setEstimateStyle" | "setEstimateNights" | "loadEstimateSettings" | "setEstimateSettings"
+  "loadEstimate" | "setEstimateBudget" | "setEstimateLine" | "setEstimateStyle" | "setEstimateNights" | "setEstimateTravel" | "loadEstimateSettings" | "setEstimateSettings"
 >;
 
 export const estimatePort: EstimatePort = {
@@ -30,6 +30,9 @@ export const estimatePort: EstimatePort = {
   },
   async setEstimateNights(viewerId, tripId, nights) {
     await saveTripNights(await scoped(viewerId, tripId), nights);
+  },
+  async setEstimateTravel(viewerId, tripId, travel) {
+    await saveTripTravel(await scoped(viewerId, tripId), travel);
   },
   loadEstimateSettings: (viewerId) => readEstimateSettings(viewerId),
   setEstimateSettings: (viewerId, patch) => saveTravelProfile(viewerId, patch),

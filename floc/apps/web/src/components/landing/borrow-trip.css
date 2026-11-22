@@ -2,6 +2,7 @@
   /* "Borrow a trip to …": every Explore listing on a globe, six of them on tiles. The place
      rolls in on its pastel; the globe and its plane are drawn on a canvas (globe/spin-globe). */
   .borrow { overflow-x: clip; }
+  .borrow-slot { display: block; margin-top: 0.12em; }
   .borrow-word {
     display: inline-block;
     margin-inline: -0.1em;
@@ -23,13 +24,14 @@
     --deep-h: 560px;
     /* The globe gives way before the tiles do on a screen too narrow for both. */
     --globe: clamp(220px, 100cqw - 632px, 420px);
+    --scene: max(var(--globe), 340px);
     container-type: inline-size;
     max-width: 67rem;
     margin: 36px auto 0;
   }
   .borrow-scene {
     position: relative;
-    height: calc(var(--globe) + (var(--deep-h) - var(--globe)) * var(--deep));
+    height: calc(var(--scene) + (var(--deep-h) - var(--scene)) * var(--deep));
   }
   .borrow-list {
     position: absolute;
@@ -155,10 +157,10 @@
   .borrow-globe-box {
     position: absolute;
     z-index: 1;
-    top: 0;
+    top: calc((100% - var(--globe)) / 2 * (1 - var(--deep)));
     left: 50%;
     width: calc(var(--globe) + (100% - var(--globe)) * var(--deep));
-    height: 100%;
+    height: calc(var(--globe) + (100% - var(--globe)) * var(--deep));
     overflow: hidden;
     translate: -50% 0;
     border-radius: calc(var(--globe) / 2 - (var(--globe) / 2 - 28px) * var(--deep));
@@ -322,10 +324,10 @@
     opacity: calc(1 - var(--deep) * 3);
   }
   .borrow-stage[data-deep] .borrow-bar { overflow: hidden; }
-  .borrow-bar > :is(button, a) { min-height: 44px; padding-block: 10px; font-size: 12px; }
-  .borrow-go { justify-self: end; }
+  .borrow-bar :is(button, a) { min-height: 44px; padding-block: 10px; font-size: 12px; }
+  .borrow-bar .borrow-pause { min-width: 44px; padding: 0; }
+  .borrow-spin { display: flex; gap: 8px; justify-self: end; }
   .borrow-start { justify-self: start; white-space: nowrap; }
-  .borrow-start-still { display: none; }
 
   @media (max-width: 900px) {
     /* A phone: the globe on top grows into the map; the tiles under it fold away and the rail takes their place. */
@@ -356,6 +358,7 @@
     .borrow-deeper::before { content: ""; position: absolute; inset: -6px; }
     .borrow-globe-box {
       position: relative;
+      top: 0;
       left: auto;
       grid-column: 1 / -1;
       order: -3;
@@ -366,22 +369,21 @@
     /* Why: on a phone the sticky top bar can cover the top of the map, so both buttons sit along its foot. */
     .borrow-back { left: 12px; top: auto; bottom: 12px; height: 32px; font-size: 12.5px; }
     .borrow-replay { left: auto; right: 12px; width: 32px; }
-    /* Why: with 25 trips the place can be long ("South Africa"), so Start from takes its own row when it does not fit beside Spin for me. */
+    /* Why: the place changes as the globe tours, so Start from takes its own row and the buttons never move. */
     .borrow-bar {
       grid-column: 1 / -1;
       order: -2;
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      max-height: calc(120px * (1 - var(--deep)));
+      max-height: calc(176px * (1 - var(--deep)));
       margin: calc(10px * (1 - var(--deep))) 0 calc(12px * (1 - var(--deep)));
     }
     .borrow-bar::before { content: ""; order: -1; flex-basis: 100%; }
-    /* Why: a spin changes the place, and a long one ("South Africa, Namibia, …") would push the page up and down; on a phone the heading and the button hold still and the tiles show the spin. */
-    .borrow-to,
-    .borrow-start-place { display: none; }
-    .borrow-start-still { display: inline; }
-    .borrow-every { order: -2; }
+    /* Why: a long place would push the page up and down, so on a phone the heading holds still and the button names the trip. */
+    .borrow-to { display: none; }
+    .borrow-start { flex-basis: 100%; justify-content: center; }
+    .borrow-every { order: -2; min-width: 166px; justify-content: center; }
     .borrow-panel {
       position: static;
       grid-column: 1 / -1;
