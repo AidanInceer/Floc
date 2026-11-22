@@ -16,6 +16,7 @@ const CALLED = [
   { file: "notifications/expo-push.ts", needle: "expo", who: "Expo" },
   { file: "auth/email.ts", needle: "resend", who: "Resend" },
   { file: "billing/billing.ts", needle: "stripe", who: "Stripe" },
+  { file: "maps/leg-routes.ts", needle: "routes.googleapis.com", who: "Google Maps" },
 ];
 
 describe("what the legal pages say about outside services", () => {
