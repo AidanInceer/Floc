@@ -80,7 +80,6 @@ export function GroupSheet(props: GroupSheetProps) {
     }>
       <View style={{ padding: space.lg, gap: space.md }}>
         <Heading>{editing ? "Edit group" : "New group"}</Heading>
-        {!editing ? <Figure tone="ink-2">{step === 1 ? "1 of 2 · Who is in it" : "2 of 2 · Name it"}</Figure> : null}
         {naming ? <Field label="Name" value={name} onChangeText={setName} maxLength={GROUP_NAME_CAP} /> : null}
         {editing || step === 1 ? (
           <>

@@ -1,2 +1,4 @@
 # Shell scripts must keep LF, or bash on Windows chokes on the CR (#252).
 *.sh text eol=lf
+# Vitest writes snapshots with LF; a CRLF checkout shows them as changed after every run.
+*.snap text eol=lf

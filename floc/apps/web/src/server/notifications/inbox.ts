@@ -13,7 +13,7 @@ export type InboxItem = {
   id: number;
   kind: ActivityKind;
   text: string;
-  href: string;
+  href: string | null;
   loud: boolean;
   read: boolean;
   at: Date;
@@ -44,7 +44,7 @@ function toItem(r: Awaited<ReturnType<typeof notificationRows>>[number]): InboxI
     text: notificationText(r.kind, { actor: r.actorDisplayName ?? r.actorName, trip: r.tripName, detail: r.detail }),
     href: r.href,
     loud: r.loud,
-    read: r.readAt !== null,
+    read: r.readAt !== null || r.href === null,
     at: r.at,
   };
 }
@@ -97,14 +97,10 @@ export async function openNotification(userId: string, notificationId: number): 
         isNull(notification.deletedAt),
       ),
     )
-    .returning({ activityId: notification.activityId })
+    .returning({ id: notification.id })
     .get();
   if (!opened) return null;
 
-  const row = await db
-    .select({ href: activity.href })
-    .from(activity)
-    .where(eq(activity.id, opened.activityId))
-    .get();
+  const [row] = await notificationRows(eq(notification.id, opened.id), 1);
   return row?.href ?? null;
 }

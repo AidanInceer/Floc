@@ -1,7 +1,7 @@
 export type NotificationItem = {
   id: number;
   text: string;
-  href: string;
+  href: string | null;
   loud: boolean;
   read: boolean;
   at: string;

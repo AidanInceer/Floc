@@ -444,7 +444,8 @@
    * a 1.5px lift on a soft shadow, on the single `--ease` curve. Colour moves
    * ride the same transition, so a hover never double-animates.
    */
-  .lift {
+  .lift,
+  .lift-card {
     transition:
       transform 0.22s var(--ease),
       box-shadow 0.22s var(--ease),
@@ -452,7 +453,11 @@
       border-color 0.22s var(--ease),
       color 0.22s var(--ease);
   }
-  .lift:hover {
+  .lift-card {
+    box-shadow: var(--shadow-raised);
+  }
+  .lift:hover,
+  .lift-card:hover {
     transform: translateY(-1.5px);
     box-shadow: var(--shadow-raised);
     /* The hover transform makes a stacking context; without a raised z-index a
@@ -491,6 +496,16 @@
     }
   }
 
+  .dial-fill {
+    stroke-dasharray: 0 100;
+    animation: dial-fill 1.8s var(--ease-even) forwards;
+  }
+  @keyframes dial-fill {
+    to {
+      stroke-dasharray: 100 100;
+    }
+  }
+
   @keyframes site-fresh {
     18%,
     80% {
@@ -508,7 +523,8 @@
       transition-duration: 0.01ms !important;
     }
     /* Remove the movement, keep the feedback (ticket 190). */
-    .lift:hover {
+    .lift:hover,
+    .lift-card:hover {
       transform: none;
     }
   }

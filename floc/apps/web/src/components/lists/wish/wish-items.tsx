@@ -16,6 +16,8 @@ import { CountryTile } from "../country-tile";
 import { SavedSection, savedCountryGridClass, savedTripGridClass } from "../saved-section";
 import { StartTripButton } from "../start-trip-button";
 
+import { WishVoteButton } from "./wish-vote-button";
+
 type Props = { listId: number; items: WishItem[]; listings: Record<string, PresetTrip> };
 
 export function WishItems({ listId, items, listings }: Props) {
@@ -87,7 +89,7 @@ function NoteTile({ listId, item }: { listId: number; item: WishItem }) {
     </>
   );
   return (
-    <div className="lift relative flex h-full min-h-36 flex-col rounded-md bg-sheet p-3 shadow-[var(--shadow)]">
+    <div className="lift-card relative flex h-full min-h-36 flex-col rounded-md bg-sheet p-3">
       {isLink ? (
         <a
           href={item.url!}
@@ -117,16 +119,19 @@ function Foot({ listId, item, what }: { listId: number; item: WishItem; what: st
   return (
     <span className="flex w-full items-center justify-between gap-2">
       {by ? <AddedBy name={by} /> : <span />}
-      <Menu label={`Options for ${what}`} drop="up">
-        <button
-          type="button"
-          disabled={pending}
-          className={menuItemClass}
-          onClick={() => start(async () => { await removeWishItemAction(listId, item.id); })}
-        >
-          Remove from list
-        </button>
-      </Menu>
+      <span className="flex shrink-0 items-center gap-1 max-sm:gap-2">
+        <WishVoteButton listId={listId} itemId={item.id} what={what} votes={item.votes} mine={item.voted} />
+        <Menu label={`Options for ${what}`} drop="up">
+          <button
+            type="button"
+            disabled={pending}
+            className={menuItemClass}
+            onClick={() => start(async () => { await removeWishItemAction(listId, item.id); })}
+          >
+            Remove from list
+          </button>
+        </Menu>
+      </span>
     </span>
   );
 }

@@ -25,17 +25,30 @@ export function releaseBody({ tickets, others, migrations }) {
   ].join("\n");
 }
 
-function versionCommit(root, base, version) {
+function versionTree(root, base, version) {
   const pkg = git(root, "show", `${base}:${PACKAGE}`).replace(/"version": "[^"]+"/, `"version": "${version}"`);
+  if (pkg === git(root, "show", `${base}:${PACKAGE}`)) return git(root, "rev-parse", `${base}^{tree}`);
   const blob = command("git", ["hash-object", "-w", "--stdin"], { cwd: root, input: `${pkg}\n` });
   const scratch = mkdtempSync(join(tmpdir(), "floc-release-"));
   const env = { ...process.env, GIT_INDEX_FILE: join(scratch, "index") };
   try {
     command("git", ["read-tree", base], { cwd: root, env });
     command("git", ["update-index", "--cacheinfo", `100644,${blob},${PACKAGE}`], { cwd: root, env });
-    const tree = command("git", ["write-tree"], { cwd: root, env });
-    return command("git", ["commit-tree", tree, "-p", base, "-m", `#no-ticket: chore: release ${version}`], { cwd: root });
+    return command("git", ["write-tree"], { cwd: root, env });
   } finally { rmSync(scratch, { recursive: true, force: true }); }
+}
+
+const contains = (root, ancestor, ref) => {
+  try { git(root, "merge-base", "--is-ancestor", ancestor, ref); return true; } catch { return false; }
+};
+
+export function releaseHead(root, { develop, branch, version }) {
+  if (branch && contains(root, develop, branch)) return null;
+  const tree = versionTree(root, develop, version);
+  if (!branch && tree === git(root, "rev-parse", `${develop}^{tree}`)) return develop;
+  const parentArgs = branch ? ["-p", branch, "-p", develop] : ["-p", develop];
+  const message = branch ? `#no-ticket: chore: release ${version}, take in develop` : `#no-ticket: chore: release ${version}`;
+  return command("git", ["commit-tree", tree, ...parentArgs, "-m", message], { cwd: root });
 }
 
 export function release(root, { approveSchema } = {}) {
@@ -51,9 +64,12 @@ export function release(root, { approveSchema } = {}) {
   const version = nextVersion(JSON.parse(git(main, "show", `origin/main:${PACKAGE}`)).version, JSON.parse(git(main, "show", `origin/develop:${PACKAGE}`)).version, subjects);
   const branch = `release/${version}`;
   let pr = pullRequest(main, branch, "open");
-  if (!pr) {
-    const developVersion = JSON.parse(git(main, "show", `origin/develop:${PACKAGE}`)).version;
-    const head = developVersion === version ? develop : versionCommit(main, "origin/develop", version);
+  if (pr) {
+    git(main, "fetch", "--quiet", "origin", branch);
+    const head = releaseHead(main, { develop, branch: git(main, "rev-parse", "FETCH_HEAD"), version });
+    if (head) git(main, "push", "--quiet", "origin", `${head}:refs/heads/${branch}`);
+  } else {
+    const head = releaseHead(main, { develop, branch: null, version });
     git(main, "push", "--quiet", "origin", `${head}:refs/heads/${branch}`);
     const messages = git(main, "log", "--format=%B", "origin/main..origin/develop");
     const tickets = closedBy(messages).map((n) => ({ number: n, title: json(main, "issue", "view", n, "--json", "title").title }));

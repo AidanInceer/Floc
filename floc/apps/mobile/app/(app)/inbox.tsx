@@ -73,7 +73,8 @@ export default function Inbox() {
       }}
       renderItem={({ item }) => (
         <Pressable
-          accessibilityRole="button"
+          accessibilityRole={item.href === null ? "text" : "button"}
+          disabled={item.href === null}
           onPress={() => open.mutate({ id: item.id })}
           style={({ pressed }) => ({
             flexDirection: "row",

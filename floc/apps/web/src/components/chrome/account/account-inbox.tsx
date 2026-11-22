@@ -3,7 +3,16 @@ import Link from "next/link";
 
 import { openNotification } from "@/app/inbox/actions";
 
-export type InboxPreviewItem = { id: number; text: string; at: Date };
+export type InboxPreviewItem = { id: number; text: string; at: Date; href: string | null };
+
+function PreviewWords({ item }: { item: InboxPreviewItem }) {
+  return (
+    <>
+      <span className="line-clamp-2 min-w-0 flex-1">{item.text}</span>
+      <span className="shrink-0 pt-px font-mono text-[11px] text-ink-faint">{commentTime(item.at)}</span>
+    </>
+  );
+}
 
 export function AccountInbox({ unread, items }: { unread: number; items: InboxPreviewItem[] }) {
   return (
@@ -24,18 +33,23 @@ export function AccountInbox({ unread, items }: { unread: number; items: InboxPr
         <ul>
           {items.map((item) => (
             <li key={item.id}>
-              <form action={openNotification}>
-                <input type="hidden" name="id" value={item.id} />
-                <button
-                  type="submit"
-                  role="menuitem"
-                  className="relative flex w-full items-start gap-2.5 rounded-sm py-1.5 pl-4 pr-2 text-left text-[13px] leading-snug text-ink hover:bg-sheet-2"
-                >
-                  <span aria-hidden className="absolute left-1.5 top-[0.78rem] size-[5px] rounded-full bg-pen" />
-                  <span className="line-clamp-2 min-w-0 flex-1">{item.text}</span>
-                  <span className="shrink-0 pt-px font-mono text-[11px] text-ink-faint">{commentTime(item.at)}</span>
-                </button>
-              </form>
+              {item.href === null ? (
+                <div className="flex w-full items-start gap-2.5 py-1.5 pl-4 pr-2 text-[13px] leading-snug text-ink-2">
+                  <PreviewWords item={item} />
+                </div>
+              ) : (
+                <form action={openNotification}>
+                  <input type="hidden" name="id" value={item.id} />
+                  <button
+                    type="submit"
+                    role="menuitem"
+                    className="relative flex w-full items-start gap-2.5 rounded-sm py-1.5 pl-4 pr-2 text-left text-[13px] leading-snug text-ink hover:bg-sheet-2"
+                  >
+                    <span aria-hidden className="absolute left-1.5 top-[0.78rem] size-[5px] rounded-full bg-pen" />
+                    <PreviewWords item={item} />
+                  </button>
+                </form>
+              )}
             </li>
           ))}
         </ul>

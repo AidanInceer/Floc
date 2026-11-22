@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState, type Compone
 
 import { cx, segmentTrack, trackSegmentClass } from "./ui";
 
-type Box = { left: number; top: number; width: number; height: number };
+type Box = { left: number; top: number; width: number; height: number; slide: boolean };
 
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 const CHOSEN = '[aria-pressed="true"], [aria-selected="true"], [aria-current], label:has(:checked)';
@@ -15,10 +15,13 @@ export function SegmentTrack({ as: Tag = "div", className, children, ...props }:
   const track = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState<Box | null>(null);
   const pressed = useRef(false);
+  const chosen = useRef<HTMLElement | null>(null);
 
   const measure = useCallback(() => {
-    const el = track.current?.querySelector<HTMLElement>(CHOSEN);
-    const next = el ? { left: el.offsetLeft, top: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight } : null;
+    const el = track.current?.querySelector<HTMLElement>(CHOSEN) ?? null;
+    const slide = chosen.current !== null && el !== chosen.current;
+    chosen.current = el;
+    const next = el ? { left: el.offsetLeft, top: el.offsetTop, width: el.offsetWidth, height: el.offsetHeight, slide } : null;
     setBox((was) => (same(was, next) ? was : next));
   }, []);
 
@@ -55,7 +58,10 @@ export function SegmentTrack({ as: Tag = "div", className, children, ...props }:
       {box ? (
         <span
           aria-hidden
-          className="pointer-events-none absolute left-0 top-0 rounded-sm bg-sheet shadow-card transition-[transform,width,height] duration-220 ease-(--ease) motion-reduce:transition-none"
+          className={cx(
+            "pointer-events-none absolute left-0 top-0 rounded-sm bg-sheet shadow-card",
+            box.slide && "transition-[transform,width,height] duration-220 ease-(--ease) motion-reduce:transition-none",
+          )}
           style={{ width: box.width, height: box.height, transform: `translate(${box.left}px, ${box.top}px)` }}
         />
       ) : null}

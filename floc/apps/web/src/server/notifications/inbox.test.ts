@@ -6,7 +6,10 @@ import { migrateTestDb, resetDb, seedScenario, type Scenario, befriend } from "@
 import { insertNote, softDeleteNoteAndReplies } from "@/server/notes/notes";
 import { removeMembership } from "@/server/trips/roster";
 import { insertNudge } from "@/server/trips/nudges";
-import { inviteToTrip } from "@/server/trips/invites";
+import { declineInvite, inviteToTrip } from "@/server/trips/invites";
+import { acceptPendingRequest, openPendingRequest } from "@/server/social/friends";
+import { closeWaiting, insertWaiting } from "@/server/documents/bookings/booking-inbox-rows";
+import { recordActivity } from "@/server/notifications/activity";
 import { softDeleteTrip } from "@/server/trips/trips";
 import { tripHref } from "@floc/core/notifications/notification-href";
 import { countUnread, listInbox, listUnseen, markAllRead, markInboxSeen, openNotification } from "@/server/notifications/inbox";
@@ -126,6 +129,46 @@ describe("the inbox", () => {
     for (const bent of ["99999999999999999999-1", "abc", "1-", ["1-2", "3-4"]]) {
       expect((await listInbox(world.member, bent)).items).toHaveLength(1);
     }
+  });
+});
+
+describe("a notice that asks you to act", () => {
+  const bookingWaits = async () => {
+    const id = await insertWaiting({ userId: world.member, name: "flight.pdf", storageKey: "flight.pdf", mimeType: "application/pdf", sizeBytes: 1, category: "travel", bookingDetails: null });
+    await db.transaction((tx) =>
+      recordActivity(tx, { kind: "booking_waiting", tripId: null, actorId: world.member, subjectId: null, href: "/bookings", affected: [world.member] }),
+    );
+    return id;
+  };
+
+  it("shows a waiting booking while it still has no trip", async () => {
+    await bookingWaits();
+    expect((await listInbox(world.member, null)).items).toHaveLength(1);
+  });
+
+  it("hides a waiting booking once it has a trip", async () => {
+    const id = await bookingWaits();
+    await closeWaiting(world.member, id, true);
+    expect((await listInbox(world.member, null)).items).toEqual([]);
+    expect(await countUnread(world.member)).toBe(0);
+  });
+
+  it("keeps a friend request once answered, with no link left to follow", async () => {
+    await openPendingRequest(world.outsider, world.member);
+    expect((await listInbox(world.member, null)).items[0].href).toBe("/friends");
+
+    await acceptPendingRequest(world.outsider, world.member);
+    const [item] = (await listInbox(world.member, null)).items;
+    expect(item).toMatchObject({ text: "Ozz sent you a friend request", href: null });
+    expect(await openNotification(world.member, item.id)).toBeNull();
+  });
+
+  it("keeps a trip invite once answered, with no link left to follow", async () => {
+    await befriend(world.admin, world.outsider);
+    await inviteToTrip({ tripId: world.ours.id, fromUserId: world.admin, toUserIds: [world.outsider] });
+    await declineInvite(world.ours.id, world.outsider);
+    const [item] = (await listInbox(world.outsider, null)).items;
+    expect(item.href).toBeNull();
   });
 });
 

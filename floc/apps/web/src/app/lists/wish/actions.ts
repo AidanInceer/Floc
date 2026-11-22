@@ -5,6 +5,7 @@ import { isRefusal } from "@floc/core/errors/refusal";
 import { requireUser } from "@/server/access";
 import { refresh } from "@/server/freshness";
 import { startWishListWith } from "@/server/wish-lists/wish-list-start";
+import { toggleWishVote } from "@/server/wish-lists/wish-list-votes";
 import {
   addWishItem,
   createWishList,
@@ -63,4 +64,8 @@ export async function addWishItemAction(listId: number, item: unknown): Promise<
 
 export async function removeWishItemAction(listId: number, itemId: number): Promise<WishOutcome> {
   return asWishWrite((me) => removeWishItem(me, listId, itemId));
+}
+
+export async function toggleWishVoteAction(listId: number, itemId: number): Promise<WishOutcome> {
+  return asWishWrite((me) => toggleWishVote(me, listId, itemId));
 }

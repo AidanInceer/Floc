@@ -19,7 +19,7 @@
     "fitness:repo": "node scripts/checks/repo.mjs",
     "files:check": "node --test scripts/check-files-map.test.mjs && node scripts/check-files-map.mjs",
     "docs:check": "node scripts/check-docs.mjs",
-    "design:check": "node --test scripts/design/rules.test.mjs && node scripts/design/check.mjs",
+    "design:check": "node --test scripts/design/rules.test.mjs scripts/design/baseline.test.mjs && node scripts/design/check.mjs",
     "docs:dev": "node scripts/docs-server.mjs",
     "wireframe": "node scripts/wireframe-server.mjs",
     "wireframe:tags": "node scripts/wireframe-tags.mjs",

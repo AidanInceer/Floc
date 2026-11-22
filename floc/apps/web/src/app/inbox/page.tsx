@@ -10,6 +10,17 @@ import { Badge, ButtonLink, EmptyState, cx } from "@/components/system/ui";
 
 export const metadata = { title: "Inbox" };
 
+function InboxLine({ text, at, read }: { text: string; at: Date; read: boolean }) {
+  return (
+    <span className="min-w-0">
+      <span className={cx("block text-sm transition-colors group-hover:text-pen-deep", read ? "text-ink-2" : "text-ink")}>
+        {text}
+      </span>
+      <span className="font-mono text-[11px] text-ink-faint">{commentTime(at)}</span>
+    </span>
+  );
+}
+
 export default async function InboxPage({
   searchParams,
 }: {
@@ -41,26 +52,25 @@ export default async function InboxPage({
           <ul className="flex flex-col divide-y divide-rule">
             {page.items.map((item) => (
               <li key={item.id}>
-                <form action={openNotification}>
-                  <input type="hidden" name="id" value={item.id} />
-                  <button
-                    type="submit"
-                    className={cx(
-                      "group flex w-full items-center justify-between gap-3 rounded-sm px-3 py-3 text-left",
-                      item.read ? null : "bg-pen-soft",
-                    )}
-                  >
-                    <span className="min-w-0">
-                      <span className={cx("block text-sm transition-colors group-hover:text-pen-deep", item.read ? "text-ink-2" : "text-ink")}>
-                        {item.text}
-                      </span>
-                      <span className="font-mono text-[11px] text-ink-faint">
-                        {commentTime(item.at)}
-                      </span>
-                    </span>
-                    {item.read ? null : <Badge tone="marine">New</Badge>}
-                  </button>
-                </form>
+                {item.href === null ? (
+                  <div className="flex w-full items-center px-3 py-3">
+                    <InboxLine text={item.text} at={item.at} read={item.read} />
+                  </div>
+                ) : (
+                  <form action={openNotification}>
+                    <input type="hidden" name="id" value={item.id} />
+                    <button
+                      type="submit"
+                      className={cx(
+                        "group flex w-full items-center justify-between gap-3 rounded-sm px-3 py-3 text-left",
+                        item.read ? null : "bg-pen-soft",
+                      )}
+                    >
+                      <InboxLine text={item.text} at={item.at} read={item.read} />
+                      {item.read ? null : <Badge tone="marine">New</Badge>}
+                    </button>
+                  </form>
+                )}
               </li>
             ))}
           </ul>

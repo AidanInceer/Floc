@@ -144,6 +144,7 @@ describe("the email fallback", () => {
     await nudge();
     const { sent, send } = mailer();
     await sendDueEmails(send, minutes(11));
+    await db.insert(schema.tripInvite).values({ tripId: world.ours.id, fromUserId: world.admin, toUserId: world.member, status: "pending" });
     await db.transaction((tx) =>
       recordActivity(tx, { kind: "trip_invited", tripId: world.ours.id, actorId: world.admin, subjectId: null, href: "/trips", affected: [world.member] }),
     );

@@ -79,7 +79,7 @@
     border: 1px solid var(--rule);
     border-radius: var(--radius-md);
     background: var(--sheet);
-    box-shadow: var(--shadow-lift);
+    box-shadow: var(--shadow-raised);
     overflow: clip;
   }
   @media (min-width: 600px) { .hero-ticket { max-width: 34rem; } }

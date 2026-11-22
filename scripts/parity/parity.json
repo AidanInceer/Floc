@@ -526,6 +526,10 @@
     "wishes.list": {
       "mobile": "yes"
     },
+    "wishes.vote": {
+      "mobile": "planned",
+      "why": "Votes on a wish list item ship on the web first with Trip ideas for a group (#177); the phone has no Groups screen yet, so its list screen gets the vote button with that work."
+    },
     "wishes.peopleToAsk": {
       "mobile": "yes"
     },

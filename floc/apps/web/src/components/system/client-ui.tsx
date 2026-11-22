@@ -332,22 +332,28 @@ export function CopyLink({
   item = "Link",
   variant = "secondary",
   icon,
+  reveal = false,
 }: {
   value: string;
   label?: string;
   item?: string;
   variant?: "primary" | "secondary" | "ghost" | "danger";
   icon?: ReactNode;
+  reveal?: boolean;
 }) {
   const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
+  const [revealed, setRevealed] = useState(false);
+  const shownValue = reveal && revealed;
   const copiedNow = status === "copied";
   const reset = useRef<ReturnType<typeof setTimeout>>(undefined);
   return (
     <>
       <Button
         variant={variant}
-        className={cx(copiedNow && "relative", copiedNow && variant !== "primary" && "!border-pen !bg-pen-soft !text-pen-deep")}
+        className={cx(copiedNow && "relative", copiedNow && variant !== "primary" && "!border-pen !bg-pen-soft !text-pen-deep", shownValue && "normal-case! tracking-normal!")}
+        aria-label={shownValue ? `${label}: ${value}` : undefined}
         onClick={async () => {
+          setRevealed(true);
           let copied = true;
           try {
             await navigator.clipboard.writeText(value);
@@ -360,24 +366,34 @@ export function CopyLink({
           reset.current = setTimeout(() => setStatus("idle"), copied ? 1300 : 2500);
         }}
       >
-        {status === "failed" ? "Copy failed" : (
-          <>
-            {copiedNow && icon ? <CheckIcon /> : icon}
-            {copiedNow && !icon ? (
-              <span aria-hidden className="absolute left-[3px] top-1/2 -translate-y-1/2">
-                <CheckIcon size={11} />
-              </span>
-            ) : null}
-            {label}
-          </>
-        )}
+        {status === "failed" ? "Copy failed" : <CopyWords copied={copiedNow} icon={icon} words={shownValue ? value : label} />}
       </Button>
       <span aria-live="polite" className="sr-only">
-        {status === "copied" ? `${item} copied` : status === "failed" ? `Copy failed. The ${item.toLowerCase()} is ${value}` : ""}
+        {copyAnnouncement(status, item, value)}
       </span>
 
     </>
   );
+}
+
+function CopyWords({ copied, icon, words }: { copied: boolean; icon?: ReactNode; words: string }) {
+  return (
+    <>
+      {copied && icon ? <CheckIcon /> : icon}
+      {copied && !icon ? (
+        <span aria-hidden className="absolute left-[3px] top-1/2 -translate-y-1/2">
+          <CheckIcon size={11} />
+        </span>
+      ) : null}
+      {words}
+    </>
+  );
+}
+
+function copyAnnouncement(status: "idle" | "copied" | "failed", item: string, value: string): string {
+  if (status === "copied") return `${item} copied`;
+  if (status === "failed") return `Copy failed. The ${item.toLowerCase()} is ${value}`;
+  return "";
 }
 
 export function Menu({

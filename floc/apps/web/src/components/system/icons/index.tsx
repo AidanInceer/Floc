@@ -53,8 +53,16 @@ export function BellIcon({ muted = false, ...props }: IconProps & { muted?: bool
 export function MotionIcon({ still = false, ...props }: IconProps & { still?: boolean }) {
   return (
     <LineIcon {...props}>
-      <path d="M2.2 10.8c1.6-4.4 4.6-6.6 9-6.6M9.6 2.4l1.8 1.8-1.8 1.8" />
-      {still ? <path d="M2 2l10 10" /> : null}
+      {still ? <path d="M4.6 2.9v8.2L11 7 4.6 2.9Z" strokeLinejoin="round" /> : <path d="M5 3v8M9 3v8" />}
+    </LineIcon>
+  );
+}
+
+export function MatchIcon(props: IconProps) {
+  return (
+    <LineIcon {...props}>
+      <circle cx="7" cy="7" r="5" className="opacity-35" />
+      <circle cx="7" cy="7" r="5" pathLength={100} strokeDasharray="72 100" transform="rotate(-90 7 7)" />
     </LineIcon>
   );
 }
