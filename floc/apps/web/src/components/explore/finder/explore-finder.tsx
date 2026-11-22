@@ -1,11 +1,14 @@
 "use client";
 
 import { finderCounts, type Finder } from "@floc/core/trip/explore/finder/finder";
-import { rankTrips, type FinderSort } from "@floc/core/trip/explore/finder/finder-rank";
+import { firstSort, rankTrips, type FinderSort } from "@floc/core/trip/explore/finder/finder-rank";
 import { finderPills } from "@floc/core/trip/explore/finder/finder-words";
-import { seasonPicks, seasonWords } from "@floc/core/trip/explore/finder/season-picks";
+import { seasonPicks } from "@floc/core/trip/explore/finder/season-picks";
+import type { Fits } from "@floc/core/trip/explore/fit/listing-fit";
+import { NO_MATCH_LINE } from "@floc/core/trip/explore/fit/match-words";
 import { EMPTY_FINDER } from "@floc/core/trip/explore/finder/finder";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
+import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 
 import { rememberFinder } from "@/app/explore/actions";
@@ -18,7 +21,6 @@ import { Button } from "@/components/system/ui";
 import { useListingRates } from "@/components/explore/listing-rates";
 import { useSavedTrips } from "@/components/explore/save/saved-trips";
 import { nounFor } from "@floc/core/text/count-word";
-import { isStill } from "@/lib/motion/still";
 
 const sheetClass =
   "m-0 mt-auto max-h-[90dvh] w-full max-w-none overflow-y-auto rounded-t-md bg-sheet p-0 text-ink backdrop:bg-black/40 sm:mx-auto sm:max-w-lg lg:hidden";
@@ -28,26 +30,24 @@ export function ExploreFinder({
   initialFinder,
   blankName,
   season,
+  fit,
 }: {
   signedIn: boolean;
   initialFinder: Finder;
   blankName: string | null;
   season: number[];
+  fit: Fits | null;
 }) {
   const [finder, setFinder] = useState(initialFinder);
   const rates = useListingRates();
   const saved = useSavedTrips().ids;
-  const [sort, setSort] = useState<FinderSort>("match");
-  const [like, setLike] = useState<string | null>(null);
+  const [sort, setSort] = useState<FinderSort>(firstSort(fit !== null));
   const [sheet, setSheet] = useState(false);
-  const top = useRef<HTMLDivElement>(null);
   const pendingSave = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const picks = useMemo(() => seasonPicks(PRESET_TRIPS, season).map((t) => t.id), [season]);
-  const topPicks = useMemo(() => ({ picks: new Set(picks), label: `Top pick for ${seasonWords(season)}` }), [picks, season]);
-  const rows = useMemo(() => rankTrips(PRESET_TRIPS, finder, sort, like, saved, picks), [finder, sort, like, saved, picks]);
+  const rows = useMemo(() => rankTrips(PRESET_TRIPS, finder, sort, saved, picks, fit), [finder, sort, saved, picks, fit]);
   const counts = useMemo(() => finderCounts(PRESET_TRIPS, finder), [finder]);
-  const liked = like ? PRESET_TRIPS.find((t) => t.id === like) : undefined;
 
   const change = (next: Finder) => {
     setFinder(next);
@@ -56,18 +56,13 @@ export function ExploreFinder({
     pendingSave.current = setTimeout(() => void rememberFinder(next), 400);
   };
 
-  const moreLike = (id: string) => {
-    setLike(id);
-    setSort("match");
-    const still = isStill();
-    top.current?.scrollIntoView({ behavior: still ? "auto" : "smooth", block: "start" });
-  };
-
-  const pills = [
-    ...(liked ? [{ id: "like", label: `Like ${liked.title}`, dark: true, onClear: () => setLike(null) }] : []),
-    ...finderPills(finder, rates).map((p) => ({ id: p.id, label: p.label, onClear: () => change(p.clear) })),
-  ];
-  const rail = { finder, counts, shown: rows.length, onChange: change, onClear: () => { change(EMPTY_FINDER); setLike(null); } };
+  const pills = finderPills(finder, rates).map((p) => ({ id: p.id, label: p.label, onClear: () => change(p.clear) }));
+  const rail = { finder, counts, shown: rows.length, onChange: change, onClear: () => change(EMPTY_FINDER) };
+  const hint = fit ? null : (
+    <Link href={signedIn ? "/profile?section=about-you#settings-about-you" : "/signup"} className="text-[13px] text-ink-soft transition-colors hover:text-pen">
+      {NO_MATCH_LINE}
+    </Link>
+  );
 
   return (
     <section className="mx-auto mt-14 w-full max-w-[76rem] px-4 sm:px-6">
@@ -87,16 +82,16 @@ export function ExploreFinder({
               className="w-full bg-transparent text-sm outline-none placeholder:text-ink-faint"
             />
           </label>
-          <SortPicker sort={sort} onSort={setSort} />
+          <SortPicker sort={sort} matched={fit !== null} onSort={setSort} />
         </div>
       </div>
       <div className="grid items-start gap-7 lg:grid-cols-[17.5rem_minmax(0,1fr)]">
         <aside aria-label="Filters" className="hidden lg:block">
           <FinderRail {...rail} />
         </aside>
-        <div ref={top} className="scroll-mt-20">
-          <FinderBar shown={rows.length} set={finderPills(finder, rates).length + finder.likes.length} pills={pills} onOpen={() => setSheet(true)} />
-          <FinderResults rows={rows} likes={finder.likes} split={sort === "match" && !like && finder.likes.length > 0} signedIn={signedIn} blankName={blankName} season={topPicks} onLike={moreLike} />
+        <div>
+          <FinderBar shown={rows.length} set={pills.length + finder.likes.length} pills={pills} hint={hint} onOpen={() => setSheet(true)} />
+          <FinderResults rows={rows} likes={finder.likes} split={sort === "match" && finder.likes.length > 0} signedIn={signedIn} blankName={blankName} />
         </div>
       </div>
 

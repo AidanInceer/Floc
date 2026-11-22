@@ -1,6 +1,7 @@
 "use client";
 
 import type { Finder } from "@floc/core/trip/explore/finder/finder";
+import type { Fits } from "@floc/core/trip/explore/fit/listing-fit";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { useRef, useState } from "react";
 
@@ -13,12 +14,14 @@ export function ExploreFront({
   initialFinder,
   season,
   opening,
+  fit,
   blankName = null,
 }: {
   signedIn: boolean;
   initialFinder: Finder;
   season: number[];
   opening: string;
+  fit: Fits | null;
   blankName?: string | null;
 }) {
   const [picked, setPicked] = useState(opening);
@@ -45,7 +48,7 @@ export function ExploreFront({
         </div>
       </section>
 
-      <ExploreFinder signedIn={signedIn} initialFinder={initialFinder} blankName={blankName} season={season} />
+      <ExploreFinder signedIn={signedIn} initialFinder={initialFinder} blankName={blankName} season={season} fit={fit} />
     </>
   );
 }

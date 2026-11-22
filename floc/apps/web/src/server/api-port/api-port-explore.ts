@@ -1,6 +1,8 @@
 import "server-only";
 
 import type { FlocPort } from "@floc/api/port";
+import { listingFits } from "@floc/core/trip/explore/fit/listing-fit";
+import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 
 import { refresh } from "@/server/freshness";
 import { loadTaste, saveFinder } from "@/server/explore/explore-finder";
@@ -13,8 +15,8 @@ type ExplorePort = Pick<FlocPort, "loadExplore" | "setExploreFinder" | "listSave
 export const explorePort: ExplorePort = {
   async loadExplore(viewerId) {
     const rates = await listingRates(await viewerCurrency(viewerId, new Headers()));
-    const { finder, likes } = await loadTaste(viewerId);
-    return { finder, likes, rates };
+    const { finder, likes, travel } = await loadTaste(viewerId);
+    return { finder, likes, rates, fit: listingFits(travel, PRESET_TRIPS, rates) };
   },
 
   async setExploreFinder(viewerId, finder) {

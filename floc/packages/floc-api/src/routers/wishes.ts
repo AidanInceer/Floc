@@ -52,6 +52,12 @@ export const wishesRouter = router({
       await ctx.port.removeWishItem(ctx.viewer.id, input.listId, input.itemId);
     }),
 
+  vote: protectedProcedure
+    .input(z.object({ listId, itemId: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.port.toggleWishVote(ctx.viewer.id, input.listId, input.itemId);
+    }),
+
   peopleToAsk: protectedProcedure
     .input(z.object({ listId }))
     .query(({ ctx, input }) => ctx.port.wishListPeopleToAsk(ctx.viewer.id, input.listId)),

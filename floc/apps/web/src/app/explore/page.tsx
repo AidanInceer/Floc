@@ -1,6 +1,7 @@
 import { EMPTY_FINDER } from "@floc/core/trip/explore/finder/finder";
 import { openingPick, openingPool } from "@floc/core/trip/explore/finder/opening-pick";
 import { comingSeason } from "@floc/core/trip/explore/finder/season-picks";
+import { listingFits } from "@floc/core/trip/explore/fit/listing-fit";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { countryName, readCountryCode } from "@floc/core/people/countries";
 import { headers } from "next/headers";
@@ -35,13 +36,14 @@ export default async function ExplorePage({ searchParams }: Props) {
   ]);
   const initialFinder = country ? { ...EMPTY_FINDER, q: country } : (taste?.finder ?? EMPTY_FINDER);
   const season = comingSeason(new Date().getUTCMonth() + 1);
+  const fit = taste ? listingFits(taste.travel, PRESET_TRIPS, rates) : null;
   const opening = openingPick(openingPool(PRESET_TRIPS, season, { saved, likes: taste?.likes ?? null }), crypto.getRandomValues(new Uint32Array(1))[0]! / 2 ** 32).id;
 
   return (
     <div className="pb-20">
       <ListingRatesProvider rates={rates}>
         <SavedTripsProvider ids={saved} signedIn={!!userId}>
-          <ExploreFront signedIn={!!userId} initialFinder={initialFinder} season={season} opening={opening} blankName={country} />
+          <ExploreFront signedIn={!!userId} initialFinder={initialFinder} season={season} opening={opening} fit={fit} blankName={country} />
         </SavedTripsProvider>
       </ListingRatesProvider>
     </div>

@@ -196,6 +196,16 @@ export function ClipGlyph({ color }: { color: string }) {
   );
 }
 
+export function DialGlyph({ percent, color, rest, size = 14 }: { percent: number; color: string; rest: string; size?: number }) {
+  const round = 2 * Math.PI * 5;
+  return (
+    <Svg width={size} height={size} viewBox="0 0 14 14" fill="none">
+      <Circle cx={7} cy={7} r={5} stroke={rest} strokeWidth={STROKE} />
+      <Circle cx={7} cy={7} r={5} stroke={color} strokeWidth={1.7} strokeDasharray={[(round * percent) / 100, round]} rotation={-90} origin="7, 7" />
+    </Svg>
+  );
+}
+
 export function SunGlyph({ color }: { color: string }) {
   return (
     <Svg width={13} height={13} viewBox="0 0 14 14" fill="none">

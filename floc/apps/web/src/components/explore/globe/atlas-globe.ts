@@ -8,7 +8,7 @@ import { flightAt, flightMs } from "@/lib/landing/globe/flight";
 import { greatCircle, type LatLng } from "@floc/globe/sphere";
 
 import { drawFlight, moveFlags } from "./atlas-paint";
-import { domeFit, fineAt, over, zoomed, type Fit } from "./dome";
+import { domeFit, fineAt, lift, over, riseFor, zoomed, type Fit } from "./dome";
 import { fitOf, poseOf, tripLayer, type TripTint } from "./trip-layer";
 
 type Scene = { home: LatLng; places: LatLng[]; flags: HTMLElement; clear: () => Box };
@@ -28,8 +28,10 @@ export function atlasGlobe(canvas: HTMLCanvasElement, { home, places, flags, cle
   let moving: Fit | null = null;
   let path = greatCircle(home, places[0]!);
   const width = () => clear().right - clear().left;
-  const whole = () => domeFit(paint.box().w, clear());
-  const dome = () => zoomed(whole(), zoom);
+  const whole = () => domeFit(clear());
+  const rise = () => riseFor(face.view(), places[at]!);
+  const dome = () => zoomed(whole(), zoom, clear(), rise());
+  const seen = () => lift(face.view(), zoom, rise());
   const fitNow = () => moving ?? trips.rest(width()) ?? dome();
   face.turnTo(over(places[0]!));
 
@@ -63,7 +65,7 @@ export function atlasGlobe(canvas: HTMLCanvasElement, { home, places, flags, cle
     moving = move.pose ? fitOf(move.pose, width()) : null;
     if (move.pose) face.turnTo(move.pose.centre);
     else if (!drag.held()) face.advance(now, dt);
-    const view = face.view();
+    const view = seen();
     const near = land.fine.length > 0 && fineAt(fitNow(), whole());
     paint!.base(view, near ? land.fine : land.world, fitNow, trips.tint());
     const f = flight(now);
@@ -83,12 +85,14 @@ export function atlasGlobe(canvas: HTMLCanvasElement, { home, places, flags, cle
     },
     open(route: TripRoute, tint: TripTint) {
       face.halt();
-      trips.open(route, tint, poseOf(fitNow(), face.view(), width()), clear());
+      const from = poseOf(fitNow(), seen(), width());
+      [zoom, zoomTo] = [1, 1];
+      trips.open(route, tint, from, clear());
       wake();
     },
     close() {
       if (!trips.isOpen()) return;
-      trips.close(poseOf(fitNow(), face.view(), width()), poseOf(dome(), over(places[at]!), width()));
+      trips.close(poseOf(fitNow(), seen(), width()), poseOf(dome(), over(places[at]!), width()));
       wake();
     },
     zoom(level: number) {

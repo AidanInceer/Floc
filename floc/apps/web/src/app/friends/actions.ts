@@ -14,7 +14,13 @@ import {
 import { mayAskToBeFriends } from "@/server/social/find-friends";
 import { requestByCode } from "@/server/social/friend-code";
 import { searchFriends } from "@/server/social/friend-search";
+import type { ListingRates } from "@floc/core/trip/explore/listing-price";
+import { headers } from "next/headers";
+
 import { createGroup, deleteGroup, saveGroup, setGroupMember, type GroupInput } from "@/server/social/groups";
+import { groupIdeasFor, sendGroupIdeas, type GroupIdeas, type SentGroupIdeas } from "@/server/social/group-ideas";
+import { savedTripIds } from "@/server/explore/explore-saves";
+import { listingRates, viewerCurrency } from "@/server/money/viewer-currency";
 import { refresh } from "@/server/freshness";
 import { isRefusal } from "@floc/core/errors/refusal";
 
@@ -113,4 +119,29 @@ export async function setGroupMemberAction(groupId: number, userId: string, on: 
 
 export async function deleteGroupAction(groupId: number): Promise<Outcome> {
   return asGroupWrite((viewerId) => deleteGroup(viewerId, groupId));
+}
+
+export type GroupIdeasFound = { ideas?: GroupIdeas; saved?: string[]; rates?: ListingRates | null; error?: string };
+
+export async function groupIdeasAction(groupId: number): Promise<GroupIdeasFound> {
+  const viewer = await requireUser();
+  const [ideas, saved, rates] = await Promise.all([
+    groupIdeasFor(viewer.id, groupId),
+    savedTripIds(viewer.id),
+    viewerCurrency(viewer.id, await headers()).then(listingRates),
+  ]);
+  return ideas ? { ideas, saved, rates } : { error: "That group is gone." };
+}
+
+export async function sendGroupIdeasAction(groupId: number): Promise<{ sent?: SentGroupIdeas; error?: string }> {
+  const viewer = await requireUser();
+  try {
+    const sent = await sendGroupIdeas(viewer.id, groupId);
+    refresh({ kind: "wishLists" });
+    refresh({ kind: "inbox" });
+    return { sent };
+  } catch (error) {
+    if (isRefusal(error)) return { error: error.message };
+    throw error;
+  }
 }

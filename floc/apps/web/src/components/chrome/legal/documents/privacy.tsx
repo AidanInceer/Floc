@@ -47,6 +47,11 @@ export function PrivacyDocument() {
           The members of a trip can see the content added to that trip. Other users can see your profile only to the
           extent permitted by your privacy settings.
         </p>
+        <p>
+          A friend who keeps you in one of their groups can ask Floc for trips that fit the group. Floc uses your travel
+          style to work that out and shows them only how well each trip fits the group as a whole, never what you like.
+          You can turn this off on Profile, under Privacy.
+        </p>
       </LegalSection>
 
       <LegalSection title="5. International transfers">

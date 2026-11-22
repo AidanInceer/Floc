@@ -7,7 +7,7 @@ function movesOf(trip: PresetTrip): TransportType[] {
   return stopsOf(trip).flatMap((stop) => (stop.arrive ? [stop.arrive.mode] : []));
 }
 
-function travelOf(moves: TransportType[]): TripTag[] {
+export function travelTags(moves: readonly TransportType[]): TripTag[] {
   const count = (mode: TransportType) => moves.filter((m) => m === mode).length;
   const out: TripTag[] = [];
   if (count("train") >= 2) out.push("Rail");
@@ -17,13 +17,13 @@ function travelOf(moves: TransportType[]): TripTag[] {
   return out;
 }
 
-function paceOf(trip: PresetTrip, moves: number): TripTag {
-  const perWeek = (moves / trip.nights) * 7;
+export function paceTag(nights: number, moves: number): TripTag {
+  const perWeek = (moves / nights) * 7;
   if (perWeek <= 2.4) return "Slow";
   return perWeek <= 2.9 ? "Steady" : "On the move";
 }
 
 export function tagsOf(trip: PresetTrip): TripTag[] {
   const moves = movesOf(trip);
-  return [...trip.interests, ...trip.landscape, ...travelOf(moves), paceOf(trip, moves.length), trip.effort];
+  return [...trip.interests, ...trip.landscape, ...travelTags(moves), paceTag(trip.nights, moves.length), trip.effort];
 }

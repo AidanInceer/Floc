@@ -1,0 +1,23 @@
+.fit-note { margin: 0 0 14px; padding: 10px 12px; border: 1.5px dashed var(--rule-2); border-radius: var(--radius-sm); font-size: var(--text-xs); line-height: 1.5; color: var(--ink-2); }
+.fit-note b { color: var(--ink); font-weight: 500; }
+
+.fit-body { position: relative; flex: 1; padding-bottom: 14px; }
+.fit-last { margin-top: auto; padding-top: 8px; display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; min-height: 26px; }
+.fit-figs { display: flex; white-space: nowrap; line-height: 16px; }
+.fit-figs .sep { white-space: pre; }
+.chip { display: inline-flex; align-items: center; gap: 4px; }
+.chip.hit { color: var(--ink); border-color: var(--ink-3); }
+.chip .tick { width: 10px; height: 10px; }
+
+.fit { font-family: var(--type); font-size: var(--text-xs); font-variant-numeric: tabular-nums; line-height: 1; white-space: nowrap; }
+.bare { display: inline-flex; align-items: center; gap: 5px; height: 16px; color: var(--ink-2); }
+
+.dial { width: 14px; height: 14px; }
+.dial .dial-rest { stroke: var(--rule-2); }
+.dial .dial-fill { stroke-width: 1.7; stroke-linecap: butt; }
+
+@media (max-width: 700px) {
+  .fit-body { padding-bottom: 10px; }
+  .fit-figs { flex-direction: column; gap: 2px; }
+  .fit-figs .sep { display: none; }
+}

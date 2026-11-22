@@ -186,6 +186,7 @@ export const userProfile = sqliteTable("user_profile", {
   travelCabin: text("travel_cabin", { enum: CABINS }),
   travelStay: text("travel_stay", { enum: STAY_STYLES }),
   travelPace: text("travel_pace", { enum: PACES }),
+  styleInGroupIdeas: integer("style_in_group_ideas", { mode: "boolean" }).notNull().default(true),
   calendarAllDayOnly: integer("calendar_all_day_only", { mode: "boolean" }).notNull().default(false),
   ...audit,
 });
@@ -319,6 +320,24 @@ export const wishListItem = sqliteTable(
     ...audit,
   },
   (t) => [index("wish_list_item_list_idx").on(t.listId)],
+);
+
+export const wishListItemVote = sqliteTable(
+  "wish_list_item_vote",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    itemId: integer("item_id")
+      .notNull()
+      .references(() => wishListItem.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    ...audit,
+  },
+  (t) => [
+    index("wish_list_item_vote_item_idx").on(t.itemId),
+    uniqueIndex("wish_list_item_vote_one_idx").on(t.itemId, t.userId),
+  ],
 );
 
 export const trip = sqliteTable(
