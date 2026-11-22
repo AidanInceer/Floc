@@ -292,6 +292,12 @@
     "me.welcome": {
       "mobile": "yes"
     },
+    "media.list": {
+      "mobile": "yes"
+    },
+    "media.remove": {
+      "mobile": "yes"
+    },
     "money.deleteExpense": {
       "mobile": "yes"
     },

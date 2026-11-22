@@ -6,6 +6,7 @@ import type { ItineraryPort } from "./port/itinerary";
 import type { MoneyPort } from "./port/money";
 import type { EstimatePort } from "./port/estimate";
 import type { FilesPort } from "./port/files";
+import type { MediaPort } from "./port/media";
 import type { BookingsPort } from "./port/bookings";
 import type { IdeasPort } from "./port/ideas";
 import type { NudgesPort } from "./port/nudges";
@@ -63,6 +64,7 @@ export type FlocPort = AccountPort &
   MoneyPort &
   EstimatePort &
   FilesPort &
+  MediaPort &
   BookingsPort &
   IdeasPort &
   NudgesPort &

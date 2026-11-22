@@ -21,17 +21,15 @@ const RING = iconFrameClass("row");
 
 export function BookingsCard({ tripId, legs, wholeTrip }: Props) {
   return (
-    <aside className="max-lg:order-first lg:sticky lg:top-4">
-      <div className="overflow-visible rounded-md border border-rule-strong bg-sheet px-[18px] pt-4">
-        <h3 className="typed mb-2.5">Bookings</h3>
-        <ul>
-          {legs.map((leg) => (
-            <StopRow key={leg.no} tripId={tripId} leg={leg} />
-          ))}
-        </ul>
-        <WholeTrip tripId={tripId} files={wholeTrip} />
-      </div>
-    </aside>
+    <div className="overflow-visible rounded-md border border-rule-strong bg-sheet px-[18px] pt-4">
+      <h3 className="typed mb-2.5">Bookings</h3>
+      <ul>
+        {legs.map((leg) => (
+          <StopRow key={leg.no} tripId={tripId} leg={leg} />
+        ))}
+      </ul>
+      <WholeTrip tripId={tripId} files={wholeTrip} />
+    </div>
   );
 }
 

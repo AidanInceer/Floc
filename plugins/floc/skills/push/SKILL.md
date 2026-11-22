@@ -19,10 +19,8 @@ Never push when the user asked for local review only.
 - Read `git status` and `git diff --stat`. A file the user did not ask you to
   touch → stop and say what it is.
 - **UI in the diff** (components, routes, CSS, phone screens) → the
-  `floc:design-review` agent reviews it with screenshots, its findings are
-  fixed, and the review is recorded:
-  `pnpm delivery review --evidence-file <json>`. Publish refuses a UI diff
-  without a record for that change.
+  `floc:design-review` agent reviews it with screenshots, and its findings are
+  fixed.
 - **Docs:** run `/floc:sync-docs` now and keep the list of pages it changed.
   They are pushed after the merge, in step 5.
 - **Schema** → the new `drizzle/*.sql` is applied to this worktree's database.

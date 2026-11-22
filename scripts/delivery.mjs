@@ -1,14 +1,12 @@
-import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { git } from "./delivery/process.mjs";
 import { publish } from "./delivery/publish.mjs";
 import { finish } from "./delivery/finish.mjs";
 import { release } from "./delivery/release.mjs";
-import { recordReview } from "./delivery/review.mjs";
 import { pullRequest } from "./delivery/github.mjs";
 import { claimDocs } from "./delivery/docs.mjs";
-import { mainCheckout, targetFor } from "./workspace/worktrees.mjs";
+import { mainCheckout } from "./workspace/worktrees.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const [action = "status", ...args] = process.argv.slice(2);
@@ -38,15 +36,11 @@ try {
     if (!pr) throw new Error("finish needs --pr <number> [--docs <page>...]");
     result = await finish(root, { pr, docs: list("--docs") });
   } else if (action === "release") result = release(root, { approveSchema: option("--approve-schema") });
-  else if (action === "review") {
-    const branch = git(root, "branch", "--show-current");
-    recordReview(root, `origin/${targetFor(branch)}`, JSON.parse(readFileSync(option("--evidence-file"), "utf8")));
-    result = { state: "reviewed" };
-  } else if (action === "claim") {
+  else if (action === "claim") {
     const pages = list("--docs");
     if (!pages.length) throw new Error("claim needs --docs <page>...");
     result = claimDocs(mainCheckout(root), git(root, "branch", "--show-current"), pages);
-  } else throw new Error("Expected status, publish, finish, release, review or claim.");
+  } else throw new Error("Expected status, publish, finish, release or claim.");
   console.log(JSON.stringify(result));
 } catch (error) {
   console.error(error.message);

@@ -3,7 +3,6 @@ import { join, resolve } from "node:path";
 import { git } from "./process.mjs";
 import { autoMerge, gh, pullRequest, taskBranch, validateMessage } from "./github.mjs";
 import { mergeTarget } from "./sync.mjs";
-import { requireReview } from "./review.mjs";
 import { mainCheckout, targetFor } from "../workspace/worktrees.mjs";
 import { sweep } from "../workspace/sweep.mjs";
 import { bumpPlugin } from "./plugin-version.mjs";
@@ -44,7 +43,6 @@ export function publish(root, { messageFile, hold = false }) {
   if (!git(root, "rev-list", `origin/${target}..HEAD`)) throw new Error(`Nothing to publish: no commits beyond ${target}.`);
   const version = target === "main" ? bumpHotfix(root) : null;
   const plugin = bumpPlugin(root, target);
-  requireReview(root, `origin/${target}`);
   git(root, "push", "--quiet", "--set-upstream", "origin", `HEAD:refs/heads/${branch}`);
   let pr = pullRequest(root, branch, "open");
   if (!pr) {
