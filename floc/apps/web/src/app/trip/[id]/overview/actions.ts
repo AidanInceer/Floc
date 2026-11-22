@@ -8,6 +8,8 @@ import { refreshNudged, sendNudges } from "@/server/trips/nudges";
 import { capText } from "@floc/core/text/text";
 import { readTripName } from "@floc/core/trip/trip-name";
 import { castIdeaVote, deleteIdea, saveIdea } from "@/server/ideas/ideas";
+import { addIdeaToDays, renameIdea, restoreIdea, takeIdeaOffDays } from "@/server/ideas/idea-writes";
+import { readIdeaCategory } from "@floc/core/trip/idea-categories";
 import { LIMITS } from "@/server/limits";
 import { inviteToTrip } from "@/server/trips/invites";
 import {
@@ -121,7 +123,25 @@ export async function addIdea(formData: FormData) {
 
   const access = await requireTripAccess(tripId);
 
-  await saveIdea(access.trip.id, access.viewer.id, title);
+  await saveIdea(access.trip.id, access.viewer.id, title, readIdeaCategory(formData.get("category")));
+}
+
+export async function renameIdeaTitle(tripId: number, ideaId: number, title: string) {
+  const name = capText(title, "ideaTitle");
+  if (!name) return { error: "An idea needs a line of text." };
+  await renameIdea(await requireTripAccess(tripId), Number(ideaId), name);
+}
+
+export async function undoRemoveIdea(tripId: number, ideaId: number) {
+  await restoreIdea(await requireTripAccess(tripId), Number(ideaId));
+}
+
+export async function putIdeaOnDays(tripId: number, ideaId: number, dayId: number, time: string | null) {
+  await addIdeaToDays(await requireTripAccess(tripId), Number(ideaId), Number(dayId), time ? String(time) : null);
+}
+
+export async function undoIdeaOnDays(tripId: number, ideaId: number) {
+  await takeIdeaOffDays(await requireTripAccess(tripId), Number(ideaId));
 }
 
 export async function voteIdea(formData: FormData) {

@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { ideasTucked, readIdeaSort, sortIdeas, steadyOrder, voteLabel, type IdeaRow } from "./ideas";
+import { ideasStartOpen, sortIdeas, steadyOrder, voteLabel, type IdeaRow } from "./ideas";
 
 const idea = (id: number, votes: number): IdeaRow => ({
   id,
   title: `Idea ${id}`,
+  category: "other",
   createdAt: new Date(0),
   authorId: "u1",
   authorName: "Mara",
@@ -57,17 +58,6 @@ describe("sortIdeas", () => {
   });
 });
 
-describe("readIdeaSort", () => {
-  it("takes a known sort", () => {
-    expect(readIdeaSort("newest")).toBe("newest");
-  });
-
-  it("falls back to votes for anything else", () => {
-    expect(readIdeaSort("oldest")).toBe("votes");
-    expect(readIdeaSort(undefined)).toBe("votes");
-  });
-});
-
 describe("voteLabel", () => {
   it("says one vote in the singular", () => {
     expect(voteLabel(1, false)).toBe("1 vote");
@@ -82,20 +72,22 @@ describe("voteLabel", () => {
   });
 });
 
-describe("ideasTucked", () => {
+describe("ideasStartOpen", () => {
   const night = (overnightPlaceId: number | null) => ({ overnightPlaceId });
+  const dated = { startDate: "2027-05-01", endDate: "2027-05-04" };
+  const undated = { startDate: null, endDate: null };
 
-  it("keeps the ideas out while no night has a place", () => {
-    expect(ideasTucked({ days: [night(null), night(null)], today: false })).toBe(false);
-    expect(ideasTucked({ days: [], today: false })).toBe(false);
+  it("starts open on a trip with no dates, even with a stop", () => {
+    expect(ideasStartOpen({ ...undated, days: [night(7)] })).toBe(true);
   });
 
-  it("tucks them away once any night has a place", () => {
-    expect(ideasTucked({ days: [night(null), night(7)], today: false })).toBe(true);
+  it("starts open on a dated trip with no stop yet", () => {
+    expect(ideasStartOpen({ ...dated, days: [night(null), night(null)] })).toBe(true);
+    expect(ideasStartOpen({ ...dated, days: [] })).toBe(true);
   });
 
-  it("tucks them away while the trip is under way", () => {
-    expect(ideasTucked({ days: [night(null)], today: true })).toBe(true);
+  it("starts closed once the trip has dates and a stop", () => {
+    expect(ideasStartOpen({ ...dated, days: [night(null), night(7)] })).toBe(false);
   });
 });
 

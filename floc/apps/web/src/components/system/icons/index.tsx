@@ -33,6 +33,16 @@ export function LineIcon({
 
 export type IconProps = { size?: number; className?: string };
 
+export function MoreIcon() {
+  return (
+    <svg viewBox="0 0 14 14" width="13" height="13" fill="currentColor" aria-hidden="true">
+      <circle cx="2.5" cy="7" r="1" />
+      <circle cx="7" cy="7" r="1" />
+      <circle cx="11.5" cy="7" r="1" />
+    </svg>
+  );
+}
+
 export function CrossIcon(props: IconProps) {
   return (
     <LineIcon {...props}>

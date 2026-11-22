@@ -16,7 +16,7 @@ import { useFormStatus } from "react-dom";
 import { usePathname, useSearchParams } from "next/navigation";
 
 import { Button, Card, ErrorText, busyMark, cx, iconButtonClass } from "./ui";
-import { CheckIcon } from "./icons";
+import { CheckIcon, MoreIcon } from "./icons";
 
 const SheetCloseContext = createContext<(() => void) | null>(null);
 
@@ -510,22 +510,6 @@ export function Menu({
         </div>
       ) : null}
     </div>
-  );
-}
-
-function MoreIcon() {
-  return (
-    <svg
-      viewBox="0 0 14 14"
-      width="13"
-      height="13"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <circle cx="2.5" cy="7" r="1" />
-      <circle cx="7" cy="7" r="1" />
-      <circle cx="11.5" cy="7" r="1" />
-    </svg>
   );
 }
 

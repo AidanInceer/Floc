@@ -5,17 +5,20 @@ import { and, count, desc, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { idea, ideaVote, user, userProfile } from "@/db/schema";
 import { parseAvatarIcon } from "@floc/core/people/avatar-icon";
+import { readIdeaCategory } from "@floc/core/trip/idea-categories";
 import type { IdeaRow } from "@floc/core/trip/ideas";
+import { openIdeas } from "@/server/ideas/open-ideas";
 import { bounded, LIMITS } from "@/server/limits";
 
 export async function listIdeas(tripId: number, viewerId: string): Promise<IdeaRow[]> {
-  const live = and(eq(idea.tripId, tripId), isNull(idea.deletedAt));
+  const live = openIdeas(tripId);
 
   const [rows, voteRows] = await Promise.all([
     db
       .select({
         id: idea.id,
         title: idea.title,
+        category: idea.category,
         createdAt: idea.createdAt,
         authorId: idea.createdBy,
         authorName: user.name,
@@ -46,6 +49,7 @@ export async function listIdeas(tripId: number, viewerId: string): Promise<IdeaR
 
   return bounded(rows, "ideas", `trip ${tripId}`).map((r) => ({
     ...r,
+    category: readIdeaCategory(r.category),
     authorAvatarIcon: parseAvatarIcon(r.authorAvatarIcon),
     votes: tally.get(r.id)?.votes ?? 0,
     mine: tally.get(r.id)?.mine ?? false,
@@ -53,7 +57,7 @@ export async function listIdeas(tripId: number, viewerId: string): Promise<IdeaR
 }
 
 export async function ideaVoters(tripId: number): Promise<{ count: number; voterIds: string[] }> {
-  const live = and(eq(idea.tripId, tripId), isNull(idea.deletedAt));
+  const live = openIdeas(tripId);
   const [[{ n }], voters] = await Promise.all([
     db.select({ n: count() }).from(idea).where(live),
     db

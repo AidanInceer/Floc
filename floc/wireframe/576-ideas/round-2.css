@@ -1,0 +1,25 @@
+.rb { margin-bottom: 28px; scroll-margin-top: 12px; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); overflow: hidden; }
+.r-list { max-height: 416px; overflow-y: auto; border-top: 1px solid var(--rule); scrollbar-width: thin; }
+.r-row { display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 6px 16px; border-bottom: 1px solid var(--rule); }
+.r-list > .r-row:last-child { border-bottom: 0; }
+.r-tile { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; flex-shrink: 0; border-radius: var(--radius-sm); }
+.r-t { flex: 1; min-width: 0; display: grid; line-height: 1.25; }
+.r-t b { overflow: hidden; font-size: 13px; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+.r-t small { overflow: hidden; font-size: 11px; color: var(--ink-2); white-space: nowrap; text-overflow: ellipsis; }
+.r-go { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; height: 26px; padding: 0 6px; border-radius: var(--radius-sm); font-size: 13px; color: var(--pen-deep); white-space: nowrap; transition: background .22s var(--ease); }
+.r-go:hover { background: var(--pen-2); }
+.r-more { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; flex-shrink: 0; border: 1px solid var(--rule-2); border-radius: var(--radius-sm); background: var(--sheet); color: var(--ink-2); transition: border-color .22s var(--ease), color .22s var(--ease); }
+.r-more:hover, .r-more[aria-expanded="true"] { border-color: var(--pen); color: var(--pen-deep); }
+.r-pop { z-index: 250; min-width: 140px; }
+.r-pop button { color: var(--ink); }
+.r-pop button:hover { background: var(--pen-2); color: var(--pen-deep); }
+.r-pop button.danger { color: var(--red); }
+.r-pop button.danger:hover { background: var(--red-2); color: var(--red); }
+.r-rename { flex: 1; display: flex; align-items: center; gap: 6px; min-width: 0; }
+.r-rename input[name="title"] { flex: 1; min-width: 0; height: 31px; padding: 0 10px; border: 1px solid var(--rule-2); border-radius: var(--radius-sm); background: var(--sheet); font-size: 13px; }
+.r-empty { padding: 26px 16px; text-align: center; font-size: 13px; color: var(--ink-2); }
+
+@media (max-width: 700px) {
+  .r-list { max-height: none; overflow: visible; }
+  .r-row { padding: 6px 12px; gap: 8px; }
+}

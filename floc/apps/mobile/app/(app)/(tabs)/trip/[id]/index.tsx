@@ -25,6 +25,7 @@ import { FilesLine } from "@/components/trip/overview/files-line";
 import { OverviewCard } from "@/components/trip/overview-card";
 import { RecapFoot } from "@/components/trip/overview/recap-foot";
 import { recapShows } from "@floc/core/trip/overview/recap";
+import { ideasStartOpen } from "@floc/core/trip/ideas";
 import { TripMapSection } from "@/components/trip/route/trip-map-section";
 import { StopList } from "@/components/trip/stops/stop-list";
 import { TripSheet, draftFor, type TripDraft } from "@/components/trip/trip-sheet";
@@ -101,7 +102,13 @@ export default function Overview() {
       <TripMapSection route={route} tone={pastelOf(tripPastel(readTripColor(trip.data.colorKey), tripId))} />
 
       <View onLayout={mark("ideas")}>
-        <IdeasSection tripId={tripId} datesUnset={!trip.data.startDate && !trip.data.endDate} />
+        {days.isPending ? <Loading /> : (
+          <IdeasSection
+            tripId={tripId}
+            startOpen={ideasStartOpen({ startDate: trip.data.startDate, endDate: trip.data.endDate, days: days.data ?? [] })}
+            days={days.data ?? []}
+          />
+        )}
       </View>
 
       {legs.length > 0 ? <BookingsCard tripId={tripId} legs={legs} wholeTrip={wholeTrip} onOpenFiles={() => go("files")} /> : null}

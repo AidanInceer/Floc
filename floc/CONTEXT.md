@@ -130,6 +130,16 @@ person's *Shared list*.
 things to do at each stop, with pace and cost. *Other stops*: places to swap
 in, how many nights, and what to do there.
 
+## Ideas
+
+**Idea** — one option the group is choosing between: a line of text members vote
+on. While its event exists on Days, it is out of the list.
+
+**Idea category** — where an idea sits: Travel, Activities, Food, Drinks, Other,
+or one a member adds. A member's category lasts while an idea uses it.
+
+**Add to Days** — turns an idea into an event of its category's type.
+
 ## Roster
 
 **Guest** — a person on a trip's invite link who voted with a name and no

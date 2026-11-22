@@ -192,10 +192,22 @@
     "ideas.add": {
       "mobile": "yes"
     },
+    "ideas.addToDays": {
+      "mobile": "yes"
+    },
     "ideas.list": {
       "mobile": "yes"
     },
     "ideas.remove": {
+      "mobile": "yes"
+    },
+    "ideas.rename": {
+      "mobile": "yes"
+    },
+    "ideas.restore": {
+      "mobile": "yes"
+    },
+    "ideas.takeOffDays": {
       "mobile": "yes"
     },
     "ideas.vote": {

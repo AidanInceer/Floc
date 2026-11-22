@@ -17,6 +17,22 @@ export function TickGlyph({ color }: { color: string }) {
   );
 }
 
+export function ArrowRightGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={13} height={13} viewBox="0 0 14 14" fill="none">
+      <Path d="M2.4 7h9.2M8 3.4 11.6 7 8 10.6" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function GlassGlyph({ color }: { color: string }) {
+  return (
+    <Svg width={13} height={13} viewBox="0 0 14 14" fill="none">
+      <Path d="M4 2h6l-.6 4.5a2.4 2.4 0 0 1-4.8 0zM7 9v3M5 12h4" stroke={color} strokeWidth={STROKE} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 export function CrossGlyph({ color }: { color: string }) {
   return (
     <Svg width={16} height={16} viewBox="0 0 14 14" fill="none">
@@ -400,20 +416,6 @@ export function SparkGlyph({ color, size = 14 }: { color: string; size?: number 
         d="M7 1.8c.4 2.8 1.4 4 4.2 5.2-2.8 1.2-3.8 2.4-4.2 5.2-.4-2.8-1.4-4-4.2-5.2C5.6 5.8 6.6 4.6 7 1.8Z"
         stroke={color}
         strokeWidth={STROKE}
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-export function BulbGlyph({ color }: { color: string }) {
-  return (
-    <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
-      <Path
-        d="M5.2 10.2h3.6M5.6 12h2.8M7 1.8a3.6 3.6 0 0 0-2.2 6.4c.4.3.5.7.5 1.1v.9h3.4v-.9c0-.4.1-.8.5-1.1A3.6 3.6 0 0 0 7 1.8Z"
-        stroke={color}
-        strokeWidth={STROKE}
-        strokeLinecap="round"
         strokeLinejoin="round"
       />
     </Svg>

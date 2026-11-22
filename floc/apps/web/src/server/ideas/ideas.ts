@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { idea, ideaVote } from "@/db/schema";
 import { assertRoom } from "@/server/limits";
 import { TEXT_CAPS } from "@floc/core/text/text";
+import { readIdeaCategory } from "@floc/core/trip/idea-categories";
 import { touch } from "@/server/audit";
 import { refresh } from "@/server/freshness";
 
@@ -23,12 +24,17 @@ export async function insertIdea(args: {
   tripId: number;
   createdBy: string;
   title: string;
+  category?: string | null;
 }): Promise<number> {
   const [{ n }] = await db.select({ n: count() }).from(idea).where(and(eq(idea.tripId, args.tripId), isNull(idea.deletedAt)));
   assertRoom("ideas", n);
   const row = await db
     .insert(idea)
-    .values({ ...args, title: args.title.slice(0, IDEA_TITLE_MAX) })
+    .values({
+      ...args,
+      title: args.title.slice(0, IDEA_TITLE_MAX),
+      category: args.category == null ? null : readIdeaCategory(args.category),
+    })
     .returning({ id: idea.id })
     .get();
   return row.id;
@@ -66,8 +72,8 @@ export async function toggleIdeaVote(ideaId: number, userId: string): Promise<vo
     });
 }
 
-export async function saveIdea(tripId: number, userId: string, title: string): Promise<void> {
-  await insertIdea({ tripId, createdBy: userId, title });
+export async function saveIdea(tripId: number, userId: string, title: string, category?: string): Promise<void> {
+  await insertIdea({ tripId, createdBy: userId, title, category });
   refresh({ kind: "ideas", tripId });
 }
 
