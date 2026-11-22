@@ -73,7 +73,10 @@ import {
   applyKit,
   fillBag,
   removeSuggested,
+  removeUnpacked,
+  setIdeasShown,
   takeIdea,
+  unpackBag,
   removeLine,
   removeLines,
   renameLine,
@@ -143,7 +146,7 @@ export const webPort: FlocPort = {
 
   async loadPacking(viewerId, tripId): Promise<PackingBoard> {
     const access = await scoped(viewerId, tripId);
-    const { lines: shared, claims, mine, kits, tier, plan, packingPro: canAutoFill, ideas } =
+    const { lines: shared, claims, mine, kits, tier, plan, packingPro: canAutoFill, ideas, ideaCount, ideasShown } =
       await readPackingBoard(access.trip, viewerId);
 
     const byLine = new Map<number, PackingBoard["shared"][number]["claims"]>();
@@ -172,6 +175,8 @@ export const webPort: FlocPort = {
       kits: kits.map((kit) => ({ id: kit.id, name: kit.name, itemCount: kit.itemCount })),
       canAutoFill,
       ideas,
+      ideaCount,
+      ideasShown,
       plan,
     };
   },
@@ -224,6 +229,18 @@ export const webPort: FlocPort = {
 
   async removeSuggestedPacking(viewerId, tripId) {
     await removeSuggested(await scoped(viewerId, tripId));
+  },
+
+  async removeUnpackedPacking(viewerId, tripId) {
+    await removeUnpacked(await scoped(viewerId, tripId));
+  },
+
+  async unpackMyBag(viewerId, tripId) {
+    await unpackBag(await scoped(viewerId, tripId));
+  },
+
+  async setPackingIdeasShown(viewerId, tripId, shown) {
+    await setIdeasShown(await scoped(viewerId, tripId), shown);
   },
 
   async applyPackingKit(viewerId, tripId, kitId) {

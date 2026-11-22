@@ -54,7 +54,6 @@ export const settingsPort: SettingsPort = {
       pastTripsShow: profile.pastTripsShow,
       vibeTags: readVibeTags(profile.vibeTags),
       packTier: profile.packTier,
-      packAutoGenerate: profile.packAutoGenerate,
       reduceMotion: profile.reduceMotion,
       homeCurrency: profile.homeCurrency,
       notifyPush: profile.notifyPush,
@@ -97,10 +96,7 @@ export const settingsPort: SettingsPort = {
 
   async updatePackingDefaults(viewerId, input) {
     await ensureProfile(viewerId);
-    await updateProfileFields(viewerId, {
-      packTier: input.tier,
-      packAutoGenerate: input.autoGenerate,
-    });
+    await updateProfileFields(viewerId, { packTier: input.tier });
     refresh({ kind: "profile" });
   },
 

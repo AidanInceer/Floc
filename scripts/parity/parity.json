@@ -365,6 +365,9 @@
     "packing.removeSuggested": {
       "mobile": "yes"
     },
+    "packing.removeUnpacked": {
+      "mobile": "yes"
+    },
     "packing.rename": {
       "mobile": "yes"
     },
@@ -372,6 +375,9 @@
       "mobile": "yes"
     },
     "packing.saveKit": {
+      "mobile": "yes"
+    },
+    "packing.setIdeasShown": {
       "mobile": "yes"
     },
     "packing.setPacked": {
@@ -384,6 +390,9 @@
       "mobile": "yes"
     },
     "packing.takeIdea": {
+      "mobile": "yes"
+    },
+    "packing.unpackBag": {
       "mobile": "yes"
     },
     "pages.archive": {

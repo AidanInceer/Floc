@@ -1,7 +1,7 @@
 "use client";
 
 import { ButtonLink, cx } from "@/components/system/ui";
-import type { BorrowCard as Card } from "@/lib/landing/borrow";
+import { placeWords, type BorrowCard as Card } from "@/lib/landing/borrow";
 import { listingStartHref } from "@/lib/landing/start-trip";
 
 import { Glyph } from "@/components/system/icons/landing";
@@ -13,8 +13,8 @@ export function StartButton({ card, signedIn, variant, className, label }: Props
     <ButtonLink href={listingStartHref(signedIn, card.id)} variant={variant} className={cx("borrow-start", className)}>
       {label ?? (
         <>
-          <span className="borrow-start-place">Start from {card.place}</span>
-          <span className="borrow-start-still">Start this trip</span>
+          Start from {placeWords(card.place)}
+          {placeWords(card.place) !== card.place && <span className="sr-only">: {card.place}</span>}
         </>
       )}{" "}
       <Glyph name="arrow" />

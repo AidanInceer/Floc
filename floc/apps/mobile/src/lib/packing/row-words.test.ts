@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { groupCount, needsRemoveConfirm, sectionCount, sharedSaid, splitFigures } from "./row-words";
+import { groupCount, needsRemoveConfirm, sharedSaid, splitFigures } from "./row-words";
 
 describe("groupCount", () => {
   it("shows packed over total", () => {
@@ -18,17 +18,6 @@ describe("groupCount", () => {
 
   it("is empty for no lines", () => {
     expect(groupCount([])).toEqual({ text: "", full: false });
-  });
-});
-
-describe("sectionCount", () => {
-  it("counts things when none are packed", () => {
-    expect(sectionCount(1, 0)).toBe("1 thing");
-    expect(sectionCount(4, 0)).toBe("4 things");
-  });
-
-  it("counts packed of total", () => {
-    expect(sectionCount(5, 2)).toBe("2 of 5 packed");
   });
 });
 

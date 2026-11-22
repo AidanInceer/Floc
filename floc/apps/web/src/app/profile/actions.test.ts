@@ -77,9 +77,9 @@ describe("the profile", () => {
   });
 
   it("saves packing defaults and refuses an unknown style", async () => {
-    expect(await updatePacking(form({ packTier: "light", packAutoGenerate: "on" }))).toEqual({});
+    expect(await updatePacking(form({ packTier: "light" }))).toEqual({});
     expect(await updatePacking(form({ packTier: "featherweight" }))).toEqual({ error: "Pick a packing style." });
-    expect(await profile()).toMatchObject({ packTier: "light", packAutoGenerate: true });
+    expect(await profile()).toMatchObject({ packTier: "light" });
   });
 
   it("keeps animations on until you turn them off", async () => {

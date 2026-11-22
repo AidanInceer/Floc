@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "6d8b8e51-addd-4abf-bc8f-76b69093e15e",
+  "id": "cb774485-e2a6-4d67-9efa-5f2f82d35a80",
   "prevId": "6c1cff4f-6582-40c1-89ed-2c732d10bd8e",
   "tables": {
     "account": {
@@ -1046,14 +1046,6 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
-        },
-        "not_needed": {
-          "name": "not_needed",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": false
         },
         "budget_minor": {
           "name": "budget_minor",
@@ -4291,6 +4283,13 @@
           "notNull": false,
           "autoincrement": false
         },
+        "pack_ideas_shown_at": {
+          "name": "pack_ideas_shown_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "starred_at": {
           "name": "starred_at",
           "type": "integer",
@@ -4337,13 +4336,6 @@
         "est_nights": {
           "name": "est_nights",
           "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "est_travel": {
-          "name": "est_travel",
-          "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false

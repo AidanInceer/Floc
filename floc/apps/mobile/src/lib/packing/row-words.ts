@@ -1,14 +1,9 @@
-import { cubeCount, thingCount } from "@floc/core/packing/packing-words";
+import { cubeCount } from "@floc/core/packing/packing-words";
 
 export function groupCount(packed: (boolean | null)[]): { text: string; full: boolean } {
   if (packed.length === 0) return { text: "", full: false };
   if (packed.some((p) => p === null)) return { text: `${packed.length} to claim`, full: false };
   return cubeCount(packed.filter(Boolean).length, packed.length);
-}
-
-export function sectionCount(total: number, packed: number): string {
-  if (packed > 0) return `${packed} of ${total} packed`;
-  return thingCount(total);
 }
 
 export function sharedSaid({ others }: { others: string[] }): string {
