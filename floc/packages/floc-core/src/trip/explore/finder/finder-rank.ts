@@ -1,3 +1,4 @@
+import type { Fits } from "../fit/listing-fit";
 import type { PresetTrip } from "../preset-trip-types";
 import { fits, priceFigure, type Finder } from "./finder";
 import type { TripTag } from "./tag-groups";
@@ -14,22 +15,18 @@ export const FINDER_SORTS = {
 
 export type FinderSort = keyof typeof FINDER_SORTS;
 
+export const sortLabel = (sort: FinderSort, matched: boolean): string => (sort === "match" && matched ? "Best match first" : FINDER_SORTS[sort]);
+
 export type Ranked = {
   trip: PresetTrip;
   hits: TripTag[];
-  shared: TripTag[] | null;
   score: number;
+  fit: number | null;
 };
-
-function alike(a: PresetTrip, b: PresetTrip): { score: number; shared: TripTag[] } {
-  const mine = new Set<string>([...tagsOf(a), a.region]);
-  const theirs = [...tagsOf(b), b.region];
-  const shared = theirs.filter((x) => mine.has(x));
-  return { score: shared.length / Math.sqrt(mine.size * theirs.length), shared: shared.filter((x): x is TripTag => x !== a.region) };
-}
 
 const price = (r: Ranked) => priceFigure(r.trip, "trip");
 const best = (a: Ranked, b: Ranked) => b.score - a.score || price(a) - price(b);
+const fitted = (a: Ranked, b: Ranked) => (b.fit ?? -1) - (a.fit ?? -1) || price(a) - price(b);
 const ORDER: Record<FinderSort, (a: Ranked, b: Ranked) => number> = {
   season: best,
   match: best,
@@ -47,25 +44,28 @@ function pickLead(picks: readonly string[], sort: FinderSort, open: boolean): (a
   return (a, b) => rank(a) - rank(b);
 }
 
+function orderFor(f: Finder, sort: FinderSort, saved: ReadonlySet<string>, picks: readonly string[], matched: boolean): (a: Ranked, b: Ranked) => number {
+  if (sort === "match" && matched) return fitted;
+  const lead = pickLead(picks, sort, !f.likes.length);
+  const savedFirst = sort === "match";
+  return (a, b) => (savedFirst ? Number(saved.has(b.trip.id)) - Number(saved.has(a.trip.id)) : 0) || lead(a, b) || ORDER[sort](a, b);
+}
+
 export function rankTrips(
   trips: readonly PresetTrip[],
   f: Finder,
   sort: FinderSort,
-  likeId: string | null,
   saved: ReadonlySet<string> = new Set(),
   picks: readonly string[] = [],
+  figures: Fits | null = null,
 ): Ranked[] {
-  const like = trips.find((t) => t.id === likeId) ?? null;
-  const savedFirst = sort === "match" && !like;
-  const lead = pickLead(picks, sort, !like && !f.likes.length);
-  const first = (a: Ranked, b: Ranked) => (savedFirst ? Number(saved.has(b.trip.id)) - Number(saved.has(a.trip.id)) : 0) || lead(a, b);
+  const order = orderFor(f, sort, saved, picks, figures !== null);
   return trips
-    .filter((t) => t !== like && fits(t, f))
+    .filter((t) => fits(t, f))
     .map((trip) => {
       const tags = tagsOf(trip);
       const hits = f.likes.filter((x) => tags.includes(x));
-      if (like) return { trip, hits, ...alike(like, trip) };
-      return { trip, hits, shared: null, score: f.likes.length ? hits.length / f.likes.length : 0 };
+      return { trip, hits, score: f.likes.length ? hits.length / f.likes.length : 0, fit: figures?.[trip.id] ?? null };
     })
-    .sort((a, b) => first(a, b) || ORDER[sort](a, b) || a.trip.title.localeCompare(b.trip.title, "en-GB"));
+    .sort((a, b) => order(a, b) || a.trip.title.localeCompare(b.trip.title, "en-GB"));
 }

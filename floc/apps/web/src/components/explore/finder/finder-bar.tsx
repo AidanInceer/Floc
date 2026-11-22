@@ -1,6 +1,6 @@
 "use client";
 
-import { FINDER_SORTS, type FinderSort } from "@floc/core/trip/explore/finder/finder-rank";
+import { FINDER_SORTS, sortLabel, type FinderSort } from "@floc/core/trip/explore/finder/finder-rank";
 import type { ReactNode } from "react";
 
 import { CrossIcon, LineIcon } from "@/components/system/icons";
@@ -17,18 +17,15 @@ const SORT_ICONS: Record<FinderSort, ReactNode> = {
   long: <path d="M1.2 7h11.6M1.2 5.4v3.2M12.8 5.4v3.2" />,
 };
 
-function Pill({ dark = false, onClick, children }: { dark?: boolean; onClick: () => void; children: ReactNode }) {
+function Pill({ onClick, children }: { onClick: () => void; children: ReactNode }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={cx(
-        "group inline-flex min-h-7 items-center gap-1.5 rounded-full pl-[11px] pr-2 text-[13px]",
-        dark ? "bg-pen-soft text-pen-deep" : "bg-sheet-3 text-ink",
-      )}
+      className="group inline-flex min-h-7 items-center gap-1.5 rounded-full bg-sheet-3 pl-[11px] pr-2 text-[13px] text-ink"
     >
       {children}
-      <CrossIcon size={11} className={dark ? undefined : "text-ink-faint group-hover:text-ink"} />
+      <CrossIcon size={11} className="text-ink-faint group-hover:text-ink" />
     </button>
   );
 }
@@ -37,11 +34,13 @@ export function FinderBar({
   shown,
   set,
   pills,
+  hint,
   onOpen,
 }: {
   shown: number;
   set: number;
-  pills: { id: string; label: string; dark?: boolean; onClear: () => void }[];
+  pills: { id: string; label: string; onClear: () => void }[];
+  hint?: ReactNode;
   onOpen: () => void;
 }) {
   return (
@@ -57,16 +56,17 @@ export function FinderBar({
           Filters{set ? ` · ${set}` : ""}
         </button>
         {pills.map((p) => (
-          <Pill key={p.id} dark={p.dark} onClick={p.onClear}>
+          <Pill key={p.id} onClick={p.onClear}>
             {p.label}
           </Pill>
         ))}
       </div>
+      {hint}
     </div>
   );
 }
 
-export function SortPicker({ sort, onSort }: { sort: FinderSort; onSort: (sort: FinderSort) => void }) {
+export function SortPicker({ sort, matched, onSort }: { sort: FinderSort; matched: boolean; onSort: (sort: FinderSort) => void }) {
   return (
     <div role="radiogroup" aria-label="Sort" className="flex h-11 shrink-0 items-stretch justify-between gap-0.5 rounded-md border border-rule-strong bg-sheet p-0.5 max-sm:w-full max-sm:p-px">
       {(Object.keys(FINDER_SORTS) as FinderSort[]).map((key) => (
@@ -75,8 +75,8 @@ export function SortPicker({ sort, onSort }: { sort: FinderSort; onSort: (sort: 
           type="button"
           role="radio"
           aria-checked={sort === key}
-          aria-label={FINDER_SORTS[key]}
-          title={FINDER_SORTS[key]}
+          aria-label={sortLabel(key, matched)}
+          title={sortLabel(key, matched)}
           onClick={() => onSort(key)}
           className={cx(
             "grid w-9 place-items-center rounded-sm transition-colors max-sm:w-auto max-sm:flex-1",

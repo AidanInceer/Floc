@@ -1,7 +1,7 @@
 import { EMPTY_FINDER, finderCounts, type Finder } from "@floc/core/trip/explore/finder/finder";
 import { rankTrips, type FinderSort } from "@floc/core/trip/explore/finder/finder-rank";
 import { finderPills } from "@floc/core/trip/explore/finder/finder-words";
-import { comingSeason, seasonPicks, seasonWords } from "@floc/core/trip/explore/finder/season-picks";
+import { comingSeason, seasonPicks } from "@floc/core/trip/explore/finder/season-picks";
 import { listingPrice } from "@floc/core/trip/explore/listing-price";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -16,6 +16,7 @@ import { ExploreMap, MAP_PICKS } from "@/components/explore/explore-map";
 import { FinderBar } from "@/components/explore/finder/finder-bar";
 import { FinderSheet } from "@/components/explore/finder/finder-sheet";
 import { ListingRow } from "@/components/explore/listing-row";
+import { MatchHint } from "@/components/explore/match-hint";
 import { useOpeningPick } from "@/components/explore/use-opening-pick";
 import { useTheme } from "@/components/system/theme";
 import { Body, Empty, Heading, SearchField } from "@/components/system/ui";
@@ -29,7 +30,7 @@ function useTopPicks() {
   const month = new Date().getUTCMonth() + 1;
   return useMemo(() => {
     const season = comingSeason(month);
-    return { ids: seasonPicks(PRESET_TRIPS, season).map((t) => t.id), words: `Top pick for ${seasonWords(season)}` };
+    return { ids: seasonPicks(PRESET_TRIPS, season).map((t) => t.id) };
   }, [month]);
 }
 
@@ -66,7 +67,8 @@ export default function Explore() {
   });
 
   const trip = PRESET_TRIPS.find((t) => t.id === picked) ?? PRESET_TRIPS[0];
-  const rows = useMemo(() => rankTrips(PRESET_TRIPS, finder, sort, null, new Set(saves.data ?? []), top.ids), [finder, sort, saves.isSuccess, top.ids]);
+  const fit = state.data?.fit ?? null;
+  const rows = useMemo(() => rankTrips(PRESET_TRIPS, finder, sort, new Set(saves.data ?? []), top.ids, fit), [finder, sort, saves.isSuccess, top.ids, fit]);
   const counts = useMemo(() => finderCounts(PRESET_TRIPS, finder), [finder]);
   const pills = finderPills(finder, state.data?.rates ?? null);
   const shown = showAll ? rows : rows.slice(0, ROW_LIMIT);
@@ -112,9 +114,11 @@ export default function Explore() {
           set={pills.length + finder.likes.length}
           pills={pills.map((p) => ({ id: p.id, label: p.label, onClear: () => change(p.clear) }))}
           sort={sort}
+          matched={fit !== null}
           onSort={setSort}
           onOpen={() => setSheet(true)}
         />
+        <MatchHint fit={fit} ready={state.isSuccess} />
         {rows.length === 0 ? (
           <Empty>No trip fits all of that. Remove a filter.</Empty>
         ) : (
@@ -124,7 +128,7 @@ export default function Explore() {
                 key={row.trip.id}
                 trip={row.trip}
                 figures={`${countWord(row.trip.nights, "night")} · from ${listingPrice(row.trip, state.data?.rates ?? null)}`}
-                pick={top.ids.includes(row.trip.id) ? top.words : undefined}
+                match={row.fit}
                 last={i === shown.length - 1}
                 onOpen={() => open(row.trip.id)}
               />

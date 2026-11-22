@@ -14,6 +14,8 @@ export type WishListItem = {
   url: string | null;
   label: string | null;
   addedBy: FriendPerson | null;
+  votes: number;
+  voted: boolean;
 };
 
 export type WishListDetail = {
@@ -36,5 +38,6 @@ export type WishListsPort = {
   renameWishList(viewerId: string, listId: number, name: string): Promise<void>;
   addWishItem(viewerId: string, listId: number, item: WishItemInput): Promise<number>;
   removeWishItem(viewerId: string, listId: number, itemId: number): Promise<void>;
+  toggleWishVote(viewerId: string, listId: number, itemId: number): Promise<void>;
   wishListPeopleToAsk(viewerId: string, listId: number): Promise<FriendPerson[]>;
 };

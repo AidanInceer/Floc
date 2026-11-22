@@ -120,6 +120,7 @@ export function AccountSettings({ email, profile, linkedAccounts, calendarGrante
                 visibilitySaved: profile.visibilitySaved,
               }}
               pastTripsLatest={profile.pastTripsShow === "latest"}
+              styleInGroupIdeas={profile.styleInGroupIdeas}
             />
           </AutoSaveForm>
         </SettingsRow>

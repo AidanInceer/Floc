@@ -51,6 +51,16 @@ describe("privacy", () => {
     expect((await profile())?.pastTripsShow).toBe("all");
   });
 
+  it("reads the trip-ideas switch as on, and its absence as off (#177, ADR-074)", async () => {
+    expect((await profile())?.styleInGroupIdeas ?? true).toBe(true);
+
+    await updatePrivacy(form(rings));
+    expect((await profile())?.styleInGroupIdeas).toBe(false);
+
+    await updatePrivacy(form({ ...rings, styleInGroupIdeas: "on" }));
+    expect((await profile())?.styleInGroupIdeas).toBe(true);
+  });
+
   it("refuses a ring that isn't one", async () => {
     expect(await updatePrivacy(form({ ...rings, visibilityFriends: "everyone" }))).toEqual({
       error: "That isn't one of the visibility options.",

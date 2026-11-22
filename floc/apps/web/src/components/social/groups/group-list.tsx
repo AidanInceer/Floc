@@ -1,15 +1,18 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import { peopleCount } from "@floc/core/people/group-ticks";
 
 import { deleteGroupAction } from "@/app/friends/actions";
 import { ConfirmSubmit, Menu } from "@/components/system/client-ui";
-import { AvatarRow, ErrorText, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
+import { AvatarRow, Button, ErrorText, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
 import type { Group } from "@/server/social/groups";
 
 import { useGroupData } from "./group-data";
 import type { GroupSheetMode } from "./group-sheet";
+
+const GroupIdeasDialog = dynamic(() => import("./group-ideas-dialog"));
 
 export function GroupList({ onOpen }: { onOpen: (mode: GroupSheetMode) => void }) {
   const { groups } = useGroupData();
@@ -18,6 +21,7 @@ export function GroupList({ onOpen }: { onOpen: (mode: GroupSheetMode) => void }
 
 function GroupRow({ group, onEdit }: { group: Group; onEdit: () => void }) {
   const [error, setError] = useState<string>();
+  const [ideas, setIdeas] = useState(false);
   return (
     <li className="border-b border-rule">
       <div className="flex min-h-15 items-center gap-1.5 py-1">
@@ -32,6 +36,13 @@ function GroupRow({ group, onEdit }: { group: Group; onEdit: () => void }) {
           </span>
           <AvatarRow people={group.members} size={24} max={5} />
         </button>
+        <Button className="shrink-0 gap-1.5 max-sm:px-2" aria-label={`Trip ideas for ${group.name}`} onClick={() => setIdeas(true)}>
+          <svg viewBox="0 0 14 14" width={13} height={13} fill="none" stroke="currentColor" strokeWidth={1.2} aria-hidden>
+            <circle cx="7" cy="7" r="5" className="stroke-rule-strong" />
+            <circle cx="7" cy="7" r="5" strokeWidth={1.7} pathLength={100} strokeDasharray="72 100" transform="rotate(-90 7 7)" />
+          </svg>
+          <span className="max-sm:hidden">Trip ideas</span>
+        </Button>
         <Menu label={`More for ${group.name}`}>
           <button type="button" className={menuItemClass} onClick={onEdit}>Edit group</button>
           <form action={async () => setError((await deleteGroupAction(group.id)).error)}>
@@ -47,6 +58,7 @@ function GroupRow({ group, onEdit }: { group: Group; onEdit: () => void }) {
         </Menu>
       </div>
       <ErrorText>{error}</ErrorText>
+      {ideas ? <GroupIdeasDialog group={group} onClose={() => setIdeas(false)} /> : null}
     </li>
   );
 }

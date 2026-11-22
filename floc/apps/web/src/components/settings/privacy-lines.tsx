@@ -36,10 +36,12 @@ export function PrivacyLines({
   isPrivate,
   rings,
   pastTripsLatest,
+  styleInGroupIdeas,
 }: {
   isPrivate: boolean;
   rings: Record<PartName, Visibility>;
   pastTripsLatest: boolean;
+  styleInGroupIdeas: boolean;
 }) {
   const [closed, setClosed] = useState(isPrivate);
   const [value, setValue] = useState(rings);
@@ -79,6 +81,12 @@ export function PrivacyLines({
       </div>
 
       <ToggleRow name="pastTripsLatest" label="Only my latest past trip" defaultChecked={pastTripsLatest} />
+      <ToggleRow
+        name="styleInGroupIdeas"
+        label="Friends’ trip ideas"
+        hint="A friend with you in a group can ask Floc for trips that fit the group. Your travel style counts; nothing shows what you like."
+        defaultChecked={styleInGroupIdeas}
+      />
     </>
   );
 }

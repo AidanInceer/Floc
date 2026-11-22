@@ -42,6 +42,7 @@ export async function updatePrivacy(formData: FormData): Promise<{ error?: strin
     visibilityFriends: friends,
     visibilitySaved: saved,
     pastTripsShow: formData.get("pastTripsLatest") === "on" ? "latest" : "all",
+    styleInGroupIdeas: formData.get("styleInGroupIdeas") === "on",
   });
 
   refresh({ kind: "profile" });

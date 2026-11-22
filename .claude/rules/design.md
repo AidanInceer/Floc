@@ -34,7 +34,8 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
   - A stop's hotel ribbon on the Overview: the file chip beside it names the booking, and its title and label say Booked.
   - The save heart on Explore fills red when saved; its label says Save or Saved with `aria-pressed` (ADR-042).
   - A nudged person's chip on a nudge line greys out with a tick; its hidden text and label say "nudged today". The line's Nudge all turns to the word Nudged once nobody is left (#705).
-  - A top pick's sun on Explore: on a web tile small and bare in the bottom right corner, quieter than the heart (Aidan); on a phone row beside the chevron. Its title and label say "Top pick for December to February", and the sort that brings the picks first is the same sun (#624, Aidan's pick of J3).
+  - Your match on an Explore listing: a small ink dial that fills, and the percentage, in the bottom right corner of a web tile and beside the chevron on a phone row. Ink only, never a pastel, a bar or a bookmark, so a tile's one colour stays its region (Aidan, #177, pick of G). Its title and label say "86% match" and give no reason. With no travel style there is no dial, and one quiet line opens Travel style on the web and Settings on the phone.
+  - A top pick on Explore has no mark on a tile or a phone row (Aidan, #177). The sort that brings the picks first is still the sun (#624).
 - Light and dark use the same token names. No `dark:` variant, no hex literal ✓. Values live in `@floc/core/design/tokens`. The theme choice lives in `localStorage`, never in a column.
 - The wordmark is **floc.** with a pen-blue dot, drawn only by `components/system/wordmark.tsx` and, for share cards, `components/system/og-card.tsx`. Share cards use the image renderer's default face: it cannot read our `.woff2` files, and a card must always render (rule 11).
 - An outside UI library only where building it would take months, and only if it takes our tokens, type and no-emoji rules.
@@ -63,6 +64,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
   - A stop on the Overview grows to its height as it opens and its chevron turns, 0.22s. A packed thing’s box turns green in 0.22s while its tick draws over 0.5s on `--ease-even`, slow enough to see it written (Aidan); a drawn stroke's dash matches its path length; a copy button keeps its words, holds a pen wash for about a second and shows a tick, the mark hover never shows; a primary keeps its fill and shows the tick alone, and a button with no icon holds the tick in its left padding so its width stays ([ADR-053](../../docs/foundation/decisions.html#adr-053)).
   - A toggle's white tile slides to the new choice, 0.22s; a day on an Explore trip grows to its height as it opens, as a stop does ([ADR-061](../../docs/foundation/decisions.html#adr-061)).
   - The welcome and Start a trip modals ease their height to each step, 0.28s, slide the step and tick a choice ([ADR-067](../../docs/foundation/decisions.html#adr-067)).
+  - After Trip ideas is pressed on a group, one dial fills for about two seconds over the words "Finding trips for" and the group's name; then the trips appear. It is the one staged wait: it shows no change and no destination, only that Floc worked something out for this group. It plays once, after a press, on `--ease-even`, and moves nothing else ([ADR-075](../../docs/foundation/decisions.html#adr-075)).
   - The top bar’s beads fuse as the page scrolls ([visual language](../../docs/design/visual-language.html#navigation-and-chrome)). Scroll sets how far the words have folded; the join plays once. No other workspace surface moves on scroll.
 
 ## Words
@@ -93,6 +95,8 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
   - On the Overview, Invite shares the going roster's line and is primary, web and phone (Aidan).
   - The Overview's budget row shows the figure, or "Add a place to start a budget", and no fit mark; Fits and Tight live on Money (Aidan).
   - A Saved tile on Lists shows Start trip beside its heart (#467). It is a quiet pen word with an arrow at the right end of the tile's last line, sharing that line with the figures (nights and price, or Explore trips); below sm only the arrow shows, and a trip's nights sit over its price. A compact country tile keeps the house heart size, larger than the mockup's, so its press target stays full size.
+  - A group's row on Groups shows Trip ideas, with the match dial as its glyph, beside its `…`; below sm only the dial shows. Its modal lists up to ten trips as ruled rows, each with the group's match, and its one main action is Ask the group to vote (Aidan, #177, pick of E; ADR-074).
+  - A thing on a wish list shows a vote beside its `…`: an up arrow and the count, 26px high in a row, green when it is yours; the same mark as an idea's vote on a trip, drawn smaller.
   - A My trips card shows two toggles beside its `…`, star and mute (a bell, slashed when muted). Each says its state in its label (`aria-pressed`, Mute/Unmute).
 - A setting is never a tick beside a link in a row: your booking sites are ticked in one Booking sites dialog, and rows show only the buttons (ADR-065).
 - On Notes, New page heads the page rail, where a Pages label would sit (Aidan).
@@ -107,6 +111,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - The page holds still. Switching a tab, day or filter never jumps the scroll or shifts the content above.
 - A card that opens something opens from anywhere on it, not only its title.
 - An Explore trip's page has a quiet way back to every trip above its card, top left (Aidan).
+- An Explore tile reads in one order: map, country tag, trip name, tag chips, then one last line with nights and price on the left and your match on the right. Below sm the nights sit over the price. A tile has no More like this (Aidan, #177).
 - An Explore tile frames enough land to tell the country by: a short trip zooms in no further than four tenths of the land's frame, even where its stops then touch (Aidan). Every edge on an outline map, coast or land border, is one hairline: 0.75, `rule-strong`, drawn over all the land (`LandPaths`), so the trip's country never has a heavier coast (Aidan).
 - Alignment is exact: rows, counts and controls in a group share edges and heights.
 - Pictures: one consistent treatment. Image controls sit in one bar under the image, never arrows on top. Map pins stay plain numbers. Explore's globe marks each trip with a pin shape, not a dot; trips that start in one town sit side by side. It zooms by its two buttons, never by the scroll wheel (Aidan). Your own trip shows no stock photos — photos there are the person's choice.
