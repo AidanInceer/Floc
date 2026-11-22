@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 import type { FoundFriend, FriendSearch } from "@floc/api/port";
 
 import { findFriends, requestFriendById, requestFriendByCode } from "@/app/friends/actions";
@@ -82,7 +82,7 @@ function Results({
   );
 }
 
-export function FindFriend() {
+export function FindFriend({ aside }: { aside?: ReactNode }) {
   const [query, setQuery] = useState("");
   const [searched, setSearched] = useState("");
   const [result, setResult] = useState<FriendSearch | null>(null);
@@ -105,8 +105,9 @@ export function FindFriend() {
   return (
     <div className="flex flex-col gap-3">
       <label htmlFor="friend-search" className="typed">Name or full friend tag</label>
+      <div className="flex items-center gap-2">
       <form
-        className="flex h-10 items-center gap-2 rounded-sm border border-rule-strong bg-sheet px-3 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-pen"
+        className="flex h-[31px] min-w-0 flex-1 items-center gap-2 rounded-sm border border-rule-strong bg-sheet px-2.5 transition-colors hover:border-ink-faint focus-within:outline focus-within:outline-2 focus-within:outline-offset-[-1px] focus-within:outline-pen"
         onSubmit={(event) => {
           event.preventDefault();
           search(query);
@@ -136,6 +137,8 @@ export function FindFriend() {
         />
         {pending ? <span className="shrink-0 text-xs text-ink-soft">Finding…</span> : null}
       </form>
+      {aside}
+      </div>
       {result ? (
         <Results
           result={result}

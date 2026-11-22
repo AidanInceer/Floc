@@ -33,7 +33,7 @@
   }
   .deck-card {
     border-radius: 20px;
-    box-shadow: var(--shadow-lift);
+    box-shadow: var(--shadow-raised);
     transition: transform 0.55s var(--soft);
   }
   .deck-slot:hover .deck-card { transform: translateY(-10px); }

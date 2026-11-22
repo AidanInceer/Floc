@@ -25,8 +25,6 @@
   .pro-tone-blue { --t: var(--pastel-blue); --t-ink: var(--pastel-blue-ink); }
   .pro-tone-grey { --t: var(--sheet-2); --t-ink: var(--ink-2); }
   .pro-tile-soon { --t: transparent; --t-ink: var(--slab-ink); border: 1px dashed color-mix(in srgb, var(--slab-ink) 40%, transparent); }
-  /* Why: a short last row stretches to the full width, so five or any count leaves no hole. */
-  .pro-soon > li { flex: 1 1 calc(33.333% - 8px); padding: 16px; border-radius: var(--radius-md); border: 1px dashed color-mix(in srgb, var(--slab-ink) 45%, transparent); }
 
   .pro-best {
     position: absolute; top: -22px; left: 50%; transform: translateX(-50%);

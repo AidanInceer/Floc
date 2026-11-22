@@ -33,7 +33,7 @@ export function SettingsRow({
       <summary
         className={cx(
           "flex cursor-pointer list-none items-center gap-3 px-[18px] py-3.5 transition-colors duration-220 ease-(--ease) [&::-webkit-details-marker]:hidden",
-          danger ? "hover:bg-red-soft" : "hover:bg-pen-soft group-open/row:hover:bg-transparent",
+          danger ? "hover:bg-red-soft" : "hover:bg-sheet-2 group-open/row:hover:bg-transparent",
         )}
       >
         <span className="min-w-0 flex-1">

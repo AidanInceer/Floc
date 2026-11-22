@@ -8,7 +8,7 @@ import { activity, notification, pushToken, tripMembership, user, userProfile } 
 import { planPushes, type Limits, type PendingPush, type PlannedPush } from "@floc/core/notifications/push-plan";
 import { LIMIT_FREE_KINDS, isReminder, skipsLimits, type ActivityKind } from "@floc/core/notifications/rules";
 import { touch } from "@/server/audit";
-import { notificationRows, stillVisible } from "@/server/notifications/visible";
+import { answeredHref, notificationRows, stillVisible } from "@/server/notifications/visible";
 
 const CLAIM_LEASE_MS = 5 * 60_000;
 const BATCH = 500;
@@ -71,12 +71,13 @@ async function due(channel: Channel, now: Date): Promise<PendingPush[]> {
       unclaimed(channel, now),
       lte(activity.lastModifiedAt, new Date(now.getTime() - channel.waitMs)),
       stillVisible(),
+      isNotNull(answeredHref()),
       isNull(tripMembership.mutedAt),
       channel.reaches(),
     ),
     BATCH,
   );
-  return rows.map((r) => ({
+  return rows.flatMap((r) => r.href === null ? [] : [{
     notificationId: r.id,
     userId: r.userId,
     tripId: r.tripId,
@@ -85,8 +86,8 @@ async function due(channel: Channel, now: Date): Promise<PendingPush[]> {
     href: r.href,
     kind: r.kind,
     actor: isReminder(r.kind) ? null : (r.actorDisplayName ?? r.actorName),
-    ...(skipsLimits(r.kind) ? { exempt: true } : {}),
-  }));
+    ...(skipsLimits(r.kind) ? { exempt: true as const } : {}),
+  }]);
 }
 
 async function sentToday(channel: Channel, now: Date) {

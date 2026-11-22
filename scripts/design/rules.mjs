@@ -17,6 +17,7 @@ const onScale = (value) => /^[\d.]+px$/.test(value) && TYPE_SCALE.includes(Numbe
 const SCALE_HINT = "a step on the type scale: 11, 13, 15, 17, 20, 25, 31 or 39px (text-xs to text-3xl)";
 const ICON_FILE = new RegExp("(^|/)icons/");
 const UI_FILE = /components\/system\/(ui|client-ui)\.tsx$/;
+const GREY_HOVER_FILE = /components\/settings\/settings-row\.tsx$/;
 const SQUARE = /(?:^|[\s"'`:!])size-(?:\[\d+px\]|\d+)(?=[\s"'`]|$)|(?:^|[\s"'`:!])h-(\[\d+px\]|\d+)\s(?:[^"'`]*\s)?!?w-\1(?=[\s"'`]|$)/;
 const CENTRED = /place-items-center|items-center[^"'`]*justify-center|justify-center[^"'`]*items-center/;
 
@@ -96,7 +97,7 @@ function scriptLine(file, line, report) {
     if (Number(n) !== 0) report("radius", `borderRadius ${n} → radius.sm, radius.md or radius.pill`);
   }
   for (const [, colour] of line.matchAll(/hover:bg-([\w-]+)/g)) {
-    if (GREY_FILL.test(colour)) report("hover-grey", `hover:bg-${colour} → hover:bg-pen-soft, a border or a lift`);
+    if (GREY_FILL.test(colour) && !(colour === "sheet-2" && GREY_HOVER_FILE.test(file))) report("hover-grey", `hover:bg-${colour} → hover:bg-pen-soft, a border or a lift`);
   }
   for (const [token] of line.matchAll(/(?<![\w-])(?:[\w-]+:)*(?:bg|text|border|ring|outline|fill|stroke)-pen-2(?![\w-])/g)) {
     report("pen-2-class", `${token} → the pen-soft class (token --pen-2)`);

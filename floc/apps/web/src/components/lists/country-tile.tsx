@@ -35,7 +35,7 @@ export function CountryTile({
 }) {
   const region = regionOf(code);
   return (
-    <div className="lift relative flex h-full flex-col overflow-hidden rounded-md bg-sheet shadow-[var(--shadow)]">
+    <div className="lift-card relative flex h-full flex-col overflow-hidden rounded-md bg-sheet">
       <Link href={`/explore?country=${code}`} className="flex w-full flex-col text-left text-ink after:absolute after:inset-0 after:content-['']">
         <span aria-hidden className="pointer-events-none block aspect-[4/3] w-full bg-sheet-2">
           <CountryOutline code={code} name={name} fill={region ? regionLand(region) : PLAIN_LAND} />

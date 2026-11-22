@@ -87,7 +87,7 @@ function NoteTile({ listId, item }: { listId: number; item: WishItem }) {
     </>
   );
   return (
-    <div className="lift relative flex h-full min-h-36 flex-col rounded-md bg-sheet p-3 shadow-[var(--shadow)]">
+    <div className="lift-card relative flex h-full min-h-36 flex-col rounded-md bg-sheet p-3">
       {isLink ? (
         <a
           href={item.url!}

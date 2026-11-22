@@ -1,21 +1,26 @@
 import "server-only";
 
-import { and, count, desc, eq, gte, inArray, isNotNull, isNull, ne, notInArray, or, type SQL } from "drizzle-orm";
+import { and, count, desc, eq, exists, gt, gte, inArray, isNotNull, isNull, lte, ne, notInArray, or, sql, type SQL } from "drizzle-orm";
 import type { SQLiteSelect } from "drizzle-orm/sqlite-core";
 
 import { db } from "@/db";
 import {
   activity,
+  bookingInbox,
   expense,
+  friendship,
   note,
   notification,
   settlement,
   trip,
+  tripInvite,
   tripMembership,
   user,
   userProfile,
+  wishListMember,
 } from "@/db/schema";
 import { COMMENT_KINDS, EXPENSE_KINDS, INBOX_KEEP_DAYS } from "@floc/core/notifications/rules";
+import { bookingInboxCutoff } from "@floc/core/documents/booking/booking-inbox";
 
 export function notificationRows(where: SQL | undefined, limit: number) {
   return withSubjects(
@@ -25,7 +30,7 @@ export function notificationRows(where: SQL | undefined, limit: number) {
         userId: notification.userId,
         tripId: activity.tripId,
         kind: activity.kind,
-        href: activity.href,
+        href: answeredHref(),
         detail: activity.detail,
         loud: notification.loud,
         readAt: notification.readAt,
@@ -74,8 +79,66 @@ function withSubjects<T extends SQLiteSelect>(query: T) {
     );
 }
 
-export function stillVisible() {
+const pending = {
+  friendRequest: db
+    .select({ id: friendship.id })
+    .from(friendship)
+    .where(
+      and(
+        eq(friendship.userId, activity.actorId),
+        eq(friendship.friendId, notification.userId),
+        eq(friendship.status, "pending"),
+        isNull(friendship.deletedAt),
+      ),
+    ),
+  tripInvite: db
+    .select({ id: tripInvite.id })
+    .from(tripInvite)
+    .where(
+      and(
+        eq(tripInvite.tripId, activity.tripId),
+        eq(tripInvite.toUserId, notification.userId),
+        eq(tripInvite.status, "pending"),
+        isNull(tripInvite.deletedAt),
+      ),
+    ),
+  wishListInvite: db
+    .select({ id: wishListMember.id })
+    .from(wishListMember)
+    .where(
+      and(
+        eq(wishListMember.listId, activity.subjectId),
+        eq(wishListMember.userId, notification.userId),
+        eq(wishListMember.status, "invited"),
+        isNull(wishListMember.deletedAt),
+      ),
+    ),
+};
+
+export const answeredHref = () =>
+  sql<string | null>`case
+    when ${activity.kind} = 'friend_requested' and not exists ${pending.friendRequest} then null
+    when ${activity.kind} = 'trip_invited' and not exists ${pending.tripInvite} then null
+    when ${activity.kind} = 'wish_list_invited' and not exists ${pending.wishListInvite} then null
+    else ${activity.href} end`;
+
+function bookingStillWaiting(now: Date) {
+  return db
+    .select({ id: bookingInbox.id })
+    .from(bookingInbox)
+    .where(
+      and(
+        eq(bookingInbox.userId, notification.userId),
+        isNull(bookingInbox.deletedAt),
+        gt(bookingInbox.createdAt, bookingInboxCutoff(now)),
+        lte(bookingInbox.createdAt, activity.lastModifiedAt),
+      ),
+    );
+}
+
+export function stillVisible(now = new Date()) {
   return and(
+    or(ne(activity.kind, "booking_waiting"), exists(bookingStillWaiting(now))),
     isNull(notification.deletedAt),
     isNull(activity.deletedAt),
     gte(activity.lastModifiedAt, new Date(Date.now() - INBOX_KEEP_DAYS * 86_400_000)),

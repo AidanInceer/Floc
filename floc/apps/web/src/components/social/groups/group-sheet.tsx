@@ -100,15 +100,11 @@ export function GroupSheet({ mode, onClose }: { mode: GroupSheetMode; onClose: (
   const sheet = useGroupSheet(mode);
   const [step, setStep] = useState<1 | 2>(1);
   const title = mode.kind === "new" ? "New group" : "Edit group";
-  const stepLine = step === 1 ? "1 of 2 · Who is in it" : "2 of 2 · Name it";
   return (
     <Dialog open onClose={onClose} title={title} className={DIALOG}>
       <div ref={sheet.bodyRef}>
         <header className="flex items-center justify-between border-b border-dotted border-rule-strong px-4 py-3">
-          <div className="flex flex-col">
-            <h2 className="font-display text-base font-semibold">{title}</h2>
-            {mode.kind === "new" ? <span className="font-mono text-xs text-ink-soft">{stepLine}</span> : null}
-          </div>
+          <h2 className="font-display text-base font-semibold">{title}</h2>
           <DialogClose />
         </header>
         {mode.kind === "edit" ? (
