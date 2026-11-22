@@ -2,6 +2,7 @@ import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { contentSecurityPolicy, NONCE_HEADER } from "@/lib/http/csp";
+import { googleMapsConfig } from "@/lib/maps/google-maps-config";
 
 const SIGNED_IN_ONLY = /^\/(trips|trip|friends|profile|settings)(\/|$)/;
 
@@ -30,7 +31,7 @@ export function middleware(request: NextRequest) {
   if (servesBytes(pathname)) return NextResponse.next();
 
   const nonce = btoa(crypto.randomUUID());
-  const policy = contentSecurityPolicy({ nonce, host: request.headers.get("host") ?? request.nextUrl.host, dev: process.env.NODE_ENV !== "production" });
+  const policy = contentSecurityPolicy({ nonce, host: request.headers.get("host") ?? request.nextUrl.host, dev: process.env.NODE_ENV !== "production", maps: googleMapsConfig({ GOOGLE_MAPS_BROWSER_KEY: process.env.GOOGLE_MAPS_BROWSER_KEY }) !== null });
   const headers = new Headers(request.headers);
   headers.set(NONCE_HEADER, nonce);
   headers.set("Content-Security-Policy", policy);

@@ -34,6 +34,18 @@ describe("contentSecurityPolicy (#582)", () => {
     expect(part(policy, "connect-src")).toBe("connect-src 'self'");
   });
 
+  it("lets Google's map load its script, tiles, calls and type only when the map is on", () => {
+    const policy = contentSecurityPolicy({ nonce: "abc123", host: "floc.live", dev: false, maps: true });
+    expect(part(policy, "script-src")).toBe("script-src 'self' 'nonce-abc123' 'strict-dynamic' https://maps.googleapis.com");
+    expect(part(policy, "img-src")).toBe(
+      "img-src 'self' data: blob: https://*.googleapis.com https://*.gstatic.com https://*.google.com https://*.googleusercontent.com",
+    );
+    expect(part(policy, "connect-src")).toBe("connect-src 'self' wss://floc.live https://*.googleapis.com https://*.google.com https://*.gstatic.com");
+    expect(part(policy, "style-src")).toBe("style-src 'self' 'unsafe-inline' https://fonts.googleapis.com");
+    expect(part(policy, "font-src")).toBe("font-src 'self' https://fonts.gstatic.com");
+    expect(contentSecurityPolicy({ nonce: "abc123", host: "floc.live", dev: false, maps: false })).not.toContain("google");
+  });
+
   it("names the header the layout reads the nonce from", () => {
     expect(NONCE_HEADER).toBe("x-nonce");
   });

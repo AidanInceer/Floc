@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { middleware } from "./middleware";
 
@@ -36,6 +36,13 @@ describe("the sign-in gate", () => {
 });
 
 describe("the page policy (#582)", () => {
+  it("opens the policy to Google's map only when the map key is set (rule 11)", () => {
+    expect(policyOf(ask("/explore"))).not.toContain("googleapis");
+    vi.stubEnv("GOOGLE_MAPS_BROWSER_KEY", "browser-key");
+    expect(policyOf(ask("/explore"))).toContain("https://maps.googleapis.com");
+    vi.unstubAllEnvs();
+  });
+
   it("gives a page a policy with a nonce, and hands the same nonce to the layout", () => {
     const response = ask("/explore");
     const nonce = response.headers.get("x-middleware-request-x-nonce");

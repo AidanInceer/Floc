@@ -28,6 +28,7 @@ export const LIMITS = {
   wishLists: 30,
   wishListMembers: 20,
   wishListItems: 200,
+  mapLegs: 20,
 } as const;
 
 export type LimitKey = keyof typeof LIMITS;

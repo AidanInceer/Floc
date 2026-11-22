@@ -20,8 +20,11 @@ const NOT_SET = "Not set";
 export function hopLength(time: string | null, endTime: string | null): string {
   const [a, b] = [toMinutes(time), toMinutes(endTime)];
   if (a === null || b === null || a === b) return "";
-  const m = (b - a + 24 * 60) % (24 * 60);
-  const [h, rest] = [Math.floor(m / 60), m % 60];
+  return lengthLabel((b - a + 24 * 60) % (24 * 60));
+}
+
+export function lengthLabel(minutes: number): string {
+  const [h, rest] = [Math.floor(minutes / 60), minutes % 60];
   if (!h) return `${rest} min`;
   return rest ? `${h}h ${String(rest).padStart(2, "0")}` : `${h}h`;
 }
