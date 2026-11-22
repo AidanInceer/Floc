@@ -60,7 +60,8 @@ normal, but check it keeps every row.
 node plugins/floc/skills/schema-change/apply-local.mjs floc/apps/web/drizzle/NNNN_name.sql
 ```
 
-The script is wired to `floc/apps/web/local.db` only — it cannot reach Turso.
+The script writes to the local file the web app's `.env` names — `.floc/data/local.db` in a task
+worktree, `floc/apps/web/local.db` in the main checkout. It never takes a remote URL, so it cannot reach Turso.
 A statement already applied is skipped, so a second run is safe. A table
 rebuild that fails halfway leaves `local.db` odd; `pnpm --filter floc-web
 db:reset` puts it back.
