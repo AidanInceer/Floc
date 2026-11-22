@@ -42,13 +42,14 @@ export async function readEstimate(trip: TripDates, viewerId: string, known?: Le
   const homeCode = profile.homeAirport ?? inferred;
   const style = resolveStyle(profile, choices.style);
   const shape = tripShape({ start: trip.startDate, end: trip.endDate, days, chosenNights: choices.nights });
-  const guide = guideFor({ home: homeCode, style, nights: shape.nights.count, stops: shape.stops }).lines.map((l) => inHome(l, currency, toHome.GBP ?? null));
+  const travel = choices.travel ?? "flights";
+  const guide = guideFor({ home: homeCode, style, nights: shape.nights.count, stops: shape.stops, travel }).lines.map((l) => inHome(l, currency, toHome.GBP ?? null));
   const inCurrency = (m: Money | null) => (m ? convert(m.amountMinor, m.currency, currency, toHome) : null);
 
   return {
     currency,
     style,
-    home: homeCode ? { code: homeCode, name: findAirport(airports, homeCode)?.name ?? airportName(homeCode), inferred: !profile.homeAirport } : null,
+    home: homeView(homeCode, !profile.homeAirport, airports),
     nights: shape.nights,
     places: shape.stops.length > 0,
     plan: planFor({
@@ -56,8 +57,13 @@ export async function readEstimate(trip: TripDates, viewerId: string, known?: Le
       own: ownIn(choices.own, currency, toHome),
       spent: spentByLine({ expenses, splits, viewerId, home: currency, toHome }).byLine,
       budget: inCurrency(choices.budget),
+      travel,
     }),
   };
+}
+
+function homeView(code: string | null, inferred: boolean, airports: Awaited<ReturnType<typeof loadAirports>>): EstimateView["home"] {
+  return code ? { code, name: findAirport(airports, code)?.name ?? airportName(code), inferred } : null;
 }
 
 function inHome(line: GuideLine, currency: Currency, gbpRate: number | null): GuideLine {
@@ -78,6 +84,7 @@ function ownIn(own: Partial<Record<EstimateLine, OwnRow>>, currency: Currency, t
     out[line] = {
       figure: row.figure == null ? null : convert(row.figure, row.currency, currency, toHome),
       budget: row.budget == null ? null : convert(row.budget, row.currency, currency, toHome),
+      notNeeded: row.notNeeded,
     };
   }
   return out;

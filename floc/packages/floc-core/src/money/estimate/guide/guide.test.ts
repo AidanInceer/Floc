@@ -20,6 +20,17 @@ describe("guideFor", () => {
     expect(byLine(g).flights.route).toEqual({ from: "LHR", out: "Lisbon", back: "Porto" });
   });
 
+  it("has no guide for a way of travelling that is not flying, and still guesses the rest", () => {
+    const g = byLine(guideFor({ home: "LHR", style: DEFAULT_STYLE, nights: 7, stops: lisbonPorto, travel: "train" }));
+    expect(g.flights).toEqual({ line: "flights", range: null, missing: "travel" });
+    expect(g.stay.range).not.toBeNull();
+  });
+
+  it("needs no home airport to drive", () => {
+    const g = byLine(guideFor({ home: null, style: DEFAULT_STYLE, nights: 7, stops: lisbonPorto, travel: "drive" }));
+    expect(g.flights.missing).toBe("travel");
+  });
+
   it("costs more to stay somewhere pricier for the same nights", () => {
     const zurich = [{ countryCode: "CH", lat: 47.37, lng: 8.54, name: "Zurich", nights: 7 }];
     const pt = byLine(guideFor({ home: "LHR", style: DEFAULT_STYLE, nights: 7, stops: lisbonPorto })).stay.range!;

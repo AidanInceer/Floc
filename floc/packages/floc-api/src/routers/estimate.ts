@@ -1,5 +1,6 @@
 import { ESTIMATE_LINES } from "@floc/core/money/estimate/lines";
 import { CABINS, PACES, STAY_STYLES } from "@floc/core/money/estimate/style";
+import { TRAVEL_MODES } from "@floc/core/money/estimate/travel";
 import { z } from "zod";
 
 import { protectedProcedure, router, tripProcedure } from "../trpc";
@@ -14,11 +15,15 @@ export const estimateRouter = router({
     .mutation(({ ctx, input }) => ctx.port.setEstimateBudget(ctx.viewer.id, input.tripId, input.amountMinor)),
 
   setLine: tripProcedure
-    .input(z.object({ line: z.enum(ESTIMATE_LINES), figure: amount.optional(), budget: amount.optional() }))
+    .input(z.object({ line: z.enum(ESTIMATE_LINES), figure: amount.optional(), budget: amount.optional(), notNeeded: z.boolean().optional() }))
     .mutation(({ ctx, input }) => {
       const { tripId, line, ...patch } = input;
       return ctx.port.setEstimateLine(ctx.viewer.id, tripId, line, patch);
     }),
+
+  setTravel: tripProcedure
+    .input(z.object({ travel: z.enum(TRAVEL_MODES) }))
+    .mutation(({ ctx, input }) => ctx.port.setEstimateTravel(ctx.viewer.id, input.tripId, input.travel)),
 
   setStyle: tripProcedure
     .input(z.object({ style: z.object({ cabin: z.enum(CABINS).optional(), stay: z.enum(STAY_STYLES).optional(), pace: z.enum(PACES).optional() }).nullable() }))

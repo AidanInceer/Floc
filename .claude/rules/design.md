@@ -99,6 +99,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - One main action per screen. One visible action per row; more verbs go behind a `…` menu. A row may also show the one or two things a person checks or flips at a glance; every other verb stays in the menu:
   - On the Overview, Invite shares the going roster's line and is primary, web and phone (Aidan).
   - The Overview's budget row shows the figure, or "Add a place to start a budget", and no fit mark; Fits and Tight live on Money (Aidan).
+  - A Budget line edits its figure in its own row, never in a side panel. Add back sits in the figure column, so the row keeps its edges (Aidan, `budget-lines` E).
   - A Saved tile on Lists shows Start trip beside its heart (#467). It is a quiet pen word with an arrow at the right end of the tile's last line, sharing that line with the figures (nights and price, or Explore trips); below sm only the arrow shows, and a trip's nights sit over its price. A compact country tile keeps the house heart size, larger than the mockup's, so its press target stays full size.
   - A group's row on Groups shows Trip ideas, with the match dial as its glyph, beside its `…`; below sm only the dial shows. Its modal lists up to ten trips as ruled rows, each with the group's match, and its one main action is Ask the group to vote (Aidan, #177, pick of E; ADR-074).
   - A thing on a wish list shows a vote beside its `…`: an up arrow and the count, 26px high in a row, green when it is yours; the same mark as an idea's vote on a trip, drawn smaller.

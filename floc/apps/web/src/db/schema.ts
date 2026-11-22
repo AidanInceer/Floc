@@ -15,6 +15,7 @@ import { PACK_CATEGORIES, PACK_ORIGINS, PACK_TIERS } from "@floc/core/packing/pa
 import { PLANS } from "@floc/core/billing/plans";
 import { CABINS, PACES, STAY_STYLES } from "@floc/core/money/estimate/style";
 import { ESTIMATE_LINES } from "@floc/core/money/estimate/lines";
+import { TRAVEL_MODES } from "@floc/core/money/estimate/travel";
 import { AVATAR_ICONS } from "@floc/core/people/avatar-icon";
 import { PAGE_ICONS } from "@floc/core/notes/pages/page-icons";
 import { WISH_ITEM_KINDS, WISH_MEMBER_STATUSES } from "@floc/core/lists/wish-list";
@@ -383,6 +384,7 @@ export const tripMembership = sqliteTable(
     estStay: text("est_stay", { enum: STAY_STYLES }),
     estPace: text("est_pace", { enum: PACES }),
     estNights: integer("est_nights"),
+    estTravel: text("est_travel", { enum: TRAVEL_MODES }),
     budgetMinor: integer("budget_minor"),
     budgetCurrency: text("budget_currency", { enum: CURRENCIES }),
     ...audit,
@@ -800,6 +802,7 @@ export const estimateOverride = sqliteTable(
       .references(() => user.id, { onDelete: "cascade" }),
     line: text("line", { enum: ESTIMATE_LINES }).notNull(),
     figureMinor: integer("figure_minor"),
+    notNeeded: integer("not_needed", { mode: "boolean" }).notNull().default(false),
     budgetMinor: integer("budget_minor"),
     currency: text("currency", { enum: CURRENCIES }).notNull(),
     ...audit,

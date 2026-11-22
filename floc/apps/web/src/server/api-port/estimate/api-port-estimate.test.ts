@@ -33,10 +33,20 @@ describe("estimatePort", () => {
     expect(view?.plan.lines).toHaveLength(5);
   });
 
+  it("lets a Pro member change how they travel and take a line out", async () => {
+    await givePro(world.admin);
+    await estimatePort.setEstimateTravel(world.admin, world.ours.id, "drive");
+    await estimatePort.setEstimateLine(world.admin, world.ours.id, "food", { notNeeded: true });
+    const { view } = await estimatePort.loadEstimate(world.admin, world.ours.id);
+    expect(view?.plan.travel).toBe("drive");
+    expect(view?.plan.lines.find((l) => l.line === "food")?.needed).toBe(false);
+  });
+
   it("answers a stranger as if the trip were not there (rule 5)", async () => {
     await givePro(world.outsider);
     await expect(estimatePort.loadEstimate(world.outsider, world.ours.id)).rejects.toThrow("No such trip.");
     await expect(estimatePort.setEstimateBudget(world.outsider, world.ours.id, 100)).rejects.toThrow("No such trip.");
+    await expect(estimatePort.setEstimateTravel(world.outsider, world.ours.id, "train")).rejects.toThrow("No such trip.");
   });
 
   it("keeps the settings on the profile", async () => {

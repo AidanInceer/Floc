@@ -10,6 +10,7 @@ import { Alert, ScrollView, Text, View } from "react-native";
 import { EventSheet } from "@/components/days/event-sheet";
 import { BalanceCard } from "@/components/money/balance-card";
 import { NudgeWord } from "@/components/trip/nudge/nudge-word";
+import { BudgetScroll } from "@/components/money/estimate/budget-scroll";
 import { BudgetTab } from "@/components/money/estimate/budget-tab";
 import { ExpenseForm, type DayOption, type ExpenseDraft } from "@/components/money/expense-form";
 import { ExpenseRows } from "@/components/money/expense-rows";
@@ -269,9 +270,9 @@ export default function Money() {
   );
   if (view === "expenses" || !Number.isFinite(tripId)) return <ExpensesView switcher={switcher} />;
   return (
-    <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.lg }}>
+    <BudgetScroll>
       {switcher}
       <BudgetTab tripId={tripId} />
-    </ScrollView>
+    </BudgetScroll>
   );
 }
