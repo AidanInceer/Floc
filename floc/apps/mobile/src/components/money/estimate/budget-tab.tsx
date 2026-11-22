@@ -1,7 +1,5 @@
-import { LINE_LABELS } from "@floc/core/money/estimate/lines";
-import type { PlanLine } from "@floc/core/money/estimate/plan";
+import { isFlying } from "@floc/core/money/estimate/plan";
 import type { EstimateView } from "@floc/core/money/estimate/view";
-import { wholeRange } from "@floc/core/money/estimate/words";
 import { parseMoney } from "@floc/core/money/money";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
@@ -11,7 +9,8 @@ import { EventSheet } from "@/components/days/event-sheet";
 import { Body, Button, Card, Failed, Loading } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
 
-import { AirportForm, AmountForm, LineForm, NightsForm, StyleForm } from "./budget-forms";
+import { AirportForm, AmountForm, NightsForm, StyleForm } from "./budget-forms";
+import type { LineActions, Report } from "./budget-line";
 import { BudgetView, type BudgetEdit } from "./budget-view";
 
 function Lock() {
@@ -27,7 +26,6 @@ function Lock() {
 
 type Actions = {
   budget: (raw: string) => void;
-  line: (line: PlanLine["line"], figure: string, budget: string) => void;
   style: (style: EstimateView["style"] | null) => void;
   nights: (nights: number) => void;
   home: (code: string | null) => void;
@@ -35,7 +33,6 @@ type Actions = {
 
 const TITLE: Record<BudgetEdit["kind"], string> = {
   budget: "Your budget",
-  line: "",
   style: "How you travel on this trip",
   home: "Where do you fly from?",
   nights: "How many nights?",
@@ -45,14 +42,8 @@ function SheetBody({ edit, view, airport, busy, act }: { edit: BudgetEdit; view:
   switch (edit.kind) {
     case "budget":
       return <AmountForm initial={view.plan.budget} currency={view.currency} label={`For the whole trip, ${view.currency}`} hint="Only you see it." busy={busy} onSave={act.budget} />;
-    case "line": {
-      const line = view.plan.lines.find((l) => l.line === edit.line);
-      if (!line) return null;
-      const guide = line.guide ? wholeRange(line.guide, view.currency) : "none yet";
-      return <LineForm figure={line.own} budget={line.budget} currency={view.currency} guide={guide} busy={busy} onSave={(figure, budget) => act.line(line.line, figure, budget)} />;
-    }
     case "style":
-      return <StyleForm style={view.style} busy={busy} onSave={act.style} onReset={() => act.style(null)} />;
+      return <StyleForm style={view.style} flying={isFlying(view.plan)} busy={busy} onSave={act.style} onReset={() => act.style(null)} />;
     case "nights":
       return <NightsForm initial={view.nights.count} busy={busy} onSave={act.nights} />;
     case "home":
@@ -71,18 +62,22 @@ export function BudgetTab({ tripId }: { tripId: number }) {
     setEdit(null);
     setProblem(null);
   };
-  const done = () => {
-    close();
+  const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: trpc.estimate.view.queryKey({ tripId }) });
     void queryClient.invalidateQueries({ queryKey: trpc.estimate.settings.queryKey() });
   };
+  const done = () => {
+    close();
+    refresh();
+  };
   const on = { onSuccess: done, onError: (e: { message: string }) => setProblem(e.message) };
   const budget = useMutation({ ...trpc.estimate.setBudget.mutationOptions(), ...on });
-  const line = useMutation({ ...trpc.estimate.setLine.mutationOptions(), ...on });
+  const line = useMutation({ ...trpc.estimate.setLine.mutationOptions(), onSuccess: refresh });
+  const travel = useMutation({ ...trpc.estimate.setTravel.mutationOptions(), onSuccess: refresh });
   const style = useMutation({ ...trpc.estimate.setStyle.mutationOptions(), ...on });
   const nights = useMutation({ ...trpc.estimate.setNights.mutationOptions(), ...on });
   const home = useMutation({ ...trpc.estimate.setSettings.mutationOptions(), ...on });
-  const busy = [budget, line, style, nights, home].some((m) => m.isPending);
+  const busy = [budget, style, nights, home].some((m) => m.isPending);
 
   if (estimate.isPending) return <Loading />;
   if (estimate.isError) return <Failed onRetry={() => estimate.refetch()} />;
@@ -94,30 +89,33 @@ export function BudgetTab({ tripId }: { tripId: number }) {
     try {
       return parseMoney(raw, view.currency);
     } catch {
-      setProblem("Enter an amount, such as 450.");
       return undefined;
     }
   };
-  const typed = (raw: string, save: (v: number | null) => void) => {
+  const typed = (raw: string, save: (v: number | null) => void, fail: (problem: string) => void = setProblem) => {
     const v = parsed(raw);
-    if (v !== undefined) save(v);
+    if (v === undefined) fail("Enter an amount, such as 450.");
+    else save(v);
+  };
+  const settle = (saving: Promise<unknown>, report: Report) => {
+    void saving.then(() => report(null), (e: { message: string }) => report(e.message));
   };
   const act: Actions = {
     budget: (raw) => typed(raw, (v) => budget.mutate({ tripId, amountMinor: v })),
-    line: (l, figure, budget) => {
-      const [f, b] = [parsed(figure), parsed(budget)];
-      if (f !== undefined && b !== undefined) line.mutate({ tripId, line: l, figure: f, budget: b });
-    },
     style: (s) => style.mutate({ tripId, style: s && { cabin: s.cabin, stay: s.stay, pace: s.pace } }),
     nights: (n) => nights.mutate({ tripId, nights: n }),
     home: (code) => home.mutate({ homeAirport: code }),
   };
-  const title = edit?.kind === "line" ? LINE_LABELS[edit.line] : edit ? TITLE[edit.kind] : "";
+  const lineAct: LineActions = {
+    amount: (l, field, raw, report) => typed(raw, (v) => settle(line.mutateAsync({ tripId, line: l, ...(field === "figure" ? { figure: v } : { budget: v }) }), report), report),
+    needed: (l, needed, report) => settle(line.mutateAsync({ tripId, line: l, notNeeded: !needed }), report),
+    travel: (mode, report) => settle(travel.mutateAsync({ tripId, travel: mode }), report),
+  };
 
   return (
     <>
-      <BudgetView view={view} onEdit={setEdit} />
-      <EventSheet open={edit !== null} title={title} onClose={close}>
+      <BudgetView view={view} act={lineAct} onEdit={setEdit} />
+      <EventSheet open={edit !== null} title={edit ? TITLE[edit.kind] : ""} onClose={close}>
         {problem ? <Body tone="red">{problem}</Body> : null}
         {edit ? <SheetBody edit={edit} view={view} airport={settings.data?.homeAirport ?? null} busy={busy} act={act} /> : null}
       </EventSheet>

@@ -4,12 +4,13 @@ import type { TripAccess } from "@/server/access";
 import { homeCurrenciesFor } from "@/server/auth/profile";
 import { assertFeature } from "@/server/billing/entitlements";
 import { refresh } from "@/server/freshness";
-import { setBudget, setOwnLine, setTravelProfile, setTripNights, setTripStyle, type TravelProfile } from "@/server/money/estimate/estimate-store";
+import { setBudget, setOwnLine, setTravelProfile, setTripNights, setTripStyle, setTripTravel, type OwnLinePatch, type TravelProfile } from "@/server/money/estimate/estimate-store";
 import { Refusal } from "@floc/core/errors/refusal";
 import type { Currency } from "@floc/core/money/currency";
 import { isAirportCode } from "@floc/core/money/estimate/guide/home-airport";
 import type { EstimateLine } from "@floc/core/money/estimate/lines";
 import type { StyleChoice } from "@floc/core/money/estimate/style";
+import type { TravelMode } from "@floc/core/money/estimate/travel";
 import { maxExpenseMinor } from "@floc/core/money/money";
 
 const MAX_EST_NIGHTS = 365;
@@ -37,7 +38,13 @@ export async function saveBudget(access: TripAccess, amountMinor: number | null)
   changed(access);
 }
 
-export async function saveOwnLine(access: TripAccess, line: EstimateLine, patch: { figure?: number | null; budget?: number | null }): Promise<void> {
+export async function saveTripTravel(access: TripAccess, travel: TravelMode): Promise<void> {
+  await assertFeature("money.estimate", access.viewer.id);
+  await setTripTravel(access.trip.id, access.viewer.id, travel);
+  changed(access);
+}
+
+export async function saveOwnLine(access: TripAccess, line: EstimateLine, patch: OwnLinePatch): Promise<void> {
   await assertFeature("money.estimate", access.viewer.id);
   const currency = await homeOf(access.viewer.id);
   checkAmount(patch.figure, currency);

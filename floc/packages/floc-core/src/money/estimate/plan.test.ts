@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { planFor } from "./plan";
+import { isFlying, planFor } from "./plan";
 
 const guide = [
   { line: "flights" as const, range: [11000, 19000] as const, route: { from: "LHR", out: "Lisbon", back: "Porto" } },
@@ -39,6 +39,42 @@ describe("planFor", () => {
     expect(plan.fit).toEqual({ kind: "tight", short: 128000 - 110000 });
     expect(plan.left).toBe(110000 - 25500);
     expect(plan.lines[2].budget).toBe(30000);
+  });
+
+  it("leaves a line that is not needed out of the total, and its spending in Spent", () => {
+    const plan = planFor({ guide, own: { flights: { figure: null, budget: null, notNeeded: true } }, spent, budget: 110000 });
+    expect(plan.lines[0]).toMatchObject({ line: "flights", needed: false, plan: null, spent: 14200 });
+    expect(plan.total).toEqual([31500 + 24000 + 12000, 49000 + 36000 + 24000]);
+    expect(plan.spent).toBe(25500);
+    expect(plan.left).toBe(110000 - 25500);
+  });
+
+  it("keeps a removed line's own figure for when it comes back", () => {
+    const plan = planFor({ guide, own: { stay: { figure: 40000, budget: 45000, notNeeded: true } }, spent, budget: null });
+    expect(plan.lines[1]).toMatchObject({ needed: false, plan: null, own: 40000, budget: 45000 });
+  });
+
+  it("waits for a figure before it fits a budget to a way with no guide", () => {
+    const byTrain = [{ line: "flights" as const, range: null, missing: "travel" as const }, ...guide.slice(1)];
+    const waiting = planFor({ guide: byTrain, own: {}, spent, budget: 200000, travel: "train" });
+    expect(waiting.awaiting).toBe("train");
+    expect(waiting.fit).toBeNull();
+    const priced = planFor({ guide: byTrain, own: { flights: { figure: 8000, budget: null } }, spent, budget: 200000, travel: "train" });
+    expect(priced.awaiting).toBeNull();
+    expect(priced.fit).toEqual({ kind: "fits" });
+  });
+
+  it("counts as flying only with flights chosen and the line still in", () => {
+    expect(isFlying(planFor({ guide, own: {}, spent, budget: null }))).toBe(true);
+    expect(isFlying(planFor({ guide, own: {}, spent, budget: null, travel: "train" }))).toBe(false);
+    expect(isFlying(planFor({ guide, own: { flights: { figure: null, budget: null, notNeeded: true } }, spent, budget: null }))).toBe(false);
+  });
+
+  it("does not wait on a way of travelling the member took out", () => {
+    const byTrain = [{ line: "flights" as const, range: null, missing: "travel" as const }, ...guide.slice(1)];
+    const plan = planFor({ guide: byTrain, own: { flights: { figure: null, budget: null, notNeeded: true } }, spent, budget: 200000, travel: "train" });
+    expect(plan.awaiting).toBeNull();
+    expect(plan.fit).toEqual({ kind: "fits" });
   });
 
   it("has no fit and nothing left without a budget", () => {

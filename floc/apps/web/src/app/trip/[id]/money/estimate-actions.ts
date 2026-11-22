@@ -8,11 +8,13 @@ import {
   saveTravelProfile,
   saveTripNights,
   saveTripStyle,
+  saveTripTravel,
 } from "@/server/money/estimate/estimate-save";
 import { isRefusal, Refusal } from "@floc/core/errors/refusal";
 import type { Currency } from "@floc/core/money/currency";
 import { isEstimateLine } from "@floc/core/money/estimate/lines";
 import { isCabin, isPace, isStayStyle } from "@floc/core/money/estimate/style";
+import { isTravelMode } from "@floc/core/money/estimate/travel";
 import { parseMoney } from "@floc/core/money/money";
 
 type Result = { error?: string };
@@ -55,7 +57,17 @@ export async function saveLineForm(tripId: number, formData: FormData): Promise<
     await saveOwnLine(access, line, {
       ...(formData.has("figure") && { figure: amount(formData.get("figure"), currency) }),
       ...(formData.has("budget") && { budget: amount(formData.get("budget"), currency) }),
+      ...(formData.has("notNeeded") && { notNeeded: formData.get("notNeeded") === "true" }),
     });
+  });
+}
+
+export async function saveTravelForm(tripId: number, formData: FormData): Promise<Result> {
+  const access = await requireTripAccess(tripId);
+  return answer(async () => {
+    const travel = formData.get("travel");
+    if (!isTravelMode(travel)) throw new Refusal("Pick how you are getting there.");
+    await saveTripTravel(access, travel);
   });
 }
 
