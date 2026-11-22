@@ -31,6 +31,8 @@ import { OverviewFiles } from "@/components/trip/overview/overview-files";
 import { BookingsCard } from "@/components/trip/overview/stops/bookings-card";
 import { OverviewStops } from "@/components/trip/overview/stops/overview-stops";
 import { OverviewMap } from "@/components/trip/overview/overview-map";
+import { googleMapsConfig } from "@/lib/maps/google-maps-config";
+import { legRoutes } from "@/server/maps/leg-routes";
 import { TripArrival } from "@/components/trip/overview/trip-arrival";
 import { ToDoBanner } from "@/components/trip/overview/to-do-banner";
 import { RecapFoot } from "@/components/trip/overview/recap/recap-foot";
@@ -94,6 +96,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
   const modes = new Map([...transport].map(([dayId, t]) => [dayId, t.mode]));
   const { legs, wholeTrip } = tripLegs({ days: routeDays, modes, files: docs, tripEnd: trip.endDate });
   const route = overviewRoute({ legs, days: routeDays, hops: transport });
+  const google = googleMapsConfig();
   const estimate = canUseFeature("money.estimate", viewer.id).then((pro) =>
     pro ? readEstimate(trip, viewer.id, { expenses: expenseRows, splits: splitRows, days: routeDays }) : null,
   );
@@ -128,6 +131,8 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
           <OverviewMap
             route={route}
             tone={tone}
+            google={google}
+            lines={google ? legRoutes(route) : null}
           />
           <div data-overview-card className="relative z-10 bg-sheet lg:col-start-2 lg:m-5 lg:self-start lg:rounded-md lg:shadow-lift lg:ring-1 lg:ring-rule">
             <OverviewCard
