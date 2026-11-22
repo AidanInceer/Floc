@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Landing · Coming soon to Pro</title>
+  <meta name="wf-page" content="Landing">
+  <meta name="wf-route" content="/">
+  <meta name="wf-status" content="Picked: A">
+  <meta name="description" content="How should the Pro band show what is coming soon, without three cards over two stretched ones? Built as A: plain rows like In Pro now, two across, with the two Pro features from the #430 grill (flight alerts #753, a packing list that learns #715) added.">
+  <link rel="stylesheet" href="/_house/house.css">
+  <link rel="stylesheet" href="soon.css">
+  <script src="/_house/house.js" defer></script>
+  <script src="main.js" type="module"></script>
+</head>
+<body>
+  <!-- PROTOTYPE — the pick, A. -->
+  <p class="ghost">Above: “How it works” band — unchanged</p>
+  <section class="pro-slab" aria-labelledby="pro-h">
+    <div class="wrap">
+      <div class="top">
+        <div>
+          <div class="intro">
+            <h2 id="pro-h" class="band-title">Pro, for anyone who wants it.</h2>
+            <p class="lede">Everyone on the trip uses Floc free. Pro adds tools that only you see.</p>
+          </div>
+          <h3 class="now-h">In Pro now</h3>
+          <ul id="now" class="now"></ul>
+        </div>
+        <div class="card" aria-label="Price card — unchanged">
+          <b class="card-name">Floc Pro</b>
+          <div class="seg"><span>Month</span><span class="on">Year<em class="best">Best value</em></span></div>
+          <p class="price"><span class="nums">£29.99</span> a year</p>
+          <p class="save">Save <span class="nums">£17.89</span> on the year</p>
+          <a class="get" href="#">Get Pro</a>
+        </div>
+      </div>
+      <section class="soon-band" aria-labelledby="soon-h">
+        <h3 id="soon-h" class="soon-h">Coming soon to Pro</h3>
+        <div id="soon"></div>
+      </section>
+    </div>
+  </section>
+  <p class="ghost">Below: FAQ — unchanged</p>
+</body>
+</html>

@@ -34,7 +34,7 @@ export default async function BookingsPage() {
     <>
     <AccountTabs current="bookings" userId={viewer.id} />
     <AccountPage title="Bookings" titleInBar>
-      {enabled ? <div className="flex justify-end"><BookingUpload /></div> : null}
+      {enabled && !address ? <div className="flex justify-end"><BookingUpload /></div> : null}
       {!enabled ? (
         <EmptyState title={bookingsNoStorageWords} />
       ) : (
@@ -47,11 +47,12 @@ export default async function BookingsPage() {
                 </span>
                 <div className="min-w-0 flex-1 basis-56">
                   <p className="text-[15px] font-medium text-ink">{bookingForwardTitle}</p>
-                  <p className="mt-0.5 text-[13px] text-ink-soft">
-                    Send them to <span className="break-all font-mono text-ink">{address}</span> from your sign-in email.
-                  </p>
+                  <p className="mt-0.5 text-[13px] text-ink-soft">Send them from your sign-in email.</p>
                 </div>
-                <CopyLink value={address} label="Copy address" item="Address" variant="secondary" />
+                <div className="flex flex-wrap items-center gap-2">
+                  <CopyLink value={address} label="Copy address" item="Address" variant="secondary" reveal />
+                  <BookingUpload />
+                </div>
               </div>
             </Panel>
           ) : null}

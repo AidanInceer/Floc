@@ -28,12 +28,16 @@ const LOOK: Record<ProFeatureKey, { icon: ReactNode; tone: "red" | "yellow" | "g
 const NOW = PRO_FEATURES.map((f) => ({ ...LOOK[f.key], name: f.name, eg: f.detail }));
 
 const SOON: Item[] = [
-  { icon: glyph("live"), name: "Follow the trip live", eg: "Share where you are with the group while the trip runs." },
-  { icon: <KnowGlyphIcon name="chat" size={14} />, name: "Plan with a travel partner", eg: "It suggests days, compares options and adds them to the trip." },
-  { icon: glyph("local"), name: "Find places nearby", eg: "Picks near each night's stay, for the group and the weather." },
-  { icon: glyph("offline"), name: "Use it offline", eg: "Open your trip on the plane." },
   { icon: <IconArtMark art={PAGE_ICON_ART.camera} size={14} />, name: "Scan a receipt", eg: "Take a photo and the cost goes into Money." },
+  { icon: glyph("flight"), name: "Alerts for your flights", eg: "Hear when your flight is late, cancelled or changes gate." },
+  { icon: <KnowGlyphIcon name="chat" size={14} />, name: "Plan with a travel partner", eg: "It suggests days, compares options and adds them to the trip." },
+  { icon: glyph("live"), name: "Follow the trip live", eg: "Share where you are with the group while the trip runs." },
+  { icon: <NavGlyph name="packing" />, name: "A packing list that learns", eg: "It starts from what you packed on your last trips." },
+  { icon: glyph("offline"), name: "Use it offline", eg: "Open your trip on the plane." },
+  { icon: glyph("local"), name: "Find places nearby", eg: "Picks near each night's stay, for the group and the weather." },
 ];
+
+const LIST = "grid gap-3.5 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-[18px]";
 
 function Row({ item, tile }: { item: Item; tile: string }) {
   return (
@@ -61,17 +65,15 @@ export function ProBand({ prices, signedIn }: { prices: PlanPrice[]; signedIn: b
               </p>
             </div>
             <h3 className="mb-3.5 text-[16px] font-semibold">In Pro now</h3>
-            <ul className="grid gap-3.5 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-[18px]">
+            <ul className={LIST}>
               {NOW.map((item) => <Row key={item.name} item={item} tile={`pro-tone-${item.tone}`} />)}
             </ul>
           </div>
           <ProPriceCard plans={plans} initial={initial} href={signedIn ? "/profile?section=billing#settings-billing" : "/signup"} />
         </div>
-        <section className="mt-10" aria-labelledby="pro-soon-h">
-          <h3 id="pro-soon-h" className="mb-4 font-display text-[22px] font-semibold tracking-[-0.01em]">
-            Coming soon to Pro
-          </h3>
-          <ul className="pro-soon grid gap-3 md:flex md:flex-wrap">
+        <section className="mt-10 min-[60rem]:max-w-[calc(100%-22rem-3.5rem)]" aria-labelledby="pro-soon-h">
+          <h3 id="pro-soon-h" className="mb-4 font-display text-xl tracking-[-0.01em]">Coming soon to Pro</h3>
+          <ul className={LIST}>
             {SOON.map((item) => <Row key={item.name} item={item} tile="pro-tile-soon" />)}
           </ul>
         </section>

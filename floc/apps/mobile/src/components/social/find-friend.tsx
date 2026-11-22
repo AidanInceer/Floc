@@ -1,10 +1,11 @@
 import type { FoundFriend, FriendSearch } from "@floc/api/port";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as Clipboard from "expo-clipboard";
 import { View } from "react-native";
 
 import { PersonRow } from "../trip/person-row";
+import { TickGlyph } from "../system/glyphs";
 import { Body, Button, Pill, SearchField, SectionTitle } from "../system/ui";
 import { trpc } from "@/lib/api";
 import { space } from "@/lib/theme";
@@ -66,11 +67,40 @@ function Outcome({
   );
 }
 
+function CopyTag({ tag }: { tag: string }) {
+  const [revealed, setRevealed] = useState(false);
+  const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
+  const reset = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(reset.current), []);
+
+  const copy = async () => {
+    setRevealed(true);
+    let copied = false;
+    try {
+      copied = await Clipboard.setStringAsync(tag);
+    } catch {
+      copied = false;
+    }
+    setStatus(copied ? "copied" : "failed");
+    clearTimeout(reset.current);
+    reset.current = setTimeout(() => setStatus("idle"), copied ? 1300 : 2500);
+  };
+
+  const label = status === "failed" ? "Copy failed" : revealed ? tag : "Copy friend tag";
+  return (
+    <Button
+      label={label}
+      variant="quiet"
+      icon={status === "copied" ? (ink) => <TickGlyph color={ink} /> : undefined}
+      onPress={copy}
+    />
+  );
+}
+
 export function FindFriend({ tag }: { tag: string }) {
   const queryClient = useQueryClient();
   const [query, setQuery] = useState("");
   const [searched, setSearched] = useState("");
-  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
   const find = useMutation(trpc.friends.find.mutationOptions());
 
   const again = {
@@ -91,14 +121,19 @@ export function FindFriend({ tag }: { tag: string }) {
   return (
     <View style={{ gap: space.sm }}>
       <SectionTitle>Name or full friend tag</SectionTitle>
-      <SearchField
-        label="Name or full friend tag"
-        value={query}
-        onChangeText={setQuery}
-        onSubmitEditing={search}
-        returnKeyType="search"
-        autoCapitalize="none"
-      />
+      <View style={{ flexDirection: "row", alignItems: "center", gap: space.sm }}>
+        <View style={{ flex: 1 }}>
+          <SearchField
+            label="Name or full friend tag"
+            value={query}
+            onChangeText={setQuery}
+            onSubmitEditing={search}
+            returnKeyType="search"
+            autoCapitalize="none"
+          />
+        </View>
+        <CopyTag tag={tag} />
+      </View>
       {find.data ? (
         <Outcome
           result={find.data}
@@ -111,21 +146,6 @@ export function FindFriend({ tag }: { tag: string }) {
           }
         />
       ) : null}
-      <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: space.sm }}>
-        <Body tone="ink-3">Your friend tag {tag}</Body>
-        <Button
-          label={copyStatus === "copied" ? "Copied" : copyStatus === "failed" ? "Copy failed" : "Copy friend tag"}
-          fit="small"
-          variant="quiet"
-          onPress={async () => {
-            try {
-              setCopyStatus(await Clipboard.setStringAsync(tag) ? "copied" : "failed");
-            } catch {
-              setCopyStatus("failed");
-            }
-          }}
-        />
-      </View>
     </View>
   );
 }

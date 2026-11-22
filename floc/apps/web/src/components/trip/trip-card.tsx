@@ -51,7 +51,7 @@ export function TripCard({
   return (
     <li
       className={cx(
-        "lift relative flex rounded-md hover:shadow-none!",
+        "lift-card relative flex rounded-md",
         list
           ? "flex-row flex-wrap items-center gap-x-6 gap-y-2 px-6 py-4"
           : "min-h-[15rem] flex-col gap-4 p-6",

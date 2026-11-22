@@ -55,13 +55,8 @@ export default async function TripsPage({
   return (
     <div className="mx-auto w-full max-w-[84rem] px-4 pb-20 pt-6 sm:px-6">
       <PageTitle className="sr-only">My trips</PageTitle>
-      <header className="grid grid-cols-[minmax(0,1fr)] gap-1.5 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
-        <div className="sm:col-start-2">
-          <NewTripField me={viewer.name} people={people} asked={asked} along={along.map((p) => p.id)} />
-        </div>
-        <ButtonLink href="/trips/archived" variant="ghost" className="justify-self-end max-sm:hidden sm:col-start-3">
-          Archived
-        </ButtonLink>
+      <header className="flex justify-center">
+        <NewTripField me={viewer.name} people={people} asked={asked} along={along.map((p) => p.id)} />
       </header>
 
       {invites.length > 0 ? <InviteList invites={invites} /> : null}
@@ -81,7 +76,12 @@ export default async function TripsPage({
         </section>
       ) : null}
 
-      {ended.length > 0 ? <PastTrips trips={ended} /> : null}
+      <div className="relative mt-10 min-h-[31px]">
+        <ButtonLink href="/trips/archived" variant="ghost" className="absolute right-0 top-0">
+          Archived
+        </ButtonLink>
+        {ended.length > 0 ? <PastTrips trips={ended} /> : null}
+      </div>
       {welcome ? <WelcomeModal {...welcome} /> : null}
     </div>
   );
@@ -107,8 +107,8 @@ function TripList({
 
 function PastTrips({ trips }: { trips: TripCardData[] }) {
   return (
-    <details className="past-trips mt-10">
-      <summary className="mx-auto flex w-fit cursor-pointer list-none items-center gap-2 text-ink-soft transition-colors hover:text-ink [&::-webkit-details-marker]:hidden">
+    <details className="past-trips">
+      <summary className="mx-auto flex h-[31px] w-fit cursor-pointer list-none items-center gap-2 text-ink-soft transition-colors hover:text-ink [&::-webkit-details-marker]:hidden">
         <ChevronIcon direction="down" size={15} className="past-trips-chevron shrink-0" />
         <span className="typed text-current">Past trips · {trips.length}</span>
       </summary>

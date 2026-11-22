@@ -57,6 +57,12 @@ test("hover never fills grey", () => {
   assert.deepEqual(rules("a.css", ".b:hover { background: var(--sheet-3); }"), ["hover-grey"]);
 });
 
+test("a Profile settings row alone hovers to the sheet-2 grey", () => {
+  const row = "src/components/settings/settings-row.tsx";
+  assert.deepEqual(rules(row, '<b className="hover:bg-sheet-2" />'), []);
+  assert.deepEqual(rules(row, '<b className="hover:bg-sheet-3" />'), ["hover-grey"]);
+});
+
 test("a pen-2 utility names the variable, not a class, and draws nothing", () => {
   assert.deepEqual(rules("a.tsx", '<b className="bg-pen-2" />'), ["pen-2-class"]);
   assert.deepEqual(rules("a.tsx", '<b className="hover:bg-pen-2 text-pen-deep" />'), ["pen-2-class"]);

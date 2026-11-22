@@ -16,11 +16,9 @@ import { PackingCube } from "@/components/packing/packing-cube";
 import { PackingKitRow } from "@/components/packing/packing-kit-row";
 import { CategorySelect } from "@/components/packing/packing-controls";
 import { ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
+import { Input } from "@/components/system/ui";
 
 import type { listPackingKitsWithItems as Load } from "@/server/packing/packing-kits";
-
-const boxClass =
-  "w-full rounded-sm border border-rule bg-sheet px-4 py-2.5 text-sm placeholder:text-ink-faint focus-visible:border-pen";
 
 type Kit = Awaited<ReturnType<typeof Load>>[number];
 
@@ -31,15 +29,15 @@ export function PackingLists({ kits }: { kits: Kit[] }) {
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
           <form
             action={createPackingKit}
-            className="flex min-w-0 flex-1 flex-wrap items-center gap-3"
+            className="flex min-w-0 flex-1 flex-wrap items-end gap-3"
           >
             <label className="min-w-0 flex-1 basis-full sm:min-w-[14rem] sm:basis-auto">
               <span className="typed mb-1.5 block">Start a list</span>
-              <input
+              <Input
                 name="name"
                 required
                 maxLength={80}
-                className={boxClass}
+                className="h-[31px]"
               />
             </label>
             <SubmitButton>Make the list</SubmitButton>
@@ -73,26 +71,26 @@ function KitSection({ kit }: { kit: Kit }) {
 
       <form
         action={addKitItem.bind(null, kit.id)}
-        className="mt-4 flex flex-wrap items-stretch gap-2 rounded-md border border-rule bg-sheet p-3"
+        className="mt-4 flex flex-wrap items-center gap-2 rounded-md border border-rule bg-sheet p-3"
       >
         <label className="min-w-0 basis-full flex-1 sm:basis-auto">
           <span className="sr-only">Add something to {kit.name}</span>
-          <input
+          <Input
             name="label"
             required
             maxLength={200}
-            className={boxClass}
+            className="h-[31px]"
           />
         </label>
         <label className="shrink-0">
           <span className="sr-only">How many</span>
-          <input
+          <Input
             name="quantity"
             type="number"
             defaultValue={1}
             min={MIN_PACK_QUANTITY}
             max={MAX_PACK_QUANTITY}
-            className="w-20 rounded-sm border border-rule-strong bg-sheet px-3 py-2.5 text-center font-mono text-sm tabular-nums"
+            className="h-[31px] w-20 text-center tabular-nums"
           />
         </label>
         <CategorySelect />
@@ -128,12 +126,12 @@ function KitSection({ kit }: { kit: Kit }) {
         <form action={renameKit.bind(null, kit.id)} className="flex min-w-0 flex-wrap items-center justify-end gap-2">
           <label className="min-w-0">
             <span className="sr-only">Rename {kit.name}</span>
-            <input
+            <Input
               name="name"
               required
               maxLength={80}
               defaultValue={kit.name}
-              className="w-full rounded-sm border border-rule bg-sheet px-3 py-1.5 text-sm focus-visible:border-pen"
+              className="h-[31px]"
             />
           </label>
           <SubmitButton variant="ghost">Rename</SubmitButton>

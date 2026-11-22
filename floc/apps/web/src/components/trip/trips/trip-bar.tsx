@@ -44,7 +44,7 @@ export function TripBar({ trip, next = false }: { trip: TripCardData; next?: boo
 
   return (
     <li
-      className="lift relative grid rounded-md border border-rule bg-sheet hover:shadow-none! has-[[data-open=true]]:z-20 sm:min-h-[8.5rem] sm:grid-cols-[minmax(0,1fr)_44%]"
+      className="lift-card relative grid rounded-md border border-rule bg-sheet has-[[data-open=true]]:z-20 sm:min-h-[8.5rem] sm:grid-cols-[minmax(0,1fr)_44%]"
     >
       <div className="grid grid-cols-[3.5rem_minmax(0,1fr)] content-start gap-3 p-4 sm:grid-cols-[4.5rem_minmax(0,1fr)] sm:gap-4 sm:p-5">
         <DateTile trip={trip} tone={PASTEL_BY_KEY[colour]} />

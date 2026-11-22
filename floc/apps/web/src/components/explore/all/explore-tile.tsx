@@ -44,7 +44,7 @@ export function ExploreTile({
     </span>
   );
   return (
-    <div className="lift relative flex h-full flex-col overflow-hidden rounded-md bg-sheet shadow-[var(--shadow)]">
+    <div className="lift-card relative flex h-full flex-col overflow-hidden rounded-md bg-sheet">
       <Link href={href ?? `/explore/${trip.id}`} className={cx("flex w-full flex-col text-left text-ink after:absolute after:inset-0 after:content-['']", !action && "flex-1")}>
         <span aria-hidden className="pointer-events-none block aspect-[24/17] w-full bg-sheet-2">
           <OutlineMap trip={trip} size="tile" />

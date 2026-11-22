@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { cx, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
+import { Select, cx, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
 import { ConfirmSubmit, Menu } from "@/components/system/client-ui";
 import { CrossIcon } from "@/components/system/icons";
 import {
@@ -77,17 +77,17 @@ export function CategorySelect({ defaultValue }: { defaultValue?: PackCategory }
   return (
     <label className="shrink-0">
       <span className="sr-only">Category</span>
-      <select
+      <Select
         name="category"
         defaultValue={defaultValue ?? "other"}
-        className="h-full rounded-sm border border-rule-strong bg-sheet px-2 py-2.5 text-sm sm:px-3"
+        className="h-[31px] w-auto"
       >
         {PACK_CATEGORIES.map((c) => (
           <option key={c} value={c}>
             {PACK_CATEGORY_LABELS[c]}
           </option>
         ))}
-      </select>
+      </Select>
     </label>
   );
 }
