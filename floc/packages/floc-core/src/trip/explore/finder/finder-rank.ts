@@ -5,6 +5,7 @@ import type { TripTag } from "./tag-groups";
 import { tagsOf } from "./trip-tags";
 
 export const FINDER_SORTS = {
+  fit: "Best match first",
   season: "Top picks first",
   match: "Saved first",
   cheap: "Price, low to high",
@@ -15,7 +16,15 @@ export const FINDER_SORTS = {
 
 export type FinderSort = keyof typeof FINDER_SORTS;
 
-export const sortLabel = (sort: FinderSort, matched: boolean): string => (sort === "match" && matched ? "Best match first" : FINDER_SORTS[sort]);
+export const sortLabel = (sort: FinderSort): string => FINDER_SORTS[sort];
+
+export const finderSorts = (matched: boolean): FinderSort[] =>
+  (Object.keys(FINDER_SORTS) as FinderSort[]).filter((s) => s !== (matched ? "season" : "fit"));
+
+export const firstSort = (matched: boolean): FinderSort => (matched ? "fit" : "match");
+
+export const sortFor = (chosen: FinderSort | undefined, matched: boolean): FinderSort =>
+  chosen && finderSorts(matched).includes(chosen) ? chosen : firstSort(matched);
 
 export type Ranked = {
   trip: PresetTrip;
@@ -28,6 +37,7 @@ const price = (r: Ranked) => priceFigure(r.trip, "trip");
 const best = (a: Ranked, b: Ranked) => b.score - a.score || price(a) - price(b);
 const fitted = (a: Ranked, b: Ranked) => (b.fit ?? -1) - (a.fit ?? -1) || price(a) - price(b);
 const ORDER: Record<FinderSort, (a: Ranked, b: Ranked) => number> = {
+  fit: best,
   season: best,
   match: best,
   cheap: (a, b) => price(a) - price(b),
@@ -45,7 +55,7 @@ function pickLead(picks: readonly string[], sort: FinderSort, open: boolean): (a
 }
 
 function orderFor(f: Finder, sort: FinderSort, saved: ReadonlySet<string>, picks: readonly string[], matched: boolean): (a: Ranked, b: Ranked) => number {
-  if (sort === "match" && matched) return fitted;
+  if (sort === "fit" && matched) return fitted;
   const lead = pickLead(picks, sort, !f.likes.length);
   const savedFirst = sort === "match";
   return (a, b) => (savedFirst ? Number(saved.has(b.trip.id)) - Number(saved.has(a.trip.id)) : 0) || lead(a, b) || ORDER[sort](a, b);

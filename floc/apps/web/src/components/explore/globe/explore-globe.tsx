@@ -56,7 +56,10 @@ export function ExploreGlobe({
   }, [at, globe]);
 
   useEffect(() => {
-    if (routed) openTrip(routed);
+    if (routed) {
+      setZoom(0);
+      openTrip(routed);
+    }
     else globe.current?.close();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- `route` is new on every pick, so the same trip draws again
   }, [route]);

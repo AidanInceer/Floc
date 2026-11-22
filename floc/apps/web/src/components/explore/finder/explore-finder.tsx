@@ -1,7 +1,7 @@
 "use client";
 
 import { finderCounts, type Finder } from "@floc/core/trip/explore/finder/finder";
-import { rankTrips, type FinderSort } from "@floc/core/trip/explore/finder/finder-rank";
+import { firstSort, rankTrips, type FinderSort } from "@floc/core/trip/explore/finder/finder-rank";
 import { finderPills } from "@floc/core/trip/explore/finder/finder-words";
 import { seasonPicks } from "@floc/core/trip/explore/finder/season-picks";
 import type { Fits } from "@floc/core/trip/explore/fit/listing-fit";
@@ -41,7 +41,7 @@ export function ExploreFinder({
   const [finder, setFinder] = useState(initialFinder);
   const rates = useListingRates();
   const saved = useSavedTrips().ids;
-  const [sort, setSort] = useState<FinderSort>("match");
+  const [sort, setSort] = useState<FinderSort>(firstSort(fit !== null));
   const [sheet, setSheet] = useState(false);
   const pendingSave = useRef<ReturnType<typeof setTimeout>>(undefined);
 

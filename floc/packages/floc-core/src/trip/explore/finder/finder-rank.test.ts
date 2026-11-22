@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { PRESET_TRIPS, type PresetTrip } from "../preset-trips";
 import { EMPTY_FINDER, type Finder } from "./finder";
-import { rankTrips, sortLabel } from "./finder-rank";
+import { finderSorts, firstSort, rankTrips, sortFor, sortLabel } from "./finder-rank";
 
 const listing = (id: string, over: Partial<PresetTrip>): PresetTrip => ({
   ...PRESET_TRIPS[0],
@@ -74,13 +74,17 @@ describe("rankTrips", () => {
   });
 
   it("orders the best-match order by your figure when you have one", () => {
-    const rows = rankTrips(ALL, EMPTY_FINDER, "match", new Set(["food"]), ["food"], { food: 40, walk: 90, both: 70 });
+    const rows = rankTrips(ALL, EMPTY_FINDER, "fit", new Set(["food"]), ["food"], { food: 40, walk: 90, both: 70 });
     expect(ids(rows)).toEqual(["walk", "both", "food"]);
     expect(rows.map((r) => r.fit)).toEqual([90, 70, 40]);
   });
 
   it("puts a listing with no figure last in the best-match order", () => {
-    expect(ids(rankTrips(ALL, EMPTY_FINDER, "match", new Set(), [], { food: 40, both: 70 }))).toEqual(["both", "food", "walk"]);
+    expect(ids(rankTrips(ALL, EMPTY_FINDER, "fit", new Set(), [], { food: 40, both: 70 }))).toEqual(["both", "food", "walk"]);
+  });
+
+  it("keeps saved listings first in the saved order when you have a figure", () => {
+    expect(ids(rankTrips(ALL, EMPTY_FINDER, "match", new Set(["food"]), [], { food: 40, walk: 90, both: 70 }))[0]).toBe("food");
   });
 
   it("leaves the other orders alone when you have a figure", () => {
@@ -92,9 +96,38 @@ describe("rankTrips", () => {
     expect(rankTrips(ALL, EMPTY_FINDER, "match")[0].fit).toBeNull();
   });
 
-  it("names the best-match order by what it does", () => {
-    expect(sortLabel("match", true)).toBe("Best match first");
-    expect(sortLabel("match", false)).toBe("Saved first");
-    expect(sortLabel("cheap", true)).toBe("Price, low to high");
+  it("names each order by what it does", () => {
+    expect(sortLabel("fit")).toBe("Best match first");
+    expect(sortLabel("match")).toBe("Saved first");
+    expect(sortLabel("cheap")).toBe("Price, low to high");
+  });
+});
+
+describe("finderSorts", () => {
+  it("offers best match in place of top picks when you have a figure", () => {
+    expect(finderSorts(true)).toEqual(["fit", "match", "cheap", "dear", "short", "long"]);
+  });
+
+  it("offers top picks and no best match when you have no figure", () => {
+    expect(finderSorts(false)).toEqual(["season", "match", "cheap", "dear", "short", "long"]);
+  });
+
+  it("starts on best match when you have a figure, else on saved first", () => {
+    expect(firstSort(true)).toBe("fit");
+    expect(firstSort(false)).toBe("match");
+  });
+});
+
+describe("sortFor", () => {
+  it("keeps the order you chose while it is on offer", () => {
+    expect(sortFor("cheap", true)).toBe("cheap");
+  });
+
+  it("starts on the first order when you have chosen none", () => {
+    expect(sortFor(undefined, true)).toBe("fit");
+  });
+
+  it("goes back to the first order when yours leaves the list", () => {
+    expect(sortFor("season", true)).toBe("fit");
   });
 });

@@ -6,6 +6,7 @@ import { peopleCount } from "@floc/core/people/group-ticks";
 
 import { deleteGroupAction } from "@/app/friends/actions";
 import { ConfirmSubmit, Menu } from "@/components/system/client-ui";
+import { MatchIcon } from "@/components/system/icons";
 import { AvatarRow, Button, ErrorText, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
 import type { Group } from "@/server/social/groups";
 
@@ -37,10 +38,7 @@ function GroupRow({ group, onEdit }: { group: Group; onEdit: () => void }) {
           <AvatarRow people={group.members} size={24} max={5} />
         </button>
         <Button className="shrink-0 gap-1.5 max-sm:px-2" aria-label={`Trip ideas for ${group.name}`} onClick={() => setIdeas(true)}>
-          <svg viewBox="0 0 14 14" width={13} height={13} fill="none" stroke="currentColor" strokeWidth={1.2} aria-hidden>
-            <circle cx="7" cy="7" r="5" className="stroke-rule-strong" />
-            <circle cx="7" cy="7" r="5" strokeWidth={1.7} pathLength={100} strokeDasharray="72 100" transform="rotate(-90 7 7)" />
-          </svg>
+          <MatchIcon />
           <span className="max-sm:hidden">Trip ideas</span>
         </Button>
         <Menu label={`More for ${group.name}`}>

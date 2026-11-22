@@ -1,5 +1,5 @@
 import { EMPTY_FINDER, finderCounts, type Finder } from "@floc/core/trip/explore/finder/finder";
-import { rankTrips, type FinderSort } from "@floc/core/trip/explore/finder/finder-rank";
+import { rankTrips, sortFor, type FinderSort } from "@floc/core/trip/explore/finder/finder-rank";
 import { finderPills } from "@floc/core/trip/explore/finder/finder-words";
 import { comingSeason, seasonPicks } from "@floc/core/trip/explore/finder/season-picks";
 import { listingPrice } from "@floc/core/trip/explore/listing-price";
@@ -46,7 +46,7 @@ export default function Explore() {
   useOpeningPick(state.data?.likes, saves.data, setPicked);
   const asked = readCountryCode(useLocalSearchParams<{ country?: string }>().country);
   const [finder, setFinder] = useState<Finder>(asked ? { ...EMPTY_FINDER, q: countryName(asked) } : EMPTY_FINDER);
-  const [sort, setSort] = useState<FinderSort>("match");
+  const [chosen, setSort] = useState<FinderSort>();
   const [sheet, setSheet] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const [copying, setCopying] = useState(false);
@@ -68,6 +68,7 @@ export default function Explore() {
 
   const trip = PRESET_TRIPS.find((t) => t.id === picked) ?? PRESET_TRIPS[0];
   const fit = state.data?.fit ?? null;
+  const sort = sortFor(chosen, fit !== null);
   const rows = useMemo(() => rankTrips(PRESET_TRIPS, finder, sort, new Set(saves.data ?? []), top.ids, fit), [finder, sort, saves.isSuccess, top.ids, fit]);
   const counts = useMemo(() => finderCounts(PRESET_TRIPS, finder), [finder]);
   const pills = finderPills(finder, state.data?.rates ?? null);
