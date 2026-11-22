@@ -496,6 +496,16 @@
     }
   }
 
+  .dial-fill {
+    stroke-dasharray: 0 100;
+    animation: dial-fill 1.8s var(--ease-even) forwards;
+  }
+  @keyframes dial-fill {
+    to {
+      stroke-dasharray: 100 100;
+    }
+  }
+
   @keyframes site-fresh {
     18%,
     80% {

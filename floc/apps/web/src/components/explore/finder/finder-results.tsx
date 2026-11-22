@@ -6,8 +6,6 @@ import { tagsOf } from "@floc/core/trip/explore/finder/trip-tags";
 import { useState } from "react";
 
 import { ExploreTile, tagClass } from "@/components/explore/all/explore-tile";
-import { PickMark } from "@/components/explore/finder/pick-mark";
-import { linkClass } from "@/components/explore/finder/finder-chip";
 import { CheckIcon } from "@/components/system/icons";
 import { ChevronIcon } from "@/components/system/icons";
 import { ButtonLink, cx } from "@/components/system/ui";
@@ -18,7 +16,6 @@ const TILE_LIMIT = 11;
 const hit = "inline-flex items-center gap-1 rounded-full border border-rule-strong px-2 py-px text-[11px]";
 
 function TileTags({ row, likes }: { row: Ranked; likes: TripTag[] }) {
-  if (row.shared) return <Tags on={row.shared.slice(0, 4)} />;
   if (!likes.length) return <Tags plain={tagsOf(row.trip).slice(0, 3)} />;
   return <Tags on={row.hits} off={likes.filter((x) => !row.hits.includes(x))} />;
 }
@@ -66,16 +63,12 @@ export function FinderResults({
   split,
   signedIn,
   blankName,
-  season,
-  onLike,
 }: {
   rows: Ranked[];
   likes: TripTag[];
   split: boolean;
   signedIn: boolean;
   blankName: string | null;
-  season: { picks: ReadonlySet<string>; label: string };
-  onLike: (presetId: string) => void;
 }) {
   const [all, setAll] = useState(false);
   const own = <OwnTile key="own" signedIn={signedIn} name={blankName} />;
@@ -92,15 +85,7 @@ export function FinderResults({
   const rest = split ? shown.filter((r) => !r.hits.length) : [];
   const tile = (r: Ranked, dim = false) => (
     <li key={r.trip.id} className={dim ? "opacity-75" : undefined}>
-      <ExploreTile
-        trip={r.trip}
-        mark={season.picks.has(r.trip.id) ? <PickMark label={season.label} /> : undefined}
-        footer={
-          <button type="button" className={linkClass} onClick={() => onLike(r.trip.id)}>
-            More like this
-          </button>
-        }
-      >
+      <ExploreTile trip={r.trip} match={r.fit}>
         <TileTags row={r} likes={likes} />
       </ExploreTile>
     </li>

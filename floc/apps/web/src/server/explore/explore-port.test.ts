@@ -31,4 +31,18 @@ describe("Explore through the port", () => {
     vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("down"); }));
     expect((await webPort.loadExplore(world.member)).rates).toBeNull();
   });
+
+  it("sends no match figures for someone with no travel style", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("down"); }));
+    expect((await webPort.loadExplore(world.member)).fit).toBeNull();
+  });
+
+  it("sends a match figure for each listing once the viewer has a travel style", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("down"); }));
+    await ensureProfile(world.member);
+    await updateProfileFields(world.member, { vibeTags: ["food first", "hiking"] });
+    const { fit } = await webPort.loadExplore(world.member);
+    expect(Object.keys(fit ?? {}).length).toBeGreaterThan(50);
+    expect(Object.values(fit ?? {}).every((figure) => Number.isInteger(figure) && figure >= 0 && figure <= 100)).toBe(true);
+  });
 });

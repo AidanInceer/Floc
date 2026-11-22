@@ -1,4 +1,4 @@
-import { FINDER_SORTS, type FinderSort } from "@floc/core/trip/explore/finder/finder-rank";
+import { finderSorts, sortLabel, type FinderSort } from "@floc/core/trip/explore/finder/finder-rank";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -38,12 +38,14 @@ export function FinderBar({
   set,
   pills,
   sort,
+  matched,
   onSort,
   onOpen,
 }: {
   set: number;
   pills: Removable[];
   sort: FinderSort;
+  matched: boolean;
   onSort: (sort: FinderSort) => void;
   onOpen: () => void;
 }) {
@@ -59,9 +61,9 @@ export function FinderBar({
           <Text style={word}>Filters</Text>
           {set ? <Text style={{ ...word, fontFamily: fonts.type, color: c["ink-2"] }}>· {set}</Text> : null}
         </Control>
-        <Control label={`Sort: ${FINDER_SORTS[sort]}`} onPress={() => setSorting(true)}>
+        <Control label={`Sort: ${sortLabel(sort)}`} onPress={() => setSorting(true)}>
           <SortGlyph color={c["ink-2"]} />
-          <Text style={word}>{FINDER_SORTS[sort]}</Text>
+          <Text style={word}>{sortLabel(sort)}</Text>
           <ChevronGlyph color={c["ink-3"]} />
         </Control>
       </View>
@@ -96,7 +98,7 @@ export function FinderBar({
         title="Sort by"
         open={sorting}
         onClose={() => setSorting(false)}
-        options={(Object.keys(FINDER_SORTS) as FinderSort[]).map((s) => ({ value: s, label: FINDER_SORTS[s] }))}
+        options={finderSorts(matched).map((s) => ({ value: s, label: sortLabel(s) }))}
         value={sort}
         onChange={onSort}
       />

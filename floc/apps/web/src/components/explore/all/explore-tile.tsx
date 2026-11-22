@@ -4,6 +4,7 @@ import type { PresetTrip } from "@floc/core/trip/explore/preset-trips";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { MatchDial } from "@/components/explore/all/match-dial";
 import { skinFor } from "@/components/explore/listing";
 import { SaveHeart } from "@/components/explore/save/save-heart";
 import { OutlineMap } from "@/components/explore/outline/outline-map";
@@ -25,7 +26,7 @@ export function ExploreTile({
   children,
   footer,
   action,
-  mark,
+  match,
   href,
 }: {
   trip: PresetTrip;
@@ -33,35 +34,37 @@ export function ExploreTile({
   children?: ReactNode;
   footer?: ReactNode;
   action?: ReactNode;
-  mark?: ReactNode;
+  match?: number | null;
 }) {
   const rates = useListingRates();
   const figures = (
-    <span className="nums text-[11px] text-ink-faint">
-      {countWord(trip.nights, "night")} · {listingPrice(trip, rates)}
+    <span className="nums flex flex-col text-[11px] text-ink-faint sm:flex-row sm:gap-1">
+      <span className="whitespace-nowrap">{countWord(trip.nights, "night")}<span className="max-sm:hidden"> ·</span></span>
+      <span className="whitespace-nowrap">{listingPrice(trip, rates)}</span>
     </span>
   );
   return (
     <div className="lift-card relative flex h-full flex-col overflow-hidden rounded-md bg-sheet">
-      <Link href={href ?? `/explore/${trip.id}`} className="flex w-full flex-col text-left text-ink after:absolute after:inset-0 after:content-['']">
+      <Link href={href ?? `/explore/${trip.id}`} className={cx("flex w-full flex-col text-left text-ink after:absolute after:inset-0 after:content-['']", !action && "flex-1")}>
         <span aria-hidden className="pointer-events-none block aspect-[24/17] w-full bg-sheet-2">
           <OutlineMap trip={trip} size="tile" />
         </span>
         <span className={cx("flex flex-col gap-1 px-3.5 pt-3", action ? "pb-1.5" : "pb-2")}>
           <span className={cx(tagClass, skinFor(trip), "mb-1")}>{trip.country}</span>
           <b className="font-display text-base font-semibold leading-tight tracking-[-0.02em]">{trip.title}</b>
-          {action ? null : figures}
           {children}
         </span>
-        {mark}
+        {action ? null : (
+          <span className="mt-auto flex items-end justify-between gap-2 px-3.5 pb-3.5 pt-1.5">
+            {figures}
+            {match == null ? null : <MatchDial percent={match} />}
+          </span>
+        )}
       </Link>
       <SaveHeart presetId={trip.id} title={trip.title} className="absolute right-1.5 top-1.5 z-10" />
       {action ? (
         <div className={cx(lastLineClass, "px-3.5", footer ? "pb-1.5" : "pb-3.5")}>
-          <span className="nums flex flex-col text-[11px] text-ink-faint sm:flex-row sm:gap-1">
-            <span className="whitespace-nowrap">{countWord(trip.nights, "night")}<span className="max-sm:hidden"> ·</span></span>
-            <span className="whitespace-nowrap">{listingPrice(trip, rates)}</span>
-          </span>
+          {figures}
           {action}
         </div>
       ) : null}
