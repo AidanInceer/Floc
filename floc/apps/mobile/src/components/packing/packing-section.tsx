@@ -15,25 +15,28 @@ import { Card, SectionTitle } from "../system/ui";
 import { FigureText } from "./figure-text";
 import { SuggestedNote } from "./suggested-mark";
 import { TextAction } from "./line-frame";
-import { groupCount, sectionCount } from "@/lib/packing/row-words";
-import { fonts, radius, size, space } from "@/lib/theme";
+import { groupCount } from "@/lib/packing/row-words";
+import { fonts, size, space } from "@/lib/theme";
+
+export type SectionMenuItem = { label: string; danger: boolean; onPress: () => void };
 
 function ListMenu({
   heading,
   open,
   onClose,
   onPick,
-  onClear,
+  items,
 }: {
   heading: string;
   open: boolean;
   onClose: () => void;
-  onPick: () => void;
-  onClear: () => void;
+  onPick: (() => void) | null;
+  items: SectionMenuItem[];
 }) {
   const { c } = useTheme();
-  const item = (label: string, tone: "ink" | "red", onPress: () => void) => (
+  const row = (label: string, tone: "ink" | "red", onPress: () => void) => (
     <Pressable
+      key={label}
       accessibilityRole="button"
       accessibilityLabel={`${label} in ${heading}`}
       onPress={() => {
@@ -51,8 +54,8 @@ function ListMenu({
   );
   return (
     <Sheet open={open} onClose={onClose}>
-      {item("Pick rows to remove", "ink", onPick)}
-      {item("Clear list", "red", onClear)}
+      {onPick ? row("Pick rows to remove", "ink", onPick) : null}
+      {items.map((item) => row(item.label, item.danger ? "red" : "ink", item.onPress))}
     </Sheet>
   );
 }
@@ -94,13 +97,11 @@ export function PackingSection<
   I extends { category: PackCategory } = { category: PackCategory },
 >({
   heading,
-  aside,
   lines,
-  packed,
   isPacked,
   selecting,
   onSelecting,
-  onClear,
+  menuItems,
   emptyWord,
   renderLine,
   groupsOverride,
@@ -108,13 +109,11 @@ export function PackingSection<
   headerAction,
 }: {
   heading: string;
-  aside?: string;
   lines: T[];
-  packed: number;
   isPacked: (line: T) => boolean | null;
   selecting: boolean;
   onSelecting: (selecting: boolean) => void;
-  onClear: () => void;
+  menuItems: SectionMenuItem[];
   emptyWord: string;
   renderLine: (line: T) => ReactNode;
   groupsOverride?: PackingLineGroup<T>[];
@@ -126,7 +125,6 @@ export function PackingSection<
   const groups: { key: string; heading: string | null; lines: T[]; ideas: I[] }[] = ideas
     ? packingCubes(lines as (T & { kitName?: string | null })[], ideas.list)
     : (groupsOverride ?? viewPackingLines(lines, { sort: "category", category: "all" })).map((g) => ({ ...g, ideas: [] }));
-  const share = lines.length > 0 ? packed / lines.length : 0;
 
   return (
     <View style={{ gap: space.sm }}>
@@ -134,17 +132,11 @@ export function PackingSection<
         <View style={{ flexDirection: "row", alignItems: "center", gap: space.md, minHeight: 36 }}>
           <View style={{ flex: 1, flexDirection: "row", alignItems: "baseline", gap: space.sm, flexWrap: "wrap" }}>
             <SectionTitle>{heading}</SectionTitle>
-            {lines.length > 0 ? (
-              <FigureText
-                text={sectionCount(lines.length, packed)}
-                style={{ color: c["ink-3"], fontFamily: fonts.sans, fontSize: size.small }}
-              />
-            ) : null}
           </View>
           {headerAction}
           {selecting ? (
             <TextAction label="Done" tone="pen" bold onPress={() => onSelecting(false)} accessibilityLabel={`Done picking in ${heading}`} />
-          ) : lines.length > 0 ? (
+          ) : lines.length > 0 || menuItems.length > 0 ? (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`More for ${heading}`}
@@ -156,19 +148,14 @@ export function PackingSection<
             </Pressable>
           ) : null}
         </View>
-        {packed > 0 ? (
-          <View style={{ height: 3, borderRadius: radius.sm, backgroundColor: c["sheet-3"], overflow: "hidden" }}>
-            <View style={{ width: `${Math.round(share * 100)}%`, height: 3, backgroundColor: c.green }} />
-          </View>
-        ) : null}
       </View>
 
       <ListMenu
         heading={heading}
         open={menu}
         onClose={() => setMenu(false)}
-        onPick={() => onSelecting(true)}
-        onClear={onClear}
+        onPick={lines.length > 0 ? () => onSelecting(true) : null}
+        items={menuItems}
       />
 
       <Card style={{ padding: 0, gap: 0, overflow: "hidden" }}>
@@ -208,7 +195,6 @@ export function PackingSection<
           );
         })}
       </Card>
-      {aside ? <Text style={{ color: c["ink-3"], fontFamily: fonts.sans, fontSize: size.small }}>{aside}</Text> : null}
     </View>
   );
 }

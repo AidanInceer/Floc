@@ -36,30 +36,21 @@ function Chip({ word, on, onPress }: { word: string; on: boolean; onPress: () =>
   );
 }
 
-type Ideas = { count: number; hidden: boolean; onToggle: () => void };
 type Press = { busy: boolean; onPress: () => void };
-type Suggested = { count: number; onPress: () => void };
-
-function RemoveSuggested({ count, onPress }: Suggested) {
-  if (count === 0) return null;
-  return <TextAction label={`Remove suggested (${count})`} onPress={onPress} />;
-}
 
 export function PackingSetup({
   why,
   tier,
   onTier,
-  ideas,
+  ideaCount,
   fill,
-  removeSuggested,
   error,
 }: {
   why: string;
   tier: PackTier;
   onTier: (tier: PackTier) => void;
-  ideas: Ideas;
+  ideaCount: number;
   fill: Press;
-  removeSuggested: Suggested;
   error: string | null;
 }) {
   const { c } = useTheme();
@@ -72,39 +63,26 @@ export function PackingSetup({
           <Chip key={option} word={PACK_TIER_LABELS[option]} on={option === tier} onPress={() => onTier(option)} />
         ))}
       </View>
-      <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", columnGap: space.lg, rowGap: space.sm }}>
-        {ideas.count > 0 && !ideas.hidden ? (
-          <Button label={`Add all ${ideas.count}`} variant="quiet" fit="small" busy={fill.busy} onPress={fill.onPress} />
-        ) : null}
-        {ideas.count > 0 ? (
-          <TextAction label={ideas.hidden ? `Show ${ideas.count} ideas` : "Hide ideas"} onPress={ideas.onToggle} />
-        ) : null}
-        <RemoveSuggested {...removeSuggested} />
-      </View>
+      {ideaCount > 0 ? (
+        <View style={{ flexDirection: "row" }}>
+          <Button label={`Add all ${ideaCount}`} variant="quiet" fit="small" busy={fill.busy} onPress={fill.onPress} />
+        </View>
+      ) : null}
       {error ? <Text style={{ ...say, color: c.red }}>{error}</Text> : null}
     </View>
   );
 }
 
-export function PackingUpgrade({
-  onUpgrade,
-  removeSuggested,
-}: {
-  onUpgrade: () => void;
-  removeSuggested: Suggested;
-}) {
+export function PackingUpgrade({ onUpgrade }: { onUpgrade: () => void }) {
   const { c } = useTheme();
   return (
-    <View style={{ gap: space.sm }}>
-      <View style={{ flexDirection: "row", alignItems: "flex-start", gap: space.md }}>
-        <Text style={{ flex: 1, color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.small, lineHeight: 20 }}>
-          Auto packing fills your bag from the trip’s nights and weather.
-        </Text>
-        <View style={{ height: 20, justifyContent: "center" }}>
-          <TextAction label="Upgrade to Pro" tone="ink" bold onPress={onUpgrade} />
-        </View>
+    <View style={{ flexDirection: "row", alignItems: "flex-start", gap: space.md }}>
+      <Text style={{ flex: 1, color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.small, lineHeight: 20 }}>
+        Auto packing fills your bag from the trip’s nights and weather.
+      </Text>
+      <View style={{ height: 20, justifyContent: "center" }}>
+        <TextAction label="Upgrade to Pro" tone="ink" bold onPress={onUpgrade} />
       </View>
-      <RemoveSuggested {...removeSuggested} />
     </View>
   );
 }

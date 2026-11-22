@@ -1,7 +1,7 @@
 import Link from "next/link";
 
-import { Select, cx, menuDangerItemClass, menuItemClass } from "@/components/system/ui";
-import { ConfirmSubmit, Menu } from "@/components/system/client-ui";
+import { Select, cx } from "@/components/system/ui";
+import { ConfirmSubmit } from "@/components/system/client-ui";
 import { CrossIcon } from "@/components/system/icons";
 import {
   PACK_CATEGORIES,
@@ -89,39 +89,5 @@ export function CategorySelect({ defaultValue }: { defaultValue?: PackCategory }
         ))}
       </Select>
     </label>
-  );
-}
-
-export function PackingBagMore({
-  reset,
-  suggested,
-}: {
-  reset: (() => Promise<void>) | null;
-  suggested: { count: number; remove: () => Promise<void> };
-}) {
-  if (!reset && suggested.count === 0) return null;
-  return (
-    <Menu label="More for your bag">
-      {suggested.count > 0 ? (
-        <form action={suggested.remove}>
-          <button type="submit" role="menuitem" className={menuItemClass}>
-            Remove suggested <span className="font-mono text-[11px] tabular-nums text-ink-faint">{suggested.count}</span>
-          </button>
-        </form>
-      ) : null}
-      {reset ? (
-        <form action={reset}>
-          <ConfirmSubmit
-            variant="ghost"
-            confirmVariant="danger"
-            message="Clear your whole bag? The shared list stays."
-            confirmLabel="Clear it"
-            className={menuDangerItemClass}
-          >
-            Clear your bag
-          </ConfirmSubmit>
-        </form>
-      ) : null}
-    </Menu>
   );
 }

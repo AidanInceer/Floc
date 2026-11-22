@@ -376,6 +376,7 @@ export const tripMembership = sqliteTable(
     mapPromptAt: integer("map_prompt_at", { mode: "timestamp" }),
     packTier: text("pack_tier", { enum: PACK_TIERS }),
     packGeneratedAt: integer("pack_generated_at", { mode: "timestamp" }),
+    packIdeasShownAt: integer("pack_ideas_shown_at", { mode: "timestamp" }),
     starredAt: integer("starred_at", { mode: "timestamp" }),
     mutedAt: integer("muted_at", { mode: "timestamp" }),
     calendarFeedEpoch: integer("calendar_feed_epoch").notNull().default(0),

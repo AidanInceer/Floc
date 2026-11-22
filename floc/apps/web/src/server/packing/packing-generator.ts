@@ -67,16 +67,11 @@ type FillArgs = {
 };
 
 export async function fillPersonalBag(args: FillArgs): Promise<number> {
-  return fill(args, { onlyIfNever: false });
-}
-
-export async function autoFillPersonalBag(args: FillArgs): Promise<number> {
-  return fill(args, { onlyIfNever: true });
+  return fill(args);
 }
 
 export async function takePackingIdea(args: FillArgs & { label: string }): Promise<number> {
-  const label = args.label.trim().toLowerCase();
-  return fill(args, { onlyIfNever: false, only: label });
+  return fill(args, args.label.trim().toLowerCase());
 }
 
 function isLockContention(err: unknown): boolean {
@@ -84,21 +79,16 @@ function isLockContention(err: unknown): boolean {
   return message.includes("SQLITE_BUSY") || message.includes("database is locked");
 }
 
-type FillMode = { onlyIfNever: boolean; only?: string };
-
-async function fill(args: FillArgs, mode: FillMode): Promise<number> {
+async function fill(args: FillArgs, only?: string): Promise<number> {
   try {
-    return await fillInTransaction(args, mode);
+    return await fillInTransaction(args, only);
   } catch (err) {
     if (isLockContention(err)) return 0;
     throw err;
   }
 }
 
-async function fillInTransaction(
-  args: FillArgs,
-  { onlyIfNever, only }: FillMode,
-): Promise<number> {
+async function fillInTransaction(args: FillArgs, only?: string): Promise<number> {
   const { tripId, ownerId, tier, plan } = args;
 
   return db.transaction(async (tx) => {
@@ -111,11 +101,7 @@ async function fillInTransaction(
     const marked = await tx
       .update(tripMembership)
       .set({ packGeneratedAt: new Date(), lastModifiedAt: new Date() })
-      .where(
-        onlyIfNever
-          ? and(membership, isNull(tripMembership.packGeneratedAt))
-          : membership,
-      )
+      .where(membership)
       .returning({ tripId: tripMembership.tripId })
       .all();
 

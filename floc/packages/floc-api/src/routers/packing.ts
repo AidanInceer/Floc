@@ -92,6 +92,20 @@ export const packingRouter = router({
     await ctx.port.removeSuggestedPacking(ctx.viewer.id, input.tripId);
   }),
 
+  removeUnpacked: tripProcedure.mutation(async ({ ctx, input }) => {
+    await ctx.port.removeUnpackedPacking(ctx.viewer.id, input.tripId);
+  }),
+
+  unpackBag: tripProcedure.mutation(async ({ ctx, input }) => {
+    await ctx.port.unpackMyBag(ctx.viewer.id, input.tripId);
+  }),
+
+  setIdeasShown: tripProcedure
+    .input(z.object({ shown: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.port.setPackingIdeasShown(ctx.viewer.id, input.tripId, input.shown);
+    }),
+
   applyKit: tripProcedure
     .input(z.object({ kitId: z.number().int().positive() }))
     .mutation(async ({ ctx, input }) => {

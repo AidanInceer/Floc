@@ -94,7 +94,6 @@ function SettingsPanels({
   });
   const [tags, setTags] = useState<string[]>(settings.vibeTags);
   const [tier, setTier] = useState<PackTier>(settings.packTier);
-  const [autoFill, setAutoFill] = useState(settings.packAutoGenerate);
   const [currency, setCurrency] = useState(settings.homeCurrency);
   const [still, setStill] = useState(settings.reduceMotion);
   const [notify, setNotify] = useState({
@@ -207,15 +206,7 @@ function SettingsPanels({
               value={tier}
               onChange={(next) => {
                 setTier(next);
-                savePacking.mutate({ tier: next, autoGenerate: autoFill });
-              }}
-            />
-            <Toggle
-              label="Fill my bag in when I open a trip's packing"
-              value={autoFill}
-              onChange={(next) => {
-                setAutoFill(next);
-                savePacking.mutate({ tier, autoGenerate: next });
+                savePacking.mutate({ tier: next });
               }}
             />
           </View>
