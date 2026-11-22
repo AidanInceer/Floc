@@ -20,6 +20,7 @@ import { motionBootstrap } from "@/lib/motion/still";
 import { themeBootstrap } from "@/lib/theme";
 import { getSession } from "@/server/access";
 import { appUrl } from "@/lib/env";
+import { SITE_DESCRIPTION } from "@/lib/seo/site-description";
 import { topBarFor, TOP_BAR_PREVIEW } from "@/server/chrome/top-bar";
 
 const SIGNED_OUT: Awaited<ReturnType<typeof topBarFor>> = {
@@ -59,8 +60,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(appUrl()),
   robots: { index: false, follow: false },
   title: { default: "Floc — Trip planning, sorted.", template: "%s · Floc" },
-  description:
-    "Floc keeps a group trip in one place: the notes, the route, the days, and who owes who.",
+  description: SITE_DESCRIPTION,
 };
 
 export default async function RootLayout({
