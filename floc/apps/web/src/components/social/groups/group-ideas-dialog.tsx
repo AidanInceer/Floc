@@ -40,11 +40,14 @@ export default function GroupIdeasDialog({ group, onClose }: { group: Group; onC
 
   useEffect(() => {
     let live = true;
-    groupIdeasAction(group.id)
-      .catch((): GroupIdeasFound => ({ error: FAILED }))
-      .then((out) => {
+    groupIdeasAction(group.id).then(
+      (out) => {
         if (live) setFound(out);
-      });
+      },
+      () => {
+        if (live) setFound({ error: FAILED });
+      },
+    );
     return () => {
       live = false;
     };
