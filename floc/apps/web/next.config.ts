@@ -11,7 +11,7 @@ const config: NextConfig = {
   typescript: { ignoreBuildErrors: process.env.FLOC_VERIFY_BUILD === "1" },
   allowedDevOrigins: process.env.FLOC_LAN_HOST ? [process.env.FLOC_LAN_HOST] : [],
   transpilePackages: ["@floc/core", "@floc/editor", "@floc/globe"],
-  serverExternalPackages: ["@libsql/client", "better-auth", "yjs", "zxing-wasm", "unpdf"],
+  serverExternalPackages: ["@libsql/client", "better-auth", "yjs", "zxing-wasm", "unpdf", "sharp"],
   experimental: {
     staleTimes: { dynamic: 30, static: 30 },
     serverActions: { bodySizeLimit: "10mb" },

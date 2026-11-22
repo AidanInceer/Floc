@@ -30,6 +30,7 @@ import { pagesPort } from "@/server/api-port/pages/api-port-pages";
 import { ideasPort } from "@/server/api-port/ideas/ideas";
 import { nudgesPort } from "@/server/api-port/nudges/nudges";
 import { filesPort } from "@/server/api-port/api-port-files";
+import { mediaPort } from "@/server/api-port/media/api-port-media";
 import { bookingsPort } from "@/server/api-port/bookings/bookings";
 import { explorePort } from "@/server/api-port/api-port-explore";
 import { kitsPort } from "@/server/api-port/api-port-kits";
@@ -127,6 +128,7 @@ export const webPort: FlocPort = {
   ...kitsPort,
   ...wishListsPort,
   ...filesPort,
+  ...mediaPort,
   ...bookingsPort,
   ...commentsPort,
   ...pagesPort,

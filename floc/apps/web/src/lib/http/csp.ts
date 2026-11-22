@@ -29,6 +29,7 @@ export function contentSecurityPolicy({ nonce, host, dev, maps = false }: Option
     [`script-src 'self' ${script}${dev ? " 'unsafe-eval'" : ""}`, ...map.script].join(" "),
     ["style-src 'self' 'unsafe-inline'", ...map.style].join(" "),
     ["img-src 'self' data: blob:", ...map.img].join(" "),
+    "media-src 'self' blob:",
     ["font-src 'self'", ...map.font].join(" "),
     ["connect-src 'self'", ...socketsOf(host, dev), ...map.connect].join(" "),
     "worker-src 'self' blob:",

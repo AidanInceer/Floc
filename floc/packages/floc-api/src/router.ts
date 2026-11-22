@@ -6,6 +6,7 @@ import { commentsRouter } from "./routers/comments";
 import { exploreRouter } from "./routers/explore";
 import { feedbackRouter } from "./routers/feedback/feedback";
 import { filesRouter } from "./routers/files";
+import { mediaRouter } from "./routers/media/media";
 import { friendsRouter } from "./routers/friends";
 import { groupsRouter } from "./routers/groups";
 import { ideasRouter } from "./routers/itinerary/ideas";
@@ -47,6 +48,7 @@ export const appRouter = router({
   people: peopleRouter,
   invites: invitesRouter,
   files: filesRouter,
+  media: mediaRouter,
   comments: commentsRouter,
   pages: pagesRouter,
   packing: packingRouter,

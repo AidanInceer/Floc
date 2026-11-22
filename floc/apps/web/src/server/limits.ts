@@ -17,6 +17,7 @@ export const LIMITS = {
   tripLinks: 200,
   invites: 200,
   documents: 500,
+  tripMedia: 2000,
   ideas: 200,
   availability: 20_000,
   availabilityPerPerson: 732,

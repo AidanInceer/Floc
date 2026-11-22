@@ -1,0 +1,40 @@
+.ph-name { display: inline-flex; flex: 1; align-items: center; gap: 8px; min-width: 0; height: 26px; padding: 0 4px 0 0; border-radius: var(--radius-sm); text-align: left; transition: color .22s var(--ease); }
+.ph-name:hover { color: var(--pen-deep); }
+.ph-name .nums { flex: none; }
+
+.gal-tabs { display: flex; flex: 1; gap: 4px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.gal-tabs button { display: inline-flex; flex-shrink: 0; align-items: center; gap: 6px; height: 31px; padding: 0 10px; border-radius: var(--radius-sm); font-size: 13px; color: var(--ink-2); transition: background .22s var(--ease), color .22s var(--ease); }
+.gal-tabs b { font-weight: 500; font-size: 11px; }
+.gal-tabs .nums { font-size: 11px; }
+.gal-tabs span.nums { color: var(--ink-3); }
+.gal-tabs button:hover { color: var(--pen-deep); }
+.gal-tabs button[aria-pressed="true"], .gal-tabs button[aria-pressed="true"] span.nums { background: var(--pen-2); color: var(--pen-deep); }
+.gal-body { flex: 1; min-height: 0; padding: 2px; overflow-y: auto; scrollbar-width: thin; }
+.win-cap { flex-shrink: 0; font-size: 11px; color: var(--ink-3); }
+
+dialog.mv-gal { overflow: hidden; }
+dialog.mv-gal[open] { display: flex; flex-direction: column; gap: 12px; }
+dialog.mv-sheet { width: min(62rem, calc(100vw - 32px)); height: min(44rem, calc(100dvh - 32px)); padding: 14px; }
+.gal-top { display: flex; flex-shrink: 0; align-items: center; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--rule); }
+
+.mv-long .gal-body { display: flex; flex-direction: column; gap: 22px; }
+.long-h { position: sticky; top: -2px; z-index: 2; display: flex; align-items: center; gap: 4px; padding: 4px 0 8px; background: var(--sheet); font-size: var(--text-lg); }
+.long-h .nums { margin-left: 6px; font-size: 11px; font-weight: 400; color: var(--ink-3); }
+.win-over { position: absolute; inset: 0; z-index: 5; display: flex; padding: 14px; background: var(--sheet); }
+.win-over[hidden] { display: none; }
+.win-over .vw { flex: 1; }
+.win-over .vw-pic { flex: 1; min-height: 0; }
+.tess { display: flex; flex-direction: column; gap: 4px; }
+.tess-row { display: flex; gap: 4px; }
+.tess-row .gal-tile { min-width: 0; }
+.win-over.top .vw { border: 0; border-radius: 0; background: none; }
+.win-over.top .vw-bar { order: -1; flex-shrink: 0; flex-wrap: nowrap; min-height: 44px; margin-bottom: 12px; padding: 0 0 12px; border-bottom: 1px solid var(--rule); }
+.win-over.top .vw-pic { border-radius: var(--radius-sm); background: var(--sheet-2); }
+
+@media (max-width: 700px) {
+  dialog.mv-sheet { width: 100vw; height: 92dvh; margin: auto 0 0; padding: 10px; }
+  .win-cap { display: none; }
+  .gal-top .btn { width: 31px; padding: 0; justify-content: center; }
+  .gal-top .btn span { display: none; }
+  .win-over { padding: 10px; }
+}

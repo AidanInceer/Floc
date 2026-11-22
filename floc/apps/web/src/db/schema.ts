@@ -11,6 +11,7 @@ import { CURRENCIES } from "@floc/core/money/currency";
 import { TRIP_LENGTHS } from "@floc/core/dates/finding/trip-length";
 import { DEFAULT_CATEGORY, EXPENSE_CATEGORIES } from "@floc/core/money/expense-category";
 import { DOC_CATEGORIES } from "@floc/core/documents/documents";
+import { MEDIA_KINDS } from "@floc/core/media/media";
 import { PACK_CATEGORIES, PACK_ORIGINS, PACK_TIERS } from "@floc/core/packing/packing";
 import { PLANS } from "@floc/core/billing/plans";
 import { CABINS, PACES, STAY_STYLES } from "@floc/core/money/estimate/style";
@@ -551,6 +552,32 @@ export const document = sqliteTable(
     index("document_owner_idx").on(t.tripId, t.ownerId),
     index("document_day_idx").on(t.dayId),
     index("document_day_event_idx").on(t.dayEventId),
+  ],
+);
+
+export const tripMedia = sqliteTable(
+  "trip_media",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    tripId: integer("trip_id")
+      .notNull()
+      .references(() => trip.id, { onDelete: "cascade" }),
+    placeId: integer("place_id").references((): AnySQLiteColumn => place.id, { onDelete: "set null" }),
+    uploadedBy: text("uploaded_by")
+      .notNull()
+      .references(() => user.id),
+    kind: text("kind", { enum: MEDIA_KINDS }).notNull(),
+    storageKey: text("storage_key").notNull(),
+    mimeType: text("mime_type").notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    width: integer("width"),
+    height: integer("height"),
+    durationSeconds: integer("duration_seconds"),
+    ...audit,
+  },
+  (t) => [
+    index("trip_media_trip_idx").on(t.tripId),
+    index("trip_media_place_idx").on(t.placeId),
   ],
 );
 

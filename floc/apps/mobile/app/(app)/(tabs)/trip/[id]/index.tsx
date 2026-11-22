@@ -19,6 +19,8 @@ import { IdeasSection } from "@/components/trip/ideas/ideas-section";
 import { EstimateRow } from "@/components/trip/overview/estimate-row";
 import { ToDoBanner } from "@/components/trip/to-do-banner";
 import { BookingsCard } from "@/components/trip/overview/bookings-card";
+import { PhotosCard } from "@/components/trip/overview/photos-card";
+import { shortPlace } from "@floc/core/itinerary/names/place-name";
 import { FilesLine } from "@/components/trip/overview/files-line";
 import { OverviewCard } from "@/components/trip/overview-card";
 import { RecapFoot } from "@/components/trip/overview/recap-foot";
@@ -103,6 +105,8 @@ export default function Overview() {
       </View>
 
       {legs.length > 0 ? <BookingsCard tripId={tripId} legs={legs} wholeTrip={wholeTrip} onOpenFiles={() => go("files")} /> : null}
+
+      <PhotosCard tripId={tripId} stops={legs.map((leg) => ({ placeId: leg.placeId, no: leg.no, name: shortPlace(leg.placeName) }))} />
 
       {legs.length > 0 ? (
         <View style={{ gap: space.sm }}>
