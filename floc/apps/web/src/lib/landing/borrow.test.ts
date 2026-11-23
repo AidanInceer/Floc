@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { tripRoute } from "@/lib/explore/route/trip-route";
 import { ONE_STOP, OUT_FIRST, RAIL, UNSAID } from "@/test/route-listings";
 
-import { borrowCards, hopWords, leadFirst, placeWords } from "./borrow";
+import { borrowCards, leadFirst, placeWords } from "./borrow";
 
 const PRESET_TRIPS = [
   { ...RAIL, id: "rail", country: "Japan", priceFromMinor: 185000, currency: "GBP" as const },
@@ -51,15 +51,9 @@ describe("borrowCards", () => {
 });
 
 describe("borrowCards legs", () => {
-  it("hangs each move on the stop it arrives at", () => {
+  it("sends a stop only what its row shows, as the route already holds the map", () => {
     const [rail] = borrowCards(PRESET_TRIPS, ["rail"]);
-    expect(rail.stops.map((s) => s.hop ?? null)).toEqual([
-      null,
-      { mode: "train", detail: "1h 30" },
-      { mode: "train", detail: "2h 20" },
-      { mode: "train", detail: "30 min" },
-    ]);
-    expect(borrowCards(PRESET_TRIPS, ["unsaid"])[0]!.stops.map((s) => s.hop ?? null)).toEqual([null, null]);
+    expect(rail.stops[1]).toEqual({ name: "Hakone", nights: 2, outs: [] });
   });
 
   it("carries the trip's total nights", () => {
@@ -90,16 +84,6 @@ describe("leadFirst", () => {
 
   it("skips a lead listing that has been retired", () => {
     expect(leadFirst(PRESET_TRIPS, ["gone", "rail"])[0]).toBe("rail");
-  });
-});
-
-describe("hopWords", () => {
-  it("names the way in and how long it takes", () => {
-    expect(hopWords({ mode: "train", detail: "1h 30" })).toBe("Train, 1h 30");
-  });
-
-  it("says only the detail when the way in has no name", () => {
-    expect(hopWords({ mode: "other", detail: "cable car, 20 min" })).toBe("cable car, 20 min");
   });
 });
 
