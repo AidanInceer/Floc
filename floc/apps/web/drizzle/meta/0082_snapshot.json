@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "f8c9c5f2-9a2e-408c-ba2e-38ddb2f0f589",
-  "prevId": "85b062ee-3d1d-4969-a599-8dc1289e92d9",
+  "id": "533ed175-1d50-4dce-af56-c4bf05fd16d1",
+  "prevId": "6b3cde5d-8701-438b-b18b-734a4d9c51eb",
   "tables": {
     "account": {
       "name": "account",
@@ -396,6 +396,13 @@
             "date"
           ],
           "isUnique": true
+        },
+        "availability_user_idx": {
+          "name": "availability_user_idx",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
         }
       },
       "foreignKeys": {
@@ -861,13 +868,6 @@
         }
       },
       "indexes": {
-        "comment_reaction_comment_idx": {
-          "name": "comment_reaction_comment_idx",
-          "columns": [
-            "comment_id"
-          ],
-          "isUnique": false
-        },
         "comment_reaction_one_idx": {
           "name": "comment_reaction_one_idx",
           "columns": [
@@ -1254,13 +1254,6 @@
         }
       },
       "indexes": {
-        "document_trip_idx": {
-          "name": "document_trip_idx",
-          "columns": [
-            "trip_id"
-          ],
-          "isUnique": false
-        },
         "document_owner_idx": {
           "name": "document_owner_idx",
           "columns": [
@@ -2405,13 +2398,6 @@
         }
       },
       "indexes": {
-        "idea_vote_idea_idx": {
-          "name": "idea_vote_idea_idx",
-          "columns": [
-            "idea_id"
-          ],
-          "isUnique": false
-        },
         "idea_vote_one_idx": {
           "name": "idea_vote_one_idx",
           "columns": [
@@ -2419,6 +2405,13 @@
             "user_id"
           ],
           "isUnique": true
+        },
+        "idea_vote_user_idx": {
+          "name": "idea_vote_user_idx",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
         }
       },
       "foreignKeys": {
@@ -2585,13 +2578,6 @@
             "user_id"
           ],
           "isUnique": true
-        },
-        "notification_user_idx": {
-          "name": "notification_user_idx",
-          "columns": [
-            "user_id"
-          ],
-          "isUnique": false
         },
         "notification_user_seen_idx": {
           "name": "notification_user_seen_idx",
@@ -3232,13 +3218,6 @@
         }
       },
       "indexes": {
-        "packing_line_trip_idx": {
-          "name": "packing_line_trip_idx",
-          "columns": [
-            "trip_id"
-          ],
-          "isUnique": false
-        },
         "packing_line_owner_idx": {
           "name": "packing_line_owner_idx",
           "columns": [
@@ -4229,6 +4208,20 @@
           "name": "trip_created_by_idx",
           "columns": [
             "created_by"
+          ],
+          "isUnique": false
+        },
+        "trip_start_date_idx": {
+          "name": "trip_start_date_idx",
+          "columns": [
+            "start_date"
+          ],
+          "isUnique": false
+        },
+        "trip_end_date_idx": {
+          "name": "trip_end_date_idx",
+          "columns": [
+            "end_date"
           ],
           "isUnique": false
         }
@@ -5301,6 +5294,14 @@
             "email"
           ],
           "isUnique": true
+        },
+        "user_guest_created_idx": {
+          "name": "user_guest_created_idx",
+          "columns": [
+            "created_at"
+          ],
+          "isUnique": false,
+          "where": "is_anonymous = 1"
         }
       },
       "foreignKeys": {},
@@ -5356,15 +5357,7 @@
           "default": "(unixepoch())"
         }
       },
-      "indexes": {
-        "user_country_mark_user_idx": {
-          "name": "user_country_mark_user_idx",
-          "columns": [
-            "user_id"
-          ],
-          "isUnique": false
-        }
-      },
+      "indexes": {},
       "foreignKeys": {
         "user_country_mark_user_id_user_id_fk": {
           "name": "user_country_mark_user_id_user_id_fk",
@@ -6088,13 +6081,6 @@
         }
       },
       "indexes": {
-        "wish_list_item_vote_item_idx": {
-          "name": "wish_list_item_vote_item_idx",
-          "columns": [
-            "item_id"
-          ],
-          "isUnique": false
-        },
         "wish_list_item_vote_one_idx": {
           "name": "wish_list_item_vote_one_idx",
           "columns": [

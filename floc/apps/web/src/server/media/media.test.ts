@@ -15,7 +15,7 @@ import { eraseAccount } from "@/server/auth/erase-account";
 import { givePro, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 
 import { mediaTokenHolder, mintMediaToken } from "./media-link";
-import { insertMedia, listMedia, liveMedia } from "./media-rows";
+import { insertMedia, listMedia, liveMedia, mediaPlaceIds } from "./media-rows";
 import { removeMedia, saveMedia } from "./media-save";
 
 let world: Scenario;
@@ -54,6 +54,26 @@ const upload = async (over: Partial<Parameters<typeof saveMedia>[1]> = {}, who =
   });
 
 const fakeMp4 = () => new Uint8Array([0, 0, 0, 24, ...Buffer.from("ftypisom"), ...new Uint8Array(64)]);
+
+describe("mediaPlaceIds", () => {
+  it("names each place that holds a live photo once, and the whole trip as null", async () => {
+    const place = await db.insert(schema.place).values({ name: "Porto", lat: 41.15, lng: -8.63, countryCode: "PT" }).returning({ id: schema.place.id }).get();
+    await db.update(schema.day).set({ overnightPlaceId: place.id }).where(eq(schema.day.id, world.ours.dayId));
+    await upload({ placeId: place.id });
+    await upload({ placeId: place.id });
+    await upload({ placeId: null });
+
+    const ids = await mediaPlaceIds(world.ours.id);
+
+    expect(ids.map((r) => r.placeId).sort()).toEqual([place.id, null].sort());
+  });
+
+  it("leaves out a removed photo", async () => {
+    await upload({ placeId: null });
+    await db.update(schema.tripMedia).set({ deletedAt: new Date() }).where(eq(schema.tripMedia.tripId, world.ours.id));
+    expect(await mediaPlaceIds(world.ours.id)).toEqual([]);
+  });
+});
 
 describe("adding a photo", () => {
   it("strips EXIF, keeps the shape and caps the long edge at 2048 px", async () => {

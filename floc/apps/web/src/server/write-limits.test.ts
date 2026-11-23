@@ -106,8 +106,8 @@ describe("people", () => {
     expect(await refused(() => insertNudge(nudge))).toBe(true);
   });
 
-  it("refuses a new trip for someone already on as many as Floc holds", async () => {
-    const trips = many(LIMITS.tripsPerUser, (i) => ({ name: `T${i}`, createdBy: world.member, inviteToken: `t-${i}` }));
+  it("refuses a new trip for someone already on 100", async () => {
+    const trips = many(99, (i) => ({ name: `T${i}`, createdBy: world.member, inviteToken: `t-${i}` }));
     for (let i = 0; i < trips.length; i += 200) {
       const rows = await db.insert(schema.trip).values(trips.slice(i, i + 200)).returning({ id: schema.trip.id });
       await db.insert(schema.tripMembership).values(rows.map((r) => ({ tripId: r.id, userId: world.member, role: "admin" as const })));

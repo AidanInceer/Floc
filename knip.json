@@ -13,9 +13,16 @@
     "floc/apps/web": {
       "entry": [
         "scripts/*.mjs",
+        "scripts/perf/cron-scale.*.ts",
         "e2e/serve.mjs",
         "e2e/auth.setup.ts"
-      ]
+      ],
+      "vitest": {
+        "config": [
+          "vitest.config.ts",
+          "scripts/perf/cron-scale.config.ts"
+        ]
+      }
     },
     "floc/apps/mobile": {
       "ignore": [

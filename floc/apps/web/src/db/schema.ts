@@ -43,18 +43,22 @@ const audit = {
     .default(now),
 };
 
-export const user = sqliteTable("user", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  emailVerified: integer("email_verified", { mode: "boolean" })
-    .notNull()
-    .default(false),
-  image: text("image"),
-  isAnonymous: integer("is_anonymous", { mode: "boolean" }).notNull().default(false),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(now),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(now),
-});
+export const user = sqliteTable(
+  "user",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    email: text("email").notNull().unique(),
+    emailVerified: integer("email_verified", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    image: text("image"),
+    isAnonymous: integer("is_anonymous", { mode: "boolean" }).notNull().default(false),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(now),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(now),
+  },
+  (t) => [index("user_guest_created_idx").on(t.createdAt).where(sql`is_anonymous = 1`)],
+);
 
 export const session = sqliteTable(
   "session",
@@ -230,10 +234,7 @@ export const userCountryMark = sqliteTable(
     state: text("state", { enum: COUNTRY_MARK_STATES }).notNull(),
     ...audit,
   },
-  (t) => [
-    primaryKey({ columns: [t.userId, t.countryCode] }),
-    index("user_country_mark_user_idx").on(t.userId),
-  ],
+  (t) => [primaryKey({ columns: [t.userId, t.countryCode] })],
 );
 
 export const FRIENDSHIP_STATUSES = ["pending", "accepted"] as const;
@@ -357,7 +358,6 @@ export const wishListItemVote = sqliteTable(
     ...audit,
   },
   (t) => [
-    index("wish_list_item_vote_item_idx").on(t.itemId),
     uniqueIndex("wish_list_item_vote_one_idx").on(t.itemId, t.userId),
   ],
 );
@@ -379,7 +379,11 @@ export const trip = sqliteTable(
     archivedAt: integer("archived_at", { mode: "timestamp" }),
     ...audit,
   },
-  (t) => [index("trip_created_by_idx").on(t.createdBy)],
+  (t) => [
+    index("trip_created_by_idx").on(t.createdBy),
+    index("trip_start_date_idx").on(t.startDate),
+    index("trip_end_date_idx").on(t.endDate),
+  ],
 );
 
 export const TRIP_ROLES = ["admin", "member"] as const;
@@ -516,8 +520,8 @@ export const ideaVote = sqliteTable(
     ...audit,
   },
   (t) => [
-    index("idea_vote_idea_idx").on(t.ideaId),
     uniqueIndex("idea_vote_one_idx").on(t.ideaId, t.userId),
+    index("idea_vote_user_idx").on(t.userId),
   ],
 );
 
@@ -543,7 +547,6 @@ export const packingLine = sqliteTable(
     ...audit,
   },
   (t) => [
-    index("packing_line_trip_idx").on(t.tripId),
     index("packing_line_owner_idx").on(t.tripId, t.ownerId),
   ],
 );
@@ -599,7 +602,6 @@ export const document = sqliteTable(
     ...audit,
   },
   (t) => [
-    index("document_trip_idx").on(t.tripId),
     index("document_owner_idx").on(t.tripId, t.ownerId),
     index("document_day_idx").on(t.dayId),
     index("document_day_event_idx").on(t.dayEventId),
@@ -713,6 +715,7 @@ export const availability = sqliteTable(
   },
   (t) => [
     uniqueIndex("availability_unique_idx").on(t.tripId, t.userId, t.date),
+    index("availability_user_idx").on(t.userId),
   ],
 );
 
@@ -959,7 +962,6 @@ export const commentReaction = sqliteTable(
     ...audit,
   },
   (t) => [
-    index("comment_reaction_comment_idx").on(t.commentId),
     uniqueIndex("comment_reaction_one_idx").on(t.commentId, t.userId, t.kind),
   ],
 );
@@ -1021,7 +1023,6 @@ export const notification = sqliteTable(
   },
   (t) => [
     uniqueIndex("notification_one_idx").on(t.activityId, t.userId),
-    index("notification_user_idx").on(t.userId),
     index("notification_user_seen_idx").on(t.userId, t.seenAt),
   ],
 );

@@ -27,6 +27,10 @@ export async function listMedia(tripId: number) {
   return bounded(rows, "tripMedia", `trip:${tripId}`);
 }
 
+export async function mediaPlaceIds(tripId: number): Promise<{ placeId: number | null }[]> {
+  return db.selectDistinct({ placeId: tripMedia.placeId }).from(tripMedia).where(live(tripId)).limit(LIMITS.tripMedia).all();
+}
+
 export type MediaHeld = { uploadedBy: string; total: number; photos: number; usedBytes: number };
 
 export function mediaByUploader(tripId: number): Promise<MediaHeld[]> {
