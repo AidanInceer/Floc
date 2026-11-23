@@ -243,10 +243,15 @@ export const friendship = sqliteTable(
     origin: text("origin", { enum: FRIENDSHIP_ORIGINS })
       .notNull()
       .default("request"),
+    requestedBy: text("requested_by").references(() => user.id, { onDelete: "set null" }),
     ...audit,
   },
   (t) => [
     uniqueIndex("friendship_pair_idx").on(t.userId, t.friendId),
+    uniqueIndex("friendship_one_per_pair_idx").on(
+      sql`min(user_id, friend_id)`,
+      sql`max(user_id, friend_id)`,
+    ),
     index("friendship_friend_idx").on(t.friendId),
   ],
 );

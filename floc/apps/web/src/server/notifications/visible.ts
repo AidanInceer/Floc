@@ -85,8 +85,11 @@ const pending = {
     .from(friendship)
     .where(
       and(
-        eq(friendship.userId, activity.actorId),
-        eq(friendship.friendId, notification.userId),
+        or(
+          and(eq(friendship.userId, activity.actorId), eq(friendship.friendId, notification.userId)),
+          and(eq(friendship.userId, notification.userId), eq(friendship.friendId, activity.actorId)),
+        ),
+        sql`coalesce(${friendship.requestedBy}, ${friendship.userId}) = ${activity.actorId}`,
         eq(friendship.status, "pending"),
         isNull(friendship.deletedAt),
       ),

@@ -4,9 +4,16 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import {
+  acceptPendingRequest,
   countIncomingFriendRequests,
+  declineFriendRequest,
+  dropFriendship,
   friendOfFriend,
+  friendStateWith,
+  listFriendshipsFor,
+  openPendingRequest,
   sharedTripIds,
+  splitFriendships,
   syncCompletedCoTripFriendships,
 } from "@/server/social/friends";
 import { canSeeFriendsOf, requireProfileView } from "@/server/auth/visibility";
@@ -89,6 +96,117 @@ describe("syncCompletedCoTripFriendships", () => {
 
     await syncCompletedCoTripFriendships(world.admin);
     expect(await friendships()).toHaveLength(0);
+  });
+});
+
+describe("one row per friendship", () => {
+  const pair = () =>
+    world.admin < world.member ? [world.admin, world.member] : [world.member, world.admin];
+
+  it.each(["lowest first", "highest first"])(
+    "keeps a removed friend removed when the row is stored %s (rule 8)",
+    async (way) => {
+      await endTrip(world.ours.id);
+      const [lo, hi] = pair();
+      const [userId, friendId] = way === "lowest first" ? [lo, hi] : [hi, lo];
+      await db
+        .insert(schema.friendship)
+        .values({ userId, friendId, status: "accepted", origin: "request" });
+
+      await dropFriendship(lo, hi);
+      await syncCompletedCoTripFriendships(world.admin);
+
+      const rows = await friendships();
+      expect(rows).toHaveLength(1);
+      expect(rows[0].deletedAt).not.toBeNull();
+    },
+  );
+
+  it("keeps a declined request declined after a shared trip", async () => {
+    await endTrip(world.ours.id);
+    const [lo, hi] = pair();
+    await openPendingRequest(hi, lo);
+
+    await declineFriendRequest(lo, hi);
+    await syncCompletedCoTripFriendships(world.admin);
+
+    expect(await friendStateWith(lo, hi)).toBe("none");
+    expect(await friendships()).toHaveLength(1);
+  });
+
+  it("gives a pending request and a shared trip one row and one state", async () => {
+    await endTrip(world.ours.id);
+    const [lo, hi] = pair();
+    await openPendingRequest(hi, lo);
+
+    await syncCompletedCoTripFriendships(world.admin);
+
+    expect(await friendships()).toHaveLength(1);
+    expect(await friendStateWith(hi, lo)).toBe("outgoing");
+    expect(await friendStateWith(lo, hi)).toBe("incoming");
+  });
+
+  it("stores a request lowest id first and remembers who asked", async () => {
+    const [lo, hi] = pair();
+
+    await openPendingRequest(hi, lo);
+
+    const [row] = await friendships();
+    expect([row.userId, row.friendId, row.requestedBy]).toEqual([lo, hi, hi]);
+    expect(await countIncomingFriendRequests(lo)).toBe(1);
+    expect(await countIncomingFriendRequests(hi)).toBe(0);
+  });
+
+  it("lets only the person asked accept a request", async () => {
+    const [lo, hi] = pair();
+    await openPendingRequest(hi, lo);
+
+    await acceptPendingRequest(lo, hi);
+    expect(await friendStateWith(hi, lo)).toBe("outgoing");
+
+    await acceptPendingRequest(hi, lo);
+    expect(await friendStateWith(hi, lo)).toBe("friends");
+  });
+
+  it("reads a request stored without requested_by from its direction", async () => {
+    const [lo, hi] = pair();
+    await db
+      .insert(schema.friendship)
+      .values({ userId: hi, friendId: lo, status: "pending", origin: "request" });
+
+    const asked = splitFriendships(await listFriendshipsFor(lo), lo);
+    const asker = splitFriendships(await listFriendshipsFor(hi), hi);
+
+    expect(asked.incoming).toHaveLength(1);
+    expect(asker.outgoing).toHaveLength(1);
+  });
+
+  it("reopens the same row when someone asks again after a decline", async () => {
+    const [lo, hi] = pair();
+    await openPendingRequest(lo, hi);
+    await declineFriendRequest(hi, lo);
+
+    await openPendingRequest(hi, lo);
+
+    const rows = await friendships();
+    expect(rows).toHaveLength(1);
+    expect(rows[0].deletedAt).toBeNull();
+    expect(rows[0].requestedBy).toBe(hi);
+  });
+
+  it("refuses a second row for a pair in either direction", async () => {
+    const [lo, hi] = pair();
+    await db.insert(schema.friendship).values({ userId: lo, friendId: hi, status: "accepted" });
+
+    await expect(
+      db.insert(schema.friendship).values({ userId: hi, friendId: lo, status: "pending" }),
+    ).rejects.toThrow();
+  });
+
+  it("refuses a friendship with yourself", async () => {
+    await expect(
+      db.insert(schema.friendship).values({ userId: world.admin, friendId: world.admin }),
+    ).rejects.toThrow();
   });
 });
 

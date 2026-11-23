@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "80d1837c-e842-497e-a884-a40c3ccba81a",
-  "prevId": "eab05eb7-8f58-4eff-9f80-d1c801cb8a31",
+  "id": "e431ed3c-33c8-41aa-a93e-9c71aeed1336",
+  "prevId": "80d1837c-e842-497e-a884-a40c3ccba81a",
   "tables": {
     "account": {
       "name": "account",
@@ -1679,6 +1679,13 @@
           "autoincrement": false,
           "default": "'request'"
         },
+        "requested_by": {
+          "name": "requested_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "integer",
@@ -1709,6 +1716,14 @@
           "columns": [
             "user_id",
             "friend_id"
+          ],
+          "isUnique": true
+        },
+        "friendship_one_per_pair_idx": {
+          "name": "friendship_one_per_pair_idx",
+          "columns": [
+            "min(user_id, friend_id)",
+            "max(user_id, friend_id)"
           ],
           "isUnique": true
         },
@@ -1745,6 +1760,19 @@
             "id"
           ],
           "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "friendship_requested_by_user_id_fk": {
+          "name": "friendship_requested_by_user_id_fk",
+          "tableFrom": "friendship",
+          "tableTo": "user",
+          "columnsFrom": [
+            "requested_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -5716,6 +5744,17 @@
     "columns": {}
   },
   "internal": {
-    "indexes": {}
+    "indexes": {
+      "friendship_one_per_pair_idx": {
+        "columns": {
+          "min(user_id, friend_id)": {
+            "isExpression": true
+          },
+          "max(user_id, friend_id)": {
+            "isExpression": true
+          }
+        }
+      }
+    }
   }
 }
