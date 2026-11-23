@@ -99,8 +99,8 @@ export const socialPort: SocialPort = {
 
     return {
       friends: accepted.map((r) => personFor(otherIdOf(r))),
-      incoming: incoming.map((r) => personFor(r.userId)),
-      outgoing: outgoing.map((r) => personFor(r.friendId)),
+      incoming: incoming.map((r) => personFor(otherIdOf(r))),
+      outgoing: outgoing.map((r) => personFor(otherIdOf(r))),
       code,
     };
   },

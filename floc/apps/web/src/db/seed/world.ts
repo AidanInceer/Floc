@@ -1,11 +1,14 @@
 import { randomUUID } from "node:crypto";
 
+import { sql } from "drizzle-orm";
+
 import { db } from "../index.ts";
 import {
   expense,
   expenseSplit,
   packingClaim,
   packingLine,
+  place,
   trip,
   tripMembership,
 } from "../schema.ts";
@@ -17,6 +20,19 @@ export function isoIn(days: number): string {
   const d = new Date();
   d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().slice(0, 10);
+}
+
+export async function seedPlace(values: typeof place.$inferInsert): Promise<{ id: number }> {
+  const [row] = await db
+    .insert(place)
+    .values(values)
+    .onConflictDoUpdate({
+      target: place.providerId,
+      targetWhere: sql`provider_id IS NOT NULL AND deleted_at IS NULL`,
+      set: { name: values.name },
+    })
+    .returning({ id: place.id });
+  return row;
 }
 
 export async function makeTrip(args: {

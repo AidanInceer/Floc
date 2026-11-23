@@ -53,12 +53,12 @@ export default async function FriendsPage() {
   );
 
   const incomingPeople = incoming.map((r) => ({
-    requesterId: r.userId,
-    person: personFor(r.userId),
+    requesterId: otherIdOf(r),
+    person: personFor(otherIdOf(r)),
   }));
   const outgoingPeople = outgoing.map((r) => ({
-    targetId: r.friendId,
-    person: personFor(r.friendId),
+    targetId: otherIdOf(r),
+    person: personFor(otherIdOf(r)),
   }));
 
   const requests = incomingPeople.length + outgoingPeople.length;

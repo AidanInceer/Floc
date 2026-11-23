@@ -139,19 +139,13 @@ export async function befriend(
   const [lo, hi] = a < b ? [a, b] : [b, a];
   await db
     .insert(friendship)
-    .values({ userId: lo, friendId: hi, status, origin: "request" })
+    .values({ userId: lo, friendId: hi, status, origin: "request", requestedBy: a })
     .onConflictDoUpdate({
       target: [friendship.userId, friendship.friendId],
-      set: { status, deletedAt: null },
+      set: { status, requestedBy: a, deletedAt: null },
     });
 }
 
 export async function requestFriendship(from: string, to: string): Promise<void> {
-  await db
-    .insert(friendship)
-    .values({ userId: from, friendId: to, status: "pending", origin: "request" })
-    .onConflictDoUpdate({
-      target: [friendship.userId, friendship.friendId],
-      set: { status: "pending", deletedAt: null },
-    });
+  await befriend(from, to, "pending");
 }
