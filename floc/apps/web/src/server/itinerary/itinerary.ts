@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, eq, inArray, isNull, not, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, isNull, not, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { day, dayEvent, document, expense, place, trip } from "@/db/schema";
@@ -13,7 +13,7 @@ import { capRequiredText, capText } from "@floc/core/text/text";
 import { assertRoom, bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 import { refresh } from "@/server/freshness";
-import { recordActivity, type Tx } from "@/server/notifications/activity";
+import { groupedActivityWrites, liveMemberIds, recordActivity, type Tx } from "@/server/notifications/activity";
 import { tripHref } from "@floc/core/notifications/notification-href";
 import type { TripPatch } from "@/server/trips/trips";
 
@@ -78,56 +78,48 @@ export async function setTripWindow(
   if (problem) throw new Refusal(problem);
   const dates = dateRange(start, end);
 
-  await db.transaction(async (tx) => {
-    await tx
+  const members = await liveMemberIds(db, tripId);
+  const now = new Date();
+  const gone = { deletedAt: now, lastModifiedAt: now };
+  const surplus = db
+    .select({ id: day.id })
+    .from(day)
+    .where(
+      and(
+        eq(day.tripId, tripId),
+        isNull(day.deletedAt),
+        dates.length ? not(inArray(day.date, dates)) : undefined,
+      ),
+    )
+    .limit(LIMITS.days);
+  const surplusEvents = db
+    .select({ id: dayEvent.id })
+    .from(dayEvent)
+    .where(and(inArray(dayEvent.dayId, surplus), isNull(dayEvent.deletedAt)));
+
+  await db.batch([
+    db
       .update(trip)
       .set({ ...fields, startDate: start, endDate: end, ...touch() })
-      .where(and(eq(trip.id, tripId), isNull(trip.deletedAt)));
-
-    const surplus = await tx
-      .select({ id: day.id })
-      .from(day)
-      .where(
-        and(
-          eq(day.tripId, tripId),
-          isNull(day.deletedAt),
-          dates.length ? not(inArray(day.date, dates)) : undefined,
-        ),
-      )
-      .limit(LIMITS.days)
-      .all();
-
-    if (surplus.length) {
-      const ids = surplus.map((d) => d.id);
-      const now = new Date();
-      const gone = { deletedAt: now, lastModifiedAt: now };
-      const events = await tx
-        .update(dayEvent)
-        .set(gone)
-        .where(and(inArray(dayEvent.dayId, ids), isNull(dayEvent.deletedAt)))
-        .returning({ id: dayEvent.id })
-        .all();
-      await tx.update(day).set(gone).where(inArray(day.id, ids));
-      await tx.update(expense).set({ dayId: null }).where(inArray(expense.dayId, ids));
-      await tx.update(document).set({ dayId: null }).where(inArray(document.dayId, ids));
-      if (events.length) {
-        await tx
-          .update(document)
-          .set({ dayEventId: null })
-          .where(inArray(document.dayEventId, events.map((e) => e.id)));
-      }
-    }
-
-    await ensureDays(tripId, dates, tx);
-    await recordActivity(tx, {
-      kind: "trip_dates_changed",
-      tripId,
-      actorId: by,
-      subjectId: null,
-      href: tripHref(tripId, "dates"),
-      affected: [],
-    });
-  });
+      .where(and(eq(trip.id, tripId), isNull(trip.deletedAt))),
+    db.update(document).set({ dayEventId: null }).where(inArray(document.dayEventId, surplusEvents)),
+    db.update(document).set({ dayId: null }).where(inArray(document.dayId, surplus)),
+    db.update(expense).set({ dayId: null }).where(inArray(expense.dayId, surplus)),
+    db.update(dayEvent).set(gone).where(and(inArray(dayEvent.dayId, surplus), isNull(dayEvent.deletedAt))),
+    db.update(day).set(gone).where(inArray(day.id, surplus)),
+    ...(dates.length ? ensureDayWrites(db, tripId, dates) : []),
+    ...groupedActivityWrites(
+      {
+        kind: "trip_dates_changed",
+        tripId,
+        actorId: by,
+        subjectId: null,
+        href: tripHref(tripId, "dates"),
+        affected: [],
+      },
+      members,
+    ),
+  ]);
 
   refresh({ kind: "tripWindow", tripId });
 }
@@ -297,38 +289,42 @@ export async function firstOvernightPlaceByTrip(
   return out;
 }
 
+type DayWriter = Pick<Tx, "select" | "insert" | "update">;
+
+function ensureDayWrites(run: DayWriter, tripId: number, dates: string[]) {
+  const now = new Date();
+  const removedDay = and(eq(day.tripId, tripId), inArray(day.date, dates), isNotNull(day.deletedAt));
+  return [
+    run
+      .update(dayEvent)
+      .set({ deletedAt: now, lastModifiedAt: now })
+      .where(
+        and(
+          inArray(dayEvent.dayId, run.select({ id: day.id }).from(day).where(removedDay)),
+          isNull(dayEvent.deletedAt),
+        ),
+      ),
+    run
+      .update(day)
+      .set({ deletedAt: null, overnightPlaceId: null, lastModifiedAt: now })
+      .where(removedDay),
+    run
+      .insert(day)
+      .values(dates.map((date) => ({ tripId, date })))
+      .onConflictDoNothing(),
+  ] as const;
+}
+
 export async function ensureDays(
   tripId: number,
   dates: string[],
-  run: Pick<Tx, "select" | "insert" | "update"> = db,
+  run: DayWriter = db,
 ): Promise<void> {
   if (dates.length === 0) return;
-
-  const existing = await run
-    .select({ id: day.id, date: day.date, deletedAt: day.deletedAt })
-    .from(day)
-    .where(and(eq(day.tripId, tripId), inArray(day.date, dates)))
-    .limit(LIMITS.days)
-    .all();
-
-  const removed = existing.filter((d) => d.deletedAt !== null).map((d) => d.id);
-  if (removed.length) {
-    const now = new Date();
-    await run
-      .update(dayEvent)
-      .set({ deletedAt: now, lastModifiedAt: now })
-      .where(and(inArray(dayEvent.dayId, removed), isNull(dayEvent.deletedAt)));
-    await run
-      .update(day)
-      .set({ deletedAt: null, overnightPlaceId: null, lastModifiedAt: now })
-      .where(inArray(day.id, removed));
-  }
-
-  const covered = new Set(existing.map((d) => d.date));
-  const missing = dates.filter((d) => !covered.has(d));
-  if (missing.length) {
-    await run.insert(day).values(missing.map((date) => ({ tripId, date })));
-  }
+  const [blankEvents, reviveDays, addMissing] = ensureDayWrites(run, tripId, dates);
+  await blankEvents;
+  await reviveDays;
+  await addMissing;
 }
 
 export async function setOvernightPlaceOn(

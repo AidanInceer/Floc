@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
@@ -156,6 +156,93 @@ describe("setTripWindow", () => {
       .where(eq(schema.expense.id, spend.id))
       .get();
     expect(after?.dayId).toBeNull();
+  });
+
+  it("saves new dates in one trip to the database (rule 2)", async () => {
+    const interactive = vi.spyOn(db, "transaction");
+    const batch = vi.spyOn(db, "batch");
+
+    await setTripWindow(world.ours.id, "2026-09-05", "2026-09-06", world.admin);
+
+    expect(interactive).not.toHaveBeenCalled();
+    expect(batch).toHaveBeenCalledTimes(1);
+    interactive.mockRestore();
+    batch.mockRestore();
+  });
+
+  it("leaves the trip, days and events whole when a date save fails (rule 2)", async () => {
+    const before = await db.select().from(schema.trip).where(eq(schema.trip.id, world.ours.id)).get();
+
+    await expect(setTripWindow(world.ours.id, "2026-09-05", "2026-09-06", "nobody")).rejects.toThrow();
+
+    const after = await db.select().from(schema.trip).where(eq(schema.trip.id, world.ours.id)).get();
+    expect(after?.startDate).toBe(before?.startDate);
+    expect(after?.endDate).toBe(before?.endDate);
+    expect((await listDays(world.ours.id)).map((d) => d.date)).toEqual(["2026-09-01"]);
+    expect((await eventRow(world.ours.eventId))?.deletedAt).toBeNull();
+  });
+
+  it("folds rapid date saves into one activity and one notice each", async () => {
+    await setTripWindow(world.ours.id, "2026-09-05", "2026-09-06", world.admin);
+    await setTripWindow(world.ours.id, "2026-09-07", "2026-09-08", world.admin);
+
+    const changed = await db
+      .select()
+      .from(schema.activity)
+      .where(and(eq(schema.activity.kind, "trip_dates_changed"), eq(schema.activity.tripId, world.ours.id)))
+      .all();
+    expect(changed).toHaveLength(1);
+    expect(changed[0].subjectId).toBeNull();
+    const notices = await db
+      .select()
+      .from(schema.notification)
+      .where(and(eq(schema.notification.activityId, changed[0].id), eq(schema.notification.userId, world.member)))
+      .all();
+    expect(notices).toHaveLength(1);
+  });
+
+  it("clears file links to a removed day and its events, and keeps the files", async () => {
+    const file = (name: string, link: { dayId?: number; dayEventId?: number }) =>
+      db
+        .insert(schema.document)
+        .values({
+          tripId: world.ours.id,
+          uploadedBy: world.admin,
+          name,
+          storageKey: `test/${name}`,
+          mimeType: "application/pdf",
+          sizeBytes: 10,
+          ...link,
+        })
+        .returning({ id: schema.document.id })
+        .get();
+    const onDay = await file("day.pdf", { dayId: world.ours.dayId });
+    const onEvent = await file("event.pdf", { dayEventId: world.ours.eventId });
+
+    await setTripWindow(world.ours.id, "2026-09-05", "2026-09-06", world.admin);
+
+    const read = (id: number) => db.select().from(schema.document).where(eq(schema.document.id, id)).get();
+    expect((await read(onDay.id))?.dayId).toBeNull();
+    expect((await read(onEvent.id))?.dayEventId).toBeNull();
+    expect((await read(onEvent.id))?.deletedAt).toBeNull();
+  });
+
+  it("brings a removed date back with no overnight place", async () => {
+    const placeId = await makePlace();
+    await setOvernightPlaceOn(world.ours.id, [world.ours.dayId], placeId);
+
+    await setTripWindow(world.ours.id, "2026-09-05", "2026-09-06", world.admin);
+    await setTripWindow(world.ours.id, "2026-09-01", "2026-09-06", world.admin);
+
+    const back = await dayRow(world.ours.dayId);
+    expect(back?.deletedAt).toBeNull();
+    expect(back?.overnightPlaceId).toBeNull();
+  });
+
+  it("leaves another trip's days and events alone", async () => {
+    await setTripWindow(world.ours.id, "2026-09-05", "2026-09-06", world.admin);
+
+    expect(await listDayIds(world.theirs.id)).toEqual([world.theirs.dayId]);
   });
 
   it("empties the itinerary when the window is cleared", async () => {
