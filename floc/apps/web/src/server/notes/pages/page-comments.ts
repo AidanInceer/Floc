@@ -1,8 +1,8 @@
 import "server-only";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNotNull, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
-import { note } from "@/db/schema";
+import { comment } from "@/db/schema";
 import type { NoteRow } from "@floc/core/notes/notes";
 import { touch } from "@/server/audit";
 import { refresh } from "@/server/freshness";
@@ -46,8 +46,8 @@ export async function addPageComment(args: {
 }
 
 export async function resolvePageComment(tripId: number, noteId: number): Promise<void> {
-  await db.update(note).set({ resolvedAt: new Date(), ...touch() }).where(
-    and(eq(note.id, noteId), eq(note.tripId, tripId), eq(note.scope, "page"), isNull(note.parentId), isNull(note.deletedAt)),
+  await db.update(comment).set({ resolvedAt: new Date(), ...touch() }).where(
+    and(eq(comment.id, noteId), eq(comment.tripId, tripId), isNotNull(comment.pageId), isNull(comment.parentId), isNull(comment.deletedAt)),
   );
   refresh({ kind: "thread", tripId, scope: "page" });
   pagesChanged(tripId);

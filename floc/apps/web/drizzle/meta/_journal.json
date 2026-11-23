@@ -547,6 +547,13 @@
       "when": 1795462068907,
       "tag": "0077_complex_morlun",
       "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "6",
+      "when": 1795462660183,
+      "tag": "0078_dry_killer_shrike",
+      "breakpoints": true
     }
   ]
 }

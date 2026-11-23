@@ -940,16 +940,10 @@ export const tripLink = sqliteTable(
   (t) => [index("trip_link_trip_idx").on(t.tripId)],
 );
 
-export const NOTE_SCOPES = [
-  "trip",
-  "day",
-  "day_event",
-  "expense",
-  "page",
-] as const;
-export type NoteScope = (typeof NOTE_SCOPES)[number];
+export const COMMENT_SCOPES = ["day_event", "page"] as const;
+export type CommentScope = (typeof COMMENT_SCOPES)[number];
 
-export const note = sqliteTable(
+export const comment = sqliteTable(
   "note",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
@@ -959,8 +953,10 @@ export const note = sqliteTable(
     createdBy: text("created_by")
       .notNull()
       .references(() => user.id),
-    scope: text("scope", { enum: NOTE_SCOPES }).notNull(),
-    scopeId: integer("scope_id"),
+    retiredScope: text("scope", { enum: COMMENT_SCOPES }).notNull(),
+    retiredScopeId: integer("scope_id"),
+    dayEventId: integer("day_event_id").references(() => dayEvent.id, { onDelete: "cascade" }),
+    pageId: integer("page_id").references(() => tripPage.id, { onDelete: "cascade" }),
     parentId: integer("parent_id"),
     body: text("body").notNull(),
     editedAt: integer("edited_at", { mode: "timestamp" }),
@@ -968,18 +964,20 @@ export const note = sqliteTable(
     ...audit,
   },
   (t) => [
-    index("note_scope_idx").on(t.tripId, t.scope, t.scopeId),
+    index("note_scope_idx").on(t.tripId, t.retiredScope, t.retiredScopeId),
     index("note_parent_idx").on(t.parentId),
+    index("comment_event_idx").on(t.dayEventId).where(sql`day_event_id IS NOT NULL`),
+    index("comment_page_idx").on(t.pageId).where(sql`page_id IS NOT NULL`),
   ],
 );
 
-export const noteReaction = sqliteTable(
+export const commentReaction = sqliteTable(
   "note_reaction",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    noteId: integer("note_id")
+    commentId: integer("note_id")
       .notNull()
-      .references(() => note.id, { onDelete: "cascade" }),
+      .references(() => comment.id, { onDelete: "cascade" }),
     userId: text("user_id")
       .notNull()
       .references(() => user.id),
@@ -987,8 +985,8 @@ export const noteReaction = sqliteTable(
     ...audit,
   },
   (t) => [
-    index("note_reaction_note_idx").on(t.noteId),
-    uniqueIndex("note_reaction_one_idx").on(t.noteId, t.userId, t.kind),
+    index("note_reaction_note_idx").on(t.commentId),
+    uniqueIndex("note_reaction_one_idx").on(t.commentId, t.userId, t.kind),
   ],
 );
 
@@ -1203,7 +1201,7 @@ export type Place = typeof place.$inferSelect;
 export type Expense = typeof expense.$inferSelect;
 export type ExpenseSplit = typeof expenseSplit.$inferSelect;
 export type Settlement = typeof settlement.$inferSelect;
-export type Note = typeof note.$inferSelect;
+export type Comment = typeof comment.$inferSelect;
 export type Nudge = typeof nudge.$inferSelect;
 export type Friendship = typeof friendship.$inferSelect;
 export type UserCountryMark = typeof userCountryMark.$inferSelect;

@@ -10,11 +10,11 @@ import { cache } from "react";
 
 import { db } from "@/db";
 import {
+  comment,
   day,
   dayEvent,
   document,
   expense,
-  note,
   packingLine,
   trip,
   tripMembership,
@@ -78,7 +78,7 @@ export type TripAccess = {
   day: (dayId: number) => Promise<typeof day.$inferSelect>;
   event: (eventId: number) => Promise<typeof dayEvent.$inferSelect>;
   expense: (expenseId: number) => Promise<typeof expense.$inferSelect>;
-  note: (noteId: number) => Promise<typeof note.$inferSelect>;
+  note: (noteId: number) => Promise<typeof comment.$inferSelect>;
   packingLine: (lineId: number) => Promise<typeof packingLine.$inferSelect>;
   document: (documentId: number) => Promise<typeof document.$inferSelect>;
 };
@@ -256,9 +256,9 @@ const resolveExpense = cache(async (tripId: number, expenseId: number) => {
 const resolveNote = cache(async (tripId: number, noteId: number) => {
   return db
     .select()
-    .from(note)
+    .from(comment)
     .where(
-      and(eq(note.id, noteId), eq(note.tripId, tripId), isNull(note.deletedAt)),
+      and(eq(comment.id, noteId), eq(comment.tripId, tripId), isNull(comment.deletedAt)),
     )
     .get();
 });

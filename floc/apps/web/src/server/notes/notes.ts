@@ -3,8 +3,8 @@ import "server-only";
 import { and, count, eq, isNull, or } from "drizzle-orm";
 
 import { db } from "@/db";
-import { note, noteReaction } from "@/db/schema";
-import type { NoteScope, ReactionKind } from "@/db/schema";
+import { comment, commentReaction } from "@/db/schema";
+import type { CommentScope, ReactionKind } from "@/db/schema";
 import { assertRoom } from "@/server/limits";
 import { TEXT_CAPS } from "@floc/core/text/text";
 import { tripHref, threadTab } from "@floc/core/notifications/notification-href";
@@ -16,30 +16,34 @@ export const NOTE_BODY_MAX = TEXT_CAPS.noteBody;
 
 const GONE = "That comment has gone.";
 
+export const subjectOf = (scope: CommentScope) => (scope === "page" ? comment.pageId : comment.dayEventId);
+
 export async function findNote(tripId: number, noteId: number) {
-  return db
-    .select({ id: note.id, createdBy: note.createdBy, scope: note.scope, body: note.body })
-    .from(note)
-    .where(and(eq(note.id, noteId), eq(note.tripId, tripId), isNull(note.deletedAt)))
+  const row = await db
+    .select({ id: comment.id, createdBy: comment.createdBy, pageId: comment.pageId, body: comment.body })
+    .from(comment)
+    .where(and(eq(comment.id, noteId), eq(comment.tripId, tripId), isNull(comment.deletedAt)))
     .get();
+  if (!row) return undefined;
+  const scope: CommentScope = row.pageId === null ? "day_event" : "page";
+  return { id: row.id, createdBy: row.createdBy, scope, body: row.body };
 }
 
 export async function resolveParent(args: {
   tripId: number;
-  scope: NoteScope;
+  scope: CommentScope;
   scopeId: number;
   replyTo: number;
 }): Promise<number | null | undefined> {
   const target = await db
-    .select({ id: note.id, parentId: note.parentId })
-    .from(note)
+    .select({ id: comment.id, parentId: comment.parentId })
+    .from(comment)
     .where(
       and(
-        eq(note.id, args.replyTo),
-        eq(note.tripId, args.tripId),
-        eq(note.scope, args.scope),
-        eq(note.scopeId, args.scopeId),
-        isNull(note.deletedAt),
+        eq(comment.id, args.replyTo),
+        eq(comment.tripId, args.tripId),
+        eq(subjectOf(args.scope), args.scopeId),
+        isNull(comment.deletedAt),
       ),
     )
     .get();
@@ -50,26 +54,35 @@ export async function resolveParent(args: {
 export async function insertNote(args: {
   tripId: number;
   createdBy: string;
-  scope: NoteScope;
+  scope: CommentScope;
   scopeId: number;
   parentId: number | null;
   body: string;
 }): Promise<number> {
   const [{ n }] = await db
     .select({ n: count() })
-    .from(note)
-    .where(and(eq(note.tripId, args.tripId), eq(note.scope, args.scope), eq(note.scopeId, args.scopeId), isNull(note.deletedAt)));
+    .from(comment)
+    .where(and(eq(comment.tripId, args.tripId), eq(subjectOf(args.scope), args.scopeId), isNull(comment.deletedAt)));
   assertRoom("commentsPerThread", n);
   return db.transaction(async (tx) => {
     const row = await tx
-      .insert(note)
-      .values({ ...args, body: args.body.slice(0, NOTE_BODY_MAX) })
-      .returning({ id: note.id })
+      .insert(comment)
+      .values({
+        tripId: args.tripId,
+        createdBy: args.createdBy,
+        retiredScope: args.scope,
+        retiredScopeId: args.scopeId,
+        dayEventId: args.scope === "day_event" ? args.scopeId : null,
+        pageId: args.scope === "page" ? args.scopeId : null,
+        parentId: args.parentId,
+        body: args.body.slice(0, NOTE_BODY_MAX),
+      })
+      .returning({ id: comment.id })
       .get();
     const parent =
       args.parentId === null
         ? undefined
-        : await tx.select({ createdBy: note.createdBy }).from(note).where(eq(note.id, args.parentId)).get();
+        : await tx.select({ createdBy: comment.createdBy }).from(comment).where(eq(comment.id, args.parentId)).get();
 
     await recordActivity(tx, {
       kind: parent ? "comment_replied" : "comment_added",
@@ -85,16 +98,16 @@ export async function insertNote(args: {
 
 export async function updateNoteBody(noteId: number, body: string): Promise<void> {
   await db
-    .update(note)
+    .update(comment)
     .set({ body: body.slice(0, NOTE_BODY_MAX), editedAt: new Date(), ...touch() })
-    .where(and(eq(note.id, noteId), isNull(note.deletedAt)));
+    .where(and(eq(comment.id, noteId), isNull(comment.deletedAt)));
 }
 
 export async function softDeleteNoteAndReplies(noteId: number): Promise<void> {
   await db
-    .update(note)
+    .update(comment)
     .set({ deletedAt: new Date(), ...touch() })
-    .where(and(or(eq(note.id, noteId), eq(note.parentId, noteId)), isNull(note.deletedAt)));
+    .where(and(or(eq(comment.id, noteId), eq(comment.parentId, noteId)), isNull(comment.deletedAt)));
 }
 
 export async function toggleReaction(
@@ -103,13 +116,13 @@ export async function toggleReaction(
   kind: ReactionKind,
 ): Promise<void> {
   const existing = await db
-    .select({ deletedAt: noteReaction.deletedAt })
-    .from(noteReaction)
+    .select({ deletedAt: commentReaction.deletedAt })
+    .from(commentReaction)
     .where(
       and(
-        eq(noteReaction.noteId, noteId),
-        eq(noteReaction.userId, userId),
-        eq(noteReaction.kind, kind),
+        eq(commentReaction.commentId, noteId),
+        eq(commentReaction.userId, userId),
+        eq(commentReaction.kind, kind),
       ),
     )
     .get();
@@ -117,10 +130,10 @@ export async function toggleReaction(
   const deletedAt = existing?.deletedAt ? null : existing ? new Date() : null;
 
   await db
-    .insert(noteReaction)
-    .values({ noteId, userId, kind, deletedAt })
+    .insert(commentReaction)
+    .values({ commentId: noteId, userId, kind, deletedAt })
     .onConflictDoUpdate({
-      target: [noteReaction.noteId, noteReaction.userId, noteReaction.kind],
+      target: [commentReaction.commentId, commentReaction.userId, commentReaction.kind],
       set: { deletedAt, ...touch() },
     });
 }
@@ -128,7 +141,7 @@ export async function toggleReaction(
 export async function addThreadNote(args: {
   tripId: number;
   viewerId: string;
-  scope: NoteScope;
+  scope: CommentScope;
   scopeId: number;
   replyTo: number | null;
   body: string;

@@ -74,12 +74,12 @@ describe("the inbox", () => {
     await insertNote({
       tripId: world.ours.id,
       createdBy: world.admin,
-      scope: "trip",
-      scopeId: world.ours.id,
+      scope: "day_event",
+      scopeId: world.ours.eventId,
       parentId: null,
       body: "Hi",
     });
-    const note = await db.select({ id: schema.note.id }).from(schema.note).get();
+    const note = await db.select({ id: schema.comment.id }).from(schema.comment).get();
     expect(await countUnread(world.member)).toBe(1);
 
     await softDeleteNoteAndReplies(note!.id);

@@ -5,9 +5,6 @@ import { START_TRIP_HREF, phoneRoute, threadTab, tripHref } from "./notification
 describe("notification links", () => {
   it("opens the tab a comment is drawn on", () => {
     expect(tripHref(4, threadTab("day_event"))).toBe("/trip/4/days");
-    expect(tripHref(4, threadTab("day"))).toBe("/trip/4/days");
-    expect(tripHref(4, threadTab("expense"))).toBe("/trip/4/money");
-    expect(tripHref(4, threadTab("trip"))).toBe("/trip/4/overview");
     expect(tripHref(4, threadTab("page"))).toBe("/trip/4/notes");
   });
 

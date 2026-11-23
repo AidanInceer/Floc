@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 
 import { db } from "../index.ts";
-import { day, dayEvent, expense, note, packingLine, tripPage } from "../schema.ts";
+import { comment, day, dayEvent, expense, packingLine, tripPage } from "../schema.ts";
 import { serialisePage, type Inline, type Mark, type PageBlock, type TableCell } from "@floc/core/notes/pages/page-blocks";
 
 type Ids = { day: number[]; event: Record<string, number>; expense: Record<string, number>; packing: Record<string, number> };
@@ -80,8 +80,9 @@ export async function seedNotesPages(tripId: number, people: { you: string; priy
     return row.id;
   };
   const notes = await page("Notes", [], { position: 0 });
-  const [thread] = await db.insert(note).values({ tripId, createdBy: people.sofia, scope: "page", scopeId: notes, body: "Only if two of us can drive. Otherwise trains and one taxi." }).returning({ id: note.id });
-  await db.insert(note).values({ tripId, createdBy: people.tom, scope: "page", scopeId: notes, parentId: thread.id, body: "I can drive. Who else?" });
+  const onNotes = { tripId, retiredScope: "page" as const, retiredScopeId: notes, pageId: notes };
+  const [thread] = await db.insert(comment).values({ ...onNotes, createdBy: people.sofia, body: "Only if two of us can drive. Otherwise trains and one taxi." }).returning({ id: comment.id });
+  await db.insert(comment).values({ ...onNotes, createdBy: people.tom, parentId: thread.id, body: "I can drive. Who else?" });
   await db.update(tripPage).set({ body: serialisePage(notesPage(found, thread.id)) }).where(eq(tripPage.id, notes));
   await page("Where to eat", EAT, { parentId: notes, icon: "food", position: 0 });
   await page("Lagos beaches", [line("bullet", [t("Praia do Camilo — the steps")]), line("bullet", [t("Ponta da Piedade by kayak 🛶")])], { parentId: notes, icon: "sun", position: 1 });

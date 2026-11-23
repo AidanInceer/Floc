@@ -1,15 +1,17 @@
 import "server-only";
 
-import { and, asc, count, eq, isNull } from "drizzle-orm";
+import { and, asc, count, eq, isNotNull, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
-import { note, noteReaction, user, userProfile, type NoteScope } from "@/db/schema";
+import { comment, commentReaction, user, userProfile, type CommentScope } from "@/db/schema";
 import { emptyReactions, type NoteRow, type Reactions } from "@floc/core/notes/notes";
 
+import { subjectOf } from "./notes";
+
 export async function eventCommentCounts(tripId: number): Promise<Map<number, number>> {
-  const rows = await db.select({ scopeId: note.scopeId, count: count() }).from(note)
-    .where(and(eq(note.tripId, tripId), eq(note.scope, "day_event"), isNull(note.deletedAt), isNull(note.resolvedAt)))
-    .groupBy(note.scopeId).all();
+  const rows = await db.select({ scopeId: comment.dayEventId, count: count() }).from(comment)
+    .where(and(eq(comment.tripId, tripId), isNotNull(comment.dayEventId), isNull(comment.deletedAt), isNull(comment.resolvedAt)))
+    .groupBy(comment.dayEventId).all();
   return new Map(rows.flatMap((row) => row.scopeId === null ? [] : [[row.scopeId, row.count]]));
 }
 
@@ -21,49 +23,49 @@ export async function loadThreads({
   scopeId,
 }: {
   tripId: number;
-  scope: NoteScope;
+  scope: CommentScope;
   viewerId: string;
   toneOf: Map<string, string | undefined>;
   scopeId?: number;
 }): Promise<Map<number, NoteRow[]>> {
   const byScope = new Map<number, NoteRow[]>();
+  const subject = subjectOf(scope);
 
   const scoped = and(
-    eq(note.tripId, tripId),
-    eq(note.scope, scope),
-    scopeId === undefined ? undefined : eq(note.scopeId, scopeId),
-    isNull(note.deletedAt),
-    isNull(note.resolvedAt),
+    eq(comment.tripId, tripId),
+    scopeId === undefined ? isNotNull(subject) : eq(subject, scopeId),
+    isNull(comment.deletedAt),
+    isNull(comment.resolvedAt),
   );
 
   const [rows, reactionRows] = await Promise.all([
     db
       .select({
-        id: note.id,
-        scopeId: note.scopeId,
-        parentId: note.parentId,
-        body: note.body,
-        createdAt: note.createdAt,
-        editedAt: note.editedAt,
-        createdBy: note.createdBy,
+        id: comment.id,
+        scopeId: subject,
+        parentId: comment.parentId,
+        body: comment.body,
+        createdAt: comment.createdAt,
+        editedAt: comment.editedAt,
+        createdBy: comment.createdBy,
         authorName: user.name,
         authorAvatarIcon: userProfile.avatarIcon,
       })
-      .from(note)
-      .innerJoin(user, eq(user.id, note.createdBy))
-      .leftJoin(userProfile, eq(userProfile.userId, note.createdBy))
+      .from(comment)
+      .innerJoin(user, eq(user.id, comment.createdBy))
+      .leftJoin(userProfile, eq(userProfile.userId, comment.createdBy))
       .where(scoped)
-      .orderBy(asc(note.createdAt))
+      .orderBy(asc(comment.createdAt))
       .all(),
     db
       .select({
-        noteId: noteReaction.noteId,
-        userId: noteReaction.userId,
-        kind: noteReaction.kind,
+        noteId: commentReaction.commentId,
+        userId: commentReaction.userId,
+        kind: commentReaction.kind,
       })
-      .from(noteReaction)
-      .innerJoin(note, eq(note.id, noteReaction.noteId))
-      .where(and(scoped, isNull(noteReaction.deletedAt)))
+      .from(commentReaction)
+      .innerJoin(comment, eq(comment.id, commentReaction.commentId))
+      .where(and(scoped, isNull(commentReaction.deletedAt)))
       .all(),
   ]);
 
@@ -106,4 +108,3 @@ export async function loadThreads({
 
   return byScope;
 }
-
