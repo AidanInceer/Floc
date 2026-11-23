@@ -15,6 +15,12 @@ import {
   softDeleteTrip,
 } from "@/server/trips/trips";
 import { GROUP_CAP, TRIP_INVITE_CAP } from "@floc/core/people/group-ticks";
+import { loadPastTripMaps, type PastTripMap } from "@/server/trips/past-trip-maps";
+
+export async function pastTripMaps(): Promise<PastTripMap[]> {
+  const viewer = await requireUser("/trips");
+  return loadPastTripMaps(viewer.id);
+}
 
 export async function createTrip(formData: FormData): Promise<void> {
   const viewer = await requireUser("/trips");

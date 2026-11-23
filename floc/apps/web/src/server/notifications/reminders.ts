@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, eq, inArray, isNull, or } from "drizzle-orm";
+import { and, eq, inArray, isNull, type SQL } from "drizzle-orm";
 
 import { addDays } from "@floc/core/dates/dates";
 import { paidIn } from "@floc/core/money/group-settle";
@@ -15,25 +15,22 @@ import { settleUpFrom } from "@/server/money/settle-up";
 import { sendNextTripPrompts } from "@/server/notifications/next-trip";
 import { remind, type Reminder, type Target } from "@/server/notifications/remind";
 
-async function datedTrips(day: string) {
-  const lastYear = `${Number(day.slice(0, 4)) - 1}${day.slice(4)}`;
-  return db
+const liveTripsWhere = (dated: SQL) =>
+  db
     .select({ id: trip.id, startDate: trip.startDate, endDate: trip.endDate })
     .from(trip)
-    .where(
-      and(
-        isNull(trip.deletedAt),
-        isNull(trip.archivedAt),
-        or(
-          inArray(trip.startDate, [addDays(day, 7), day, lastYear]),
-          inArray(
-            trip.endDate,
-            Object.values(STILL_OWE_AFTER_DAYS).map((days) => addDays(day, -days)),
-          ),
-        ),
-      ),
-    )
+    .where(and(isNull(trip.deletedAt), isNull(trip.archivedAt), dated))
     .all();
+
+async function datedTrips(day: string) {
+  const lastYear = `${Number(day.slice(0, 4)) - 1}${day.slice(4)}`;
+  const owedEnds = Object.values(STILL_OWE_AFTER_DAYS).map((days) => addDays(day, -days));
+  const [starting, ending] = await Promise.all([
+    liveTripsWhere(inArray(trip.startDate, [addDays(day, 7), day, lastYear])),
+    liveTripsWhere(inArray(trip.endDate, owedEnds)),
+  ]);
+  const byId = new Map([...starting, ...ending].map((t) => [t.id, t]));
+  return [...byId.values()].sort((a, b) => a.id - b.id);
 }
 
 async function listeners(tripId: number): Promise<string[]> {
