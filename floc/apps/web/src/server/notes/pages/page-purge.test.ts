@@ -25,9 +25,7 @@ async function page(tripId: number, archivedAt: Date | null, parentId: number | 
 }
 
 async function comment(tripId: number, pageId: number | null) {
-  const subject = pageId === null
-    ? { retiredScope: "day_event" as const, dayEventId: world.ours.eventId }
-    : { retiredScope: "page" as const, pageId };
+  const subject = pageId === null ? { dayEventId: world.ours.eventId } : { pageId };
   const row = await db.insert(note).values({ tripId, createdBy: world.member, ...subject, body: "Only if two of us can drive" }).returning({ id: note.id }).get();
   await db.insert(noteReaction).values({ commentId: row.id, userId: world.admin, kind: "heart" });
   return row.id;

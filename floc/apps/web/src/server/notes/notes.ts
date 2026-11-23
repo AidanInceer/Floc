@@ -70,8 +70,6 @@ export async function insertNote(args: {
       .values({
         tripId: args.tripId,
         createdBy: args.createdBy,
-        retiredScope: args.scope,
-        retiredScopeId: args.scopeId,
         dayEventId: args.scope === "day_event" ? args.scopeId : null,
         pageId: args.scope === "page" ? args.scopeId : null,
         parentId: args.parentId,

@@ -78,7 +78,6 @@ describe("what the database holds a comment to", () => {
     db.insert(schema.comment).values({
       tripId: world.ours.id,
       createdBy: world.admin,
-      retiredScope: "day_event",
       body: "Worth a look",
       ...over,
     });

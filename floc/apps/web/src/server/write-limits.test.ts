@@ -93,7 +93,7 @@ describe("the trip's lists", () => {
 
   it("refuses a comment past the thread's ceiling", async () => {
     const thread = { tripId: world.ours.id, scope: "day_event" as const, scopeId: world.ours.eventId };
-    const stored = { tripId: thread.tripId, retiredScope: thread.scope, dayEventId: thread.scopeId };
+    const stored = { tripId: thread.tripId, dayEventId: thread.scopeId };
     await insertInChunks(schema.comment, many(LIMITS.commentsPerThread, (i) => ({ ...stored, createdBy: world.admin, body: `C${i}` })));
     expect(await refused(() => insertNote({ ...thread, createdBy: world.admin, parentId: null, body: "One more" }))).toBe(true);
   });

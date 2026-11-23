@@ -1,8 +1,6 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "ae229cfc-8ff9-4d06-b08e-a83cffa0219e",
-  "prevId": "141ae58b-f09d-4c5a-9a95-9c827aa982b8",
   "tables": {
     "account": {
       "name": "account",
@@ -530,27 +528,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "storage_key": {
-          "name": "storage_key",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "mime_type": {
-          "name": "mime_type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "size_bytes": {
-          "name": "size_bytes",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "category": {
           "name": "category",
           "type": "text",
@@ -646,8 +623,8 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "note": {
-      "name": "note",
+    "comment": {
+      "name": "comment",
       "columns": {
         "id": {
           "name": "id",
@@ -668,20 +645,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
-        },
-        "scope": {
-          "name": "scope",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "scope_id": {
-          "name": "scope_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
           "autoincrement": false
         },
         "day_event_id": {
@@ -751,17 +714,15 @@
         }
       },
       "indexes": {
-        "note_scope_idx": {
-          "name": "note_scope_idx",
+        "comment_trip_idx": {
+          "name": "comment_trip_idx",
           "columns": [
-            "trip_id",
-            "scope",
-            "scope_id"
+            "trip_id"
           ],
           "isUnique": false
         },
-        "note_parent_idx": {
-          "name": "note_parent_idx",
+        "comment_parent_idx": {
+          "name": "comment_parent_idx",
           "columns": [
             "parent_id"
           ],
@@ -785,9 +746,9 @@
         }
       },
       "foreignKeys": {
-        "note_trip_id_trip_id_fk": {
-          "name": "note_trip_id_trip_id_fk",
-          "tableFrom": "note",
+        "comment_trip_id_trip_id_fk": {
+          "name": "comment_trip_id_trip_id_fk",
+          "tableFrom": "comment",
           "tableTo": "trip",
           "columnsFrom": [
             "trip_id"
@@ -798,9 +759,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "note_created_by_user_id_fk": {
-          "name": "note_created_by_user_id_fk",
-          "tableFrom": "note",
+        "comment_created_by_user_id_fk": {
+          "name": "comment_created_by_user_id_fk",
+          "tableFrom": "comment",
           "tableTo": "user",
           "columnsFrom": [
             "created_by"
@@ -811,9 +772,9 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "note_day_event_id_day_event_id_fk": {
-          "name": "note_day_event_id_day_event_id_fk",
-          "tableFrom": "note",
+        "comment_day_event_id_day_event_id_fk": {
+          "name": "comment_day_event_id_day_event_id_fk",
+          "tableFrom": "comment",
           "tableTo": "day_event",
           "columnsFrom": [
             "day_event_id"
@@ -824,9 +785,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "note_page_id_trip_page_id_fk": {
-          "name": "note_page_id_trip_page_id_fk",
-          "tableFrom": "note",
+        "comment_page_id_trip_page_id_fk": {
+          "name": "comment_page_id_trip_page_id_fk",
+          "tableFrom": "comment",
           "tableTo": "trip_page",
           "columnsFrom": [
             "page_id"
@@ -842,8 +803,8 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "note_reaction": {
-      "name": "note_reaction",
+    "comment_reaction": {
+      "name": "comment_reaction",
       "columns": {
         "id": {
           "name": "id",
@@ -852,8 +813,8 @@
           "notNull": true,
           "autoincrement": true
         },
-        "note_id": {
-          "name": "note_id",
+        "comment_id": {
+          "name": "comment_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
@@ -898,17 +859,17 @@
         }
       },
       "indexes": {
-        "note_reaction_note_idx": {
-          "name": "note_reaction_note_idx",
+        "comment_reaction_comment_idx": {
+          "name": "comment_reaction_comment_idx",
           "columns": [
-            "note_id"
+            "comment_id"
           ],
           "isUnique": false
         },
-        "note_reaction_one_idx": {
-          "name": "note_reaction_one_idx",
+        "comment_reaction_one_idx": {
+          "name": "comment_reaction_one_idx",
           "columns": [
-            "note_id",
+            "comment_id",
             "user_id",
             "kind"
           ],
@@ -916,12 +877,12 @@
         }
       },
       "foreignKeys": {
-        "note_reaction_note_id_note_id_fk": {
-          "name": "note_reaction_note_id_note_id_fk",
-          "tableFrom": "note_reaction",
-          "tableTo": "note",
+        "comment_reaction_comment_id_comment_id_fk": {
+          "name": "comment_reaction_comment_id_comment_id_fk",
+          "tableFrom": "comment_reaction",
+          "tableTo": "comment",
           "columnsFrom": [
-            "note_id"
+            "comment_id"
           ],
           "columnsTo": [
             "id"
@@ -929,9 +890,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "note_reaction_user_id_user_id_fk": {
-          "name": "note_reaction_user_id_user_id_fk",
-          "tableFrom": "note_reaction",
+        "comment_reaction_user_id_user_id_fk": {
+          "name": "comment_reaction_user_id_user_id_fk",
+          "tableFrom": "comment_reaction",
           "tableTo": "user",
           "columnsFrom": [
             "user_id"
@@ -1235,27 +1196,6 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
-          "autoincrement": false
-        },
-        "storage_key": {
-          "name": "storage_key",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "mime_type": {
-          "name": "mime_type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "size_bytes": {
-          "name": "size_bytes",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
           "autoincrement": false
         },
         "category": {
@@ -2604,34 +2544,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "push_claimed_at": {
-          "name": "push_claimed_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "pushed_at": {
-          "name": "pushed_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "email_claimed_at": {
-          "name": "email_claimed_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "emailed_at": {
-          "name": "emailed_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "integer",
@@ -2677,22 +2589,6 @@
           "columns": [
             "user_id",
             "seen_at"
-          ],
-          "isUnique": false
-        },
-        "notification_push_idx": {
-          "name": "notification_push_idx",
-          "columns": [
-            "loud",
-            "pushed_at"
-          ],
-          "isUnique": false
-        },
-        "notification_email_idx": {
-          "name": "notification_email_idx",
-          "columns": [
-            "loud",
-            "emailed_at"
           ],
           "isUnique": false
         }
@@ -4052,13 +3948,6 @@
           "autoincrement": false,
           "default": "'stripe'"
         },
-        "stripe_customer_id": {
-          "name": "stripe_customer_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "stripe_subscription_id": {
           "name": "stripe_subscription_id",
           "type": "text",
@@ -4726,27 +4615,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "storage_key": {
-          "name": "storage_key",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "mime_type": {
-          "name": "mime_type",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "size_bytes": {
-          "name": "size_bytes",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "width": {
           "name": "width",
           "type": "integer",
@@ -5065,55 +4933,6 @@
           "autoincrement": false,
           "default": 0
         },
-        "est_cabin": {
-          "name": "est_cabin",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "est_stay": {
-          "name": "est_stay",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "est_pace": {
-          "name": "est_pace",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "est_nights": {
-          "name": "est_nights",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "est_travel": {
-          "name": "est_travel",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "budget_minor": {
-          "name": "budget_minor",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "budget_currency": {
-          "name": "budget_currency",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "integer",
@@ -5246,13 +5065,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
-        },
-        "yjs_state": {
-          "name": "yjs_state",
-          "type": "blob",
-          "primaryKey": false,
-          "notNull": false,
           "autoincrement": false
         },
         "updated_by": {
@@ -5784,54 +5596,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "is_private": {
-          "name": "is_private",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": false
-        },
-        "visibility_vibe_tags": {
-          "name": "visibility_vibe_tags",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'trip_members'"
-        },
-        "visibility_travel_map": {
-          "name": "visibility_travel_map",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'trip_members'"
-        },
-        "visibility_friends": {
-          "name": "visibility_friends",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'friends'"
-        },
-        "visibility_saved": {
-          "name": "visibility_saved",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'private'"
-        },
-        "past_trips_show": {
-          "name": "past_trips_show",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'all'"
-        },
         "pack_tier": {
           "name": "pack_tier",
           "type": "text",
@@ -5850,45 +5614,6 @@
         },
         "tour_seen_at": {
           "name": "tour_seen_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "notify_push": {
-          "name": "notify_push",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": true
-        },
-        "notify_email": {
-          "name": "notify_email",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": true
-        },
-        "notify_reminders": {
-          "name": "notify_reminders",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": true
-        },
-        "notify_next_trip": {
-          "name": "notify_next_trip",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": true
-        },
-        "marketing_email_consent_at": {
-          "name": "marketing_email_consent_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,
@@ -5914,42 +5639,6 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
-        },
-        "home_airport": {
-          "name": "home_airport",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "travel_cabin": {
-          "name": "travel_cabin",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "travel_stay": {
-          "name": "travel_stay",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "travel_pace": {
-          "name": "travel_pace",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "style_in_group_ideas": {
-          "name": "style_in_group_ideas",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": true
         },
         "calendar_all_day_only": {
           "name": "calendar_all_day_only",
@@ -6560,7 +6249,6 @@
   "views": {},
   "enums": {},
   "_meta": {
-    "schemas": {},
     "tables": {},
     "columns": {}
   },
@@ -6577,5 +6265,7 @@
         }
       }
     }
-  }
+  },
+  "id": "85b062ee-3d1d-4969-a599-8dc1289e92d9",
+  "prevId": "ae229cfc-8ff9-4d06-b08e-a83cffa0219e"
 }

@@ -1,7 +1,4 @@
-import { readFileSync } from "node:fs";
-
 import { createClient } from "@libsql/client";
-import { sql } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { db, schema } from "@/db";
@@ -69,54 +66,5 @@ describe("what the cron reads", () => {
 
     expect(steps.join("\n")).toContain("notification_delivery_waiting_idx");
     expect(steps.filter(readsAllHistory)).toEqual([]);
-  });
-});
-
-describe("the move of send records out of the inbox row", () => {
-  const copy = readFileSync("./drizzle/0077_complex_morlun.sql", "utf8")
-    .split("--> statement-breakpoint")
-    .map((statement) => statement.trim())
-    .filter((statement) => statement.startsWith("INSERT"));
-
-  async function moveAgain() {
-    await db.delete(schema.notificationDelivery);
-    for (const statement of copy) await db.run(sql.raw(statement));
-  }
-
-  it("copies a row for each channel", () => {
-    expect(copy).toHaveLength(2);
-  });
-
-  it("does not push again what was pushed before the move", async () => {
-    await registerPushToken(world.member, "ExponentPushToken[a]");
-    await nudge();
-    await db.update(schema.notification).set({ retiredPushedAt: new Date() });
-    await moveAgain();
-
-    const { sent, send } = sender();
-    await sendDuePushes(send, minutes(3));
-    expect(sent).toEqual([]);
-  });
-
-  it("still pushes what was waiting before the move, once", async () => {
-    await registerPushToken(world.member, "ExponentPushToken[a]");
-    await nudge();
-    await moveAgain();
-
-    const { sent, send } = sender();
-    await sendDuePushes(send, minutes(3));
-    await sendDuePushes(send, minutes(30));
-    expect(sent).toHaveLength(1);
-  });
-
-  it("keeps a push another worker had claimed out of this run", async () => {
-    await registerPushToken(world.member, "ExponentPushToken[a]");
-    await nudge();
-    await db.update(schema.notification).set({ retiredPushClaimedAt: minutes(2) });
-    await moveAgain();
-
-    const { sent, send } = sender();
-    await sendDuePushes(send, minutes(3));
-    expect(sent).toEqual([]);
   });
 });

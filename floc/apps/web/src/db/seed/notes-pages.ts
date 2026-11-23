@@ -80,7 +80,7 @@ export async function seedNotesPages(tripId: number, people: { you: string; priy
     return row.id;
   };
   const notes = await page("Notes", [], { position: 0 });
-  const onNotes = { tripId, retiredScope: "page" as const, retiredScopeId: notes, pageId: notes };
+  const onNotes = { tripId, pageId: notes };
   const [thread] = await db.insert(comment).values({ ...onNotes, createdBy: people.sofia, body: "Only if two of us can drive. Otherwise trains and one taxi." }).returning({ id: comment.id });
   await db.insert(comment).values({ ...onNotes, createdBy: people.tom, parentId: thread.id, body: "I can drive. Who else?" });
   await db.update(tripPage).set({ body: serialisePage(notesPage(found, thread.id)) }).where(eq(tripPage.id, notes));
