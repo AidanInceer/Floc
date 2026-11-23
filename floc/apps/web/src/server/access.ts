@@ -3,19 +3,20 @@ import "server-only";
 
 import { Refusal } from "@floc/core/errors/refusal";
 
-import { and, eq, inArray, isNull, or } from "drizzle-orm";
+import { and, eq, getTableColumns, inArray, isNull, or } from "drizzle-orm";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 
 import { db } from "@/db";
 import {
+  comment,
   day,
   dayEvent,
   document,
   expense,
-  note,
   packingLine,
+  storedFile,
   trip,
   tripMembership,
   user,
@@ -78,9 +79,9 @@ export type TripAccess = {
   day: (dayId: number) => Promise<typeof day.$inferSelect>;
   event: (eventId: number) => Promise<typeof dayEvent.$inferSelect>;
   expense: (expenseId: number) => Promise<typeof expense.$inferSelect>;
-  note: (noteId: number) => Promise<typeof note.$inferSelect>;
+  note: (noteId: number) => Promise<typeof comment.$inferSelect>;
   packingLine: (lineId: number) => Promise<typeof packingLine.$inferSelect>;
-  document: (documentId: number) => Promise<typeof document.$inferSelect>;
+  document: (documentId: number) => Promise<typeof document.$inferSelect & { storageKey: string; mimeType: string; sizeBytes: number }>;
 };
 
 export type TripMember = {
@@ -225,8 +226,14 @@ const resolvePackingLine = cache(
 const resolveDocument = cache(
   async (tripId: number, viewerId: string, documentId: number) => {
     return db
-      .select()
+      .select({
+        ...getTableColumns(document),
+        storageKey: storedFile.storageKey,
+        mimeType: storedFile.mimeType,
+        sizeBytes: storedFile.sizeBytes,
+      })
       .from(document)
+      .innerJoin(storedFile, eq(storedFile.id, document.storedFileId))
       .where(
         and(
           eq(document.id, documentId),
@@ -256,9 +263,9 @@ const resolveExpense = cache(async (tripId: number, expenseId: number) => {
 const resolveNote = cache(async (tripId: number, noteId: number) => {
   return db
     .select()
-    .from(note)
+    .from(comment)
     .where(
-      and(eq(note.id, noteId), eq(note.tripId, tripId), isNull(note.deletedAt)),
+      and(eq(comment.id, noteId), eq(comment.tripId, tripId), isNull(comment.deletedAt)),
     )
     .get();
 });

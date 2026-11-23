@@ -1,6 +1,6 @@
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { db, schema } from "@/db";
+import { savePrivacy } from "@/server/auth/privacy";
 import { canSee, requireProfileView, showsAttribute } from "@/server/auth/visibility";
 import { setTripSaved } from "@/server/explore/explore-saves";
 import { befriend, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
@@ -58,7 +58,7 @@ describe("a profile's Saved list (#544)", () => {
     visibilitySaved: "private" | "friends" | "trip_members",
     isPrivate = false,
   ): Promise<void> {
-    await db.insert(schema.userProfile).values({ userId: world.admin, visibilitySaved, isPrivate });
+    await savePrivacy(world.admin, { visibilitySaved, isPrivate });
   }
 
   async function savedSeenBy(viewerId: string): Promise<string[] | null> {

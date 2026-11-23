@@ -1,7 +1,9 @@
 import { deleteAccount, removeGoogleCalendar, unlinkAccount, updateNotifications, updatePrivacy } from "@/app/settings/actions";
 import { updateVibeTags } from "@/app/profile/actions";
 import type { ProPrice, subscriptionOf } from "@/server/billing/billing";
+import type { Privacy } from "@/server/auth/privacy";
 import type { ensureProfile } from "@/server/auth/profile";
+import type { AlertSettings } from "@/server/notifications/alert-settings";
 import type { listSignInMethods } from "@/server/auth/sign-in-methods";
 import { GoogleCalendarIcon } from "@/components/system/icons/google-calendar";
 import { isLive, renewalLabel } from "@floc/core/billing/subscription-copy";
@@ -49,6 +51,9 @@ type Subscription = Awaited<ReturnType<typeof subscriptionOf>>;
 export type AccountSettingsProps = {
   email: string;
   profile: Awaited<ReturnType<typeof ensureProfile>>;
+  privacy: Privacy;
+  alerts: AlertSettings;
+  styleInGroupIdeas: boolean;
   linkedAccounts: Awaited<ReturnType<typeof listSignInMethods>>;
   calendarGranted: boolean;
   pro: { subscription: Subscription; prices: ProPrice[] } | null;
@@ -58,7 +63,7 @@ export type AccountSettingsProps = {
   consent: ConsentChoice | null;
 };
 
-export function AccountSettings({ email, profile, linkedAccounts, calendarGranted, pro, opened, billing, estimate, consent }: AccountSettingsProps) {
+export function AccountSettings({ email, profile, privacy, alerts, styleInGroupIdeas, linkedAccounts, calendarGranted, pro, opened, billing, estimate, consent }: AccountSettingsProps) {
   const vibeTags = readVibeTags(profile.vibeTags);
   const row = (id: SettingsSection) => ({ id: `settings-${id}`, open: opened === id });
 
@@ -106,21 +111,21 @@ export function AccountSettings({ email, profile, linkedAccounts, calendarGrante
           {...row("privacy")}
           title="Privacy"
           summary={privacySummary({
-            isPrivate: profile.isPrivate,
-            rings: [profile.visibilityVibeTags, profile.visibilityTravelMap, profile.visibilityFriends, profile.visibilitySaved],
+            isPrivate: privacy.isPrivate,
+            rings: [privacy.visibilityVibeTags, privacy.visibilityTravelMap, privacy.visibilityFriends, privacy.visibilitySaved],
           })}
         >
           <AutoSaveForm action={updatePrivacy} className="flex flex-col gap-5">
             <PrivacyLines
-              isPrivate={profile.isPrivate}
+              isPrivate={privacy.isPrivate}
               rings={{
-                visibilityVibeTags: profile.visibilityVibeTags,
-                visibilityTravelMap: profile.visibilityTravelMap,
-                visibilityFriends: profile.visibilityFriends,
-                visibilitySaved: profile.visibilitySaved,
+                visibilityVibeTags: privacy.visibilityVibeTags,
+                visibilityTravelMap: privacy.visibilityTravelMap,
+                visibilityFriends: privacy.visibilityFriends,
+                visibilitySaved: privacy.visibilitySaved,
               }}
-              pastTripsLatest={profile.pastTripsShow === "latest"}
-              styleInGroupIdeas={profile.styleInGroupIdeas}
+              pastTripsLatest={privacy.pastTripsShow === "latest"}
+              styleInGroupIdeas={styleInGroupIdeas}
             />
           </AutoSaveForm>
         </SettingsRow>
@@ -129,20 +134,20 @@ export function AccountSettings({ email, profile, linkedAccounts, calendarGrante
           {...row("notifications")}
           title="Notifications"
           summary={notificationSummary({
-            push: profile.notifyPush,
-            email: profile.notifyEmail,
-            reminders: profile.notifyReminders,
-            nextTrip: profile.notifyNextTrip,
+            push: alerts.notifyPush,
+            email: alerts.notifyEmail,
+            reminders: alerts.notifyReminders,
+            nextTrip: alerts.notifyNextTrip,
           })}
         >
           <AutoSaveForm action={updateNotifications} className="flex flex-col gap-4">
             {NOTIFICATION_TOGGLES.map((t) => (
-              <ToggleRow key={t.name} name={t.name} label={t.label} hint={t.hint} defaultChecked={profile[t.name]} />
+              <ToggleRow key={t.name} name={t.name} label={t.label} hint={t.hint} defaultChecked={alerts[t.name]} />
             ))}
           </AutoSaveForm>
         </SettingsRow>
 
-        <DataRow {...row("data")} consent={consent} advertisingEmail={Boolean(profile.marketingEmailConsentAt)} />
+        <DataRow {...row("data")} consent={consent} advertisingEmail={Boolean(alerts.marketingEmailConsentAt)} />
       </SettingsSheet>
 
       <SettingsSheet>

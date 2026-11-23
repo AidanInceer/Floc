@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { NOTE_SCOPES } from "@/db/schema";
+import { COMMENT_SCOPES } from "@/db/schema";
 import { pagesFor, tripAreasFor, type Fact, type FactKind } from "@/server/freshness";
 
 const TRIP = 7;
@@ -20,7 +20,7 @@ const EVERY_FACT: { [K in FactKind]: Extract<Fact, { kind: K }> } = {
   packing: { kind: "packing", tripId: TRIP },
   documents: { kind: "documents", tripId: TRIP },
   tripLinks: { kind: "tripLinks", tripId: TRIP },
-  thread: { kind: "thread", tripId: TRIP, scope: "day" },
+  thread: { kind: "thread", tripId: TRIP, scope: "day_event" },
   notesPages: { kind: "notesPages", tripId: TRIP },
   tripList: { kind: "tripList" },
   invites: { kind: "invites" },
@@ -73,8 +73,8 @@ describe("the fact table", () => {
     }
   });
 
-  it("covers every note scope, since a thread hangs off five surfaces", () => {
-    for (const scope of NOTE_SCOPES) {
+  it("covers both comment scopes, since a thread hangs off an event or a page", () => {
+    for (const scope of COMMENT_SCOPES) {
       const pages = pagesFor([{ kind: "thread", tripId: TRIP, scope }]);
       expect(pages, scope).toHaveLength(1);
       expect(routeExists(pages[0].path), scope).toBe(true);

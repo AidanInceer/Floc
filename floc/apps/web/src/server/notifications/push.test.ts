@@ -4,6 +4,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { insertNudge } from "@/server/trips/nudges";
+import { saveAlertSettings } from "@/server/notifications/alert-settings";
 import { openNotification } from "@/server/notifications/inbox";
 import {
   forgetPushToken,
@@ -83,7 +84,7 @@ describe("sending pushes", () => {
     expect(sent).toEqual([]);
 
     await db.update(schema.tripMembership).set({ mutedAt: null });
-    await db.insert(schema.userProfile).values({ userId: world.member, notifyPush: false });
+    await saveAlertSettings(world.member, { notifyPush: false });
     await sendDuePushes(send, minutes(4));
     expect(sent).toEqual([]);
   });

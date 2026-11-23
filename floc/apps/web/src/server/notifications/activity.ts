@@ -11,6 +11,7 @@ import {
   type ActivityKind,
 } from "@floc/core/notifications/rules";
 import { touch } from "@/server/audit";
+import { deliveriesFor } from "@/server/notifications/outbox";
 
 export type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -96,6 +97,7 @@ export function groupedActivityWrites(
       select ${latest}, json_extract(value, '$.userId'), json_extract(value, '$.loud')
       from json_each(${rows}) where true
       on conflict (activity_id, user_id) do update set last_modified_at = unixepoch()`),
+    db.run(deliveriesFor(sql`${latest}`)),
   );
   return writes;
 }
@@ -132,4 +134,5 @@ export async function recordActivity(tx: Tx, change: Change, known: KnownBefore 
     .insert(notification)
     .values(recipients.map((r) => ({ activityId: activityId!, userId: r.userId, loud: r.loud })))
     .onConflictDoUpdate({ target: [notification.activityId, notification.userId], set: touch() });
+  await tx.run(deliveriesFor(activityId));
 }

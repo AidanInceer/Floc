@@ -2,7 +2,7 @@ import "server-only";
 
 import { revalidatePath } from "next/cache";
 
-import type { NoteScope } from "@/db/schema";
+import type { CommentScope } from "@/db/schema";
 import { tripChanged } from "@/server/notes/live/live-trip";
 import { forgetRequestReads } from "@/server/request-scope";
 
@@ -18,7 +18,7 @@ export type Fact =
   | { kind: "packing"; tripId: number }
   | { kind: "documents"; tripId: number }
   | { kind: "tripLinks"; tripId: number }
-  | { kind: "thread"; tripId: number; scope: NoteScope }
+  | { kind: "thread"; tripId: number; scope: CommentScope }
   | { kind: "notesPages"; tripId: number }
   | { kind: "tripList" }
   | { kind: "invites" }
@@ -87,18 +87,8 @@ const IMPLIES: Partial<Record<FactKind, FactKind[]>> = {
   bookings: ["bell"],
 };
 
-function threadPath(tripId: number, scope: NoteScope): string {
-  switch (scope) {
-    case "day_event":
-    case "day":
-      return `/trip/${tripId}/days`;
-    case "expense":
-      return `/trip/${tripId}/money`;
-    case "trip":
-      return `/trip/${tripId}/overview`;
-    case "page":
-      return `/trip/${tripId}/notes`;
-  }
+function threadPath(tripId: number, scope: CommentScope): string {
+  return scope === "page" ? `/trip/${tripId}/notes` : `/trip/${tripId}/days`;
 }
 
 export function pagesFor(facts: Fact[]): Target[] {

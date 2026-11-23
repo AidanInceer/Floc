@@ -512,6 +512,55 @@
       "when": 1795457481653,
       "tag": "0072_soft_millenium_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "6",
+      "when": 1795460678610,
+      "tag": "0073_safe_james_howlett",
+      "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "6",
+      "when": 1795460881230,
+      "tag": "0074_medical_masked_marvel",
+      "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "6",
+      "when": 1795461031081,
+      "tag": "0075_long_siren",
+      "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "6",
+      "when": 1795461619772,
+      "tag": "0076_stale_human_cannonball",
+      "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "6",
+      "when": 1795462068907,
+      "tag": "0077_complex_morlun",
+      "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "6",
+      "when": 1795462660183,
+      "tag": "0078_dry_killer_shrike",
+      "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "6",
+      "when": 1795463116964,
+      "tag": "0079_fantastic_joseph",
+      "breakpoints": true
     }
   ]
 }

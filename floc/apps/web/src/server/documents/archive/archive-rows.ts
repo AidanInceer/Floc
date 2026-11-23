@@ -5,8 +5,9 @@ import { and, desc, eq, gt, isNotNull, isNull, lte, or } from "drizzle-orm";
 import { FILE_ARCHIVE_DAYS, fileArchiveCutoff } from "@floc/core/documents/archive";
 
 import { db } from "@/db";
-import { document, user, userProfile } from "@/db/schema";
+import { document, storedFile, user, userProfile } from "@/db/schema";
 import { touch } from "@/server/audit";
+import { fileColumns } from "@/server/documents/stored-file";
 import { LIMITS } from "@/server/limits";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -23,17 +24,16 @@ export async function archivedRows(tripId: number, now: Date, { viewerId, docume
     .select({
       id: document.id,
       name: document.name,
-      mimeType: document.mimeType,
-      sizeBytes: document.sizeBytes,
+      ...fileColumns,
       category: document.category,
       uploadedBy: document.uploadedBy,
       userName: user.name,
       displayName: userProfile.displayName,
       ownerId: document.ownerId,
-      storageKey: document.storageKey,
       archivedAt: document.deletedAt,
     })
     .from(document)
+    .innerJoin(storedFile, eq(storedFile.id, document.storedFileId))
     .innerJoin(user, eq(user.id, document.uploadedBy))
     .leftJoin(userProfile, eq(userProfile.userId, document.uploadedBy))
     .where(
@@ -63,8 +63,9 @@ export async function unarchiveDocument(documentId: number): Promise<void> {
 export async function keysPastTheWeek(now: Date): Promise<string[]> {
   const cutoff = fileArchiveCutoff(now);
   const rows = await db
-    .select({ storageKey: document.storageKey })
+    .select({ storageKey: storedFile.storageKey })
     .from(document)
+    .innerJoin(storedFile, eq(storedFile.id, document.storedFileId))
     .where(and(lte(document.deletedAt, cutoff), gt(document.deletedAt, new Date(cutoff.getTime() - FILE_ARCHIVE_DAYS * DAY_MS))))
     .orderBy(desc(document.deletedAt))
     .limit(LIMITS.documents)
@@ -74,8 +75,9 @@ export async function keysPastTheWeek(now: Date): Promise<string[]> {
 
 export async function archivedKeysOwnedBy(userId: string, now: Date): Promise<string[]> {
   const rows = await db
-    .select({ storageKey: document.storageKey })
+    .select({ storageKey: storedFile.storageKey })
     .from(document)
+    .innerJoin(storedFile, eq(storedFile.id, document.storedFileId))
     .where(and(eq(document.ownerId, userId), inArchive(now)))
     .limit(LIMITS.documents)
     .all();

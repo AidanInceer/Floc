@@ -3,7 +3,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
 import { upsertPlace } from "@/server/itinerary/places";
-import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { fileFields, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 
 let world: Scenario;
 let files = 0;
@@ -30,16 +30,14 @@ const bill = (overrides: Partial<typeof schema.expense.$inferInsert> = {}) =>
     .returning({ id: schema.expense.id })
     .get();
 
-const file = (overrides: Partial<typeof schema.document.$inferInsert> = {}) =>
+const file = async (overrides: Partial<typeof schema.document.$inferInsert> = {}) =>
   db
     .insert(schema.document)
     .values({
       tripId: world.ours.id,
       uploadedBy: world.admin,
       name: "ticket.pdf",
-      storageKey: `key-${++files}`,
-      mimeType: "application/pdf",
-      sizeBytes: 1,
+      ...(await fileFields(`key-${++files}`)),
       ...overrides,
     })
     .returning({ id: schema.document.id })

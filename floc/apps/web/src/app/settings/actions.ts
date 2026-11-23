@@ -11,9 +11,10 @@ import { removeCalendarAccess } from "@/server/calendar/calendar-import";
 import { unlinkSignIn } from "@/server/auth/sign-in-methods";
 import { eraseAccount } from "@/server/auth/erase-account";
 import { bookingSitesOf, toggleBookingSite } from "@/server/auth/booking-sites";
-import { setMarketingEmailConsent } from "@/server/consent/marketing-consent";
-import { ensureProfile, saveProfile, updateProfileFields } from "@/server/auth/profile";
+import { savePrivacy } from "@/server/auth/privacy";
+import { saveTravelStyle } from "@/server/auth/travel-style";
 import { refresh } from "@/server/freshness";
+import { saveAlertSettings, setMarketingEmailConsent } from "@/server/notifications/alert-settings";
 
 export async function updatePrivacy(formData: FormData): Promise<{ error?: string }> {
   const viewer = await requireUser();
@@ -31,14 +32,14 @@ export async function updatePrivacy(formData: FormData): Promise<{ error?: strin
     return { error: "That isn't one of the visibility options." };
   }
 
-  await saveProfile(viewer.id, {
+  await saveTravelStyle(viewer.id, { styleInGroupIdeas: formData.get("styleInGroupIdeas") === "on" });
+  await savePrivacy(viewer.id, {
     isPrivate: formData.get("isPrivate") === "on",
     visibilityVibeTags: vibeTags,
     visibilityTravelMap: travelMap,
     visibilityFriends: friends,
     visibilitySaved: saved,
     pastTripsShow: formData.get("pastTripsLatest") === "on" ? "latest" : "all",
-    styleInGroupIdeas: formData.get("styleInGroupIdeas") === "on",
   });
   return {};
 }
@@ -51,8 +52,7 @@ export async function unlinkAccount(formData: FormData): Promise<{ error?: strin
 
 export async function updateNotifications(formData: FormData): Promise<void> {
   const viewer = await requireUser();
-  await ensureProfile(viewer.id);
-  await updateProfileFields(viewer.id, {
+  await saveAlertSettings(viewer.id, {
     notifyPush: formData.get("notifyPush") === "on",
     notifyEmail: formData.get("notifyEmail") === "on",
     notifyReminders: formData.get("notifyReminders") === "on",
@@ -62,7 +62,6 @@ export async function updateNotifications(formData: FormData): Promise<void> {
 
 export async function updateMarketingEmail(formData: FormData): Promise<void> {
   const viewer = await requireUser();
-  await ensureProfile(viewer.id);
   await setMarketingEmailConsent(viewer.id, formData.get("marketingEmail") === "on", new Date());
   refresh({ kind: "accountSettings" });
 }

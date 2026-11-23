@@ -2,6 +2,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { getProfile } from "@/server/auth/profile";
 import { markTourSeen } from "@/server/auth/tour";
+import { readTravelStyle } from "@/server/auth/travel-style";
 import { finishWelcome, seedWelcomeCurrency, welcomeFor } from "@/server/auth/welcome/welcome";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 
@@ -26,7 +27,8 @@ describe("the welcome, once per person (#707)", () => {
   it("saves the answers and is not due again", async () => {
     await finishWelcome(world.member, { homeAirport: "DUB", travelCabin: "economy", travelStay: "mid", travelPace: "easy", vibeTags: ["beaches"] });
     const profile = await getProfile(world.member);
-    expect(profile).toMatchObject({ homeAirport: "DUB", travelCabin: "economy", travelStay: "mid", travelPace: "easy", vibeTags: ["beaches"] });
+    expect(await readTravelStyle(world.member)).toMatchObject({ homeAirport: "DUB", travelCabin: "economy", travelStay: "mid", travelPace: "easy" });
+    expect(profile?.vibeTags).toEqual(["beaches"]);
     expect(profile?.tourSeenAt).toBeInstanceOf(Date);
     expect((await welcomeFor(world.member))?.due).toBe(false);
   });
@@ -34,7 +36,7 @@ describe("the welcome, once per person (#707)", () => {
   it("keeps what was there when a step is skipped", async () => {
     await finishWelcome(world.member, { homeAirport: "LIS" });
     await finishWelcome(world.member, {});
-    expect((await getProfile(world.member))?.homeAirport).toBe("LIS");
+    expect((await readTravelStyle(world.member)).homeAirport).toBe("LIS");
   });
 });
 

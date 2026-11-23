@@ -6,7 +6,7 @@ import path from "node:path";
 import { FREE_TRIP_STORAGE_BYTES } from "@floc/core/documents/documents";
 
 import { db, schema } from "@/db";
-import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { fileFields, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { webPort } from "@/server/api-port/api-port";
 
 let world: Scenario;
@@ -201,7 +201,7 @@ describe("the trip's storage quota (#285)", () => {
   it("refuses the phone's upload past the quota in the same words as the web", async () => {
     await db.insert(schema.document).values({
       tripId: world.ours.id, uploadedBy: world.admin, ownerId: null, name: "scans.pdf",
-      storageKey: "seeded", mimeType: "application/pdf", sizeBytes: FREE_TRIP_STORAGE_BYTES, category: "other",
+      ...(await fileFields("seeded", FREE_TRIP_STORAGE_BYTES)), category: "other",
     });
 
     expect(await webPort.uploadFile(world.admin, world.ours.id, png)).toBe(

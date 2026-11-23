@@ -2,6 +2,7 @@ import { GROUP_FIT } from "@floc/core/trip/explore/fit/group-fit";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { ensureProfile, updateProfileFields } from "@/server/auth/profile";
+import { saveTravelStyle } from "@/server/auth/travel-style";
 import { listWishListsFor, wishListFor } from "@/server/wish-lists/wish-lists";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 
@@ -13,7 +14,8 @@ let groupId: number;
 
 async function style(userId: string, vibeTags: string[]): Promise<void> {
   await ensureProfile(userId);
-  await updateProfileFields(userId, { vibeTags, travelStay: "mid", travelPace: "balanced" });
+  await updateProfileFields(userId, { vibeTags });
+  await saveTravelStyle(userId, { travelStay: "mid", travelPace: "balanced" });
 }
 
 beforeAll(migrateTestDb);
@@ -61,7 +63,7 @@ describe("trip ideas for a group (#177, ADR-074)", () => {
     await style(world.admin, ["food first", "museums"]);
     const alone = await groupIdeasFor(world.admin, groupId);
     await style(world.member, ["hiking", "beaches"]);
-    await updateProfileFields(world.member, { styleInGroupIdeas: false });
+    await saveTravelStyle(world.member, { styleInGroupIdeas: false });
 
     const found = await groupIdeasFor(world.admin, groupId);
     expect(found).toMatchObject({ people: 1, withStyle: 0 });

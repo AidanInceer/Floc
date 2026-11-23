@@ -3,6 +3,7 @@ import "server-only";
 import type { ReminderKind } from "@floc/core/notifications/rules";
 import { db } from "@/db";
 import { activity, notification, reminder } from "@/db/schema";
+import { deliveriesFor } from "@/server/notifications/outbox";
 
 export type Target = { userId: string; detail: string | null };
 
@@ -29,6 +30,7 @@ export async function remind({ kind, keyTripId, tripId, href, target }: Reminder
       .returning({ id: activity.id })
       .get();
     await tx.insert(notification).values({ activityId: row.id, userId: target.userId, loud: true });
+    await tx.run(deliveriesFor(row.id));
     return true;
   });
 }

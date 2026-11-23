@@ -4,7 +4,7 @@ import { useOptimistic, useState } from "react";
 
 import { emptyReactions, repliesLabel, threadCount, withPendingNote, type NoteRow } from "@floc/core/notes/notes";
 
-import type { NoteScope } from "@/db/schema";
+import type { CommentScope } from "@/db/schema";
 import { addNote } from "@/app/trip/[id]/notes-actions";
 import { NoteComment } from "./note-comment";
 import { NoteComposer, type Face } from "./note-composer";
@@ -13,7 +13,7 @@ export type { NoteRow };
 
 export type Viewer = Face & { id: string };
 
-type Where = { tripId: number; scope: NoteScope; scopeId: number };
+type Where = { tripId: number; scope: CommentScope; scopeId: number };
 
 type Post = (formData: FormData) => Promise<{ error?: string } | void>;
 
@@ -84,7 +84,7 @@ export function NoteThread({
   viewer,
 }: {
   tripId: number;
-  scope: NoteScope;
+  scope: CommentScope;
   scopeId: number;
   notes: NoteRow[];
   viewer: Viewer;

@@ -10,6 +10,7 @@ import { LIMITS } from "@/server/limits";
 import { documentsEnabled, dropDocument, hasDocument } from "../document-store";
 import { countDocuments } from "../documents";
 import { storageUsage } from "../storage-quota";
+import { releaseBytes } from "../stored-file";
 import { archivedRows, keysPastTheWeek, unarchiveDocument, type ArchivedRow } from "./archive-rows";
 
 type Access = Pick<TripAccess, "trip" | "viewer">;
@@ -66,12 +67,12 @@ export async function restoreDocument(access: Access, documentId: number, now = 
 
 export async function trimArchive(tripId: number, now = new Date()): Promise<void> {
   const [rows, space] = await Promise.all([archivedRows(tripId, now).then(withBytes), storageUsage(tripId)]);
-  await Promise.all(filesToTrim(rows, space.quotaBytes).map((row) => dropDocument(row.storageKey)));
+  await releaseBytes(filesToTrim(rows, space.quotaBytes).map((row) => row.storageKey), dropDocument, now);
 }
 
 export async function purgeArchivedFiles(now = new Date()): Promise<number> {
   if (!documentsEnabled()) return 0;
   const keys = await keysPastTheWeek(now);
-  await Promise.all(keys.map(dropDocument));
+  await releaseBytes(keys, dropDocument, now);
   return keys.length;
 }

@@ -7,7 +7,7 @@ import type { FriendFace, FriendSaves } from "@floc/core/people/shared-saves";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 
 import { db } from "@/db";
-import { exploreSave, user, userProfile } from "@/db/schema";
+import { exploreSave, user, userPrivacy, userProfile } from "@/db/schema";
 import { canSee } from "@/server/auth/visibility";
 import { travelMapFor, travelMapsFor } from "@/server/itinerary/travel-map";
 import { LIMITS } from "@/server/limits";
@@ -37,12 +37,13 @@ async function sharingFriends(viewerId: string): Promise<Shared[]> {
       id: user.id,
       name: user.name,
       displayName: userProfile.displayName,
-      isPrivate: userProfile.isPrivate,
-      visibilitySaved: userProfile.visibilitySaved,
-      visibilityTravelMap: userProfile.visibilityTravelMap,
+      isPrivate: userPrivacy.isPrivate,
+      visibilitySaved: userPrivacy.visibilitySaved,
+      visibilityTravelMap: userPrivacy.visibilityTravelMap,
     })
     .from(user)
     .leftJoin(userProfile, eq(userProfile.userId, user.id))
+    .leftJoin(userPrivacy, eq(userPrivacy.userId, user.id))
     .where(inArray(user.id, ids))
     .limit(LIMITS.members * LIMITS.tripsPerUser)
     .all();

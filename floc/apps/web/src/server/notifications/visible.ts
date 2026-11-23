@@ -7,9 +7,9 @@ import { db } from "@/db";
 import {
   activity,
   bookingInbox,
+  comment,
   expense,
   friendship,
-  note,
   notification,
   settlement,
   trip,
@@ -71,7 +71,7 @@ function withSubjects<T extends SQLiteSelect>(query: T) {
         isNull(tripMembership.deletedAt),
       ),
     )
-    .leftJoin(note, and(eq(note.id, activity.subjectId), inArray(activity.kind, COMMENT_KINDS)))
+    .leftJoin(comment, and(eq(comment.id, activity.subjectId), inArray(activity.kind, COMMENT_KINDS)))
     .leftJoin(expense, and(eq(expense.id, activity.subjectId), inArray(activity.kind, EXPENSE_KINDS)))
     .leftJoin(
       settlement,
@@ -152,7 +152,7 @@ export function stillVisible(now = new Date()) {
         or(isNotNull(tripMembership.userId), eq(activity.kind, "trip_invited")),
       ),
     ),
-    or(notInArray(activity.kind, COMMENT_KINDS), isNull(note.deletedAt)),
+    or(notInArray(activity.kind, COMMENT_KINDS), isNull(comment.deletedAt)),
     or(notInArray(activity.kind, EXPENSE_KINDS), isNull(expense.deletedAt)),
     or(ne(activity.kind, "settlement_recorded"), isNull(settlement.deletedAt)),
   );

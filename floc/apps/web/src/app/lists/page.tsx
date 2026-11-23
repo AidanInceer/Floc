@@ -10,7 +10,7 @@ import { ListsPage } from "@/components/lists/lists-page";
 import { WantToGo } from "@/components/lists/want-to-go";
 import { PageTitle } from "@/components/system/ui";
 import { requireUser } from "@/server/access";
-import { getProfile } from "@/server/auth/profile";
+import { readPrivacy } from "@/server/auth/privacy";
 import { savedTripIds } from "@/server/explore/explore-saves";
 import { friendsWhoSaved } from "@/server/explore/friend-saves";
 import { travelMapFor } from "@/server/itinerary/travel-map";
@@ -22,15 +22,15 @@ const byId = new Map(PRESET_TRIPS.map((t) => [t.id, t]));
 
 export default async function SavedPage() {
   const viewer = await requireUser("/lists");
-  const [saved, map, rates, friends, profile] = await Promise.all([
+  const [saved, map, rates, friends, privacy] = await Promise.all([
     savedTripIds(viewer.id),
     travelMapFor(viewer.id),
     viewerCurrency(viewer.id, await headers()).then(listingRates),
     friendsWhoSaved(viewer.id),
-    getProfile(viewer.id),
+    readPrivacy(viewer.id),
   ]);
   const trips = saved.map((id) => byId.get(id)).filter((t): t is PresetTrip => Boolean(t));
-  const seenBy = savedSeenBy(profile?.visibilitySaved ?? "private", profile?.isPrivate ?? false);
+  const seenBy = savedSeenBy(privacy.visibilitySaved, privacy.isPrivate);
 
   return (
     <ListsPage current="saved" userId={viewer.id}>

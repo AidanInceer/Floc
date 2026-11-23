@@ -3,6 +3,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { savePrivacy, type Privacy } from "@/server/auth/privacy";
 import { findByName, mayAskToBeFriends } from "@/server/social/find-friends";
 import { friendCodeFor, requestByCode } from "@/server/social/friend-code";
 import { searchFriends } from "@/server/social/friend-search";
@@ -27,11 +28,15 @@ async function befriend(a: string, b: string) {
     .values({ userId: lo, friendId: hi, status: "accepted", origin: "request" });
 }
 
-async function setProfile(userId: string, patch: Partial<typeof schema.userProfile.$inferInsert>) {
-  await db
-    .insert(schema.userProfile)
-    .values({ userId, ...patch })
-    .onConflictDoUpdate({ target: schema.userProfile.userId, set: patch });
+async function setProfile(userId: string, patch: Partial<Privacy> & { displayName?: string }) {
+  const { displayName, ...privacy } = patch;
+  if (displayName !== undefined) {
+    await db
+      .insert(schema.userProfile)
+      .values({ userId, displayName })
+      .onConflictDoUpdate({ target: schema.userProfile.userId, set: { displayName } });
+  }
+  if (Object.keys(privacy).length > 0) await savePrivacy(userId, privacy);
 }
 
 const liveRowsBetween = (a: string, b: string) =>

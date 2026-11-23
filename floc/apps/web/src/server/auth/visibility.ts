@@ -19,6 +19,7 @@ import {
   trip,
   tripMembership,
   user,
+  userPrivacy,
   userProfile,
 } from "@/db/schema";
 import { hasEnded } from "@floc/core/dates/dates";
@@ -151,15 +152,16 @@ export async function requireProfileView(
       displayName: userProfile.displayName,
       avatarIcon: userProfile.avatarIcon,
       vibeTags: userProfile.vibeTags,
-      isPrivate: userProfile.isPrivate,
-      visibilityVibeTags: userProfile.visibilityVibeTags,
-      pastTripsShow: userProfile.pastTripsShow,
-      visibilityTravelMap: userProfile.visibilityTravelMap,
-      visibilityFriends: userProfile.visibilityFriends,
-      visibilitySaved: userProfile.visibilitySaved,
+      isPrivate: userPrivacy.isPrivate,
+      visibilityVibeTags: userPrivacy.visibilityVibeTags,
+      pastTripsShow: userPrivacy.pastTripsShow,
+      visibilityTravelMap: userPrivacy.visibilityTravelMap,
+      visibilityFriends: userPrivacy.visibilityFriends,
+      visibilitySaved: userPrivacy.visibilitySaved,
     })
     .from(user)
     .leftJoin(userProfile, eq(userProfile.userId, user.id))
+    .leftJoin(userPrivacy, eq(userPrivacy.userId, user.id))
     .where(eq(user.id, ownerId))
     .get();
 
@@ -203,11 +205,11 @@ export async function canSeeFriendsOf(
     relationTo(viewerId, ownerId),
     db
       .select({
-        isPrivate: userProfile.isPrivate,
-        visibilityFriends: userProfile.visibilityFriends,
+        isPrivate: userPrivacy.isPrivate,
+        visibilityFriends: userPrivacy.visibilityFriends,
       })
-      .from(userProfile)
-      .where(eq(userProfile.userId, ownerId))
+      .from(userPrivacy)
+      .where(eq(userPrivacy.userId, ownerId))
       .get(),
   ]);
 
@@ -231,10 +233,11 @@ async function friendsOnProfile(
       name: user.name,
       displayName: userProfile.displayName,
       avatarIcon: userProfile.avatarIcon,
-      isPrivate: userProfile.isPrivate,
+      isPrivate: userPrivacy.isPrivate,
     })
     .from(user)
     .leftJoin(userProfile, eq(userProfile.userId, user.id))
+    .leftJoin(userPrivacy, eq(userPrivacy.userId, user.id))
     .where(inArray(user.id, ids))
     .limit(LIMITS.members * LIMITS.tripsPerUser)
     .all();

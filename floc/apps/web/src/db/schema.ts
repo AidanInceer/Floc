@@ -149,6 +149,48 @@ export const userProfile = sqliteTable("user_profile", {
     .notNull()
     .default("GBP"),
   vibeTags: text("vibe_tags", { mode: "json" }).$type<string[] | null>(),
+  retiredIsPrivate: integer("is_private", { mode: "boolean" }).notNull().default(false),
+  retiredVisibilityVibeTags: text("visibility_vibe_tags", { enum: VISIBILITIES })
+    .notNull()
+    .default("trip_members"),
+  retiredVisibilityTravelMap: text("visibility_travel_map", { enum: VISIBILITIES })
+    .notNull()
+    .default("trip_members"),
+  retiredVisibilityFriends: text("visibility_friends", { enum: VISIBILITIES })
+    .notNull()
+    .default("friends"),
+  retiredVisibilitySaved: text("visibility_saved", { enum: VISIBILITIES })
+    .notNull()
+    .default("private"),
+  retiredPastTripsShow: text("past_trips_show", { enum: PAST_TRIPS_SHOW })
+    .notNull()
+    .default("all"),
+  packTier: text("pack_tier", { enum: PACK_TIERS }).notNull().default("balanced"),
+  reduceMotion: integer("reduce_motion", { mode: "boolean" }).notNull().default(false),
+  tourSeenAt: integer("tour_seen_at", { mode: "timestamp" }),
+  retiredNotifyPush: integer("notify_push", { mode: "boolean" }).notNull().default(true),
+  retiredNotifyEmail: integer("notify_email", { mode: "boolean" }).notNull().default(true),
+  retiredNotifyReminders: integer("notify_reminders", { mode: "boolean" }).notNull().default(true),
+  retiredNotifyNextTrip: integer("notify_next_trip", { mode: "boolean" }).notNull().default(true),
+  retiredMarketingEmailConsentAt: integer("marketing_email_consent_at", { mode: "timestamp" }),
+  exploreAnswers: text("explore_answers", { mode: "json" }).$type<unknown>(),
+  bookingSites: text("booking_sites", { mode: "json" }).$type<unknown>(),
+  friendTag: text("friend_tag").unique(),
+  retiredHomeAirport: text("home_airport"),
+  retiredTravelCabin: text("travel_cabin", { enum: CABINS }),
+  retiredTravelStay: text("travel_stay", { enum: STAY_STYLES }),
+  retiredTravelPace: text("travel_pace", { enum: PACES }),
+  retiredStyleInGroupIdeas: integer("style_in_group_ideas", { mode: "boolean" }).notNull().default(true),
+  calendarAllDayOnly: integer("calendar_all_day_only", { mode: "boolean" }).notNull().default(false),
+  ...audit,
+});
+
+const stamps = { createdAt: audit.createdAt, lastModifiedAt: audit.lastModifiedAt };
+
+export const userPrivacy = sqliteTable("user_privacy", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
   isPrivate: integer("is_private", { mode: "boolean" }).notNull().default(false),
   visibilityVibeTags: text("visibility_vibe_tags", { enum: VISIBILITIES })
     .notNull()
@@ -165,24 +207,31 @@ export const userProfile = sqliteTable("user_profile", {
   pastTripsShow: text("past_trips_show", { enum: PAST_TRIPS_SHOW })
     .notNull()
     .default("all"),
-  packTier: text("pack_tier", { enum: PACK_TIERS }).notNull().default("balanced"),
-  reduceMotion: integer("reduce_motion", { mode: "boolean" }).notNull().default(false),
-  tourSeenAt: integer("tour_seen_at", { mode: "timestamp" }),
+  ...stamps,
+});
+
+export const userNotificationSettings = sqliteTable("user_notification_settings", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
   notifyPush: integer("notify_push", { mode: "boolean" }).notNull().default(true),
   notifyEmail: integer("notify_email", { mode: "boolean" }).notNull().default(true),
   notifyReminders: integer("notify_reminders", { mode: "boolean" }).notNull().default(true),
   notifyNextTrip: integer("notify_next_trip", { mode: "boolean" }).notNull().default(true),
   marketingEmailConsentAt: integer("marketing_email_consent_at", { mode: "timestamp" }),
-  exploreAnswers: text("explore_answers", { mode: "json" }).$type<unknown>(),
-  bookingSites: text("booking_sites", { mode: "json" }).$type<unknown>(),
-  friendTag: text("friend_tag").unique(),
+  ...stamps,
+});
+
+export const userTravelStyle = sqliteTable("user_travel_style", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
   homeAirport: text("home_airport"),
   travelCabin: text("travel_cabin", { enum: CABINS }),
   travelStay: text("travel_stay", { enum: STAY_STYLES }),
   travelPace: text("travel_pace", { enum: PACES }),
   styleInGroupIdeas: integer("style_in_group_ideas", { mode: "boolean" }).notNull().default(true),
-  calendarAllDayOnly: integer("calendar_all_day_only", { mode: "boolean" }).notNull().default(false),
-  ...audit,
+  ...stamps,
 });
 
 export const exploreSave = sqliteTable(
@@ -392,6 +441,27 @@ export const tripMembership = sqliteTable(
   ],
 );
 
+export const tripMemberBudget = sqliteTable(
+  "trip_member_budget",
+  {
+    tripId: integer("trip_id")
+      .notNull()
+      .references(() => trip.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    estCabin: text("est_cabin", { enum: CABINS }),
+    estStay: text("est_stay", { enum: STAY_STYLES }),
+    estPace: text("est_pace", { enum: PACES }),
+    estNights: integer("est_nights"),
+    estTravel: text("est_travel", { enum: TRAVEL_MODES }),
+    budgetMinor: integer("budget_minor"),
+    budgetCurrency: text("budget_currency", { enum: CURRENCIES }),
+    ...audit,
+  },
+  (t) => [primaryKey({ columns: [t.tripId, t.userId] })],
+);
+
 export const TRIP_INVITE_STATUSES = ["pending", "accepted", "declined"] as const;
 export type TripInviteStatus = (typeof TRIP_INVITE_STATUSES)[number];
 
@@ -440,6 +510,14 @@ export const tripPage = sqliteTable(
   },
   (t) => [index("trip_page_trip_idx").on(t.tripId, t.parentId)],
 );
+
+export const tripPageState = sqliteTable("trip_page_state", {
+  pageId: integer("page_id")
+    .primaryKey()
+    .references(() => tripPage.id, { onDelete: "cascade" }),
+  yjsState: blob("yjs_state", { mode: "buffer" }).notNull(),
+  ...audit,
+});
 
 export const idea = sqliteTable(
   "idea",
@@ -522,6 +600,15 @@ export const packingClaim = sqliteTable(
   ],
 );
 
+export const storedFile = sqliteTable("stored_file", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  storageKey: text("storage_key").notNull().unique(),
+  mimeType: text("mime_type").notNull(),
+  sizeBytes: integer("size_bytes").notNull(),
+  bytesDeletedAt: integer("bytes_deleted_at", { mode: "timestamp" }),
+  ...audit,
+});
+
 export const document = sqliteTable(
   "document",
   {
@@ -534,9 +621,10 @@ export const document = sqliteTable(
       .references(() => user.id),
     ownerId: text("owner_id").references(() => user.id),
     name: text("name").notNull(),
-    storageKey: text("storage_key").notNull(),
-    mimeType: text("mime_type").notNull(),
-    sizeBytes: integer("size_bytes").notNull(),
+    storedFileId: integer("stored_file_id").references(() => storedFile.id),
+    retiredStorageKey: text("storage_key").notNull(),
+    retiredMimeType: text("mime_type").notNull(),
+    retiredSizeBytes: integer("size_bytes").notNull(),
     category: text("category", { enum: DOC_CATEGORIES })
       .notNull()
       .default("other"),
@@ -552,6 +640,7 @@ export const document = sqliteTable(
     index("document_owner_idx").on(t.tripId, t.ownerId),
     index("document_day_idx").on(t.dayId),
     index("document_day_event_idx").on(t.dayEventId),
+    index("document_stored_file_idx").on(t.storedFileId),
   ],
 );
 
@@ -567,9 +656,10 @@ export const tripMedia = sqliteTable(
       .notNull()
       .references(() => user.id),
     kind: text("kind", { enum: MEDIA_KINDS }).notNull(),
-    storageKey: text("storage_key").notNull(),
-    mimeType: text("mime_type").notNull(),
-    sizeBytes: integer("size_bytes").notNull(),
+    storedFileId: integer("stored_file_id").references(() => storedFile.id),
+    retiredStorageKey: text("storage_key").notNull(),
+    retiredMimeType: text("mime_type").notNull(),
+    retiredSizeBytes: integer("size_bytes").notNull(),
     width: integer("width"),
     height: integer("height"),
     durationSeconds: integer("duration_seconds"),
@@ -578,6 +668,7 @@ export const tripMedia = sqliteTable(
   (t) => [
     index("trip_media_trip_idx").on(t.tripId),
     index("trip_media_place_idx").on(t.placeId),
+    index("trip_media_stored_file_idx").on(t.storedFileId),
   ],
 );
 
@@ -589,9 +680,10 @@ export const bookingInbox = sqliteTable(
       .notNull()
       .references(() => user.id),
     name: text("name").notNull(),
-    storageKey: text("storage_key").notNull(),
-    mimeType: text("mime_type").notNull(),
-    sizeBytes: integer("size_bytes").notNull(),
+    storedFileId: integer("stored_file_id").references(() => storedFile.id),
+    retiredStorageKey: text("storage_key").notNull(),
+    retiredMimeType: text("mime_type").notNull(),
+    retiredSizeBytes: integer("size_bytes").notNull(),
     category: text("category", { enum: DOC_CATEGORIES })
       .notNull()
       .default("other"),
@@ -599,7 +691,10 @@ export const bookingInbox = sqliteTable(
     placedAt: integer("placed_at", { mode: "timestamp" }),
     ...audit,
   },
-  (t) => [index("booking_inbox_user_idx").on(t.userId, t.createdAt)],
+  (t) => [
+    index("booking_inbox_user_idx").on(t.userId, t.createdAt),
+    index("booking_inbox_stored_file_idx").on(t.storedFileId),
+  ],
 );
 
 export const inboundMail = sqliteTable(
@@ -862,16 +957,10 @@ export const tripLink = sqliteTable(
   (t) => [index("trip_link_trip_idx").on(t.tripId)],
 );
 
-export const NOTE_SCOPES = [
-  "trip",
-  "day",
-  "day_event",
-  "expense",
-  "page",
-] as const;
-export type NoteScope = (typeof NOTE_SCOPES)[number];
+export const COMMENT_SCOPES = ["day_event", "page"] as const;
+export type CommentScope = (typeof COMMENT_SCOPES)[number];
 
-export const note = sqliteTable(
+export const comment = sqliteTable(
   "note",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
@@ -881,8 +970,10 @@ export const note = sqliteTable(
     createdBy: text("created_by")
       .notNull()
       .references(() => user.id),
-    scope: text("scope", { enum: NOTE_SCOPES }).notNull(),
-    scopeId: integer("scope_id"),
+    retiredScope: text("scope", { enum: COMMENT_SCOPES }).notNull(),
+    retiredScopeId: integer("scope_id"),
+    dayEventId: integer("day_event_id").references(() => dayEvent.id, { onDelete: "cascade" }),
+    pageId: integer("page_id").references(() => tripPage.id, { onDelete: "cascade" }),
     parentId: integer("parent_id"),
     body: text("body").notNull(),
     editedAt: integer("edited_at", { mode: "timestamp" }),
@@ -890,18 +981,20 @@ export const note = sqliteTable(
     ...audit,
   },
   (t) => [
-    index("note_scope_idx").on(t.tripId, t.scope, t.scopeId),
+    index("note_scope_idx").on(t.tripId, t.retiredScope, t.retiredScopeId),
     index("note_parent_idx").on(t.parentId),
+    index("comment_event_idx").on(t.dayEventId).where(sql`day_event_id IS NOT NULL`),
+    index("comment_page_idx").on(t.pageId).where(sql`page_id IS NOT NULL`),
   ],
 );
 
-export const noteReaction = sqliteTable(
+export const commentReaction = sqliteTable(
   "note_reaction",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
-    noteId: integer("note_id")
+    commentId: integer("note_id")
       .notNull()
-      .references(() => note.id, { onDelete: "cascade" }),
+      .references(() => comment.id, { onDelete: "cascade" }),
     userId: text("user_id")
       .notNull()
       .references(() => user.id),
@@ -909,8 +1002,8 @@ export const noteReaction = sqliteTable(
     ...audit,
   },
   (t) => [
-    index("note_reaction_note_idx").on(t.noteId),
-    uniqueIndex("note_reaction_one_idx").on(t.noteId, t.userId, t.kind),
+    index("note_reaction_note_idx").on(t.commentId),
+    uniqueIndex("note_reaction_one_idx").on(t.commentId, t.userId, t.kind),
   ],
 );
 
@@ -967,18 +1060,40 @@ export const notification = sqliteTable(
     loud: integer("loud", { mode: "boolean" }).notNull(),
     seenAt: integer("seen_at", { mode: "timestamp" }),
     readAt: integer("read_at", { mode: "timestamp" }),
-    pushClaimedAt: integer("push_claimed_at", { mode: "timestamp" }),
-    pushedAt: integer("pushed_at", { mode: "timestamp" }),
-    emailClaimedAt: integer("email_claimed_at", { mode: "timestamp" }),
-    emailedAt: integer("emailed_at", { mode: "timestamp" }),
+    retiredPushClaimedAt: integer("push_claimed_at", { mode: "timestamp" }),
+    retiredPushedAt: integer("pushed_at", { mode: "timestamp" }),
+    retiredEmailClaimedAt: integer("email_claimed_at", { mode: "timestamp" }),
+    retiredEmailedAt: integer("emailed_at", { mode: "timestamp" }),
     ...audit,
   },
   (t) => [
     uniqueIndex("notification_one_idx").on(t.activityId, t.userId),
     index("notification_user_idx").on(t.userId),
     index("notification_user_seen_idx").on(t.userId, t.seenAt),
-    index("notification_push_idx").on(t.loud, t.pushedAt),
-    index("notification_email_idx").on(t.loud, t.emailedAt),
+    index("notification_push_idx").on(t.loud, t.retiredPushedAt),
+    index("notification_email_idx").on(t.loud, t.retiredEmailedAt),
+  ],
+);
+
+export const DELIVERY_CHANNELS = ["push", "email"] as const;
+export type DeliveryChannel = (typeof DELIVERY_CHANNELS)[number];
+
+export const notificationDelivery = sqliteTable(
+  "notification_delivery",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    notificationId: integer("notification_id")
+      .notNull()
+      .references(() => notification.id, { onDelete: "cascade" }),
+    channel: text("channel", { enum: DELIVERY_CHANNELS }).notNull(),
+    claimedAt: integer("claimed_at", { mode: "timestamp" }),
+    sentAt: integer("sent_at", { mode: "timestamp" }),
+    ...audit,
+  },
+  (t) => [
+    uniqueIndex("notification_delivery_one_idx").on(t.notificationId, t.channel),
+    index("notification_delivery_waiting_idx").on(t.channel, t.lastModifiedAt).where(sql`sent_at IS NULL`),
+    index("notification_delivery_sent_idx").on(t.channel, t.sentAt).where(sql`sent_at IS NOT NULL`),
   ],
 );
 
@@ -1056,6 +1171,14 @@ export const subscription = sqliteTable(
   ],
 );
 
+export const billingCustomer = sqliteTable("billing_customer", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+  stripeCustomerId: text("stripe_customer_id").notNull().unique(),
+  ...audit,
+});
+
 export const analyticsEvent = sqliteTable(
   "analytics_event",
   {
@@ -1095,7 +1218,7 @@ export type Place = typeof place.$inferSelect;
 export type Expense = typeof expense.$inferSelect;
 export type ExpenseSplit = typeof expenseSplit.$inferSelect;
 export type Settlement = typeof settlement.$inferSelect;
-export type Note = typeof note.$inferSelect;
+export type Comment = typeof comment.$inferSelect;
 export type Nudge = typeof nudge.$inferSelect;
 export type Friendship = typeof friendship.$inferSelect;
 export type UserCountryMark = typeof userCountryMark.$inferSelect;

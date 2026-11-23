@@ -4,7 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { hashPassword } from "better-auth/crypto";
 
 import { db } from "../index.ts";
-import { account, exploreSave, friendship, user, userCountryMark, userProfile } from "../schema.ts";
+import { account, exploreSave, friendship, user, userCountryMark, userPrivacy, userProfile } from "../schema.ts";
 import { SEED_PASSWORD, type Scenario, seedEmail } from "./identity.ts";
 import { OPEN, type Profile } from "./profiles.ts";
 
@@ -56,17 +56,22 @@ export async function upsertAccount(args: {
   await setPassword(id, args.password);
 
   const { profile } = args;
+  const { avatarIcon, ...privacy } = profile.rings;
   const fields = {
     displayName: args.name,
     homeCurrency: profile.currency,
     vibeTags: profile.vibes,
     tourSeenAt: args.welcomed ? new Date() : null,
-    ...profile.rings,
+    avatarIcon,
   };
   await db
     .insert(userProfile)
     .values({ userId: id, ...fields })
     .onConflictDoUpdate({ target: userProfile.userId, set: fields });
+  await db
+    .insert(userPrivacy)
+    .values({ userId: id, ...privacy })
+    .onConflictDoUpdate({ target: userPrivacy.userId, set: privacy });
 
   await paintMap(id, profile.map);
   await saveTrips(id, profile.saves);

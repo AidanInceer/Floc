@@ -5,7 +5,7 @@ import Stripe from "stripe";
 import { cache } from "react";
 
 import { db } from "@/db";
-import { subscription } from "@/db/schema";
+import { billingCustomer, subscription } from "@/db/schema";
 import type { Subscription, SubscriptionStatus } from "@/db/schema";
 import type { Currency } from "@floc/core/money/currency";
 import { BILLING_INTERVALS, type BillingInterval } from "@floc/core/billing/plans";
@@ -42,13 +42,8 @@ export async function customerFor(user: {
   const api = stripe();
   if (!api) throw new Error("Stripe is not configured");
 
-  const existing = await db
-    .select({ customerId: subscription.stripeCustomerId })
-    .from(subscription)
-    .where(eq(subscription.userId, user.id))
-    .get();
-
-  if (existing?.customerId) return existing.customerId;
+  const existing = await customerIdOf(user.id);
+  if (existing) return existing;
 
   const created = await api.customers.create({
     email: user.email,
@@ -56,7 +51,23 @@ export async function customerFor(user: {
     metadata: { userId: user.id },
   });
 
-  return created.id;
+  await keepCustomer(user.id, created.id);
+  return (await customerIdOf(user.id)) ?? created.id;
+}
+
+export async function customerIdOf(userId: string): Promise<string | null> {
+  const row = await db
+    .select({ customerId: billingCustomer.stripeCustomerId })
+    .from(billingCustomer)
+    .where(and(eq(billingCustomer.userId, userId), isNull(billingCustomer.deletedAt)))
+    .get();
+  return row?.customerId ?? null;
+}
+
+async function keepCustomer(userId: string, customerId: string): Promise<void> {
+  await db.insert(billingCustomer).values({ userId, stripeCustomerId: customerId }).onConflictDoNothing();
+  const kept = await customerIdOf(userId);
+  if (kept !== customerId) log.warn("billing.second-customer");
 }
 
 export async function recordSubscription(args: {
@@ -66,13 +77,13 @@ export async function recordSubscription(args: {
   const { userId, sub } = args;
   const periodEnd = periodEndOf(sub);
 
+  await keepCustomer(userId, typeof sub.customer === "string" ? sub.customer : sub.customer.id);
+
   const values = {
     userId,
     plan: "pro" as const,
     status: sub.status as SubscriptionStatus,
     source: "stripe" as const,
-    stripeCustomerId:
-      typeof sub.customer === "string" ? sub.customer : sub.customer.id,
     stripeSubscriptionId: sub.id,
     currentPeriodEnd: periodEnd,
     cancelAtPeriodEnd: endsWithoutRenewing(sub),
@@ -177,9 +188,9 @@ export async function userIdForCustomer(
   const id = typeof customer === "string" ? customer : customer.id;
 
   const known = await db
-    .select({ userId: subscription.userId })
-    .from(subscription)
-    .where(eq(subscription.stripeCustomerId, id))
+    .select({ userId: billingCustomer.userId })
+    .from(billingCustomer)
+    .where(and(eq(billingCustomer.stripeCustomerId, id), isNull(billingCustomer.deletedAt)))
     .get();
 
   if (known) return known.userId;

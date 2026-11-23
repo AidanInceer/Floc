@@ -6,10 +6,10 @@ import { groupIdeasListName } from "@floc/core/trip/explore/fit/group-words";
 import { listingFits, type Fits } from "@floc/core/trip/explore/fit/listing-fit";
 import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { readVibeTags } from "@floc/core/trip/vibe-tags";
-import { inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
 import { db } from "@/db";
-import { userProfile } from "@/db/schema";
+import { user, userProfile, userTravelStyle } from "@/db/schema";
 import { homeCurrenciesFor } from "@/server/auth/profile";
 import { loadPastTravel } from "@/server/explore/travel-read";
 import { listingRates } from "@/server/money/viewer-currency";
@@ -27,14 +27,16 @@ const ORDER = PRESET_TRIPS.map((trip) => trip.id);
 async function stylesOf(userIds: string[]) {
   const rows = await db
     .select({
-      userId: userProfile.userId,
+      userId: user.id,
       vibeTags: userProfile.vibeTags,
-      stay: userProfile.travelStay,
-      pace: userProfile.travelPace,
-      shared: userProfile.styleInGroupIdeas,
+      stay: userTravelStyle.travelStay,
+      pace: userTravelStyle.travelPace,
+      shared: userTravelStyle.styleInGroupIdeas,
     })
-    .from(userProfile)
-    .where(inArray(userProfile.userId, userIds))
+    .from(user)
+    .leftJoin(userProfile, eq(userProfile.userId, user.id))
+    .leftJoin(userTravelStyle, eq(userTravelStyle.userId, user.id))
+    .where(inArray(user.id, userIds))
     .limit(userIds.length)
     .all();
   return new Map(rows.map((row) => [row.userId, row]));

@@ -2,7 +2,8 @@ import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db } from "@/db";
-import { note, noteReaction, tripPage } from "@/db/schema";
+import { comment as note, commentReaction as noteReaction, tripPage, tripPageState } from "@/db/schema";
+import { storePageState } from "@/server/notes/live/page-live-store";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { purgeArchivedPages } from "./page-purge";
 
@@ -23,9 +24,12 @@ async function page(tripId: number, archivedAt: Date | null, parentId: number | 
   return row.id;
 }
 
-async function comment(tripId: number, pageId: number, scope: "page" | "day" = "page") {
-  const row = await db.insert(note).values({ tripId, createdBy: world.member, scope, scopeId: pageId, body: "Only if two of us can drive" }).returning({ id: note.id }).get();
-  await db.insert(noteReaction).values({ noteId: row.id, userId: world.admin, kind: "heart" });
+async function comment(tripId: number, pageId: number | null) {
+  const subject = pageId === null
+    ? { retiredScope: "day_event" as const, dayEventId: world.ours.eventId }
+    : { retiredScope: "page" as const, pageId };
+  const row = await db.insert(note).values({ tripId, createdBy: world.member, ...subject, body: "Only if two of us can drive" }).returning({ id: note.id }).get();
+  await db.insert(noteReaction).values({ commentId: row.id, userId: world.admin, kind: "heart" });
   return row.id;
 }
 
@@ -40,16 +44,28 @@ describe("purgeArchivedPages", () => {
     const theirs = await page(world.theirs.id, ago(30));
     const gone = await comment(world.ours.id, oldSub);
     const kept = await comment(world.ours.id, live);
-    const dayComment = await comment(world.ours.id, old, "day");
+    const eventComment = await comment(world.ours.id, null);
 
     expect(await purgeArchivedPages(now)).toBe(3);
 
     expect(await pageIds()).toEqual([recent, live].sort((a, b) => a - b));
     expect(theirs).toBeGreaterThan(0);
     const notes = (await db.select({ id: note.id }).from(note).all()).map((row) => row.id);
-    expect(notes).toEqual(expect.arrayContaining([kept, dayComment]));
+    expect(notes).toEqual(expect.arrayContaining([kept, eventComment]));
     expect(notes).not.toContain(gone);
-    expect(await db.select().from(noteReaction).where(eq(noteReaction.noteId, gone)).all()).toEqual([]);
+    expect(await db.select().from(noteReaction).where(eq(noteReaction.commentId, gone)).all()).toEqual([]);
+  });
+
+  it("takes an archived page's live editor state with it (ADR-017)", async () => {
+    const old = await page(world.ours.id, null);
+    const kept = await page(world.ours.id, null);
+    await storePageState(world.ours.id, old, world.admin, new Uint8Array([1, 2, 3]), "{}");
+    await storePageState(world.ours.id, kept, world.admin, new Uint8Array([4, 5]), "{}");
+    await db.update(tripPage).set({ archivedAt: ago(7) }).where(eq(tripPage.id, old));
+
+    await purgeArchivedPages(now);
+
+    expect((await db.select({ pageId: tripPageState.pageId }).from(tripPageState).all()).map((row) => row.pageId)).toEqual([kept]);
   });
 
   it("keeps a sub-page restored on its own, lifted to the top", async () => {
