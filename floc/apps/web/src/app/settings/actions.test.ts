@@ -1,7 +1,7 @@
-import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { db, schema } from "@/db";
+import { readPrivacy } from "@/server/auth/privacy";
+import { readTravelStyle } from "@/server/auth/travel-style";
 import { migrateTestDb, resetDb, seedScenario, signIn, type Scenario } from "@/test/db";
 
 import { updatePrivacy } from "./actions";
@@ -21,8 +21,10 @@ const rings = {
   visibilitySaved: "friends",
 };
 
-const profile = () =>
-  db.select().from(schema.userProfile).where(eq(schema.userProfile.userId, world.member)).get();
+const profile = async () => ({
+  ...(await readPrivacy(world.member)),
+  styleInGroupIdeas: (await readTravelStyle(world.member)).styleInGroupIdeas,
+});
 
 beforeAll(migrateTestDb);
 beforeEach(async () => {

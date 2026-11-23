@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { db, schema } from "@/db";
-import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { fileFields, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { listDays, setTripWindow } from "@/server/itinerary/itinerary";
 import { listDayBookings, removeTripDay } from "@/server/itinerary/removal/remove-day";
 
@@ -43,7 +43,7 @@ async function aFile(dayId: number, name: string, ownerId: string | null = null)
     .insert(schema.document)
     .values({
       tripId: world.ours.id, uploadedBy: world.admin, ownerId, name, dayId,
-      storageKey: "k", mimeType: "application/pdf", sizeBytes: 1, category: "travel",
+      ...(await fileFields("k")), category: "travel",
     })
     .returning({ id: schema.document.id })
     .get();

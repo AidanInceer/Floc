@@ -1,5 +1,5 @@
 import { db } from "../index.ts";
-import { availability, day, dayEvent, note, tripInvite } from "../schema.ts";
+import { availability, comment, day, dayEvent, tripInvite } from "../schema.ts";
 import type { Person } from "./people.ts";
 import { FRIENDS_ONLY, MIXED, OPEN, PRIVATE } from "./profiles.ts";
 import { befriend, ensureDevUser, requestFriendship, seedPerson } from "./people.ts";
@@ -204,19 +204,22 @@ async function planDolomites(
     ])
     .returning({ id: dayEvent.id });
 
-  await db.insert(note).values([
+  const lastEvent = events[events.length - 1].id;
+  await db.insert(comment).values([
     {
       tripId,
       createdBy: mei,
-      scope: "day_event",
-      scopeId: events[1].id,
+      retiredScope: "day_event",
+      retiredScopeId: events[1].id,
+      dayEventId: events[1].id,
       body: "Ruth lands an hour later — can we hold the bus or does she taxi up?",
     },
     {
       tripId,
       createdBy: callum,
-      scope: "trip",
-      scopeId: tripId,
+      retiredScope: "day_event",
+      retiredScopeId: lastEvent,
+      dayEventId: lastEvent,
       body: "Reminder that I am not paying for anybody's lift pass again.",
     },
   ]);

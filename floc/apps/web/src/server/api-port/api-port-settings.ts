@@ -4,7 +4,9 @@ import type { FlocPort, MySettings } from "@floc/api/port";
 
 import { parseVibeTags, readVibeTags } from "@floc/core/trip/vibe-tags";
 import { listSignInMethods, unlinkSignIn } from "@/server/auth/sign-in-methods";
-import { ensureProfile, loadIdentity, saveFace, saveProfile, updateProfileFields } from "@/server/auth/profile";
+import { readPrivacy, savePrivacy } from "@/server/auth/privacy";
+import { ensureProfile, loadIdentity, saveFace, saveProfile } from "@/server/auth/profile";
+import { readAlertSettings, saveAlertSettings } from "@/server/notifications/alert-settings";
 import { eraseAccount } from "@/server/auth/erase-account";
 import { finishWelcome, welcomeFor } from "@/server/auth/welcome/welcome";
 import { toggleBookingSite } from "@/server/auth/booking-sites";
@@ -35,9 +37,11 @@ export const settingsPort: SettingsPort = {
 
   async loadMySettings(viewerId): Promise<MySettings> {
     const profile = await ensureProfile(viewerId);
-    const [identity, linked] = await Promise.all([
+    const [identity, linked, privacy, alerts] = await Promise.all([
       loadIdentity(viewerId),
       listSignInMethods(viewerId),
+      readPrivacy(viewerId),
+      readAlertSettings(viewerId),
     ]);
     if (!identity) throw new Error("No such account.");
 
@@ -45,20 +49,15 @@ export const settingsPort: SettingsPort = {
       email: identity.email,
       displayName: identity.name,
       avatarIcon: profile.avatarIcon,
-      isPrivate: profile.isPrivate,
-      visibilityVibeTags: profile.visibilityVibeTags,
-      visibilityTravelMap: profile.visibilityTravelMap,
-      visibilityFriends: profile.visibilityFriends,
-      visibilitySaved: profile.visibilitySaved,
-      pastTripsShow: profile.pastTripsShow,
+      ...privacy,
       vibeTags: readVibeTags(profile.vibeTags),
       packTier: profile.packTier,
       reduceMotion: profile.reduceMotion,
       homeCurrency: profile.homeCurrency,
-      notifyPush: profile.notifyPush,
-      notifyEmail: profile.notifyEmail,
-      notifyReminders: profile.notifyReminders,
-      notifyNextTrip: profile.notifyNextTrip,
+      notifyPush: alerts.notifyPush,
+      notifyEmail: alerts.notifyEmail,
+      notifyReminders: alerts.notifyReminders,
+      notifyNextTrip: alerts.notifyNextTrip,
       signInMethods: linked.map((a) => ({ id: a.id, provider: a.providerId })),
       bookingSites: readBookingSites(profile.bookingSites),
     };
@@ -70,7 +69,7 @@ export const settingsPort: SettingsPort = {
 
   updateAvatarIcon: (viewerId, icon) => saveFace(viewerId, { avatarIcon: icon }),
 
-  updatePrivacy: (viewerId, input) => saveProfile(viewerId, input),
+  updatePrivacy: (viewerId, input) => savePrivacy(viewerId, input),
 
   async updateVibeTags(viewerId, tags) {
     const picked = parseVibeTags(tags);
@@ -84,8 +83,7 @@ export const settingsPort: SettingsPort = {
   updateReduceMotion: (viewerId, reduceMotion) => saveProfile(viewerId, { reduceMotion }),
 
   async updateNotifications(viewerId, input) {
-    await ensureProfile(viewerId);
-    await updateProfileFields(viewerId, {
+    await saveAlertSettings(viewerId, {
       notifyPush: input.push,
       notifyEmail: input.email,
       notifyReminders: input.reminders,

@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
-import { ensureProfile, getProfile } from "@/server/auth/profile";
+import { ensureProfile } from "@/server/auth/profile";
 import {
   readEstimateChoices,
   readTravelProfile,
@@ -12,6 +12,7 @@ import {
   setTripStyle,
   setTripTravel,
 } from "@/server/money/estimate/estimate-store";
+import { addMember, removeMembership } from "@/server/trips/roster";
 
 let world: Scenario;
 
@@ -91,6 +92,23 @@ describe("a member's own estimate choices", () => {
     expect((await readEstimateChoices(world.ours.id, world.admin)).own.food).toBeUndefined();
   });
 
+  it("keep a member's plan through leaving the trip and joining again", async () => {
+    await setBudget(world.ours.id, world.member, { amountMinor: 90000, currency: "GBP" });
+    await setTripStyle(world.ours.id, world.member, { stay: "high" });
+    await setTripNights(world.ours.id, world.member, 4);
+    await setTripTravel(world.ours.id, world.member, "train");
+
+    await removeMembership(world.ours.id, world.member, world.admin);
+    await addMember(world.ours.id, world.member);
+
+    expect(await readEstimateChoices(world.ours.id, world.member)).toMatchObject({
+      style: { cabin: null, stay: "high", pace: null },
+      nights: 4,
+      travel: "train",
+      budget: { amountMinor: 90000, currency: "GBP" },
+    });
+  });
+
   it("clear the budget", async () => {
     await setBudget(world.ours.id, world.admin, { amountMinor: 50000, currency: "EUR" });
     await setBudget(world.ours.id, world.admin, null);
@@ -118,6 +136,10 @@ describe("travel profile", () => {
     await ensureProfile(world.admin);
     await setTravelProfile(world.admin, { homeAirport: "lhr", stay: "high" });
     expect(await readTravelProfile(world.admin)).toEqual({ homeAirport: "LHR", cabin: null, stay: "high", pace: null });
-    expect((await getProfile(world.admin))?.homeAirport).toBe("LHR");
+  });
+
+  it("keeps a travel style for a person who has no profile row yet", async () => {
+    await setTravelProfile(world.member, { pace: "easy" });
+    expect(await readTravelProfile(world.member)).toEqual({ homeAirport: null, cabin: null, stay: null, pace: "easy" });
   });
 });

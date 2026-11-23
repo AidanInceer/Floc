@@ -5,6 +5,7 @@ import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import type { OutboundEmail } from "@/server/auth/email";
 import { insertNudge } from "@/server/trips/nudges";
+import { saveAlertSettings } from "@/server/notifications/alert-settings";
 import { sendDueEmails } from "@/server/notifications/email-fallback";
 import { registerPushToken, sendDuePushes } from "@/server/notifications/push";
 import { recordActivity } from "@/server/notifications/activity";
@@ -32,8 +33,7 @@ function mailer() {
   return { sent, send };
 }
 
-const setProfile = (userId: string, fields: Partial<typeof schema.userProfile.$inferInsert>) =>
-  db.insert(schema.userProfile).values({ userId, ...fields }).onConflictDoUpdate({ target: schema.userProfile.userId, set: fields });
+const setProfile = saveAlertSettings;
 
 describe("the email fallback", () => {
   it("waits, then emails someone with no phone, linking to the thing", async () => {

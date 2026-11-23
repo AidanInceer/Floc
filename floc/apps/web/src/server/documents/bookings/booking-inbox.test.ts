@@ -7,7 +7,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db } from "@/db";
 import { bookingInbox, document, trip, tripMembership } from "@/db/schema";
-import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { fileFields, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 
 import {
   bookingInboxUsage, placeWaitingBooking, purgeWaitingBookings, removeWaitingBooking,
@@ -72,10 +72,11 @@ describe("a file waiting for a trip", () => {
   });
 
   it("refuses a file past the list's space, and one past its count", async () => {
-    await db.insert(bookingInbox).values({ userId: world.member, name: "Big.pdf", storageKey: "big.pdf", mimeType: "application/pdf", sizeBytes: 200 * 1024 ** 2 });
+    await db.insert(bookingInbox).values({ userId: world.member, name: "Big.pdf", ...(await fileFields("big.pdf", 200 * 1024 ** 2)) });
     expect(await upload(world.member)).toBeTruthy();
     await db.delete(bookingInbox);
-    await db.insert(bookingInbox).values(Array.from({ length: 50 }, (_, i) => ({ userId: world.member, name: `${i}.pdf`, storageKey: `${i}.pdf`, mimeType: "application/pdf", sizeBytes: 1 })));
+    const files = await Promise.all(Array.from({ length: 50 }, (_, i) => fileFields(`${i}.pdf`)));
+    await db.insert(bookingInbox).values(files.map((file, i) => ({ userId: world.member, name: `${i}.pdf`, ...file })));
     expect(await upload(world.member)).toBe("Your bookings list is full. Choose a trip for some of them first.");
   });
 
@@ -101,7 +102,8 @@ describe("choosing its trip", () => {
     expect(await placeWaitingBooking(world.member, row.id, world.ours.id)).toBeNull();
 
     const [file] = await db.select().from(document).all();
-    expect(file).toMatchObject({ tripId: world.ours.id, ownerId: world.member, uploadedBy: world.member, name: "Hotel.pdf", storageKey: row.storageKey });
+    expect(file).toMatchObject({ tripId: world.ours.id, ownerId: world.member, uploadedBy: world.member, name: "Hotel.pdf", storedFileId: row.storedFileId });
+    expect(row.storedFileId).not.toBeNull();
     expect(await waitingBookings(world.member)).toEqual([]);
     const [closed] = await db.select().from(bookingInbox).all();
     expect(closed.placedAt).not.toBeNull();
@@ -179,9 +181,12 @@ describe("leaving the list", () => {
 
   it("sweeps every file past its month, however many there are", async () => {
     const old = new Date(NOW.getTime() - 32 * DAY);
-    await db.insert(bookingInbox).values(
-      Array.from({ length: 620 }, (_, i) => ({ userId: world.member, name: `${i}.pdf`, storageKey: `old-${i}.pdf`, mimeType: "application/pdf", sizeBytes: 1, createdAt: old })),
-    );
+    const files = await Promise.all(Array.from({ length: 620 }, (_, i) => fileFields(`old-${i}.pdf`)));
+    for (let start = 0; start < files.length; start += 100) {
+      await db.insert(bookingInbox).values(
+        files.slice(start, start + 100).map((file, i) => ({ userId: world.member, name: `${start + i}.pdf`, ...file, createdAt: old })),
+      );
+    }
     expect(await purgeWaitingBookings(NOW)).toBe(620);
   });
 

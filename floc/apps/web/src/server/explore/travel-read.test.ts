@@ -4,6 +4,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { updateProfileFields, ensureProfile } from "@/server/auth/profile";
+import { saveTravelStyle } from "@/server/auth/travel-style";
 import { loadTaste } from "@/server/explore/explore-finder";
 import { setTripSaved } from "@/server/explore/explore-saves";
 import { loadPastTravel } from "@/server/explore/travel-read";
@@ -129,7 +130,8 @@ describe("what Floc reads of your past travel", () => {
 describe("your travel profile on Explore", () => {
   it("joins what you told Floc with what you have done", async () => {
     await ensureProfile(world.admin);
-    await updateProfileFields(world.admin, { vibeTags: ["food first"], travelStay: "mid", travelPace: "easy" });
+    await updateProfileFields(world.admin, { vibeTags: ["food first"] });
+    await saveTravelStyle(world.admin, { travelStay: "mid", travelPace: "easy" });
     await dated(world.ours.id, "2020-05-01", "2020-05-08");
     const { travel } = await loadTaste(world.admin);
     expect(travel.vibes).toEqual(["food first"]);

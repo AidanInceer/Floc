@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { db, schema } from "@/db";
-import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { fileFields, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import {
   setTripWindow,
   extendTripDays,
@@ -202,16 +202,14 @@ describe("setTripWindow", () => {
   });
 
   it("clears file links to a removed day and its events, and keeps the files", async () => {
-    const file = (name: string, link: { dayId?: number; dayEventId?: number }) =>
+    const file = async (name: string, link: { dayId?: number; dayEventId?: number }) =>
       db
         .insert(schema.document)
         .values({
           tripId: world.ours.id,
           uploadedBy: world.admin,
           name,
-          storageKey: `test/${name}`,
-          mimeType: "application/pdf",
-          sizeBytes: 10,
+          ...(await fileFields(`test/${name}`, 10)),
           ...link,
         })
         .returning({ id: schema.document.id })

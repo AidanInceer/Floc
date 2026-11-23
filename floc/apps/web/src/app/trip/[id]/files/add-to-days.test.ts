@@ -3,7 +3,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db } from "@/db";
 import { dayEvent, document } from "@/db/schema";
-import { expectNotFound, migrateTestDb, resetDb, seedScenario, signIn, type Scenario } from "@/test/db";
+import { expectNotFound, fileFields, migrateTestDb, resetDb, seedScenario, signIn, type Scenario } from "@/test/db";
 
 import { addFileToDays } from "./actions";
 
@@ -17,7 +17,7 @@ beforeEach(async () => {
   signIn(world.member);
   const row = await db
     .insert(document)
-    .values({ tripId: world.ours.id, uploadedBy: world.member, ownerId: world.member, name: "Flight.pdf", storageKey: "flight.pdf", mimeType: "application/pdf", sizeBytes: 8, category: "travel" })
+    .values({ tripId: world.ours.id, uploadedBy: world.member, ownerId: world.member, name: "Flight.pdf", ...(await fileFields("flight.pdf", 8)), category: "travel" })
     .returning({ id: document.id })
     .get();
   fileId = row.id;

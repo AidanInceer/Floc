@@ -4,11 +4,8 @@ export function tripHref(tripId: number, tab: TripTab): string {
   return `/trip/${tripId}/${tab}`;
 }
 
-export function threadTab(scope: "trip" | "day" | "day_event" | "expense" | "page"): TripTab {
-  if (scope === "day" || scope === "day_event") return "days";
-  if (scope === "expense") return "money";
-  if (scope === "page") return "notes";
-  return "overview";
+export function threadTab(scope: "day_event" | "page"): TripTab {
+  return scope === "page" ? "notes" : "days";
 }
 
 export const START_TRIP_HREF = "/trips?new=";

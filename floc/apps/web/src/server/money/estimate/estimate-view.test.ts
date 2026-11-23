@@ -2,7 +2,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 
 import { db } from "@/db";
 import * as schema from "@/db/schema";
-import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { fileFields, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { ensureProfile, updateProfileFields } from "@/server/auth/profile";
 import { clearRatesMemo } from "@/server/money/fx";
 import { writeExpense } from "@/server/money/money";
@@ -54,7 +54,7 @@ describe("readEstimate", () => {
   it("suggests a home airport from the member's own flight files", async () => {
     await placeLisbon();
     await db.insert(schema.document).values({
-      tripId: world.ours.id, uploadedBy: world.admin, name: "Flight", storageKey: "k", mimeType: "application/pdf", sizeBytes: 1,
+      tripId: world.ours.id, uploadedBy: world.admin, name: "Flight", ...(await fileFields("k")),
       bookingDetails: JSON.stringify({ kind: "flight", flightNumber: "TP1351", date: "2026-09-01", from: "MAN", to: "LIS", departTime: null, arriveTime: null, reference: null }),
     }).run();
     const view = await readEstimate(trip(), world.admin);

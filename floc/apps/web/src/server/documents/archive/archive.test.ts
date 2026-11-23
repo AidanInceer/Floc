@@ -10,7 +10,7 @@ import { db, schema } from "@/db";
 import { findTripAccess, type TripAccess } from "@/server/access";
 import { eraseAccount } from "@/server/auth/erase-account";
 import { removeDocument, saveDocument } from "@/server/documents/document-save";
-import { listDocuments } from "@/server/documents/documents";
+import { insertDocument, listDocuments } from "@/server/documents/documents";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 
 import { archivedFiles, purgeArchivedFiles, restoreDocument } from "./archive";
@@ -45,7 +45,10 @@ const archivedDaysAgo = (id: number, days: number) =>
   db.update(schema.document).set({ deletedAt: new Date(Date.now() - days * DAY) }).where(eq(schema.document.id, id));
 
 const resize = (id: number, sizeBytes: number) =>
-  db.update(schema.document).set({ sizeBytes }).where(eq(schema.document.id, id));
+  db
+    .update(schema.storedFile)
+    .set({ sizeBytes })
+    .where(eq(schema.storedFile.id, db.select({ id: schema.document.storedFileId }).from(schema.document).where(eq(schema.document.id, id))));
 
 describe("removing a file", () => {
   it("takes it off the trip and keeps its bytes", async () => {
@@ -154,5 +157,47 @@ describe("an archive bigger than the trip's own space", () => {
 
     expect((await archivedFiles(await as(world.member))).map((f) => f.id)).toEqual([second]);
     expect(await onDisk()).toHaveLength(1);
+  });
+});
+
+describe("one stored file that two files on the trip use", () => {
+  async function secondUseOf(storageKey: string): Promise<number> {
+    await insertDocument({
+      tripId: world.ours.id,
+      uploadedBy: world.admin,
+      ownerId: null,
+      name: "ferry again.pdf",
+      storageKey,
+      mimeType: "application/pdf",
+      sizeBytes: PDF.byteLength,
+      category: "travel",
+    });
+    return (await listDocuments(world.ours.id, world.admin)).find((d) => d.name === "ferry again.pdf")!.id;
+  }
+
+  async function removeForGood(id: number) {
+    await removeDocument(await as(world.admin), id);
+    await archivedDaysAgo(id, 8);
+    await purgeArchivedFiles();
+  }
+
+  it("keeps its bytes while one of them is still live, and deletes them once neither is", async () => {
+    const first = await upload(world.member, "ferry.pdf");
+    const [storageKey] = await onDisk();
+    const second = await secondUseOf(storageKey);
+
+    await removeForGood(first);
+    expect(await onDisk()).toEqual([storageKey]);
+
+    await removeForGood(second);
+    expect(await onDisk()).toEqual([]);
+  });
+
+  it("counts the bytes once for each file that uses them, as two uploads would", async () => {
+    await upload(world.member, "ferry.pdf");
+    const [storageKey] = await onDisk();
+    await secondUseOf(storageKey);
+
+    expect((await listDocuments(world.ours.id, world.admin)).map((d) => d.sizeBytes)).toEqual([PDF.byteLength, PDF.byteLength]);
   });
 });

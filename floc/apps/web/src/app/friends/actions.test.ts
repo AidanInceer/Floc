@@ -1,6 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { ensureProfile, updateProfileFields } from "@/server/auth/profile";
+import { saveTravelStyle } from "@/server/auth/travel-style";
 import { wishListFor } from "@/server/wish-lists/wish-lists";
 import { friendCodeFor } from "@/server/social/friend-code";
 import { friendStateWith } from "@/server/social/friends";
@@ -91,7 +92,8 @@ describe("sending a group's trip ideas", () => {
 
   it("makes a wish list of the ideas for the group to vote on", async () => {
     await ensureProfile(world.admin);
-    await updateProfileFields(world.admin, { vibeTags: ["food first", "hiking"], travelStay: "mid", travelPace: "balanced" });
+    await updateProfileFields(world.admin, { vibeTags: ["food first", "hiking"] });
+    await saveTravelStyle(world.admin, { travelStay: "mid", travelPace: "balanced" });
     const groupId = await createGroup(world.admin, { name: "Weekend crew", memberIds: [world.member] });
 
     const result = await sendGroupIdeasAction(groupId);

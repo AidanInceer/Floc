@@ -10,23 +10,12 @@ import {
   updateNoteBody,
   NOTE_BODY_MAX,
 } from "@/server/notes/notes";
-import { REACTION_KINDS, type NoteScope, type ReactionKind } from "@/db/schema";
+import { REACTION_KINDS, type CommentScope, type ReactionKind } from "@/db/schema";
 import { refresh } from "@/server/freshness";
 
-async function isOnTrip(access: TripAccess, scope: NoteScope, scopeId: number): Promise<boolean> {
-  if (!Number.isInteger(scopeId)) return false;
-  switch (scope) {
-    case "trip":
-      return scopeId === access.trip.id;
-    case "day":
-      return Boolean(await access.day(scopeId));
-    case "day_event":
-      return Boolean(await access.event(scopeId));
-    case "expense":
-      return Boolean(await access.expense(scopeId));
-    default:
-      return false;
-  }
+async function isOnTrip(access: TripAccess, scope: CommentScope, scopeId: number): Promise<boolean> {
+  if (!Number.isInteger(scopeId) || scope !== "day_event") return false;
+  return Boolean(await access.event(scopeId));
 }
 
 export async function editNote(
@@ -53,7 +42,7 @@ export async function editNote(
 
 export async function addNote(
   tripId: number,
-  scope: NoteScope,
+  scope: CommentScope,
   scopeId: number,
   replyTo: number | null,
   formData: FormData,

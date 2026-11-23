@@ -35,8 +35,8 @@ function comment(parentId: number | null, by: string) {
   return insertNote({
     tripId: world.ours.id,
     createdBy: by,
-    scope: "trip",
-    scopeId: world.ours.id,
+    scope: "day_event",
+    scopeId: world.ours.eventId,
     parentId,
     body: "Hello",
   });
@@ -45,7 +45,7 @@ function comment(parentId: number | null, by: string) {
 describe("each writer logs its change", () => {
   it("a comment, and a reply that is loud for the parent's author", async () => {
     await comment(null, world.admin);
-    const parent = await db.select({ id: schema.note.id }).from(schema.note).get();
+    const parent = await db.select({ id: schema.comment.id }).from(schema.comment).get();
     await comment(parent!.id, world.member);
 
     expect((await activities()).map((a) => a.kind)).toEqual(["comment_added", "comment_replied"]);

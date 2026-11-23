@@ -4,7 +4,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "@/db";
 import { dayEvent, document } from "@/db/schema";
 import { findTripAccess } from "@/server/access";
-import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { fileFields, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 
 import { addTravelFileToDays, putHotelFileOnDay } from "./booking-plan";
 
@@ -19,7 +19,7 @@ beforeEach(async () => {
 async function file(tripId: number, ownerId: string | null, uploadedBy: string, category: "travel" | "hotel" = "travel") {
   const row = await db
     .insert(document)
-    .values({ tripId, uploadedBy, ownerId, name: "Booking.pdf", storageKey: `${tripId}-${category}.pdf`, mimeType: "application/pdf", sizeBytes: 8, category })
+    .values({ tripId, uploadedBy, ownerId, name: "Booking.pdf", ...(await fileFields(`${tripId}-${category}.pdf`, 8)), category })
     .returning({ id: document.id })
     .get();
   return row.id;

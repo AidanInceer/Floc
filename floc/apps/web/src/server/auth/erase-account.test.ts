@@ -4,6 +4,9 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { ERASED_NAME, eraseAccount } from "@/server/auth/erase-account";
+import { readPrivacy } from "@/server/auth/privacy";
+import { readTravelStyle, saveTravelStyle } from "@/server/auth/travel-style";
+import { readAlertSettings, setMarketingEmailConsent } from "@/server/notifications/alert-settings";
 import { revokeGoogleGrant } from "@/server/calendar/calendar-import";
 
 vi.mock("@/server/calendar/calendar-import", () => ({ revokeGoogleGrant: vi.fn() }));
@@ -71,11 +74,34 @@ describe("erasing an account", () => {
   });
 
   it("withdraws consent to advertising email", async () => {
-    await db.update(schema.userProfile).set({ marketingEmailConsentAt: new Date() }).where(eq(schema.userProfile.userId, world.member));
+    await setMarketingEmailConsent(world.member, true, new Date());
     await eraseAccount(world.member);
 
-    const profile = await db.select().from(schema.userProfile).where(eq(schema.userProfile.userId, world.member)).get();
-    expect(profile?.marketingEmailConsentAt).toBeNull();
+    expect((await readAlertSettings(world.member)).marketingEmailConsentAt).toBeNull();
+  });
+
+  it("clears the person's privacy, alerts and travel style, whether or not they ever saved any", async () => {
+    await saveTravelStyle(world.member, { homeAirport: "DUB", travelCabin: "economy", travelStay: "mid", travelPace: "easy" });
+    await eraseAccount(world.member);
+    await eraseAccount(world.admin);
+
+    for (const id of [world.member, world.admin]) {
+      expect(await readPrivacy(id)).toMatchObject({ isPrivate: true });
+      expect(await readAlertSettings(id)).toEqual({
+        notifyPush: false,
+        notifyEmail: false,
+        notifyReminders: false,
+        notifyNextTrip: false,
+        marketingEmailConsentAt: null,
+      });
+      expect(await readTravelStyle(id)).toEqual({
+        homeAirport: null,
+        travelCabin: null,
+        travelStay: null,
+        travelPace: null,
+        styleInGroupIdeas: false,
+      });
+    }
   });
 
   it("revokes Floc's Google grant first, so Floc leaves their Google account too (#444)", async () => {

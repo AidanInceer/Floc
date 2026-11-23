@@ -18,10 +18,14 @@ import {
   userCountryMark,
   userProfile,
 } from "@/db/schema";
+import { savePrivacy } from "@/server/auth/privacy";
+import { saveTravelStyle } from "@/server/auth/travel-style";
 import { revokeGoogleGrant } from "@/server/calendar/calendar-import";
+import { saveAlertSettings, setMarketingEmailConsent } from "@/server/notifications/alert-settings";
 import { archivedKeysOwnedBy } from "@/server/documents/archive/archive-rows";
 import { waitingKeysOwnedBy } from "@/server/documents/bookings/booking-inbox-rows";
 import { documentsEnabled, dropDocument } from "@/server/documents/document-store";
+import { releaseBytes, storageKeysOf } from "@/server/documents/stored-file";
 import { eraseMediaBy } from "@/server/media/media-rows";
 import { dropMediaFiles } from "@/server/media/media-store";
 import { handOverAndLeaveAllTrips } from "@/server/trips/roster";
@@ -51,17 +55,15 @@ export async function eraseAccount(userId: string): Promise<void> {
         displayName: null,
         avatarIcon: null,
         vibeTags: null,
-        isPrivate: true,
         exploreAnswers: null,
         friendTag: null,
-        notifyPush: false,
-        notifyEmail: false,
-        notifyReminders: false,
-        notifyNextTrip: false,
-        marketingEmailConsentAt: null,
         lastModifiedAt: now,
       })
       .where(eq(userProfile.userId, userId));
+    await savePrivacy(userId, { isPrivate: true }, tx);
+    await saveAlertSettings(userId, { notifyPush: false, notifyEmail: false, notifyReminders: false, notifyNextTrip: false }, tx);
+    await setMarketingEmailConsent(userId, false, now, tx);
+    await saveTravelStyle(userId, { homeAirport: null, travelCabin: null, travelStay: null, travelPace: null, styleInGroupIdeas: false }, tx);
 
     await tx.delete(session).where(eq(session.userId, userId));
     await tx.delete(account).where(eq(account.userId, userId));
@@ -110,11 +112,11 @@ export async function eraseAccount(userId: string): Promise<void> {
       .where(
         and(eq(document.ownerId, userId), isNull(document.deletedAt)),
       )
-      .returning({ storageKey: document.storageKey })
+      .returning({ storedFileId: document.storedFileId })
       .all();
   });
 
-  await Promise.all([...privateFiles.map((file) => file.storageKey), ...archivedKeys].map(dropDocument));
+  await releaseBytes([...(await storageKeysOf(privateFiles)), ...archivedKeys], dropDocument, now);
   const mediaKeys = await eraseMediaBy(userId, now);
-  if (documentsEnabled()) await Promise.all(mediaKeys.map(dropMediaFiles));
+  if (documentsEnabled()) await releaseBytes(mediaKeys, dropMediaFiles, now);
 }

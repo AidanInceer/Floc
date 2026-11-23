@@ -4,7 +4,7 @@ import { and, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 
 import { db } from "@/db";
-import { friendship, tripMembership, user, userProfile } from "@/db/schema";
+import { friendship, tripMembership, user, userPrivacy, userProfile } from "@/db/schema";
 import { relationTo, showsAttribute } from "@/server/auth/visibility";
 import { refresh } from "@/server/freshness";
 import { LIMITS } from "@/server/limits";
@@ -27,12 +27,12 @@ async function withOpenFriendLists(friendIds: string[]): Promise<string[]> {
   if (friendIds.length === 0) return [];
   const rows = await db
     .select({
-      id: userProfile.userId,
-      isPrivate: userProfile.isPrivate,
-      visibilityFriends: userProfile.visibilityFriends,
+      id: userPrivacy.userId,
+      isPrivate: userPrivacy.isPrivate,
+      visibilityFriends: userPrivacy.visibilityFriends,
     })
-    .from(userProfile)
-    .where(inArray(userProfile.userId, friendIds))
+    .from(userPrivacy)
+    .where(inArray(userPrivacy.userId, friendIds))
     .all();
   const closed = new Set(
     rows
@@ -106,6 +106,7 @@ export async function findByName(viewerId: string, name: string): Promise<FoundP
     .select({ id: user.id, name: shownName, avatarIcon: userProfile.avatarIcon })
     .from(user)
     .leftJoin(userProfile, eq(userProfile.userId, user.id))
+    .leftJoin(userPrivacy, eq(userPrivacy.userId, user.id))
     .where(
       and(
         ne(user.id, viewerId),
@@ -114,7 +115,7 @@ export async function findByName(viewerId: string, name: string): Promise<FoundP
           inArray(user.id, known),
           and(
             inArray(user.id, throughAFriend),
-            or(isNull(userProfile.isPrivate), eq(userProfile.isPrivate, false)),
+            or(isNull(userPrivacy.isPrivate), eq(userPrivacy.isPrivate, false)),
           ),
         ),
       ),
@@ -140,9 +141,9 @@ export async function mayAskToBeFriends(viewerId: string, targetId: string): Pro
     acceptedFriendIdsOf(viewerId),
     acceptedFriendIdsOf(targetId),
     db
-      .select({ isPrivate: userProfile.isPrivate })
-      .from(userProfile)
-      .where(eq(userProfile.userId, targetId))
+      .select({ isPrivate: userPrivacy.isPrivate })
+      .from(userPrivacy)
+      .where(eq(userPrivacy.userId, targetId))
       .get(),
   ]);
   if (target?.isPrivate) return false;

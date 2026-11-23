@@ -3,7 +3,8 @@ import "server-only";
 import { and, count, desc, eq, isNull, or, sum } from "drizzle-orm";
 
 import { db } from "@/db";
-import { dayEvent, document, user, userProfile } from "@/db/schema";
+import { dayEvent, document, storedFile, user, userProfile } from "@/db/schema";
+import { fileColumns, linkTo } from "@/server/documents/stored-file";
 import { parseBookingDetails, type BookingDetails } from "@floc/core/documents/booking/booking-details";
 import type { DocCategory } from "@floc/core/documents/documents";
 import { bounded, LIMITS } from "@/server/limits";
@@ -46,8 +47,8 @@ export async function listDocuments(
     .select({
       id: document.id,
       name: document.name,
-      mimeType: document.mimeType,
-      sizeBytes: document.sizeBytes,
+      mimeType: storedFile.mimeType,
+      sizeBytes: storedFile.sizeBytes,
       category: document.category,
       createdAt: document.createdAt,
       uploadedBy: document.uploadedBy,
@@ -61,6 +62,7 @@ export async function listDocuments(
       bookingDetails: document.bookingDetails,
     })
     .from(document)
+    .innerJoin(storedFile, eq(storedFile.id, document.storedFileId))
     .innerJoin(user, eq(user.id, document.uploadedBy))
     .leftJoin(
       dayEvent,
@@ -112,8 +114,9 @@ export async function countDocuments(tripId: number): Promise<number> {
 
 export async function usedBytes(tripId: number): Promise<number> {
   const row = await db
-    .select({ bytes: sum(document.sizeBytes).mapWith(Number) })
+    .select({ bytes: sum(storedFile.sizeBytes).mapWith(Number) })
     .from(document)
+    .innerJoin(storedFile, eq(storedFile.id, document.storedFileId))
     .where(and(eq(document.tripId, tripId), isNull(document.deletedAt)))
     .get();
   return row?.bytes ?? 0;
@@ -132,7 +135,11 @@ export async function insertDocument(input: {
   dayEventId?: number | null;
   bookingDetails?: string | null;
 }): Promise<void> {
-  await db.insert(document).values(input).run();
+  const { storageKey, mimeType, sizeBytes, ...placed } = input;
+  await db.transaction(async (tx) => {
+    const file = await linkTo({ storageKey, mimeType, sizeBytes }, tx);
+    await tx.insert(document).values({ ...placed, ...file }).run();
+  });
 }
 
 export async function softDeleteDocument(documentId: number): Promise<void> {
@@ -162,12 +169,11 @@ export async function setDocumentCategory(
     .run();
 }
 
-export async function liveDocument(
-  documentId: number,
-): Promise<typeof document.$inferSelect | undefined> {
+export async function liveDocument(documentId: number) {
   return db
-    .select()
+    .select({ id: document.id, tripId: document.tripId, ownerId: document.ownerId, name: document.name, ...fileColumns })
     .from(document)
+    .innerJoin(storedFile, eq(storedFile.id, document.storedFileId))
     .where(and(eq(document.id, documentId), isNull(document.deletedAt)))
     .get();
 }

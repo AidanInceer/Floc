@@ -8,6 +8,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 import { db } from "@/db";
 import { activity, bookingInbox, document, inboundMail, notification, trip, user } from "@/db/schema";
 import { mailCap } from "@/server/auth/mail/mail-cap";
+import { waitingBookings } from "@/server/documents/bookings/booking-inbox";
 import { givePro, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 
 import { receiveBookingMail, type InboundAttachment } from "./booking-mail";
@@ -96,7 +97,8 @@ describe("a member forwards a booking to the shared address", () => {
 
     expect(await tripFiles()).toHaveLength(0);
     const [file] = await waiting();
-    expect(file).toMatchObject({ userId: world.member, name: "Ryanair booking.pdf", category: "other", mimeType: "application/pdf" });
+    expect(file).toMatchObject({ userId: world.member, name: "Ryanair booking.pdf", category: "other" });
+    expect((await waitingBookings(world.member))[0].mimeType).toBe("application/pdf");
     expect(send).not.toHaveBeenCalled();
   });
 

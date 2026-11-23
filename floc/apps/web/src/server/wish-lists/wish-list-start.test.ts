@@ -2,6 +2,7 @@ import { PRESET_TRIPS } from "@floc/core/trip/explore/preset-trips";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
+import { savePrivacy } from "@/server/auth/privacy";
 import { befriend, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 
 import { startWishListWith } from "./wish-list-start";
@@ -22,8 +23,7 @@ beforeEach(async () => {
   ]);
 });
 
-const shareSaved = () =>
-  db.insert(schema.userProfile).values({ userId: world.outsider, visibilitySaved: "friends" });
+const shareSaved = () => savePrivacy(world.outsider, { visibilitySaved: "friends" });
 
 describe("starting a wish list with a friend", () => {
   it("fills it with what you both saved and asks them", async () => {

@@ -3,6 +3,7 @@ import { migrate } from "drizzle-orm/libsql/migrator";
 import { expect } from "vitest";
 
 import { db, schema } from "@/db";
+import { linkTo } from "@/server/documents/stored-file";
 import { NOT_FOUND, currentUser } from "./setup";
 
 let migrated = false;
@@ -21,12 +22,13 @@ const TABLES = [
   schema.inboundMail,
   schema.reminder,
   schema.pushToken,
+  schema.notificationDelivery,
   schema.notification,
   schema.activity,
   schema.packingClaim,
   schema.packingLine,
-  schema.noteReaction,
-  schema.note,
+  schema.commentReaction,
+  schema.comment,
   schema.ideaVote,
   schema.idea,
   schema.expenseSplit,
@@ -47,17 +49,27 @@ const TABLES = [
   schema.friendGroup,
   schema.friendship,
   schema.tripInvite,
+  schema.tripMemberBudget,
   schema.tripMembership,
+  schema.billingCustomer,
   schema.subscription,
+  schema.tripPageState,
   schema.tripPage,
   schema.trip,
+  schema.storedFile,
   schema.place,
+  schema.userPrivacy,
+  schema.userNotificationSettings,
+  schema.userTravelStyle,
   schema.userProfile,
   schema.session,
   schema.account,
   schema.verification,
   schema.user,
 ] as const;
+
+export const fileFields = (storageKey: string, sizeBytes = 1, mimeType = "application/pdf") =>
+  linkTo({ storageKey, mimeType, sizeBytes });
 
 export async function resetDb(): Promise<void> {
   const [first, ...rest] = TABLES.map((table) => db.delete(table));

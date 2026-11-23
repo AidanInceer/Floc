@@ -9,7 +9,7 @@ import { tripHref } from "@floc/core/notifications/notification-href";
 import { STILL_OWE_AFTER_DAYS, isStillOwe, reminderDay, remindersDue } from "@floc/core/notifications/reminders";
 import type { ReminderKind } from "@floc/core/notifications/rules";
 import { db } from "@/db";
-import { trip, tripMembership, userProfile } from "@/db/schema";
+import { trip, tripMembership, userNotificationSettings } from "@/db/schema";
 import { listExpenses, listSettlements, listSplits, namesForUsers } from "@/server/money/money";
 import { settleUpFrom } from "@/server/money/settle-up";
 import { sendNextTripPrompts } from "@/server/notifications/next-trip";
@@ -38,9 +38,9 @@ async function datedTrips(day: string) {
 
 async function listeners(tripId: number): Promise<string[]> {
   const rows = await db
-    .select({ userId: tripMembership.userId, on: userProfile.notifyReminders })
+    .select({ userId: tripMembership.userId, on: userNotificationSettings.notifyReminders })
     .from(tripMembership)
-    .leftJoin(userProfile, eq(userProfile.userId, tripMembership.userId))
+    .leftJoin(userNotificationSettings, eq(userNotificationSettings.userId, tripMembership.userId))
     .where(and(eq(tripMembership.tripId, tripId), isNull(tripMembership.deletedAt)))
     .all();
   return rows.filter((r) => r.on !== false).map((r) => r.userId);

@@ -13,8 +13,7 @@ import { addressConfirmed, claim, hasPhone, markSent, planDue, release, switched
 export type EmailSender = (emails: OutboundEmail[]) => Promise<unknown>;
 
 const EMAIL: Channel = {
-  claimKey: "emailClaimedAt",
-  sentKey: "emailedAt",
+  name: "email",
   waitMs: EMAIL_WAIT_MS,
   limits: EMAIL_LIMITS,
   reaches: () =>

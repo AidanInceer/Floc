@@ -19,8 +19,7 @@ export type PushMessage = {
 export type PushSender = (messages: PushMessage[]) => Promise<{ deadTokens: string[]; failed?: PushMessage[] }>;
 
 const PUSH: Channel = {
-  claimKey: "pushClaimedAt",
-  sentKey: "pushedAt",
+  name: "push",
   waitMs: PUSH_WAIT_MS,
   limits: PUSH_LIMITS,
   reaches: () => and(hasPhone(), not(switchedOff("notifyPush"))),

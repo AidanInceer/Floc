@@ -76,6 +76,10 @@ checklist item, quote, divider or table.
 
 **Highlight** — a colour laid on a run of text in a page.
 
+**Comment** — something a member says on an event on Days or on a notes page,
+with replies one level deep and reactions. A comment sits on exactly one of the
+two. Never call it a "note": *Notes* is the tab of pages.
+
 **Page comment** — a comment pinned to a run of text in a page, with replies;
 it can be resolved.
 
