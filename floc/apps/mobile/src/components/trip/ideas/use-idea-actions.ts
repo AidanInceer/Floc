@@ -35,13 +35,8 @@ export function useIdeaActions(tripId: number) {
     notice,
     adding: addOne.isPending,
     placing: placeOne.isPending,
-    add: (title: string, category: string, done: () => void, closed: boolean) =>
-      addOne.mutate({ tripId, title, category }, {
-        onSuccess: () => {
-          done();
-          if (closed) setNotice({ text: `Added ${title.trim()}` });
-        },
-      }),
+    add: (title: string, category: string, done: () => void) =>
+      addOne.mutate({ tripId, title, category }, { onSuccess: done }),
     vote: (ideaId: number) => voteOne.mutate({ tripId, ideaId }),
     rename: (ideaId: number, title: string) => renameOne.mutate({ tripId, ideaId, title }),
     remove: (ideaId: number, title: string) =>

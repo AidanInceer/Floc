@@ -64,7 +64,10 @@ function IdeasBox({ tripId, rows, startOpen, days }: { tripId: number; rows: Ide
   };
 
   const add = (title: string, category: string, done: () => void) => {
-    actions.add(title, category, done, !open);
+    actions.add(title, category, () => {
+      done();
+      setToggled(true);
+    });
     if (tab !== ALL_IDEAS && tab.toLowerCase() !== category.toLowerCase()) setTab(category);
   };
 
