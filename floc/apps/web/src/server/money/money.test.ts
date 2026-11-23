@@ -1,5 +1,5 @@
 import { and, eq, isNull } from "drizzle-orm";
-import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
@@ -88,6 +88,59 @@ describe("writing an expense", () => {
     expect((await expensesOf(world.ours.id))[0].description).toBe("Ferry, one way");
     const all = await db.select().from(schema.expenseSplit).where(eq(schema.expenseSplit.expenseId, row.id)).all();
     expect(all.length).toBeGreaterThan(1);
+  });
+
+  const editOf = (expenseId: number, splits: { userId: string; owedAmountMinor: number }[]) =>
+    writeExpense({
+      tripId: world.ours.id,
+      expenseId,
+      createdBy: world.admin,
+      fields: fields({ amountMinor: 1000, description: "Ferry, one way" }),
+      splits,
+    });
+
+  it("saves an edit in one trip to the database (rule 2)", async () => {
+    const row = await seedExpense();
+    const interactive = vi.spyOn(db, "transaction");
+    const batch = vi.spyOn(db, "batch");
+
+    await editOf(row.id, [{ userId: world.admin, owedAmountMinor: 1000 }]);
+
+    expect(interactive).not.toHaveBeenCalled();
+    expect(batch).toHaveBeenCalledTimes(1);
+    interactive.mockRestore();
+    batch.mockRestore();
+  });
+
+  it("leaves the expense and its splits whole when an edit fails (rule 2)", async () => {
+    const row = await seedExpense();
+
+    await expect(editOf(row.id, [{ userId: "nobody", owedAmountMinor: 1000 }])).rejects.toThrow();
+
+    expect((await expensesOf(world.ours.id))[0]).toMatchObject({ amountMinor: 3000, description: "Ferry tickets" });
+    expect(await splitsOf(row.id)).toHaveLength(2);
+  });
+
+  it("folds rapid edits into one activity and keeps a read notice read", async () => {
+    const row = await seedExpense();
+    const split = [
+      { userId: world.admin, owedAmountMinor: 500 },
+      { userId: world.member, owedAmountMinor: 500 },
+    ];
+    await editOf(row.id, split);
+    await db.update(schema.notification).set({ readAt: new Date() });
+    await editOf(row.id, split);
+
+    const changed = await db.select().from(schema.activity).where(eq(schema.activity.kind, "expense_changed")).all();
+    expect(changed).toHaveLength(1);
+    const notices = await db
+      .select()
+      .from(schema.notification)
+      .where(and(eq(schema.notification.activityId, changed[0].id), eq(schema.notification.userId, world.member)))
+      .all();
+    expect(notices).toHaveLength(1);
+    expect(notices[0].loud).toBe(false);
+    expect(notices[0].readAt).not.toBeNull();
   });
 });
 
