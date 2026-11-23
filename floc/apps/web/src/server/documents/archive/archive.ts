@@ -1,15 +1,16 @@
 import "server-only";
 
 import { filesToTrim } from "@floc/core/documents/archive";
-import { rejectForSpace, type DocCategory } from "@floc/core/documents/documents";
+import { rejectForSpace, tripStorageBytes, type DocCategory } from "@floc/core/documents/documents";
 
 import type { TripAccess } from "@/server/access";
+import { proStanding } from "@/server/billing/entitlements";
 import { refresh } from "@/server/freshness";
 import { LIMITS } from "@/server/limits";
 
 import { documentsEnabled, dropDocument, hasDocument } from "../document-store";
 import { countDocuments } from "../documents";
-import { storageUsage } from "../storage-quota";
+import { storageRoom } from "../storage-quota";
 import { releaseBytes } from "../stored-file";
 import { archivedRows, keysPastTheWeek, unarchiveDocument, type ArchivedRow } from "./archive-rows";
 
@@ -55,9 +56,10 @@ export async function restoreDocument(access: Access, documentId: number, now = 
   const [row] = await withBytes(await archivedRows(tripId, now, { viewerId: access.viewer.id, documentId }));
   if (!row) return GONE;
 
-  const [held, space] = await Promise.all([countDocuments(tripId), storageUsage(tripId)]);
+  const [held, room] = await Promise.all([countDocuments(tripId), storageRoom(tripId, row.uploadedBy)]);
   if (held >= LIMITS.documents) return "This trip is holding as many files as it can";
-  const noSpace = rejectForSpace(space.usedBytes, row.sizeBytes, space.quotaBytes);
+  const yours = room.own && row.uploadedBy === access.viewer.id;
+  const noSpace = room.ended ? null : rejectForSpace(room.usedBytes, row.sizeBytes, room.quotaBytes, yours);
   if (noSpace) return noSpace;
 
   await unarchiveDocument(row.id);
@@ -65,9 +67,18 @@ export async function restoreDocument(access: Access, documentId: number, now = 
   return null;
 }
 
+const SHARED_ROOM = "";
+
 export async function trimArchive(tripId: number, now = new Date()): Promise<void> {
-  const [rows, space] = await Promise.all([archivedRows(tripId, now).then(withBytes), storageUsage(tripId)]);
-  await releaseBytes(filesToTrim(rows, space.quotaBytes).map((row) => row.storageKey), dropDocument, now);
+  const rows = await archivedRows(tripId, now).then(withBytes);
+  const standing = await proStanding(rows.map((row) => row.uploadedBy));
+  const rooms = new Map<string, ArchivedRow[]>();
+  for (const row of rows) {
+    const room = standing.has(row.uploadedBy) ? row.uploadedBy : SHARED_ROOM;
+    rooms.set(room, [...(rooms.get(room) ?? []), row]);
+  }
+  const gone = [...rooms].flatMap(([room, files]) => filesToTrim(files, tripStorageBytes(standing.get(room) === "pro")));
+  await releaseBytes(gone.map((row) => row.storageKey), dropDocument, now);
 }
 
 export async function purgeArchivedFiles(now = new Date()): Promise<number> {

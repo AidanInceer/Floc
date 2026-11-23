@@ -1,7 +1,8 @@
 import type { BillingStatus } from "@floc/api/port";
+import { STORE_PRODUCT_IDS } from "@floc/core/billing/store-products";
 import { describe, expect, it } from "vitest";
 
-import { claimOf, offerTokenOf, proView, yearlySavingOf } from "./pro";
+import { claimOf, offerTokenOf, proView, storeOffers } from "./pro";
 
 const NOW = new Date("2026-09-12T12:00:00Z");
 
@@ -83,13 +84,38 @@ describe("buying on Play", () => {
   });
 });
 
-describe("the yearly saving", () => {
-  it("compares twelve months with a year, in whole percent", () => {
-    expect(yearlySavingOf({ price: 3.99 }, { price: 29.99 })).toBe(37);
+describe("the store's offers", () => {
+  const month = { id: STORE_PRODUCT_IDS.monthly, displayPrice: "£3.99", price: 3.99 };
+  const quarter = { id: STORE_PRODUCT_IDS.quarterly, displayPrice: "£8.99", price: 8.99 };
+  const year = { id: STORE_PRODUCT_IDS.yearly, displayPrice: "£29.99", price: 29.99 };
+
+  it("leads with the year, then 3 months, then the month, each with its saving (#523)", () => {
+    expect(storeOffers([month, quarter, year]).map(({ label, lead }) => [label, lead])).toEqual([
+      ["£29.99 a year · save 37%", true],
+      ["£8.99 every 3 months · save 25%", false],
+      ["£3.99 a month", false],
+    ]);
   });
 
-  it("boasts of nothing when a price is missing", () => {
-    expect(yearlySavingOf(undefined, { price: 29.99 })).toBeNull();
-    expect(yearlySavingOf({ price: null }, { price: 29.99 })).toBeNull();
+  it("boasts of nothing when the month's price is missing", () => {
+    expect(storeOffers([quarter, year]).map((o) => o.label)).toEqual(["£29.99 a year", "£8.99 every 3 months"]);
+    expect(storeOffers([{ ...month, price: null }, year]).map((o) => o.label)).toEqual(["£29.99 a year", "£3.99 a month"]);
+  });
+
+  it("leads with the plan that saves the most, as the web's best value does (#523)", () => {
+    const cheapQuarter = { ...quarter, displayPrice: "£5.99", price: 5.99 };
+    const leads = storeOffers([month, cheapQuarter, year]).filter((o) => o.lead).map((o) => o.product.id);
+    expect(leads).toEqual([STORE_PRODUCT_IDS.quarterly]);
+  });
+
+  it("offers nothing Google Play could not find, so no button ever lacks a price (#523)", () => {
+    const notFound = { id: STORE_PRODUCT_IDS.yearly, displayPrice: "", price: null };
+    expect(storeOffers([notFound])).toEqual([]);
+    expect(storeOffers([notFound, month]).map(({ label, lead }) => [label, lead])).toEqual([["£3.99 a month", true]]);
+  });
+
+  it("offers only what the store sells, and leads with the first", () => {
+    expect(storeOffers([month]).map(({ label, lead }) => [label, lead])).toEqual([["£3.99 a month", true]]);
+    expect(storeOffers([])).toEqual([]);
   });
 });

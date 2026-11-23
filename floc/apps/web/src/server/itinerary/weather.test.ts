@@ -137,7 +137,15 @@ describe("getTripForecast", () => {
     const fetchMock = stubFetch(metBody(today()));
     await db.delete(schema.subscription);
 
-    expect(await getTripForecast(world.ours.id)).toBeNull();
+    expect(await getTripForecast(world.ours.id, world.admin)).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("shows a free member no forecast on a trip with a Pro member, without calling out (#523)", async () => {
+    await anchorTrip(world.ours.dayId);
+    const fetchMock = stubFetch(metBody(today()));
+
+    expect(await getTripForecast(world.ours.id, world.member)).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -147,7 +155,7 @@ describe("getTripForecast", () => {
     await planNights(world.ours.id, from, Array(HORIZON_DAYS + 2).fill(lisbon));
     const fetchMock = stubFetch(metBody(from));
 
-    const forecast = await getTripForecast(world.ours.id);
+    const forecast = await getTripForecast(world.ours.id, world.admin);
 
     expect(forecast).not.toBeNull();
     const [calledUrl, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
@@ -178,7 +186,7 @@ describe("getTripForecast", () => {
     await planNights(world.ours.id, from, [tokyo, tokyo]);
     stubFetch(metBody(from));
 
-    const forecast = await getTripForecast(world.ours.id);
+    const forecast = await getTripForecast(world.ours.id, world.admin);
 
     expect(forecast!.hourly[addDays(from, 1)][0].hour).toBe("00:00");
     expect(forecast!.hourly[from][0].hour).toBe("09:00");
@@ -191,7 +199,7 @@ describe("getTripForecast", () => {
     await planNights(world.ours.id, from, [accra, accra, lome, lome]);
     const fetchMock = stubFetchByPlace({ "5.6037": metBody(from), "6.1319": metBody(from) });
 
-    const forecast = await getTripForecast(world.ours.id);
+    const forecast = await getTripForecast(world.ours.id, world.admin);
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(forecast!.placeName).toBe("Accra → Lomé");
@@ -210,7 +218,7 @@ describe("getTripForecast", () => {
     await planNights(world.ours.id, from, [accra, lome, accra]);
     const fetchMock = stubFetchByPlace({ "5.6037": metBody(from), "6.1319": metBody(from) });
 
-    await getTripForecast(world.ours.id);
+    await getTripForecast(world.ours.id, world.admin);
 
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
@@ -221,7 +229,7 @@ describe("getTripForecast", () => {
     await planNights(world.ours.id, from, [accra, null, null]);
     stubFetch(metBody(from));
 
-    const forecast = await getTripForecast(world.ours.id);
+    const forecast = await getTripForecast(world.ours.id, world.admin);
 
     expect(forecast!.days.map((d) => d.placeName)).toEqual(["Accra", "Accra", "Accra"]);
   });
@@ -231,7 +239,7 @@ describe("getTripForecast", () => {
     await planNights(world.ours.id, addDays(today(), 60), [accra, accra]);
     const fetchMock = stubFetch(metBody(today()));
 
-    const forecast = await getTripForecast(world.ours.id);
+    const forecast = await getTripForecast(world.ours.id, world.admin);
 
     expect(forecast).toMatchObject({ placeName: "Accra", days: [], hourly: {} });
     expect(fetchMock).not.toHaveBeenCalled();
@@ -244,7 +252,7 @@ describe("getTripForecast", () => {
     await planNights(world.ours.id, from, [accra, lome]);
     stubFetchByPlace({ "5.6037": metBody(from) });
 
-    const forecast = await getTripForecast(world.ours.id);
+    const forecast = await getTripForecast(world.ours.id, world.admin);
 
     expect(forecast!.days.map((d) => d.placeName)).toEqual(["Accra"]);
     expect(forecast!.nightPlaces).toEqual({ [from]: "Accra", [addDays(from, 1)]: "Lomé" });
@@ -252,7 +260,7 @@ describe("getTripForecast", () => {
 
   it("does not treat an undated, unplaced trip as an error — returns null, no fetch", async () => {
     const fetchMock = stubFetch(metBody(today()));
-    expect(await getTripForecast(world.ours.id)).toBeNull();
+    expect(await getTripForecast(world.ours.id, world.admin)).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -264,7 +272,7 @@ describe("getTripForecast", () => {
         throw new Error("network down");
       }),
     );
-    await expect(getTripForecast(world.ours.id)).resolves.toBeNull();
+    await expect(getTripForecast(world.ours.id, world.admin)).resolves.toBeNull();
   });
 
   it("degrades to null on a non-OK response", async () => {
@@ -273,6 +281,6 @@ describe("getTripForecast", () => {
       "fetch",
       vi.fn(async () => ({ ok: false, status: 503, json: async () => ({}) })),
     );
-    await expect(getTripForecast(world.ours.id)).resolves.toBeNull();
+    await expect(getTripForecast(world.ours.id, world.admin)).resolves.toBeNull();
   });
 });

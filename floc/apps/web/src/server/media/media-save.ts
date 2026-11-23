@@ -4,13 +4,14 @@ import { Refusal } from "@floc/core/errors/refusal";
 import { bytesMatchMedia, maxBytesFor, mediaType, refuseType, rejectMedia, type MediaType } from "@floc/core/media/media";
 
 import type { TripAccess } from "@/server/access";
-import { canUseFeature } from "@/server/billing/entitlements";
+import { accountRefusal } from "@/server/documents/storage-quota";
 import { documentsEnabled } from "@/server/documents/document-store";
 import { refresh } from "@/server/freshness";
 import { LIMITS } from "@/server/limits";
 import { releaseBytes } from "@/server/documents/stored-file";
 
-import { insertMedia, liveMedia, mediaHeld, placeIsOnTrip, softDeleteMedia } from "./media-rows";
+import { mediaRoom } from "./media-room";
+import { insertMedia, liveMedia, placeIsOnTrip, softDeleteMedia } from "./media-rows";
 import {
   dropFile, dropMediaFiles, keepAs, mediaPath, newMediaKey, receiveUpload,
   thumbKeyOf, TooLarge, type Received,
@@ -94,10 +95,11 @@ async function clearUpload(access: Access, input: MediaUpload): Promise<Cleared 
   if (input.placeId !== null && !(await placeIsOnTrip(tripId, input.placeId))) {
     return { error: "That stop is not on this trip." };
   }
-  const [held, pro] = await Promise.all([mediaHeld(tripId), canUseFeature("files.extraStorage", tripId)]);
-  if (held.total >= LIMITS.tripMedia) return { error: "This trip is holding as many pictures as it can." };
+  const [room, account] = await Promise.all([mediaRoom(tripId, access.viewer.id), accountRefusal(access.viewer.id)]);
+  if (room.total >= LIMITS.tripMedia) return { error: "This trip is holding as many pictures as it can." };
+  const { pro } = room;
   const refuse = (sizeBytes: number) =>
-    rejectMedia({ pro, kind: type.kind, sizeBytes, photosHeld: held.photos, usedBytes: held.usedBytes });
+    rejectMedia({ pro, kind: type.kind, sizeBytes, photosHeld: room.photos, usedBytes: room.usedBytes }) ?? account(sizeBytes);
   const early = refuse(input.declaredBytes ?? 0);
   return early ? { error: early } : { type, refuse, maxBytes: maxBytesFor(pro, type.kind) };
 }

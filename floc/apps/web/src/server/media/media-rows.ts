@@ -27,9 +27,12 @@ export async function listMedia(tripId: number) {
   return bounded(rows, "tripMedia", `trip:${tripId}`);
 }
 
-export async function mediaHeld(tripId: number): Promise<{ total: number; photos: number; usedBytes: number }> {
-  const row = await db
+export type MediaHeld = { uploadedBy: string; total: number; photos: number; usedBytes: number };
+
+export function mediaByUploader(tripId: number): Promise<MediaHeld[]> {
+  return db
     .select({
+      uploadedBy: tripMedia.uploadedBy,
       total: sql<number>`count(*)`,
       photos: sql<number>`coalesce(sum(${tripMedia.kind} = 'photo'), 0)`,
       usedBytes: sql<number>`coalesce(sum(${storedFile.sizeBytes}), 0)`,
@@ -37,8 +40,9 @@ export async function mediaHeld(tripId: number): Promise<{ total: number; photos
     .from(tripMedia)
     .innerJoin(storedFile, itsFile)
     .where(live(tripId))
-    .get();
-  return { total: row?.total ?? 0, photos: row?.photos ?? 0, usedBytes: row?.usedBytes ?? 0 };
+    .groupBy(tripMedia.uploadedBy)
+    .limit(LIMITS.tripMedia)
+    .all();
 }
 
 export function liveMedia(tripId: number, mediaId: number) {

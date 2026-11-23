@@ -4,9 +4,11 @@ import {
   cleanFileName,
   formatBytes,
   kindLabel,
+  rejectForAccount,
   rejectForSpace,
   rejectUpload,
   renamedFileName,
+  FREE_ACCOUNT_STORAGE_BYTES,
   FREE_TRIP_STORAGE_BYTES,
   PRO_TRIP_STORAGE_BYTES,
   tripStorageBytes,
@@ -134,6 +136,39 @@ describe("rejectForSpace (#285)", () => {
     const full = "This trip has used all of its 200 MB. Remove a file to make room.";
     expect(rejectForSpace(quota, 1, quota)).toBe(full);
     expect(rejectForSpace(quota + MB, 1, quota)).toBe(full);
+  });
+
+  it("speaks of your own files when the room is yours (#523)", () => {
+    expect(rejectForSpace(quota - 3 * MB, 5 * MB, quota, true)).toBe(
+      "You have 3 MB of your 200 MB left on this trip, and that file is 5 MB.",
+    );
+    expect(rejectForSpace(quota, 1, quota, true)).toBe(
+      "Your files on this trip have used all of your 200 MB. Remove a file to make room.",
+    );
+  });
+});
+
+describe("rejectForAccount (#523, ADR-083)", () => {
+  const MB = 1024 * 1024;
+
+  it("gives a free account 1 GB across its trips", () => {
+    expect(formatBytes(FREE_ACCOUNT_STORAGE_BYTES)).toBe("1 GB");
+  });
+
+  it("lets in a file that fits in what is left", () => {
+    expect(rejectForAccount(FREE_ACCOUNT_STORAGE_BYTES - 5 * MB, 5 * MB)).toBeNull();
+  });
+
+  it("names the space left when the file will not fit", () => {
+    expect(rejectForAccount(FREE_ACCOUNT_STORAGE_BYTES - 3 * MB, 5 * MB)).toBe(
+      "Your free account has 3 MB of its 1 GB left, and that file is 5 MB.",
+    );
+  });
+
+  it("says the account is full at the cap and past it", () => {
+    const full = "Your free account has used all of its 1 GB. Remove a file to make room.";
+    expect(rejectForAccount(FREE_ACCOUNT_STORAGE_BYTES, 1)).toBe(full);
+    expect(rejectForAccount(FREE_ACCOUNT_STORAGE_BYTES + MB, 1)).toBe(full);
   });
 });
 

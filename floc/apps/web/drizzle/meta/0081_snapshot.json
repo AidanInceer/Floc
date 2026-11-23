@@ -1,6 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
+  "id": "f8c9c5f2-9a2e-408c-ba2e-38ddb2f0f589",
+  "prevId": "85b062ee-3d1d-4969-a599-8dc1289e92d9",
   "tables": {
     "account": {
       "name": "account",
@@ -1285,6 +1287,13 @@
           "name": "document_stored_file_idx",
           "columns": [
             "stored_file_id"
+          ],
+          "isUnique": false
+        },
+        "document_uploaded_by_idx": {
+          "name": "document_uploaded_by_idx",
+          "columns": [
+            "uploaded_by"
           ],
           "isUnique": false
         }
@@ -4681,6 +4690,13 @@
             "stored_file_id"
           ],
           "isUnique": false
+        },
+        "trip_media_uploaded_by_idx": {
+          "name": "trip_media_uploaded_by_idx",
+          "columns": [
+            "uploaded_by"
+          ],
+          "isUnique": false
         }
       },
       "foreignKeys": {
@@ -6249,6 +6265,7 @@
   "views": {},
   "enums": {},
   "_meta": {
+    "schemas": {},
     "tables": {},
     "columns": {}
   },
@@ -6265,7 +6282,5 @@
         }
       }
     }
-  },
-  "id": "85b062ee-3d1d-4969-a599-8dc1289e92d9",
-  "prevId": "ae229cfc-8ff9-4d06-b08e-a83cffa0219e"
+  }
 }

@@ -3,8 +3,8 @@ import "server-only";
 import { groupMedia, MEDIA_LIMITS, mediaRatio, mediaShape, videoClock, type MediaGroup, type MediaKind, type MediaStop } from "@floc/core/media/media";
 
 import type { TripAccess } from "@/server/access";
-import { canUseFeature } from "@/server/billing/entitlements";
 import { documentsEnabled } from "@/server/documents/document-store";
+import { mediaRoom } from "./media-room";
 import { listMedia } from "./media-rows";
 
 export type MediaItem = {
@@ -33,7 +33,7 @@ export async function readMediaView(
   stops: MediaStop[],
 ): Promise<MediaView> {
   const tripId = access.trip.id;
-  const [rows, pro] = await Promise.all([listMedia(tripId), canUseFeature("files.extraStorage", tripId)]);
+  const [rows, room] = await Promise.all([listMedia(tripId), mediaRoom(tripId, access.viewer.id)]);
   const people = new Map(access.members.map((m) => [m.userId, m]));
   const items: MediaItem[] = rows.map((row) => {
     const src = `/api/media/${tripId}/${row.id}`;
@@ -52,12 +52,11 @@ export async function readMediaView(
       mine: row.uploadedBy === access.viewer.id,
     };
   });
-  const limit = (pro ? MEDIA_LIMITS.pro : MEDIA_LIMITS.free).photos;
-  const photos = items.filter((m) => m.kind === "photo").length;
+  const limit = (room.pro ? MEDIA_LIMITS.pro : MEDIA_LIMITS.free).photos;
   return {
     groups: groupMedia(items, stops),
     total: items.length,
-    capLine: `${photos.toLocaleString("en-GB")} of ${limit.toLocaleString("en-GB")} photos`,
+    capLine: `${room.photos.toLocaleString("en-GB")} of ${limit.toLocaleString("en-GB")} photos`,
     canAdd: documentsEnabled() && !access.trip.archivedAt,
   };
 }

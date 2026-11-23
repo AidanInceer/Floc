@@ -568,6 +568,13 @@
       "when": 1795465661310,
       "tag": "0080_drop_moved_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "6",
+      "when": 1795474358846,
+      "tag": "0081_flippant_cyclops",
+      "breakpoints": true
     }
   ]
 }

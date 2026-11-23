@@ -125,13 +125,13 @@ export async function unpackBag(access: Access): Promise<void> {
 }
 
 export async function setIdeasShown(access: Access, shown: boolean): Promise<void> {
-  if (shown) await assertFeature("packing.autoGenerate", access.trip.id);
+  if (shown) await assertFeature("packing.autoGenerate", access.viewer.id);
   await setPackIdeasShown(access.trip.id, access.viewer.id, shown);
   changed(access);
 }
 
 async function fillArgs(access: Access) {
-  await assertFeature("packing.autoGenerate", access.trip.id);
+  await assertFeature("packing.autoGenerate", access.viewer.id);
   const [perTrip, profile] = await Promise.all([
     getPackTier(access.trip.id, access.viewer.id),
     ensureProfile(access.viewer.id),
@@ -140,7 +140,7 @@ async function fillArgs(access: Access) {
     tripId: access.trip.id,
     ownerId: access.viewer.id,
     tier: resolvePackTier(perTrip, profile.packTier),
-    plan: await packingPlanFor(access.trip),
+    plan: await packingPlanFor(access.trip, access.viewer.id),
   };
 }
 

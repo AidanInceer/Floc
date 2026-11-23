@@ -1,10 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { FEATURE_PLAN, planMeets } from "./plans";
+import { BILLING_INTERVALS, FEATURE_PLAN, planMeets } from "./plans";
+
+describe("BILLING_INTERVALS", () => {
+  it("sells a month, 3 months and a year, shortest first (#523)", () => {
+    expect(BILLING_INTERVALS).toEqual(["monthly", "quarterly", "yearly"]);
+  });
+});
 
 describe("FEATURE_PLAN", () => {
-  it("makes your cost estimate and budget Pro, and yours alone (#574, ADR-057)", () => {
-    expect(FEATURE_PLAN["money.estimate"]).toEqual({ plan: "pro", scope: "user" });
+  it("makes every Pro feature follow the person, never the trip (#523, ADR-041)", () => {
+    for (const rule of Object.values(FEATURE_PLAN)) expect(rule).toEqual({ plan: "pro" });
   });
 
   it("gates no filled-in booking search, which is free for everyone (#716)", () => {
