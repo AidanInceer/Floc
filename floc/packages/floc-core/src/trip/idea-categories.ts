@@ -17,11 +17,14 @@ const fold = (value: string) => value.toLowerCase();
 const house = (value: string) =>
   IDEA_CATEGORIES.find((c) => fold(c.id) === fold(value) || fold(c.label) === fold(value));
 
+const properCase = (value: string) =>
+  fold(value).replace(/(^|[\s/-])(\p{L})/gu, (_, gap: string, letter: string) => gap + letter.toUpperCase());
+
 export function readIdeaCategory(value: unknown): string {
   if (typeof value !== "string") return "other";
   const tidy = value.trim().replace(/\s+/g, " ").slice(0, IDEA_CATEGORY_MAX).trim();
   if (!tidy || fold(tidy) === ALL_IDEAS) return "other";
-  return house(tidy)?.id ?? tidy;
+  return house(tidy)?.id ?? properCase(tidy).slice(0, IDEA_CATEGORY_MAX).trim();
 }
 
 export const ideaCategoryLabel = (category: string): string => house(category)?.label ?? category;

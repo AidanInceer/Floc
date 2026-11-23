@@ -54,7 +54,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - Buttons, switches, segments and vote controls are rounded squares (`rounded-sm`), never circles. A chip you press to pick or tick, such as a vibe tag or a part of your profile, is a button too: `rounded-sm`, never a pill.
 - A selected thing is never a solid block. The phone's bottom tab bar says the open tab in colour and weight only, with no tile behind it; a selected day or stub is a `pen-2` wash with `pen-deep` ink. ✓ On the web that is `bg-pen-soft text-pen-deep`: `--pen-2` is the variable, and a `bg-pen-2` class draws nothing. Inactive marks stay `ink-2`, not dimmed further, or they read as disabled.
   - One exception: a row of segments in a grey track (`SegmentTrack`, `PillToggle`, `ChoiceSegments`) marks the chosen one with a white tile and ink words, never a blue wash (Aidan, ADR-061). The theme switch draws the same tile with its own CSS, so it is right before the page hydrates.
-  - A mode switch, such as Dates' Can do / Prefer, is a group of pressed buttons (`aria-pressed`), never tabs: it has no panel of its own.
+  - One exception: an open day in a stop on the web Overview is a grey rail down the day's full height with its date in ink, never a blue wash or a solid block. Its link to Days is a small framed button with the Days glyph at the panel's bottom right (Aidan, `overview-open-day` F5).  - A mode switch, such as Dates' Can do / Prefer, is a group of pressed buttons (`aria-pressed`), never tabs: it has no panel of its own.
   - A picked colour, mark or face in a grid wears a thin, soft pen ring (`PickOption`): 1.5px at 60%, not a solid 2px (Aidan).
 - ✓ Depth comes only from `--shadow-sm`, `--shadow`, `--shadow-lift`. An inset or unblurred shadow may draw a line. If you notice the shadow first, it is wrong.
   - A card that opens something takes `lift-card` (`globals.css`): the raised shadow at rest and the 1.5px lift on hover — Explore, Saved and wish list tiles, My trips bars and the archived trips (Aidan). The homepage hero cards take the same raised shadow; the deck's 10px lift is the landing page's own.
@@ -91,6 +91,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
 - No tiny all-caps kicker above a heading. The mono label names a value; it never introduces a section.
 - Sentence case. British English. Real content, never lorem ipsum.
   - The cost estimate's status marks (Fits, Tight, In range, Not started) are sentence case: `Badge sentence` on the web, `Pill sentence` on the phone. Other badges keep the house capitals for now (Aidan, #574).
+  - One exception: an Ideas category a member names starts each word with a capital (Aidan).
 - ✓ A field starts empty: no placeholder, no example, nothing pre-filled the person did not choose. A visible label or an `aria-label` names it.
   - One exception: *Plan the next one* on a finished trip's recap starts with the trip's other members ticked; the name field stays empty (#443).
   - One exception: *Add to Days* on a booking file starts with what Floc read from that booking — the flight, its day and its times — and the member saves it (#559).
@@ -108,6 +109,7 @@ The rules a screen must pass before you call it done, on web, phone and in a moc
   - A group's row on Groups shows Trip ideas, with the match dial as its glyph, beside its `…`; below sm only the dial shows. Its modal lists up to ten trips as ruled rows, each with the group's match, and its one main action is Ask the group to vote (Aidan, #177, pick of E; ADR-074).
   - A thing on a wish list shows a vote beside its `…`: an up arrow and the count, 26px high in a row, green when it is yours; the same mark as an idea's vote on a trip, drawn smaller.
   - An idea on a trip shows its vote, its category tile and name, a quiet Add to Days with an arrow, and a framed `…` box holding Edit name and Remove. On a phone it takes two short lines, with the vote and Add to Days on the second (Aidan, #576, pick of L).
+  - The Ideas category bar on the web holds one line. When the categories do not fit it slides, with a left and a right arrow beside it. The new category field takes the bar's place while it is open (Aidan).
   - A My trips card shows two toggles beside its `…`, star and mute (a bell, slashed when muted). Each says its state in its label (`aria-pressed`, Mute/Unmute).
 - A setting is never a tick beside a link in a row: your booking sites are ticked in one Booking sites dialog, and rows show only the buttons (ADR-065).
 - On Notes, New page heads the page rail, where a Pages label would sit (Aidan).

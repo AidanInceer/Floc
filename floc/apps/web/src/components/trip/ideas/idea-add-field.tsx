@@ -52,7 +52,7 @@ export function IdeaAddField({
         void submit(new FormData(event.currentTarget));
       }}
       className={cx(
-        "flex h-[31px] min-w-0 items-stretch overflow-hidden rounded-sm border bg-sheet transition-colors focus-within:border-transparent focus-within:outline focus-within:outline-2 focus-within:-outline-offset-1 focus-within:outline-pen max-sm:h-10",
+        "flex h-[31px] min-w-0 items-stretch overflow-hidden rounded-sm border bg-sheet transition-colors focus-within:border-transparent focus-within:outline focus-within:outline-2 focus-within:-outline-offset-1 focus-within:outline-pen",
         failed ? "border-red" : "border-rule-strong hover:border-ink-faint",
       )}
     >
@@ -75,7 +75,7 @@ export function IdeaAddField({
           name="category"
           value={category}
           onChange={(event) => setPicked(event.target.value)}
-          className="h-full max-w-[7.5rem] cursor-pointer appearance-none bg-transparent pl-2.5 pr-7 text-sm text-ink outline-none hover:bg-pen-soft focus-visible:bg-pen-soft focus-visible:outline-none"
+          className="h-full max-w-[7.5rem] cursor-pointer sm:max-w-[10.5rem] appearance-none truncate bg-transparent pl-2.5 pr-7 text-sm text-ink outline-none hover:bg-pen-soft focus-visible:bg-pen-soft focus-visible:outline-none"
         >
           {tabs.filter((option) => option.id !== ALL_IDEAS).map((option) => (
             <option key={option.id} value={option.id}>

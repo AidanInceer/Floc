@@ -24,13 +24,36 @@ describe("readIdeaCategory", () => {
   });
 
   it("keeps a member's own category, tidied and capped", () => {
-    expect(readIdeaCategory("  Day   trips ")).toBe("Day trips");
+    expect(readIdeaCategory("  Day   trips ")).toBe("Day Trips");
     expect(readIdeaCategory("x".repeat(IDEA_CATEGORY_MAX + 5))).toHaveLength(IDEA_CATEGORY_MAX);
+  });
+
+  it("capitalises the first letter of each word and lowers the rest", () => {
+    expect(readIdeaCategory("TEST")).toBe("Test");
+    expect(readIdeaCategory("beach")).toBe("Beach");
+    expect(readIdeaCategory("dAY tRIPS")).toBe("Day Trips");
+    expect(readIdeaCategory("must-see")).toBe("Must-See");
+    expect(readIdeaCategory("wine & dine")).toBe("Wine & Dine");
+    expect(readIdeaCategory("bars/pubs")).toBe("Bars/Pubs");
+  });
+
+  it("keeps an apostrophe inside its word and handles accented letters", () => {
+    expect(readIdeaCategory("KID'S CLUB")).toBe("Kid's Club");
+    expect(readIdeaCategory("école d'été")).toBe("École D'été");
+  });
+
+  it("stays within the cap when a capital is longer than its letter", () => {
+    expect(readIdeaCategory("ß".repeat(IDEA_CATEGORY_MAX)).length).toBeLessThanOrEqual(IDEA_CATEGORY_MAX);
+  });
+
+  it("reads a house category in any case as that category", () => {
+    expect(readIdeaCategory("FOOD")).toBe("food");
+    expect(readIdeaCategory("ALL")).toBe("other");
   });
 });
 
 describe("ideaCategoryLabel", () => {
-  it("names a house category and shows a member's own as written", () => {
+  it("names a house category and shows a member's own", () => {
     expect(ideaCategoryLabel("activities")).toBe("Activities");
     expect(ideaCategoryLabel("Beaches")).toBe("Beaches");
   });
