@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "9d8ab244-3fa9-4aea-a93b-200c43950dae",
-  "prevId": "e431ed3c-33c8-41aa-a93e-9c71aeed1336",
+  "id": "a361212e-6545-4a6c-960f-6b1ef4fb9ab4",
+  "prevId": "9d8ab244-3fa9-4aea-a93b-200c43950dae",
   "tables": {
     "account": {
       "name": "account",
@@ -4507,23 +4507,9 @@
           "autoincrement": false,
           "default": "'member'"
         },
-        "map_prompt_at": {
-          "name": "map_prompt_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "pack_tier": {
           "name": "pack_tier",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "pack_generated_at": {
-          "name": "pack_generated_at",
-          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -5034,13 +5020,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "signup_channel": {
-          "name": "signup_channel",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "is_private": {
           "name": "is_private",
           "type": "integer",
@@ -5096,14 +5075,6 @@
           "notNull": true,
           "autoincrement": false,
           "default": "'balanced'"
-        },
-        "pack_auto_generate": {
-          "name": "pack_auto_generate",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": true
         },
         "reduce_motion": {
           "name": "reduce_motion",
@@ -5168,13 +5139,6 @@
         },
         "booking_sites": {
           "name": "booking_sites",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "friend_code": {
-          "name": "friend_code",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -5256,13 +5220,6 @@
         }
       },
       "indexes": {
-        "user_profile_friend_code_unique": {
-          "name": "user_profile_friend_code_unique",
-          "columns": [
-            "friend_code"
-          ],
-          "isUnique": true
-        },
         "user_profile_friend_tag_unique": {
           "name": "user_profile_friend_tag_unique",
           "columns": [

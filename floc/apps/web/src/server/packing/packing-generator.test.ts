@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { db, schema } from "@/db";
@@ -55,17 +55,6 @@ async function myBag() {
 }
 
 describe("filling a bag", () => {
-  it("writes no generated mark on the membership (ADR-077)", async () => {
-    await fill();
-
-    const row = await db
-      .select()
-      .from(schema.tripMembership)
-      .where(and(eq(schema.tripMembership.tripId, world.ours.id), eq(schema.tripMembership.userId, world.admin)))
-      .get();
-    expect(row?.packGeneratedAt).toBeNull();
-  });
-
   it("still fills nothing for someone who is not on the trip", async () => {
     const added = await fillPersonalBag({
       tripId: world.ours.id,

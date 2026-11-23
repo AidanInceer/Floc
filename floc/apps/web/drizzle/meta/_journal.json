@@ -505,6 +505,13 @@
       "when": 1795457130577,
       "tag": "0071_bouncy_professor_monster",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "6",
+      "when": 1795457481653,
+      "tag": "0072_soft_millenium_guard",
+      "breakpoints": true
     }
   ]
 }

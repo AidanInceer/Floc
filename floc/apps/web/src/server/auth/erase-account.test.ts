@@ -17,8 +17,7 @@ beforeEach(async () => {
   await db.insert(schema.userProfile).values({
     userId: world.member,
     displayName: "Mo Rahman",
-    friendCode: "MO-1234",
-    signupChannel: "link",
+    friendTag: "morahman#K7M4",
   });
   await db.insert(schema.account).values({
     id: "acc-1",
@@ -68,8 +67,7 @@ describe("erasing an account", () => {
       .where(eq(schema.userProfile.userId, world.member))
       .get();
     expect(profile?.displayName).toBeNull();
-    expect(profile?.friendCode).toBeNull();
-    expect(profile?.signupChannel).toBeNull();
+    expect(profile?.friendTag).toBeNull();
   });
 
   it("withdraws consent to advertising email", async () => {

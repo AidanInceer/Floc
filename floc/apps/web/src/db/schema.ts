@@ -3,7 +3,6 @@ import {
   COUNTRY_MARK_STATES,
   DAY_EVENT_TYPES,
   REACTION_KINDS,
-  SIGNUP_CHANNELS,
   SPLIT_TYPES,
   TRANSPORT_TYPES,
 } from "@floc/core/vocabulary";
@@ -134,8 +133,6 @@ export type {
   TransportType,
 } from "@floc/core/vocabulary";
 
-export { SIGNUP_CHANNELS, type SignupChannel } from "@floc/core/vocabulary";
-
 export const VISIBILITIES = ["private", "friends", "trip_members"] as const;
 export type Visibility = (typeof VISIBILITIES)[number];
 
@@ -152,7 +149,6 @@ export const userProfile = sqliteTable("user_profile", {
     .notNull()
     .default("GBP"),
   vibeTags: text("vibe_tags", { mode: "json" }).$type<string[] | null>(),
-  signupChannel: text("signup_channel", { enum: SIGNUP_CHANNELS }),
   isPrivate: integer("is_private", { mode: "boolean" }).notNull().default(false),
   visibilityVibeTags: text("visibility_vibe_tags", { enum: VISIBILITIES })
     .notNull()
@@ -170,9 +166,6 @@ export const userProfile = sqliteTable("user_profile", {
     .notNull()
     .default("all"),
   packTier: text("pack_tier", { enum: PACK_TIERS }).notNull().default("balanced"),
-  packAutoGenerate: integer("pack_auto_generate", { mode: "boolean" })
-    .notNull()
-    .default(true),
   reduceMotion: integer("reduce_motion", { mode: "boolean" }).notNull().default(false),
   tourSeenAt: integer("tour_seen_at", { mode: "timestamp" }),
   notifyPush: integer("notify_push", { mode: "boolean" }).notNull().default(true),
@@ -182,7 +175,6 @@ export const userProfile = sqliteTable("user_profile", {
   marketingEmailConsentAt: integer("marketing_email_consent_at", { mode: "timestamp" }),
   exploreAnswers: text("explore_answers", { mode: "json" }).$type<unknown>(),
   bookingSites: text("booking_sites", { mode: "json" }).$type<unknown>(),
-  friendCode: text("friend_code").unique(),
   friendTag: text("friend_tag").unique(),
   homeAirport: text("home_airport"),
   travelCabin: text("travel_cabin", { enum: CABINS }),
@@ -380,9 +372,7 @@ export const tripMembership = sqliteTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     role: text("role", { enum: TRIP_ROLES }).notNull().default("member"),
-    mapPromptAt: integer("map_prompt_at", { mode: "timestamp" }),
     packTier: text("pack_tier", { enum: PACK_TIERS }),
-    packGeneratedAt: integer("pack_generated_at", { mode: "timestamp" }),
     packIdeasShownAt: integer("pack_ideas_shown_at", { mode: "timestamp" }),
     starredAt: integer("starred_at", { mode: "timestamp" }),
     mutedAt: integer("muted_at", { mode: "timestamp" }),
