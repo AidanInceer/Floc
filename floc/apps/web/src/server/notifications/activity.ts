@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, gte, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, gte, isNull, sql, type SQL } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 
 import { db } from "@/db";
@@ -58,7 +58,7 @@ async function recentSameChange(tx: Tx, change: Change): Promise<number | undefi
 }
 
 export function groupedActivityWrites(
-  change: Change & { tripId: number; subjectId: number },
+  change: Omit<Change, "subjectId"> & { tripId: number; subjectId: number | SQL },
   members: string[],
 ): BatchItem<"sqlite">[] {
   const recipients = recipientsFor({

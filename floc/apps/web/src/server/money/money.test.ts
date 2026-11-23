@@ -121,6 +121,46 @@ describe("writing an expense", () => {
     expect(await splitsOf(row.id)).toHaveLength(2);
   });
 
+  const addOf = (description: string, splits = [
+    { userId: world.admin, owedAmountMinor: 1500 },
+    { userId: world.member, owedAmountMinor: 1500 },
+  ]) => writeExpense({ tripId: world.ours.id, createdBy: world.admin, fields: fields({ description }), splits });
+
+  it("saves a new expense in one trip to the database (rule 2)", async () => {
+    const interactive = vi.spyOn(db, "transaction");
+    const batch = vi.spyOn(db, "batch");
+
+    await addOf("Ferry tickets");
+
+    expect(interactive).not.toHaveBeenCalled();
+    expect(batch).toHaveBeenCalledTimes(1);
+    interactive.mockRestore();
+    batch.mockRestore();
+  });
+
+  it("ties each new expense to its own splits, activity and notice", async () => {
+    await addOf("Ferry tickets");
+    await addOf("Museum");
+
+    const rows = await expensesOf(world.ours.id);
+    expect(rows).toHaveLength(2);
+    const added = await db.select().from(schema.activity).where(eq(schema.activity.kind, "expense_added")).all();
+    expect(added.map((a) => a.subjectId).sort()).toEqual(rows.map((r) => r.id).sort());
+    for (const row of rows) {
+      expect(await splitsOf(row.id)).toHaveLength(2);
+      const activityId = added.find((a) => a.subjectId === row.id)!.id;
+      const notices = await db.select().from(schema.notification).where(eq(schema.notification.activityId, activityId)).all();
+      expect(notices.map((n) => n.userId)).toContain(world.member);
+    }
+  });
+
+  it("leaves nothing behind when a new expense fails (rule 2)", async () => {
+    await expect(addOf("Ferry tickets", [{ userId: "nobody", owedAmountMinor: 3000 }])).rejects.toThrow();
+
+    expect(await expensesOf(world.ours.id)).toHaveLength(0);
+    expect(await db.select().from(schema.activity).where(eq(schema.activity.kind, "expense_added")).all()).toHaveLength(0);
+  });
+
   it("folds rapid edits into one activity and keeps a read notice read", async () => {
     const row = await seedExpense();
     const split = [
