@@ -8,27 +8,19 @@ import { signIn, signUp } from "@/lib/auth-client";
 import { isValidEmail, passwordWeakness } from "@floc/core/text/credentials";
 import { localPath } from "@floc/core/text/local-path";
 import { Button, ErrorText, Field, Input, Stack } from "@/components/system/ui";
-import { SIGNUP_CHANNELS } from "@floc/core/vocabulary";
-
 
 export function AuthForm({
   mode,
   googleEnabled,
   resetEnabled,
-  captureChannel,
 }: {
   mode: "login" | "signup";
   googleEnabled: boolean;
   resetEnabled?: boolean;
-  captureChannel?: (via: string) => Promise<void>;
 }) {
   const router = useRouter();
   const params = useSearchParams();
   const redirectTo = localPath(params.get("redirect"), "/trips");
-  const viaParam = params.get("via");
-  const via = (SIGNUP_CHANNELS as readonly string[]).includes(viaParam ?? "")
-    ? (viaParam as (typeof SIGNUP_CHANNELS)[number])
-    : null;
 
   const justReset = params.get("reset") === "1";
 
@@ -87,7 +79,6 @@ export function AuthForm({
           setError(mapAuthError(err.message));
           return;
         }
-        await captureChannel?.(via ?? "direct");
       } else {
         const { error: err } = await signIn.email({ email, password });
         if (err) {

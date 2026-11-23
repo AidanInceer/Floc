@@ -60,7 +60,6 @@ export async function upsertAccount(args: {
     displayName: args.name,
     homeCurrency: profile.currency,
     vibeTags: profile.vibes,
-    signupChannel: "direct" as const,
     tourSeenAt: args.welcomed ? new Date() : null,
     ...profile.rings,
   };

@@ -248,7 +248,6 @@ describe("answering", () => {
 
     const row = await membership(world.ours.id, world.member);
     expect(row?.deletedAt).toBeNull();
-    expect(row?.mapPromptAt).toBeNull();
   });
 
   it("records no second join for someone already on the trip", async () => {
