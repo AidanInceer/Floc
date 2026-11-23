@@ -39,7 +39,7 @@ const PROVIDER_LABELS: Record<string, string> = {
 };
 
 const accountLineClass = "flex flex-wrap items-center justify-between gap-3 py-2.5";
-const signOutClass = "-mr-2.5 inline-flex h-7 items-center gap-1.5 rounded-sm px-2.5 text-[13px] text-ink-soft hover:bg-pen-soft hover:text-pen-deep";
+const signOutClass = "-mr-2.5 inline-flex h-[31px] items-center gap-1.5 rounded-sm px-2.5 text-[13px] text-ink-soft hover:bg-pen-soft hover:text-pen-deep";
 
 const DELETE_WARNING =
   "Delete your Floc account? Trips you're the sole admin of will hand admin to their earliest-joined remaining member. Your trip content stays, under 'Deleted user', and costs already logged stay on the ledger. This can't be undone from the app.";

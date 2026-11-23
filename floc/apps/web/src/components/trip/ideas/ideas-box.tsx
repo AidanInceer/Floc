@@ -64,9 +64,9 @@ export function IdeasBox({
     setTab(found?.id ?? category);
   };
 
-  const added = (title: string, category: string) => {
+  const added = (category: string) => {
     if (tab !== ALL_IDEAS && tab.toLowerCase() !== category.toLowerCase()) setTab(category);
-    if (!open) setNotice({ text: `Added ${title}` });
+    setOpen(true);
   };
 
   const remove = (idea: IdeaRow) => {
@@ -94,7 +94,7 @@ export function IdeasBox({
 
   return (
     <section id="ideas" aria-label="Ideas" className="scroll-mt-24 rounded-md border border-rule bg-sheet shadow-card">
-      <header className="grid items-center gap-x-3.5 gap-y-2 px-4 py-3 max-sm:px-3 sm:grid-cols-[auto_minmax(0,1fr)] lg:grid-cols-[auto_minmax(14rem,1fr)_auto] xl:grid-cols-[minmax(0,1fr)_minmax(14rem,22rem)_minmax(0,1fr)]">
+      <header className="grid items-center gap-x-3.5 gap-y-2 px-4 py-3 max-sm:px-3 sm:grid-cols-[auto_minmax(0,1fr)] lg:grid-cols-[auto_minmax(14rem,22rem)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1fr)_minmax(14rem,22rem)_minmax(0,1fr)]">
         <IdeasToggle open={open} count={ideas.length} controls={foldId} onToggle={() => setOpen(!open)} />
         <IdeaAddField tripId={tripId} tab={tab} tabs={tabs} onAdded={added} />
         <div className={cx("min-w-0 max-lg:col-span-full lg:w-full", !open && "max-lg:hidden lg:invisible")}>
@@ -102,10 +102,10 @@ export function IdeasBox({
         </div>
       </header>
 
-      {notice ? <IdeaNotice key={notice.text} notice={notice} onClear={() => setNotice(null)} /> : null}
+      {notice ? <IdeaNotice key={notice.text} notice={notice} closed={!open} onClear={() => setNotice(null)} /> : null}
 
       <div id={foldId} inert={!open} className={cx("grid transition-[grid-template-rows] duration-220 ease-(--ease) motion-reduce:transition-none", open ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
-        <div className="min-h-0 overflow-hidden">
+        <div className="min-h-0 overflow-hidden rounded-b-md">
           <ul className="scroll-thin max-h-[26rem] divide-y divide-rule overflow-y-auto border-t border-rule max-sm:max-h-none max-sm:overflow-visible">
             {shown.length === 0 ? <li className="px-4 py-6 text-center text-sm text-ink-soft">Nothing here yet</li> : null}
             {shown.map((idea) => (

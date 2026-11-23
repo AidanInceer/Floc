@@ -33,7 +33,8 @@
 .notes-row:hover .notes-acts, .notes-row:focus-within .notes-acts { opacity: 1; pointer-events: auto; }
 .notes-row:hover .notes-here, .notes-row:focus-within .notes-here { visibility: hidden; }
 .notes-tool { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 4px; border-radius: var(--radius-sm); color: var(--ink-2); }
-.notes-rail-head .notes-tool, .notes-rail.is-shut .notes-tool { min-width: 26px; height: 26px; }
+.notes-rail-head .notes-tool { min-width: 31px; height: 31px; }
+.notes-rail.is-shut .notes-tool { min-width: 26px; height: 26px; }
 .notes-tool:hover { background: var(--sheet-3); color: var(--ink); }
 .notes-chev { width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; color: var(--ink-3); border-radius: 4px; }
 .notes-chev:hover { background: var(--rule); color: var(--ink); }
@@ -46,7 +47,7 @@
 }
 .notes-new { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px; border-radius: var(--radius-sm); font-size: var(--text-sm); color: var(--ink-3); }
 .notes-new:hover:not(:disabled) { background: var(--pen-2); color: var(--pen-deep); }
-.notes-rail-head .notes-new { flex: 1; width: auto; }
+.notes-rail-head .notes-new { flex: 1; width: auto; height: 31px; padding-block: 0; }
 .notes-new:disabled { opacity: 0.55; cursor: not-allowed; }
 .notes-error { padding: 4px 6px; font-size: var(--text-xs); color: var(--red); }
 .notes-archived { margin-top: 6px; }
