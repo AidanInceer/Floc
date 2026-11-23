@@ -1,6 +1,7 @@
 import "server-only";
 
-import { and, eq, gte, isNull } from "drizzle-orm";
+import { and, desc, eq, gte, isNull, sql } from "drizzle-orm";
+import type { BatchItem } from "drizzle-orm/batch";
 
 import { db } from "@/db";
 import { activity, notification, tripMembership } from "@/db/schema";
@@ -54,6 +55,49 @@ async function recentSameChange(tx: Tx, change: Change): Promise<number | undefi
     )
     .get();
   return row?.id;
+}
+
+export function groupedActivityWrites(
+  change: Change & { tripId: number; subjectId: number },
+  members: string[],
+): BatchItem<"sqlite">[] {
+  const recipients = recipientsFor({
+    kind: change.kind,
+    actorId: change.actorId,
+    affected: change.affected,
+    members,
+  });
+  const latest = db
+    .select({ id: activity.id })
+    .from(activity)
+    .where(
+      and(
+        eq(activity.actorId, change.actorId),
+        eq(activity.kind, change.kind),
+        eq(activity.tripId, change.tripId),
+        eq(activity.subjectId, change.subjectId),
+        gte(activity.lastModifiedAt, new Date(Date.now() - GROUP_WINDOW_MS)),
+        isNull(activity.deletedAt),
+      ),
+    )
+    .orderBy(desc(activity.id))
+    .limit(1);
+  const detail = change.detail ?? null;
+  const writes: BatchItem<"sqlite">[] = [
+    db.update(activity).set(touch()).where(eq(activity.id, sql`${latest}`)),
+    db.run(sql`insert into activity (kind, trip_id, actor_id, subject_id, href, detail)
+      select ${change.kind}, ${change.tripId}, ${change.actorId}, ${change.subjectId}, ${change.href}, ${detail}
+      where not exists ${latest}`),
+  ];
+  if (recipients.length === 0) return writes;
+  const rows = JSON.stringify(recipients.map((r) => ({ userId: r.userId, loud: r.loud })));
+  writes.push(
+    db.run(sql`insert into notification (activity_id, user_id, loud)
+      select ${latest}, json_extract(value, '$.userId'), json_extract(value, '$.loud')
+      from json_each(${rows}) where true
+      on conflict (activity_id, user_id) do update set last_modified_at = unixepoch()`),
+  );
+  return writes;
 }
 
 export async function recordActivity(tx: Tx, change: Change, known: KnownBefore = {}): Promise<void> {

@@ -15,7 +15,7 @@ import type { ExpenseCategory } from "@floc/core/money/expense-category";
 import { assertRoom, bounded, LIMITS } from "@/server/limits";
 import { tripHref } from "@floc/core/notifications/notification-href";
 import { touch } from "@/server/audit";
-import { liveMemberIds, recordActivity } from "@/server/notifications/activity";
+import { groupedActivityWrites, liveMemberIds, recordActivity } from "@/server/notifications/activity";
 import { ledgerPages } from "./ledger-pages";
 
 export async function listExpenses(tripId: number): Promise<Expense[]> {
@@ -85,42 +85,36 @@ export async function writeExpense(
   const { held, members } = room ?? (await readExpenseRoom(tripId, expenseId));
   if (held !== null) assertRoom("expenses", held);
 
-  await db.transaction(async (tx) => {
-    let id = expenseId;
+  const splitRows = (id: number) =>
+    splits.map((s) => ({ expenseId: id, userId: s.userId, owedAmountMinor: s.owedAmountMinor }));
+  const change = (subjectId: number) => ({
+    tripId,
+    actorId: createdBy,
+    subjectId,
+    href: tripHref(tripId, "money"),
+    affected: splits.map((s) => s.userId),
+  });
 
-    if (id === undefined) {
-      const [row] = await tx
-        .insert(expense)
-        .values({ tripId, createdBy, ...fields })
-        .returning({ id: expense.id });
-      id = row.id;
-    } else {
-      await tx
-        .update(expense)
-        .set({ ...fields, ...touch() })
-        .where(eq(expense.id, id));
-      await tx
+  if (expenseId !== undefined) {
+    await db.batch([
+      db.update(expense).set({ ...fields, ...touch() }).where(eq(expense.id, expenseId)),
+      db
         .update(expenseSplit)
         .set({ deletedAt: new Date(), ...touch() })
-        .where(and(eq(expenseSplit.expenseId, id), isNull(expenseSplit.deletedAt)));
-    }
+        .where(and(eq(expenseSplit.expenseId, expenseId), isNull(expenseSplit.deletedAt))),
+      db.insert(expenseSplit).values(splitRows(expenseId)),
+      ...groupedActivityWrites({ kind: "expense_changed", ...change(expenseId) }, members),
+    ]);
+    return;
+  }
 
-    await tx.insert(expenseSplit).values(
-      splits.map((s) => ({
-        expenseId: id!,
-        userId: s.userId,
-        owedAmountMinor: s.owedAmountMinor,
-      })),
-    );
-
-    await recordActivity(tx, {
-      kind: expenseId === undefined ? "expense_added" : "expense_changed",
-      tripId,
-      actorId: createdBy,
-      subjectId: id,
-      href: tripHref(tripId, "money"),
-      affected: splits.map((s) => s.userId),
-    }, { members, fresh: expenseId === undefined });
+  await db.transaction(async (tx) => {
+    const [row] = await tx
+      .insert(expense)
+      .values({ tripId, createdBy, ...fields })
+      .returning({ id: expense.id });
+    await tx.insert(expenseSplit).values(splitRows(row.id));
+    await recordActivity(tx, { kind: "expense_added", ...change(row.id) }, { members, fresh: true });
   });
 }
 
