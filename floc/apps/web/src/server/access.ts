@@ -3,7 +3,7 @@ import "server-only";
 
 import { Refusal } from "@floc/core/errors/refusal";
 
-import { and, eq, inArray, isNull, or } from "drizzle-orm";
+import { and, eq, getTableColumns, inArray, isNull, or } from "drizzle-orm";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
@@ -16,6 +16,7 @@ import {
   document,
   expense,
   packingLine,
+  storedFile,
   trip,
   tripMembership,
   user,
@@ -80,7 +81,7 @@ export type TripAccess = {
   expense: (expenseId: number) => Promise<typeof expense.$inferSelect>;
   note: (noteId: number) => Promise<typeof comment.$inferSelect>;
   packingLine: (lineId: number) => Promise<typeof packingLine.$inferSelect>;
-  document: (documentId: number) => Promise<typeof document.$inferSelect>;
+  document: (documentId: number) => Promise<typeof document.$inferSelect & { storageKey: string; mimeType: string; sizeBytes: number }>;
 };
 
 export type TripMember = {
@@ -225,8 +226,14 @@ const resolvePackingLine = cache(
 const resolveDocument = cache(
   async (tripId: number, viewerId: string, documentId: number) => {
     return db
-      .select()
+      .select({
+        ...getTableColumns(document),
+        storageKey: storedFile.storageKey,
+        mimeType: storedFile.mimeType,
+        sizeBytes: storedFile.sizeBytes,
+      })
       .from(document)
+      .innerJoin(storedFile, eq(storedFile.id, document.storedFileId))
       .where(
         and(
           eq(document.id, documentId),

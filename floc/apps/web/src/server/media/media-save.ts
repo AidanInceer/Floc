@@ -8,6 +8,8 @@ import { canUseFeature } from "@/server/billing/entitlements";
 import { documentsEnabled } from "@/server/documents/document-store";
 import { refresh } from "@/server/freshness";
 import { LIMITS } from "@/server/limits";
+import { releaseBytes } from "@/server/documents/stored-file";
+
 import { insertMedia, liveMedia, mediaHeld, placeIsOnTrip, softDeleteMedia } from "./media-rows";
 import {
   dropFile, dropMediaFiles, keepAs, mediaPath, newMediaKey, receiveUpload,
@@ -145,6 +147,6 @@ export async function removeMedia(access: Access, mediaId: number): Promise<void
   if (access.trip.archivedAt) throw new Refusal("This trip is archived.");
   if (row.uploadedBy !== access.viewer.id) throw new Refusal("Only the person who added it can delete it.");
   await softDeleteMedia(row.id);
-  await dropMediaFiles(row.storageKey);
+  await releaseBytes([row.storageKey], dropMediaFiles);
   changed(access.trip.id);
 }

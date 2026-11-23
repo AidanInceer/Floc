@@ -25,6 +25,7 @@ import { saveAlertSettings, setMarketingEmailConsent } from "@/server/notificati
 import { archivedKeysOwnedBy } from "@/server/documents/archive/archive-rows";
 import { waitingKeysOwnedBy } from "@/server/documents/bookings/booking-inbox-rows";
 import { documentsEnabled, dropDocument } from "@/server/documents/document-store";
+import { releaseBytes, storageKeysOf } from "@/server/documents/stored-file";
 import { eraseMediaBy } from "@/server/media/media-rows";
 import { dropMediaFiles } from "@/server/media/media-store";
 import { handOverAndLeaveAllTrips } from "@/server/trips/roster";
@@ -111,11 +112,11 @@ export async function eraseAccount(userId: string): Promise<void> {
       .where(
         and(eq(document.ownerId, userId), isNull(document.deletedAt)),
       )
-      .returning({ storageKey: document.storageKey })
+      .returning({ storedFileId: document.storedFileId })
       .all();
   });
 
-  await Promise.all([...privateFiles.map((file) => file.storageKey), ...archivedKeys].map(dropDocument));
+  await releaseBytes([...(await storageKeysOf(privateFiles)), ...archivedKeys], dropDocument, now);
   const mediaKeys = await eraseMediaBy(userId, now);
-  if (documentsEnabled()) await Promise.all(mediaKeys.map(dropMediaFiles));
+  if (documentsEnabled()) await releaseBytes(mediaKeys, dropMediaFiles, now);
 }

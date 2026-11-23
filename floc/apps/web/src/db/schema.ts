@@ -600,6 +600,15 @@ export const packingClaim = sqliteTable(
   ],
 );
 
+export const storedFile = sqliteTable("stored_file", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  storageKey: text("storage_key").notNull().unique(),
+  mimeType: text("mime_type").notNull(),
+  sizeBytes: integer("size_bytes").notNull(),
+  bytesDeletedAt: integer("bytes_deleted_at", { mode: "timestamp" }),
+  ...audit,
+});
+
 export const document = sqliteTable(
   "document",
   {
@@ -612,9 +621,10 @@ export const document = sqliteTable(
       .references(() => user.id),
     ownerId: text("owner_id").references(() => user.id),
     name: text("name").notNull(),
-    storageKey: text("storage_key").notNull(),
-    mimeType: text("mime_type").notNull(),
-    sizeBytes: integer("size_bytes").notNull(),
+    storedFileId: integer("stored_file_id").references(() => storedFile.id),
+    retiredStorageKey: text("storage_key").notNull(),
+    retiredMimeType: text("mime_type").notNull(),
+    retiredSizeBytes: integer("size_bytes").notNull(),
     category: text("category", { enum: DOC_CATEGORIES })
       .notNull()
       .default("other"),
@@ -630,6 +640,7 @@ export const document = sqliteTable(
     index("document_owner_idx").on(t.tripId, t.ownerId),
     index("document_day_idx").on(t.dayId),
     index("document_day_event_idx").on(t.dayEventId),
+    index("document_stored_file_idx").on(t.storedFileId),
   ],
 );
 
@@ -645,9 +656,10 @@ export const tripMedia = sqliteTable(
       .notNull()
       .references(() => user.id),
     kind: text("kind", { enum: MEDIA_KINDS }).notNull(),
-    storageKey: text("storage_key").notNull(),
-    mimeType: text("mime_type").notNull(),
-    sizeBytes: integer("size_bytes").notNull(),
+    storedFileId: integer("stored_file_id").references(() => storedFile.id),
+    retiredStorageKey: text("storage_key").notNull(),
+    retiredMimeType: text("mime_type").notNull(),
+    retiredSizeBytes: integer("size_bytes").notNull(),
     width: integer("width"),
     height: integer("height"),
     durationSeconds: integer("duration_seconds"),
@@ -656,6 +668,7 @@ export const tripMedia = sqliteTable(
   (t) => [
     index("trip_media_trip_idx").on(t.tripId),
     index("trip_media_place_idx").on(t.placeId),
+    index("trip_media_stored_file_idx").on(t.storedFileId),
   ],
 );
 
@@ -667,9 +680,10 @@ export const bookingInbox = sqliteTable(
       .notNull()
       .references(() => user.id),
     name: text("name").notNull(),
-    storageKey: text("storage_key").notNull(),
-    mimeType: text("mime_type").notNull(),
-    sizeBytes: integer("size_bytes").notNull(),
+    storedFileId: integer("stored_file_id").references(() => storedFile.id),
+    retiredStorageKey: text("storage_key").notNull(),
+    retiredMimeType: text("mime_type").notNull(),
+    retiredSizeBytes: integer("size_bytes").notNull(),
     category: text("category", { enum: DOC_CATEGORIES })
       .notNull()
       .default("other"),
@@ -677,7 +691,10 @@ export const bookingInbox = sqliteTable(
     placedAt: integer("placed_at", { mode: "timestamp" }),
     ...audit,
   },
-  (t) => [index("booking_inbox_user_idx").on(t.userId, t.createdAt)],
+  (t) => [
+    index("booking_inbox_user_idx").on(t.userId, t.createdAt),
+    index("booking_inbox_stored_file_idx").on(t.storedFileId),
+  ],
 );
 
 export const inboundMail = sqliteTable(

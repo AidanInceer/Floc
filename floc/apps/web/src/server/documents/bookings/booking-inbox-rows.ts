@@ -8,8 +8,9 @@ import type { DatedTrip } from "@floc/core/documents/booking/booking-trip";
 import type { DocCategory } from "@floc/core/documents/documents";
 
 import { db } from "@/db";
-import { bookingInbox, trip, tripMembership } from "@/db/schema";
+import { bookingInbox, storedFile, trip, tripMembership } from "@/db/schema";
 import { touch } from "@/server/audit";
+import { fileColumns, linkTo } from "@/server/documents/stored-file";
 import { LIMITS } from "@/server/limits";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -22,14 +23,13 @@ export async function waitingRows(userId: string, now: Date, id?: number) {
     .select({
       id: bookingInbox.id,
       name: bookingInbox.name,
-      storageKey: bookingInbox.storageKey,
-      mimeType: bookingInbox.mimeType,
-      sizeBytes: bookingInbox.sizeBytes,
+      ...fileColumns,
       category: bookingInbox.category,
       bookingDetails: bookingInbox.bookingDetails,
       createdAt: bookingInbox.createdAt,
     })
     .from(bookingInbox)
+    .innerJoin(storedFile, eq(storedFile.id, bookingInbox.storedFileId))
     .where(and(waiting(userId, now), id === undefined ? undefined : eq(bookingInbox.id, id)))
     .orderBy(desc(bookingInbox.createdAt), desc(bookingInbox.id))
     .limit(BOOKING_INBOX_FILES)
@@ -38,8 +38,9 @@ export async function waitingRows(userId: string, now: Date, id?: number) {
 
 export async function waitingUsage(userId: string, now: Date): Promise<{ files: number; bytes: number }> {
   const row = await db
-    .select({ files: count(), bytes: sum(bookingInbox.sizeBytes).mapWith(Number) })
+    .select({ files: count(), bytes: sum(storedFile.sizeBytes).mapWith(Number) })
     .from(bookingInbox)
+    .innerJoin(storedFile, eq(storedFile.id, bookingInbox.storedFileId))
     .where(waiting(userId, now))
     .get();
   return { files: row?.files ?? 0, bytes: row?.bytes ?? 0 };
@@ -54,8 +55,12 @@ export async function insertWaiting(input: {
   category: DocCategory;
   bookingDetails: string | null;
 }): Promise<number> {
-  const row = await db.insert(bookingInbox).values(input).returning({ id: bookingInbox.id }).get();
-  return row.id;
+  const { storageKey, mimeType, sizeBytes, ...waitingFile } = input;
+  return db.transaction(async (tx) => {
+    const file = await linkTo({ storageKey, mimeType, sizeBytes }, tx);
+    const row = await tx.insert(bookingInbox).values({ ...waitingFile, ...file }).returning({ id: bookingInbox.id }).get();
+    return row.id;
+  });
 }
 
 export async function closeWaiting(userId: string, id: number, placed: boolean): Promise<boolean> {
@@ -84,8 +89,9 @@ async function everyKey(where: ReturnType<typeof and>): Promise<string[]> {
   const keys: string[] = [];
   for (let page = 0; page < MAX_PAGES; page += 1) {
     const rows = await db
-      .select({ storageKey: bookingInbox.storageKey })
+      .select({ storageKey: storedFile.storageKey })
       .from(bookingInbox)
+      .innerJoin(storedFile, eq(storedFile.id, bookingInbox.storedFileId))
       .where(where)
       .orderBy(asc(bookingInbox.id))
       .limit(PAGE)

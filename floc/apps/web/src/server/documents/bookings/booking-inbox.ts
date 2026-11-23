@@ -15,6 +15,7 @@ import { LIMITS } from "@/server/limits";
 import { documentsEnabled, dropDocument, hasDocument, putDocument } from "../document-store";
 import { countDocuments, insertDocument } from "../documents";
 import { storageUsage } from "../storage-quota";
+import { releaseBytes } from "../stored-file";
 import {
   closeWaiting, insertWaiting, keysPastTheMonth, reopenWaiting, tripsToPlaceIn, waitingRows, waitingUsage,
 } from "./booking-inbox-rows";
@@ -131,7 +132,7 @@ export async function placeWaitingBooking(userId: string, id: number, tripId: nu
 export async function removeWaitingBooking(userId: string, id: number, now = new Date()): Promise<void> {
   const [row] = await waitingRows(userId, now, id);
   if (!row || !(await closeWaiting(userId, row.id, false))) return;
-  await dropDocument(row.storageKey);
+  await releaseBytes([row.storageKey], dropDocument, now);
   refresh({ kind: "bookings" });
 }
 
@@ -142,6 +143,6 @@ export async function tripsForPlacing(userId: string) {
 export async function purgeWaitingBookings(now = new Date()): Promise<number> {
   if (!documentsEnabled()) return 0;
   const keys = await keysPastTheMonth(now);
-  await Promise.all(keys.map(dropDocument));
+  await releaseBytes(keys, dropDocument, now);
   return keys.length;
 }

@@ -3,7 +3,7 @@ import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db } from "@/db";
 import { day, dayEvent, document, expense, packingLine, place } from "@/db/schema";
-import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { fileFields, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { loadTripLinkItems } from "./trip-link-items";
 
 let world: Scenario;
@@ -24,7 +24,7 @@ describe("loadTripLinkItems", () => {
       { tripId: world.ours.id, createdBy: world.admin, label: "Plug adapters", ownerId: world.admin },
       { tripId: world.ours.id, createdBy: world.admin, label: "Walking shoes" },
     ]);
-    await db.insert(document).values({ tripId: world.ours.id, uploadedBy: world.member, name: "Boarding passes", storageKey: "k", mimeType: "application/pdf", sizeBytes: 1 });
+    await db.insert(document).values({ tripId: world.ours.id, uploadedBy: world.member, name: "Boarding passes", ...(await fileFields("k")) });
 
     const items = await loadTripLinkItems(world.ours.id);
     expect(items.map((item) => [item.kind, item.label, item.detail])).toEqual([

@@ -9,6 +9,7 @@ import { webPort } from "@/server/api-port/api-port";
 
 import {
   expectNotFound,
+  fileFields,
   migrateTestDb,
   resetDb,
   seedScenario,
@@ -303,9 +304,10 @@ describe("the trip's storage quota (#285)", () => {
   });
 
   it("refuses a file once the trip holds as many as Floc keeps, and writes nothing", async () => {
-    await db.insert(schema.document).values(Array.from({ length: LIMITS.documents }, (_, i) => ({
+    const files = await Promise.all(Array.from({ length: LIMITS.documents }, (_, i) => fileFields(`seeded-${i}`)));
+    await db.insert(schema.document).values(files.map((file, i) => ({
       tripId: world.ours.id, uploadedBy: world.admin, ownerId: null, name: `f${i}.pdf`,
-      storageKey: `seeded-${i}`, mimeType: "application/pdf", sizeBytes: 1, category: "other" as const,
+      ...file, category: "other" as const,
     })));
     expect(await uploadDocument(world.ours.id, form("shared"))).toEqual({ error: "This trip is holding as many files as it can" });
     expect(await usedBytes(world.ours.id)).toBe(LIMITS.documents);

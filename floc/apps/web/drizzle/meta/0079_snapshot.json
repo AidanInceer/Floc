@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "141ae58b-f09d-4c5a-9a95-9c827aa982b8",
-  "prevId": "6692a49f-b0a7-4922-9f65-d9c5ca4b9c18",
+  "id": "ae229cfc-8ff9-4d06-b08e-a83cffa0219e",
+  "prevId": "141ae58b-f09d-4c5a-9a95-9c827aa982b8",
   "tables": {
     "account": {
       "name": "account",
@@ -523,6 +523,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "stored_file_id": {
+          "name": "stored_file_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "storage_key": {
           "name": "storage_key",
           "type": "text",
@@ -598,6 +605,13 @@
             "created_at"
           ],
           "isUnique": false
+        },
+        "booking_inbox_stored_file_idx": {
+          "name": "booking_inbox_stored_file_idx",
+          "columns": [
+            "stored_file_id"
+          ],
+          "isUnique": false
         }
       },
       "foreignKeys": {
@@ -607,6 +621,19 @@
           "tableTo": "user",
           "columnsFrom": [
             "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "booking_inbox_stored_file_id_stored_file_id_fk": {
+          "name": "booking_inbox_stored_file_id_stored_file_id_fk",
+          "tableFrom": "booking_inbox",
+          "tableTo": "stored_file",
+          "columnsFrom": [
+            "stored_file_id"
           ],
           "columnsTo": [
             "id"
@@ -1203,6 +1230,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "stored_file_id": {
+          "name": "stored_file_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "storage_key": {
           "name": "storage_key",
           "type": "text",
@@ -1306,6 +1340,13 @@
             "day_event_id"
           ],
           "isUnique": false
+        },
+        "document_stored_file_idx": {
+          "name": "document_stored_file_idx",
+          "columns": [
+            "stored_file_id"
+          ],
+          "isUnique": false
         }
       },
       "foreignKeys": {
@@ -1341,6 +1382,19 @@
           "tableTo": "user",
           "columnsFrom": [
             "owner_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "document_stored_file_id_stored_file_id_fk": {
+          "name": "document_stored_file_id_stored_file_id_fk",
+          "tableFrom": "document",
+          "tableTo": "stored_file",
+          "columnsFrom": [
+            "stored_file_id"
           ],
           "columnsTo": [
             "id"
@@ -3882,6 +3936,82 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+    "stored_file": {
+      "name": "stored_file",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "storage_key": {
+          "name": "storage_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "mime_type": {
+          "name": "mime_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "size_bytes": {
+          "name": "size_bytes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "bytes_deleted_at": {
+          "name": "bytes_deleted_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "last_modified_at": {
+          "name": "last_modified_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "stored_file_storage_key_unique": {
+          "name": "stored_file_storage_key_unique",
+          "columns": [
+            "storage_key"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "subscription": {
       "name": "subscription",
       "columns": {
@@ -4589,6 +4719,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "stored_file_id": {
+          "name": "stored_file_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "storage_key": {
           "name": "storage_key",
           "type": "text",
@@ -4669,6 +4806,13 @@
             "place_id"
           ],
           "isUnique": false
+        },
+        "trip_media_stored_file_idx": {
+          "name": "trip_media_stored_file_idx",
+          "columns": [
+            "stored_file_id"
+          ],
+          "isUnique": false
         }
       },
       "foreignKeys": {
@@ -4704,6 +4848,19 @@
           "tableTo": "user",
           "columnsFrom": [
             "uploaded_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "trip_media_stored_file_id_stored_file_id_fk": {
+          "name": "trip_media_stored_file_id_stored_file_id_fk",
+          "tableFrom": "trip_media",
+          "tableTo": "stored_file",
+          "columnsFrom": [
+            "stored_file_id"
           ],
           "columnsTo": [
             "id"
