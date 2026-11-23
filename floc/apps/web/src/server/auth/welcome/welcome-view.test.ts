@@ -27,6 +27,11 @@ describe("the welcome a new person sees (#707)", () => {
     expect(await welcomeView({ id: world.member, name: "Mo" }, [])).toBeNull();
   });
 
+  it("uses a welcome state the page already read", async () => {
+    const read = { due: false, currency: "GBP" as const, answers: { vibeTags: [] } };
+    expect(await welcomeView({ id: world.member, name: "Mo" }, [], null, read)).toBeNull();
+  });
+
   it("guesses the currency from the country and offers its airports", async () => {
     request.headers = new Headers({ "cf-ipcountry": "IE" });
     const view = await welcomeView({ id: world.member, name: "Mo" }, [{ id: world.admin, name: "Ada" }], "Ours");
