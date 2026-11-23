@@ -9,6 +9,7 @@ import { anonymous, bearer } from "better-auth/plugins";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 import { requireInProduction } from "@/lib/env";
+import { AGENT_CLOSED_PATHS, withAgentAccess } from "@/server/auth/agent-access";
 import { dropUnprovenPassword } from "@/server/auth/link-guard";
 import { accountMail } from "@/server/auth/mail/mail-cap";
 
@@ -22,9 +23,11 @@ export const enabledProviders = {
 
 const MOBILE_SCHEME = process.env.FLOC_MOBILE_SCHEME ?? "floc";
 
+export const AUTH_BASE_URL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
+
 export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
-  plugins: [
+  baseURL: AUTH_BASE_URL,
+  plugins: withAgentAccess(AUTH_BASE_URL, [
     bearer(),
     expo(),
     anonymous({
@@ -35,8 +38,8 @@ export const auth = betterAuth({
       },
     }),
     nextCookies(),
-  ],
-  disabledPaths: ["/sign-in/anonymous"],
+  ]),
+  disabledPaths: ["/sign-in/anonymous", ...AGENT_CLOSED_PATHS],
   trustedOrigins: [
     `${MOBILE_SCHEME}://`,
     ...(process.env.FLOC_LAN_ORIGIN ? [process.env.FLOC_LAN_ORIGIN] : []),
@@ -49,6 +52,14 @@ export const auth = betterAuth({
       session: schema.session,
       account: schema.account,
       verification: schema.verification,
+      jwks: schema.jwks,
+      oauthClient: schema.oauthClient,
+      oauthResource: schema.oauthResource,
+      oauthClientResource: schema.oauthClientResource,
+      oauthRefreshToken: schema.oauthRefreshToken,
+      oauthAccessToken: schema.oauthAccessToken,
+      oauthConsent: schema.oauthConsent,
+      oauthClientAssertion: schema.oauthClientAssertion,
     },
   }),
   emailAndPassword: {

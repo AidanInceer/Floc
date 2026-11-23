@@ -58,6 +58,18 @@ const person = (id: string) =>
   db.select().from(schema.user).where(eq(schema.user.id, id)).get();
 
 describe("erasing an account", () => {
+  it("cuts off every app the person connected (#354)", async () => {
+    const clientId = "https://agent.example/client.json";
+    await db.insert(schema.oauthClient).values({ id: "c1", clientId, redirectUris: "[]" });
+    await db.insert(schema.oauthConsent).values({ id: "o1", clientId, userId: world.member, scopes: "[]" });
+    await db.insert(schema.oauthRefreshToken).values({ id: "r1", token: "rt", clientId, userId: world.member, scopes: "[]" });
+    await db.insert(schema.oauthAccessToken).values({ id: "a1", token: "at", clientId, userId: world.member, scopes: "[]" });
+    await eraseAccount(world.member);
+    expect(await db.select().from(schema.oauthConsent).where(eq(schema.oauthConsent.userId, world.member))).toEqual([]);
+    expect(await db.select().from(schema.oauthRefreshToken).where(eq(schema.oauthRefreshToken.userId, world.member))).toEqual([]);
+    expect(await db.select().from(schema.oauthAccessToken).where(eq(schema.oauthAccessToken.userId, world.member))).toEqual([]);
+  });
+
   it("keeps the row that the ledger points at, with nothing personal on it", async () => {
     await eraseAccount(world.member);
 

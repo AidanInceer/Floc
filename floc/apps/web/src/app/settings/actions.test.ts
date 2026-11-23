@@ -1,10 +1,12 @@
-import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { db, schema } from "@/db";
+import { listConnectedApps } from "@/server/auth/connected-apps";
 import { readPrivacy } from "@/server/auth/privacy";
 import { readTravelStyle } from "@/server/auth/travel-style";
 import { migrateTestDb, resetDb, seedScenario, signIn, type Scenario } from "@/test/db";
 
-import { updatePrivacy } from "./actions";
+import { disconnectConnectedApp, updatePrivacy } from "./actions";
 
 let world: Scenario;
 
@@ -31,6 +33,31 @@ beforeEach(async () => {
   await resetDb();
   world = await seedScenario();
   signIn(world.member);
+});
+
+describe("connected apps (#354)", () => {
+  const clientId = "https://agent.example/client.json";
+
+  beforeEach(async () => {
+    await db.insert(schema.oauthClient).values({ id: "c1", clientId, name: "Trip agent", redirectUris: "[]" });
+    await db.insert(schema.oauthConsent).values([
+      { id: "o1", clientId, userId: world.member, scopes: "[]" },
+      { id: "o2", clientId, userId: world.admin, scopes: "[]" },
+    ]);
+  });
+
+  it("disconnects an app for the signed-in person only", async () => {
+    await disconnectConnectedApp(form({ clientId }));
+    expect(await listConnectedApps(world.member)).toEqual([]);
+    expect(await listConnectedApps(world.admin)).toHaveLength(1);
+  });
+
+  it("says so when the app could not be disconnected", async () => {
+    const failing = vi.spyOn(db, "transaction").mockRejectedValueOnce(new Error("database is busy"));
+    expect(await disconnectConnectedApp(form({ clientId }))).toEqual({ error: "Could not disconnect. Try again." });
+    failing.mockRestore();
+    expect(await listConnectedApps(world.member)).toHaveLength(1);
+  });
 });
 
 describe("privacy", () => {

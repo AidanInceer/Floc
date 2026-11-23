@@ -568,6 +568,13 @@
       "when": 1795465661310,
       "tag": "0080_drop_moved_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "6",
+      "when": 1795474300519,
+      "tag": "0081_handy_whiplash",
+      "breakpoints": true
     }
   ]
 }

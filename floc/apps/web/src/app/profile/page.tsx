@@ -1,4 +1,5 @@
 import { requireUser } from "@/server/access";
+import { listConnectedApps } from "@/server/auth/connected-apps";
 import { readPrivacy } from "@/server/auth/privacy";
 import { ensureProfile } from "@/server/auth/profile";
 import { readTravelStyle } from "@/server/auth/travel-style";
@@ -28,13 +29,14 @@ export default async function ProfilePage({
   const viewer = await requireUser(asked.section ? `/profile?section=${asked.section}` : "/profile");
   const proOff = allFeaturesFree();
 
-  const [profile, privacy, alerts, style, linkedAccounts, calendarGranted, pro, estimate] = await Promise.all([
+  const [profile, privacy, alerts, style, linkedAccounts, calendarGranted, connectedApps, pro, estimate] = await Promise.all([
     ensureProfile(viewer.id),
     readPrivacy(viewer.id),
     readAlertSettings(viewer.id),
     readTravelStyle(viewer.id),
     listSignInMethods(viewer.id),
     hasCalendarAccess(viewer.id),
+    listConnectedApps(viewer.id),
     proOff
       ? Promise.resolve(null)
       : Promise.all([subscriptionOf(viewer.id), proPrices()]).then(([subscription, prices]) => ({ subscription, prices })),
@@ -72,6 +74,7 @@ export default async function ProfilePage({
             styleInGroupIdeas={style.styleInGroupIdeas}
             linkedAccounts={linkedAccounts}
             calendarGranted={calendarGranted}
+            connectedApps={connectedApps}
             pro={pro}
             opened={settingsSectionFor(asked, proOff)}
             billing={asked.billing}

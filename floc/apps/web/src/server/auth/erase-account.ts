@@ -9,6 +9,9 @@ import {
   document,
   exploreSave,
   friendship,
+  oauthAccessToken,
+  oauthConsent,
+  oauthRefreshToken,
   packingKit,
   packingLine,
   pushToken,
@@ -65,6 +68,9 @@ export async function eraseAccount(userId: string): Promise<void> {
     await setMarketingEmailConsent(userId, false, now, tx);
     await saveTravelStyle(userId, { homeAirport: null, travelCabin: null, travelStay: null, travelPace: null, styleInGroupIdeas: false }, tx);
 
+    await tx.delete(oauthAccessToken).where(eq(oauthAccessToken.userId, userId));
+    await tx.delete(oauthRefreshToken).where(eq(oauthRefreshToken.userId, userId));
+    await tx.delete(oauthConsent).where(eq(oauthConsent.userId, userId));
     await tx.delete(session).where(eq(session.userId, userId));
     await tx.delete(account).where(eq(account.userId, userId));
     await tx.delete(pushToken).where(eq(pushToken.userId, userId));
