@@ -19,13 +19,14 @@ import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
 import { readTripMark } from "@floc/core/trip/mark/trip-mark";
 import { readTags } from "@floc/core/trip/tags";
 import { markedUserIds } from "@floc/core/dates/availability";
-import { hasEnded, nightsBetween, today, underway } from "@floc/core/dates/dates";
+import { hasEnded, nightsBetween, today } from "@floc/core/dates/dates";
 import { tripLegs } from "@floc/core/trip/overview/legs";
-import { ideasTucked } from "@floc/core/trip/ideas";
+import { ideasStartOpen } from "@floc/core/trip/ideas";
 import { overviewRoute } from "@floc/core/trip/overview/route";
 import { recapShows } from "@floc/core/trip/overview/recap";
-import { IdeasPanel } from "@/components/trip/ideas/ideas-panel";
+import { IdeasBox } from "@/components/trip/ideas/ideas-box";
 import { IdeasRow } from "@/components/trip/ideas/ideas-row";
+import { IdeasWaiting } from "@/components/trip/ideas/ideas-waiting";
 import { OverviewCard } from "@/components/trip/overview/overview-card";
 import { OverviewFiles } from "@/components/trip/overview/overview-files";
 import { shortPlace } from "@floc/core/itinerary/names/place-name";
@@ -94,7 +95,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
     ]);
 
   const { days: dayRows, routeDays, transport } = tripDays;
-  const { datesUnset, unresolved } = tripStateFor({
+  const { unresolved } = tripStateFor({
     trip,
     members,
     viewerId: viewer.id,
@@ -118,7 +119,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
   const position = expenseRows.length === 0 ? null : yourPosition(settle.rows, viewer.id);
   const color = readTripColor(trip.colorKey);
   const tone = tripPastel(color, tripId);
-  const tucked = ideasTucked({ days: routeDays, today: underway(trip, now) });
+  const ideasOpen = ideasStartOpen({ startDate: trip.startDate, endDate: trip.endDate, days: routeDays });
   const marked = markedUserIds(availabilityRows);
   const nudges = await nudgeTargetsFor(access, NUDGE_TASKS, {
     markedUserIds: marked,
@@ -168,7 +169,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
                   <StreamedEstimate tripId={tripId} estimate={estimate} />
                 </Suspense>
               }
-              ideas={tucked ? <IdeasRow tripId={tripId} ideas={ideas} unvoted={nudges.ideas} /> : null}
+              ideas={ideasOpen ? null : <IdeasRow ideas={ideas} />}
               recap={recapShows(trip.endDate, now) ? (
                 <RecapFoot
                   tripId={tripId}
@@ -196,7 +197,14 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
         </div>
       </section>
 
-      {tucked ? null : <IdeasPanel tripId={tripId} ideas={ideas} datesUnset={datesUnset} unvoted={nudges.ideas} />}
+      <IdeasBox
+        tripId={tripId}
+        ideas={ideas}
+        days={routeDays.map((d) => ({ id: d.dayId, date: d.date, place: d.placeName }))}
+        startOpen={ideasOpen}
+        waiting={<IdeasWaiting tripId={tripId} unvoted={nudges.ideas} />}
+      />
+
 
       <OverviewStops
         tripId={tripId}

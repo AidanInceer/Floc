@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "eab05eb7-8f58-4eff-9f80-d1c801cb8a31",
-  "prevId": "2af9624d-8dd0-40d4-ae66-1a709c12f7a6",
+  "id": "80d1837c-e842-497e-a884-a40c3ccba81a",
+  "prevId": "eab05eb7-8f58-4eff-9f80-d1c801cb8a31",
   "tables": {
     "account": {
       "name": "account",
@@ -1854,6 +1854,20 @@
           "notNull": true,
           "autoincrement": false
         },
+        "category": {
+          "name": "category",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "day_event_id": {
+          "name": "day_event_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "integer",
@@ -1912,6 +1926,19 @@
             "id"
           ],
           "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "idea_day_event_id_day_event_id_fk": {
+          "name": "idea_day_event_id_day_event_id_fk",
+          "tableFrom": "idea",
+          "tableTo": "day_event",
+          "columnsFrom": [
+            "day_event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
