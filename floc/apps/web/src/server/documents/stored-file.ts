@@ -22,12 +22,7 @@ export async function linkTo(file: FileFacts, on: Pick<typeof db, "insert"> = db
     .onConflictDoUpdate({ target: storedFile.storageKey, set: { lastModifiedAt: new Date() } })
     .returning({ id: storedFile.id })
     .get();
-  return {
-    storedFileId: row.id,
-    retiredStorageKey: file.storageKey,
-    retiredMimeType: file.mimeType,
-    retiredSizeBytes: file.sizeBytes,
-  };
+  return { storedFileId: row.id };
 }
 
 export async function storageKeysOf(links: { storedFileId: number | null }[]): Promise<string[]> {

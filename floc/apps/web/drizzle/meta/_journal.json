@@ -561,6 +561,13 @@
       "when": 1795463116964,
       "tag": "0079_fantastic_joseph",
       "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "6",
+      "when": 1795465661310,
+      "tag": "0080_drop_moved_columns",
+      "breakpoints": true
     }
   ]
 }

@@ -209,16 +209,12 @@ async function planDolomites(
     {
       tripId,
       createdBy: mei,
-      retiredScope: "day_event",
-      retiredScopeId: events[1].id,
       dayEventId: events[1].id,
       body: "Ruth lands an hour later — can we hold the bus or does she taxi up?",
     },
     {
       tripId,
       createdBy: callum,
-      retiredScope: "day_event",
-      retiredScopeId: lastEvent,
       dayEventId: lastEvent,
       body: "Reminder that I am not paying for anybody's lift pass again.",
     },
