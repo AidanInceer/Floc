@@ -285,9 +285,6 @@ importers:
       stripe:
         specifier: ^22.6.0
         version: 22.6.0(@types/node@22.20.1)
-      undici:
-        specifier: ^7.30.1
-        version: 7.30.1
       unpdf:
         specifier: ^2.1.0
         version: 2.1.0
@@ -14801,7 +14798,8 @@ snapshots:
 
   undici-types@7.24.6: {}
 
-  undici@7.30.1: {}
+  undici@7.30.1:
+    optional: true
 
   unicode-canonical-property-names-ecmascript@2.0.1: {}
 

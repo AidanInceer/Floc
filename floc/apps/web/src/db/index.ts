@@ -2,7 +2,6 @@ import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 
 import { requireInProduction } from "../lib/env.ts";
-import { databaseFetch } from "./database-fetch.ts";
 import * as schema from "./schema.ts";
 
 if (typeof window !== "undefined") {
@@ -14,7 +13,6 @@ if (typeof window !== "undefined") {
 const client = createClient({
   url: requireInProduction("TURSO_DATABASE_URL", "file:./local.db"),
   authToken: process.env.TURSO_AUTH_TOKEN,
-  fetch: databaseFetch,
 });
 
 export const db = drizzle(client, { schema });
