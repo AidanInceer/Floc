@@ -435,10 +435,15 @@ function eventValues(input: EventFields) {
   };
 }
 
-export async function insertEvent(dayId: number, input: EventFields, countSoFar?: number): Promise<number> {
+export async function insertEvent(
+  dayId: number,
+  input: EventFields,
+  countSoFar?: number,
+  client: Pick<typeof db, "insert"> = db,
+): Promise<number> {
   const count = countSoFar ?? (await eventCount(dayId));
   assertRoom("eventsPerDay", count);
-  const row = await db
+  const row = await client
     .insert(dayEvent)
     .values({ dayId, orderIndex: count, ...eventValues(input) })
     .returning({ id: dayEvent.id })

@@ -1,12 +1,11 @@
 import type { AvatarIcon } from "../people/avatar-icon";
 
-export const IDEA_SORTS = ["votes", "newest"] as const;
-export type IdeaSort = (typeof IDEA_SORTS)[number];
-export const IDEA_SORT_LABELS: Record<IdeaSort, string> = { votes: "Most votes", newest: "Newest" };
+export type IdeaSort = "votes" | "newest";
 
 export type IdeaRow = {
   id: number;
   title: string;
+  category: string;
   createdAt: Date;
   authorId: string;
   authorName: string;
@@ -15,11 +14,14 @@ export type IdeaRow = {
   mine: boolean;
 };
 
-export function readIdeaSort(value: unknown): IdeaSort {
-  return (IDEA_SORTS as readonly unknown[]).includes(value)
-    ? (value as IdeaSort)
-    : "votes";
-}
+export const IDEA_TIMES: readonly { time: string | null; label: string }[] = [
+  { time: null, label: "No time" },
+  { time: "09:00", label: "Morning" },
+  { time: "13:00", label: "Lunch" },
+  { time: "15:00", label: "Afternoon" },
+  { time: "19:30", label: "Dinner" },
+  { time: "22:00", label: "Late" },
+];
 
 export function sortIdeas(rows: readonly IdeaRow[], sort: IdeaSort): IdeaRow[] {
   const newest = (a: IdeaRow, b: IdeaRow) =>
@@ -34,8 +36,16 @@ export function voteLabel(votes: number, mine: boolean): string {
   return mine ? `${count}, yours included` : count;
 }
 
-export function ideasTucked({ days, today }: { days: readonly { overnightPlaceId: number | null }[]; today: boolean }): boolean {
-  return today || days.some((d) => d.overnightPlaceId !== null);
+export function ideasStartOpen({
+  startDate,
+  endDate,
+  days,
+}: {
+  startDate: string | null;
+  endDate: string | null;
+  days: readonly { overnightPlaceId: number | null }[];
+}): boolean {
+  return !(startDate && endDate && days.some((d) => d.overnightPlaceId !== null));
 }
 
 export function steadyOrder(seen: readonly number[], now: readonly number[]): number[] {

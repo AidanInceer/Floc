@@ -457,6 +457,8 @@ export const idea = sqliteTable(
       .notNull()
       .references(() => user.id),
     title: text("title").notNull(),
+    category: text("category"),
+    dayEventId: integer("day_event_id").references((): AnySQLiteColumn => dayEvent.id, { onDelete: "set null" }),
     ...audit,
   },
   (t) => [index("idea_trip_idx").on(t.tripId)],
