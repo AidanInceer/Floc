@@ -74,7 +74,7 @@
     "y-indexeddb": "^9.0.12",
     "y-protocols": "^1.0.7",
     "yjs": "^13.6.32",
-    "zod": "^4.6.7",
+    "zod": "^4.6.6",
     "zxing-wasm": "^3.1.6"
   },
   "devDependencies": {
