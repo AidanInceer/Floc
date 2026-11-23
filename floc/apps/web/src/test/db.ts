@@ -51,6 +51,7 @@ const TABLES = [
   schema.tripMembership,
   schema.billingCustomer,
   schema.subscription,
+  schema.tripPageState,
   schema.tripPage,
   schema.trip,
   schema.place,

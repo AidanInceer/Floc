@@ -2,7 +2,8 @@ import { eq } from "drizzle-orm";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db } from "@/db";
-import { note, noteReaction, tripPage } from "@/db/schema";
+import { note, noteReaction, tripPage, tripPageState } from "@/db/schema";
+import { storePageState } from "@/server/notes/live/page-live-store";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { purgeArchivedPages } from "./page-purge";
 
@@ -50,6 +51,18 @@ describe("purgeArchivedPages", () => {
     expect(notes).toEqual(expect.arrayContaining([kept, dayComment]));
     expect(notes).not.toContain(gone);
     expect(await db.select().from(noteReaction).where(eq(noteReaction.noteId, gone)).all()).toEqual([]);
+  });
+
+  it("takes an archived page's live editor state with it (ADR-017)", async () => {
+    const old = await page(world.ours.id, null);
+    const kept = await page(world.ours.id, null);
+    await storePageState(world.ours.id, old, world.admin, new Uint8Array([1, 2, 3]), "{}");
+    await storePageState(world.ours.id, kept, world.admin, new Uint8Array([4, 5]), "{}");
+    await db.update(tripPage).set({ archivedAt: ago(7) }).where(eq(tripPage.id, old));
+
+    await purgeArchivedPages(now);
+
+    expect((await db.select({ pageId: tripPageState.pageId }).from(tripPageState).all()).map((row) => row.pageId)).toEqual([kept]);
   });
 
   it("keeps a sub-page restored on its own, lifted to the top", async () => {

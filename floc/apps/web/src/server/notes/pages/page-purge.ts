@@ -2,7 +2,7 @@ import "server-only";
 import { and, eq, inArray, isNotNull, isNull, lte } from "drizzle-orm";
 
 import { db } from "@/db";
-import { note, noteReaction, tripPage } from "@/db/schema";
+import { note, noteReaction, tripPage, tripPageState } from "@/db/schema";
 import { ARCHIVE_DAYS } from "@floc/core/notes/pages/page-rules";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -22,6 +22,7 @@ export async function purgeArchivedPages(now = new Date()): Promise<number> {
     const comments = tx.select({ id: note.id }).from(note).where(and(eq(note.scope, "page"), inArray(note.scopeId, ids)));
     await tx.delete(noteReaction).where(inArray(noteReaction.noteId, comments));
     await tx.delete(note).where(and(eq(note.scope, "page"), inArray(note.scopeId, ids)));
+    await tx.delete(tripPageState).where(inArray(tripPageState.pageId, ids));
     await tx.delete(tripPage).where(inArray(tripPage.id, ids));
   });
   return ids.length;

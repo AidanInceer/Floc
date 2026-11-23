@@ -462,6 +462,14 @@ export const tripPage = sqliteTable(
   (t) => [index("trip_page_trip_idx").on(t.tripId, t.parentId)],
 );
 
+export const tripPageState = sqliteTable("trip_page_state", {
+  pageId: integer("page_id")
+    .primaryKey()
+    .references(() => tripPage.id, { onDelete: "cascade" }),
+  yjsState: blob("yjs_state", { mode: "buffer" }).notNull(),
+  ...audit,
+});
+
 export const idea = sqliteTable(
   "idea",
   {
