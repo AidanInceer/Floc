@@ -94,7 +94,7 @@ export function IdeasBox({
 
   return (
     <section id="ideas" aria-label="Ideas" className="scroll-mt-24 rounded-md border border-rule bg-sheet shadow-card">
-      <header className="grid items-center gap-x-3.5 gap-y-2 px-4 py-3 max-sm:px-3 sm:grid-cols-[auto_minmax(0,1fr)] lg:grid-cols-[auto_minmax(14rem,1fr)_auto] xl:grid-cols-[minmax(0,1fr)_minmax(14rem,22rem)_minmax(0,1fr)]">
+      <header className="grid items-center gap-x-3.5 gap-y-2 px-4 py-3 max-sm:px-3 sm:grid-cols-[auto_minmax(0,1fr)] lg:grid-cols-[auto_minmax(14rem,22rem)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1fr)_minmax(14rem,22rem)_minmax(0,1fr)]">
         <IdeasToggle open={open} count={ideas.length} controls={foldId} onToggle={() => setOpen(!open)} />
         <IdeaAddField tripId={tripId} tab={tab} tabs={tabs} onAdded={added} />
         <div className={cx("min-w-0 max-lg:col-span-full lg:w-full", !open && "max-lg:hidden lg:invisible")}>

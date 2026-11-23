@@ -29,7 +29,7 @@ export function useEdgeFade<T extends HTMLElement>() {
 
   const mask = edgeMask(edges);
   const style: CSSProperties | undefined = mask ? { maskImage: mask, WebkitMaskImage: mask } : undefined;
-  return { ref, onScroll: measure, style };
+  return { ref, onScroll: measure, style, edges, measure };
 }
 
 function edgeMask({ start, end }: { start: boolean; end: boolean }): string | null {
