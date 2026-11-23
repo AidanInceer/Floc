@@ -1056,6 +1056,14 @@ export const subscription = sqliteTable(
   ],
 );
 
+export const billingCustomer = sqliteTable("billing_customer", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+  stripeCustomerId: text("stripe_customer_id").notNull().unique(),
+  ...audit,
+});
+
 export const analyticsEvent = sqliteTable(
   "analytics_event",
   {

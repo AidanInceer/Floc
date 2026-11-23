@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "a361212e-6545-4a6c-960f-6b1ef4fb9ab4",
-  "prevId": "9d8ab244-3fa9-4aea-a93b-200c43950dae",
+  "id": "578a8d35-c1a7-4889-979d-37133196296b",
+  "prevId": "a361212e-6545-4a6c-960f-6b1ef4fb9ab4",
   "tables": {
     "account": {
       "name": "account",
@@ -415,6 +415,75 @@
         "availability_user_id_user_id_fk": {
           "name": "availability_user_id_user_id_fk",
           "tableFrom": "availability",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "billing_customer": {
+      "name": "billing_customer",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "stripe_customer_id": {
+          "name": "stripe_customer_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "last_modified_at": {
+          "name": "last_modified_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "billing_customer_stripe_customer_id_unique": {
+          "name": "billing_customer_stripe_customer_id_unique",
+          "columns": [
+            "stripe_customer_id"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "billing_customer_user_id_user_id_fk": {
+          "name": "billing_customer_user_id_user_id_fk",
+          "tableFrom": "billing_customer",
           "tableTo": "user",
           "columnsFrom": [
             "user_id"
