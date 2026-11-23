@@ -60,7 +60,7 @@ export async function placeIsOnTrip(tripId: number, placeId: number): Promise<bo
   return Boolean(row);
 }
 
-type NewMedia = Omit<typeof tripMedia.$inferInsert, "storedFileId" | "retiredStorageKey" | "retiredMimeType" | "retiredSizeBytes"> & FileFacts;
+type NewMedia = Omit<typeof tripMedia.$inferInsert, "storedFileId"> & FileFacts;
 
 export function insertMedia(values: NewMedia) {
   const { storageKey, mimeType, sizeBytes, ...shownOn } = values;
