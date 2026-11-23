@@ -3,9 +3,8 @@ import "server-only";
 import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
-import { estimateOverride, tripMembership, userProfile } from "@/db/schema";
+import { estimateOverride, tripMemberBudget, userProfile } from "@/db/schema";
 import { touch } from "@/server/audit";
-import { liveMembership } from "@/server/trips/roster";
 import type { Currency } from "@floc/core/money/currency";
 import type { EstimateLine } from "@floc/core/money/estimate/lines";
 import type { Cabin, Pace, StayStyle, StyleChoice } from "@floc/core/money/estimate/style";
@@ -27,16 +26,16 @@ export async function readEstimateChoices(tripId: number, userId: string): Promi
   const [member, rows] = await Promise.all([
     db
       .select({
-        cabin: tripMembership.estCabin,
-        stay: tripMembership.estStay,
-        pace: tripMembership.estPace,
-        nights: tripMembership.estNights,
-        travel: tripMembership.estTravel,
-        budgetMinor: tripMembership.budgetMinor,
-        budgetCurrency: tripMembership.budgetCurrency,
+        cabin: tripMemberBudget.estCabin,
+        stay: tripMemberBudget.estStay,
+        pace: tripMemberBudget.estPace,
+        nights: tripMemberBudget.estNights,
+        travel: tripMemberBudget.estTravel,
+        budgetMinor: tripMemberBudget.budgetMinor,
+        budgetCurrency: tripMemberBudget.budgetCurrency,
       })
-      .from(tripMembership)
-      .where(liveMembership(tripId, userId))
+      .from(tripMemberBudget)
+      .where(and(eq(tripMemberBudget.tripId, tripId), eq(tripMemberBudget.userId, userId), isNull(tripMemberBudget.deletedAt)))
       .get(),
     db
       .select({ line: estimateOverride.line, figure: estimateOverride.figureMinor, budget: estimateOverride.budgetMinor, currency: estimateOverride.currency, notNeeded: estimateOverride.notNeeded })
@@ -63,11 +62,23 @@ export async function setTripStyle(tripId: number, userId: string, choice: Style
       ...(choice.stay !== undefined && { estStay: choice.stay }),
       ...(choice.pace !== undefined && { estPace: choice.pace }),
     };
-  await db.update(tripMembership).set({ ...set, ...touch() }).where(liveMembership(tripId, userId));
+  await keepPlan(db, tripId, userId, set);
+}
+
+type Plan = Partial<Pick<typeof tripMemberBudget.$inferInsert, "estCabin" | "estStay" | "estPace" | "estNights" | "estTravel" | "budgetMinor" | "budgetCurrency">>;
+
+async function keepPlan(tx: Pick<typeof db, "insert">, tripId: number, userId: string, plan: Plan): Promise<void> {
+  await tx
+    .insert(tripMemberBudget)
+    .values({ tripId, userId, ...plan })
+    .onConflictDoUpdate({
+      target: [tripMemberBudget.tripId, tripMemberBudget.userId],
+      set: { ...plan, deletedAt: null, ...touch() },
+    });
 }
 
 export async function setTripNights(tripId: number, userId: string, nights: number | null): Promise<void> {
-  await db.update(tripMembership).set({ estNights: nights, ...touch() }).where(liveMembership(tripId, userId));
+  await keepPlan(db, tripId, userId, { estNights: nights });
 }
 
 export async function setTripTravel(tripId: number, userId: string, travel: TravelMode): Promise<void> {
@@ -75,10 +86,7 @@ export async function setTripTravel(tripId: number, userId: string, travel: Trav
   if ((held.travel ?? "flights") === travel) return;
   const row = held.own.flights;
   await db.transaction(async (tx) => {
-    await tx
-      .update(tripMembership)
-      .set({ estTravel: travel === "flights" ? null : travel, ...touch() })
-      .where(liveMembership(tripId, userId));
+    await keepPlan(tx, tripId, userId, { estTravel: travel === "flights" ? null : travel });
     if (!row) return;
     const gone = row.budget == null && !row.notNeeded;
     await tx
@@ -89,10 +97,7 @@ export async function setTripTravel(tripId: number, userId: string, travel: Trav
 }
 
 export async function setBudget(tripId: number, userId: string, budget: Money | null): Promise<void> {
-  await db
-    .update(tripMembership)
-    .set({ budgetMinor: budget?.amountMinor ?? null, budgetCurrency: budget?.currency ?? null, ...touch() })
-    .where(liveMembership(tripId, userId));
+  await keepPlan(db, tripId, userId, { budgetMinor: budget?.amountMinor ?? null, budgetCurrency: budget?.currency ?? null });
 }
 
 export async function setOwnLine(

@@ -392,6 +392,27 @@ export const tripMembership = sqliteTable(
   ],
 );
 
+export const tripMemberBudget = sqliteTable(
+  "trip_member_budget",
+  {
+    tripId: integer("trip_id")
+      .notNull()
+      .references(() => trip.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    estCabin: text("est_cabin", { enum: CABINS }),
+    estStay: text("est_stay", { enum: STAY_STYLES }),
+    estPace: text("est_pace", { enum: PACES }),
+    estNights: integer("est_nights"),
+    estTravel: text("est_travel", { enum: TRAVEL_MODES }),
+    budgetMinor: integer("budget_minor"),
+    budgetCurrency: text("budget_currency", { enum: CURRENCIES }),
+    ...audit,
+  },
+  (t) => [primaryKey({ columns: [t.tripId, t.userId] })],
+);
+
 export const TRIP_INVITE_STATUSES = ["pending", "accepted", "declined"] as const;
 export type TripInviteStatus = (typeof TRIP_INVITE_STATUSES)[number];
 

@@ -12,6 +12,7 @@ import {
   setTripStyle,
   setTripTravel,
 } from "@/server/money/estimate/estimate-store";
+import { addMember, removeMembership } from "@/server/trips/roster";
 
 let world: Scenario;
 
@@ -89,6 +90,23 @@ describe("a member's own estimate choices", () => {
     expect((await readEstimateChoices(world.ours.id, world.admin)).own.food?.notNeeded).toBe(true);
     await setOwnLine(world.ours.id, world.admin, "food", { notNeeded: false }, "GBP");
     expect((await readEstimateChoices(world.ours.id, world.admin)).own.food).toBeUndefined();
+  });
+
+  it("keep a member's plan through leaving the trip and joining again", async () => {
+    await setBudget(world.ours.id, world.member, { amountMinor: 90000, currency: "GBP" });
+    await setTripStyle(world.ours.id, world.member, { stay: "high" });
+    await setTripNights(world.ours.id, world.member, 4);
+    await setTripTravel(world.ours.id, world.member, "train");
+
+    await removeMembership(world.ours.id, world.member, world.admin);
+    await addMember(world.ours.id, world.member);
+
+    expect(await readEstimateChoices(world.ours.id, world.member)).toMatchObject({
+      style: { cabin: null, stay: "high", pace: null },
+      nights: 4,
+      travel: "train",
+      budget: { amountMinor: 90000, currency: "GBP" },
+    });
   });
 
   it("clear the budget", async () => {
