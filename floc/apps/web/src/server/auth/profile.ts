@@ -6,7 +6,7 @@ import { cache } from "react";
 
 import { db } from "@/db";
 import { user, userProfile } from "@/db/schema";
-import type { Currency, SignupChannel, UserProfile } from "@/db/schema";
+import type { Currency, UserProfile } from "@/db/schema";
 import { refresh, type Fact } from "@/server/freshness";
 
 export async function getProfile(
@@ -17,17 +17,11 @@ export async function getProfile(
 
 export const readProfile = cache(getProfile);
 
-export async function ensureProfile(
-  userId: string,
-  seed?: { signupChannel?: SignupChannel | null },
-): Promise<UserProfile> {
+export async function ensureProfile(userId: string): Promise<UserProfile> {
   const existing = await getProfile(userId);
   if (existing) return existing;
 
-  await db
-    .insert(userProfile)
-    .values({ userId, signupChannel: seed?.signupChannel ?? null })
-    .onConflictDoNothing();
+  await db.insert(userProfile).values({ userId }).onConflictDoNothing();
 
   const created = await getProfile(userId);
   if (!created) throw new Error("Could not create the user profile");

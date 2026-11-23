@@ -13,7 +13,7 @@ export const inviteTrip = cache(async (token: string) => {
 export function inviteAuthHrefs(token: string) {
   const back = `/invite/${token}/join`;
   return {
-    signUpHref: `/signup?redirect=${encodeURIComponent(back)}&via=link`,
+    signUpHref: `/signup?redirect=${encodeURIComponent(back)}`,
     signInHref: `/login?redirect=${encodeURIComponent(back)}`,
   };
 }

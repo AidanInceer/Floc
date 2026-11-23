@@ -42,7 +42,6 @@ export async function addMember(tripId: number, userId: string): Promise<void> {
         set: {
           role: sql`CASE WHEN ${tripMembership.deletedAt} IS NULL THEN ${tripMembership.role} ELSE 'member' END`,
           deletedAt: null,
-          mapPromptAt: null,
           lastModifiedAt: new Date(),
         },
       });
@@ -60,7 +59,7 @@ export async function addMember(tripId: number, userId: string): Promise<void> {
 async function markRemoved(tx: Tx, tripId: number, userId: string, by: string): Promise<boolean> {
   const gone = await tx
     .update(tripMembership)
-    .set({ deletedAt: new Date(), mapPromptAt: new Date(), ...touch() })
+    .set({ deletedAt: new Date(), ...touch() })
     .where(liveMembership(tripId, userId))
     .returning({ userId: tripMembership.userId })
     .all();

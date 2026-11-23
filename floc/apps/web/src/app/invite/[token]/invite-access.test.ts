@@ -94,8 +94,8 @@ describe("where the link sends somebody", () => {
     expect(inviteTokenIn("/invite/abc/other")).toBeNull();
   });
 
-  it("marks a sign-up that arrived on a link", () => {
-    expect(inviteAuthHrefs("abc").signUpHref).toContain("via=link");
+  it("records no sign-up channel on the link", () => {
+    expect(inviteAuthHrefs("abc").signUpHref).not.toContain("via=");
   });
 
   it("escapes a token rather than letting it shape the URL", () => {

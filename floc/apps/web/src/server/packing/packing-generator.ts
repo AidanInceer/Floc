@@ -100,7 +100,7 @@ async function fillInTransaction(args: FillArgs, only?: string): Promise<number>
 
     const marked = await tx
       .update(tripMembership)
-      .set({ packGeneratedAt: new Date(), lastModifiedAt: new Date() })
+      .set({ lastModifiedAt: new Date() })
       .where(membership)
       .returning({ tripId: tripMembership.tripId })
       .all();

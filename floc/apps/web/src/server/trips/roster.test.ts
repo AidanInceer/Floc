@@ -61,7 +61,12 @@ describe("the roster", () => {
 
     const row = await membership(world.ours.id, world.member);
     expect(row?.deletedAt).toBeNull();
-    expect(row?.mapPromptAt).toBeNull();
+  });
+
+  it("writes no map prompt when someone leaves (ADR-054)", async () => {
+    await removeMembership(world.ours.id, world.member, world.member);
+
+    expect((await membership(world.ours.id, world.member))?.mapPromptAt).toBeNull();
   });
 
   it("brings a removed admin back as a member", async () => {
