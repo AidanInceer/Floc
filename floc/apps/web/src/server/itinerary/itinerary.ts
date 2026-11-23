@@ -13,7 +13,7 @@ import { capRequiredText, capText } from "@floc/core/text/text";
 import { assertRoom, bounded, LIMITS } from "@/server/limits";
 import { touch } from "@/server/audit";
 import { refresh } from "@/server/freshness";
-import { groupedActivityWrites, liveMemberIds, recordActivity, type Tx } from "@/server/notifications/activity";
+import { groupedActivityWrites, liveMemberIds, recordActivity } from "@/server/notifications/activity";
 import { tripHref } from "@floc/core/notifications/notification-href";
 import type { TripPatch } from "@/server/trips/trips";
 
@@ -107,7 +107,7 @@ export async function setTripWindow(
     db.update(expense).set({ dayId: null }).where(inArray(expense.dayId, surplus)),
     db.update(dayEvent).set(gone).where(and(inArray(dayEvent.dayId, surplus), isNull(dayEvent.deletedAt))),
     db.update(day).set(gone).where(inArray(day.id, surplus)),
-    ...(dates.length ? ensureDayWrites(db, tripId, dates) : []),
+    ...(dates.length ? ensureDayWrites(tripId, dates) : []),
     ...groupedActivityWrites(
       {
         kind: "trip_dates_changed",
@@ -289,42 +289,33 @@ export async function firstOvernightPlaceByTrip(
   return out;
 }
 
-type DayWriter = Pick<Tx, "select" | "insert" | "update">;
-
-function ensureDayWrites(run: DayWriter, tripId: number, dates: string[]) {
+function ensureDayWrites(tripId: number, dates: string[]) {
   const now = new Date();
   const removedDay = and(eq(day.tripId, tripId), inArray(day.date, dates), isNotNull(day.deletedAt));
   return [
-    run
+    db
       .update(dayEvent)
       .set({ deletedAt: now, lastModifiedAt: now })
       .where(
         and(
-          inArray(dayEvent.dayId, run.select({ id: day.id }).from(day).where(removedDay)),
+          inArray(dayEvent.dayId, db.select({ id: day.id }).from(day).where(removedDay)),
           isNull(dayEvent.deletedAt),
         ),
       ),
-    run
+    db
       .update(day)
       .set({ deletedAt: null, overnightPlaceId: null, lastModifiedAt: now })
       .where(removedDay),
-    run
+    db
       .insert(day)
       .values(dates.map((date) => ({ tripId, date })))
       .onConflictDoNothing(),
   ] as const;
 }
 
-export async function ensureDays(
-  tripId: number,
-  dates: string[],
-  run: DayWriter = db,
-): Promise<void> {
+export async function ensureDays(tripId: number, dates: string[]): Promise<void> {
   if (dates.length === 0) return;
-  const [blankEvents, reviveDays, addMissing] = ensureDayWrites(run, tripId, dates);
-  await blankEvents;
-  await reviveDays;
-  await addMissing;
+  await db.batch(ensureDayWrites(tripId, dates));
 }
 
 export async function setOvernightPlaceOn(
@@ -554,7 +545,8 @@ export async function extendTripDays(
     dates.push(cursor);
   }
   if (dates.length === 0) return;
-  const held = new Set(await liveDayDates(target.id));
+  const [heldDates, members] = await Promise.all([liveDayDates(target.id), liveMemberIds(db, target.id)]);
+  const held = new Set(heldDates);
   assertRoom("days", held.size, dates.filter((d) => !held.has(d)).length);
 
   const last = dates[dates.length - 1];
@@ -564,23 +556,23 @@ export async function extendTripDays(
     if (problem) throw new Refusal(problem);
   }
 
-  await db.transaction(async (tx) => {
-    await ensureDays(target.id, dates, tx);
-    if (movesTheWindow) {
-      await tx
-        .update(trip)
-        .set({ endDate: last, ...touch() })
-        .where(and(eq(trip.id, target.id), isNull(trip.deletedAt)));
-    }
-    await recordActivity(tx, {
-      kind: "days_added",
-      tripId: target.id,
-      actorId: by,
-      subjectId: null,
-      href: tripHref(target.id, "days"),
-      affected: [],
-    });
-  });
+  await db.batch([
+    ...ensureDayWrites(target.id, dates),
+    ...(movesTheWindow
+      ? [db.update(trip).set({ endDate: last, ...touch() }).where(and(eq(trip.id, target.id), isNull(trip.deletedAt)))]
+      : []),
+    ...groupedActivityWrites(
+      {
+        kind: "days_added",
+        tripId: target.id,
+        actorId: by,
+        subjectId: null,
+        href: tripHref(target.id, "days"),
+        affected: [],
+      },
+      members,
+    ),
+  ]);
 
   refresh({ kind: movesTheWindow ? "tripWindow" : "itinerary", tripId: target.id });
 }

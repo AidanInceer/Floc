@@ -333,6 +333,30 @@ describe("extendTripDays", () => {
       .get();
   }
 
+  it("adds days in one trip to the database (rule 2)", async () => {
+    const trip = { id: world.ours.id, startDate: "2026-09-01", endDate: "2026-09-01" };
+    await db.update(schema.trip).set({ startDate: trip.startDate, endDate: trip.endDate }).where(eq(schema.trip.id, trip.id));
+    const interactive = vi.spyOn(db, "transaction");
+    const batch = vi.spyOn(db, "batch");
+
+    await extendTripDays(trip, "2026-09-01", 2, world.admin);
+
+    expect(interactive).not.toHaveBeenCalled();
+    expect(batch).toHaveBeenCalledTimes(1);
+    interactive.mockRestore();
+    batch.mockRestore();
+  });
+
+  it("leaves the days and the window whole when adding days fails (rule 2)", async () => {
+    const trip = { id: world.ours.id, startDate: "2026-09-01", endDate: "2026-09-01" };
+    await db.update(schema.trip).set({ startDate: trip.startDate, endDate: trip.endDate }).where(eq(schema.trip.id, trip.id));
+
+    await expect(extendTripDays(trip, "2026-09-01", 2, "nobody")).rejects.toThrow();
+
+    expect((await listDays(trip.id)).map((d) => d.date)).toEqual(["2026-09-01"]);
+    expect(await windowOf(trip.id)).toEqual({ startDate: "2026-09-01", endDate: "2026-09-01" });
+  });
+
   it("appends the days and moves the end date out with them", async () => {
     const trip = { id: world.ours.id, startDate: "2026-09-01", endDate: "2026-09-01" };
     await db
