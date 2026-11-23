@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "80d1837c-e842-497e-a884-a40c3ccba81a",
-  "prevId": "eab05eb7-8f58-4eff-9f80-d1c801cb8a31",
+  "id": "a361212e-6545-4a6c-960f-6b1ef4fb9ab4",
+  "prevId": "9d8ab244-3fa9-4aea-a93b-200c43950dae",
   "tables": {
     "account": {
       "name": "account",
@@ -109,13 +109,13 @@
           ],
           "isUnique": false
         },
-        "account_provider_idx": {
-          "name": "account_provider_idx",
+        "account_provider_account_idx": {
+          "name": "account_provider_account_idx",
           "columns": [
             "provider_id",
             "account_id"
           ],
-          "isUnique": false
+          "isUnique": true
         }
       },
       "foreignKeys": {
@@ -1370,6 +1370,15 @@
             "expense_id"
           ],
           "isUnique": false
+        },
+        "expense_split_live_person_idx": {
+          "name": "expense_split_live_person_idx",
+          "columns": [
+            "expense_id",
+            "user_id"
+          ],
+          "isUnique": true,
+          "where": "deleted_at IS NULL"
         }
       },
       "foreignKeys": {
@@ -1679,6 +1688,13 @@
           "autoincrement": false,
           "default": "'request'"
         },
+        "requested_by": {
+          "name": "requested_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "integer",
@@ -1709,6 +1725,14 @@
           "columns": [
             "user_id",
             "friend_id"
+          ],
+          "isUnique": true
+        },
+        "friendship_one_per_pair_idx": {
+          "name": "friendship_one_per_pair_idx",
+          "columns": [
+            "min(user_id, friend_id)",
+            "max(user_id, friend_id)"
           ],
           "isUnique": true
         },
@@ -1745,6 +1769,19 @@
             "id"
           ],
           "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "friendship_requested_by_user_id_fk": {
+          "name": "friendship_requested_by_user_id_fk",
+          "tableFrom": "friendship",
+          "tableTo": "user",
+          "columnsFrom": [
+            "requested_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -3139,6 +3176,14 @@
             "provider_id"
           ],
           "isUnique": false
+        },
+        "place_live_provider_idx": {
+          "name": "place_live_provider_idx",
+          "columns": [
+            "provider_id"
+          ],
+          "isUnique": true,
+          "where": "provider_id IS NOT NULL AND deleted_at IS NULL"
         }
       },
       "foreignKeys": {},
@@ -4462,23 +4507,9 @@
           "autoincrement": false,
           "default": "'member'"
         },
-        "map_prompt_at": {
-          "name": "map_prompt_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "pack_tier": {
           "name": "pack_tier",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "pack_generated_at": {
-          "name": "pack_generated_at",
-          "type": "integer",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -4989,13 +5020,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "signup_channel": {
-          "name": "signup_channel",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "is_private": {
           "name": "is_private",
           "type": "integer",
@@ -5051,14 +5075,6 @@
           "notNull": true,
           "autoincrement": false,
           "default": "'balanced'"
-        },
-        "pack_auto_generate": {
-          "name": "pack_auto_generate",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": true
         },
         "reduce_motion": {
           "name": "reduce_motion",
@@ -5123,13 +5139,6 @@
         },
         "booking_sites": {
           "name": "booking_sites",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "friend_code": {
-          "name": "friend_code",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -5211,13 +5220,6 @@
         }
       },
       "indexes": {
-        "user_profile_friend_code_unique": {
-          "name": "user_profile_friend_code_unique",
-          "columns": [
-            "friend_code"
-          ],
-          "isUnique": true
-        },
         "user_profile_friend_tag_unique": {
           "name": "user_profile_friend_tag_unique",
           "columns": [
@@ -5716,6 +5718,17 @@
     "columns": {}
   },
   "internal": {
-    "indexes": {}
+    "indexes": {
+      "friendship_one_per_pair_idx": {
+        "columns": {
+          "min(user_id, friend_id)": {
+            "isExpression": true
+          },
+          "max(user_id, friend_id)": {
+            "isExpression": true
+          }
+        }
+      }
+    }
   }
 }

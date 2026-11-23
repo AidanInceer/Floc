@@ -1,7 +1,7 @@
 import type { AvatarIcon } from "@floc/core/people/avatar-icon";
 import "server-only";
 
-import { and, count, eq, inArray, isNull, lt, ne, or } from "drizzle-orm";
+import { and, count, eq, inArray, isNotNull, isNull, lt, ne, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { db } from "@/db";
 import {
@@ -87,7 +87,13 @@ export type FriendshipRow = {
   friendId: string;
   status: string;
   origin: string;
+  requestedBy: string | null;
 };
+
+const requesterOf = (row: { userId: string; requestedBy: string | null }) =>
+  row.requestedBy ?? row.userId;
+
+const requesterColumn = sql<string>`coalesce(${friendship.requestedBy}, ${friendship.userId})`;
 
 export async function listFriendshipsFor(
   viewerId: string,
@@ -98,6 +104,7 @@ export async function listFriendshipsFor(
       friendId: friendship.friendId,
       status: friendship.status,
       origin: friendship.origin,
+      requestedBy: friendship.requestedBy,
     })
     .from(friendship)
     .where(
@@ -114,8 +121,8 @@ export async function listFriendshipsFor(
 export function splitFriendships(rows: FriendshipRow[], viewerId: string) {
   return {
     accepted: rows.filter((r) => r.status === "accepted"),
-    incoming: rows.filter((r) => r.status === "pending" && r.friendId === viewerId),
-    outgoing: rows.filter((r) => r.status === "pending" && r.userId === viewerId),
+    incoming: rows.filter((r) => r.status === "pending" && requesterOf(r) !== viewerId),
+    outgoing: rows.filter((r) => r.status === "pending" && requesterOf(r) === viewerId),
   };
 }
 
@@ -194,7 +201,8 @@ export async function countIncomingFriendRequests(
       and(
         isNull(friendship.deletedAt),
         eq(friendship.status, "pending"),
-        eq(friendship.friendId, viewerId),
+        or(eq(friendship.userId, viewerId), eq(friendship.friendId, viewerId)),
+        ne(requesterColumn, viewerId),
       ),
     )
     .get();
@@ -217,6 +225,7 @@ export async function friendStatesFor(
       userId: friendship.userId,
       friendId: friendship.friendId,
       status: friendship.status,
+      requestedBy: friendship.requestedBy,
     })
     .from(friendship)
     .where(
@@ -234,7 +243,7 @@ export async function friendStatesFor(
       otherId,
       r.status === "accepted"
         ? "friends"
-        : r.userId === viewerId
+        : requesterOf(r) === viewerId
           ? "outgoing"
           : "incoming",
     );
@@ -272,14 +281,15 @@ export async function coTripNameFor(
   return ended[0]?.name ?? shared[0]?.name ?? null;
 }
 
-function eitherWay(a: string, b: string) {
-  return and(
-    isNull(friendship.deletedAt),
-    or(
-      and(eq(friendship.userId, a), eq(friendship.friendId, b)),
-      and(eq(friendship.userId, b), eq(friendship.friendId, a)),
-    ),
+function samePair(a: string, b: string) {
+  return or(
+    and(eq(friendship.userId, a), eq(friendship.friendId, b)),
+    and(eq(friendship.userId, b), eq(friendship.friendId, a)),
   );
+}
+
+function eitherWay(a: string, b: string) {
+  return and(isNull(friendship.deletedAt), samePair(a, b));
 }
 
 export async function findUserById(userId: string) {
@@ -299,24 +309,22 @@ export async function openPendingRequest(
   targetId: string,
   origin: FriendshipOrigin = "request",
 ): Promise<void> {
+  const [lo, hi] = viewerId < targetId ? [viewerId, targetId] : [targetId, viewerId];
   await db.transaction(async (tx) => {
     await tx
       .insert(friendship)
-      .values({
-        userId: viewerId,
-        friendId: targetId,
+      .values({ userId: lo, friendId: hi, status: "pending", origin, requestedBy: viewerId })
+      .onConflictDoNothing();
+    await tx
+      .update(friendship)
+      .set({
         status: "pending",
         origin,
+        requestedBy: viewerId,
+        deletedAt: null,
+        lastModifiedAt: new Date(),
       })
-      .onConflictDoUpdate({
-        target: [friendship.userId, friendship.friendId],
-        set: {
-          status: "pending",
-          origin,
-          deletedAt: null,
-          lastModifiedAt: new Date(),
-        },
-      });
+      .where(and(samePair(viewerId, targetId), isNotNull(friendship.deletedAt)));
     await recordActivity(tx, {
       kind: "friend_requested",
       tripId: null,
@@ -330,8 +338,8 @@ export async function openPendingRequest(
 
 function pendingRequest(requesterId: string, addresseeId: string) {
   return and(
-    eq(friendship.userId, requesterId),
-    eq(friendship.friendId, addresseeId),
+    samePair(requesterId, addresseeId),
+    eq(requesterColumn, requesterId),
     eq(friendship.status, "pending"),
     isNull(friendship.deletedAt),
   );

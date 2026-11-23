@@ -54,6 +54,19 @@ async function myBag() {
   return listPersonalPackingLines(world.ours.id, world.admin);
 }
 
+describe("filling a bag", () => {
+  it("still fills nothing for someone who is not on the trip", async () => {
+    const added = await fillPersonalBag({
+      tripId: world.ours.id,
+      ownerId: world.outsider,
+      tier: "balanced",
+      plan: await packingPlanFor((await tripRow())!),
+    });
+
+    expect(added).toBe(0);
+  });
+});
+
 describe("what the trip tells us", () => {
   it("says so rather than throwing when the trip has no dates (rule 9)", async () => {
     const plan = await packingPlanFor((await tripRow())!);

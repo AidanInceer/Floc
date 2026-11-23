@@ -18,6 +18,3 @@ export type SplitType = (typeof SPLIT_TYPES)[number];
 
 export const REACTION_KINDS = ["heart", "up", "down"] as const;
 export type ReactionKind = (typeof REACTION_KINDS)[number];
-
-export const SIGNUP_CHANNELS = ["whatsapp", "email", "link", "direct"] as const;
-export type SignupChannel = (typeof SIGNUP_CHANNELS)[number];

@@ -8,7 +8,6 @@ import { authMetadata } from "@/lib/seo/public-pages";
 import { inviteTokenIn, inviteTrip } from "@/app/invite/[token]/invite-access";
 import { getInviteGuest, requireGuest } from "@/server/access";
 import { enabledProviders } from "@/server/auth/auth";
-import { captureChannel } from "./actions";
 
 type Props = { searchParams: Promise<{ redirect?: string }> };
 
@@ -40,11 +39,7 @@ export default async function SignupPage({ searchParams }: Props) {
         </>
       }
     >
-      <AuthForm
-        mode="signup"
-        googleEnabled={enabledProviders.google}
-        captureChannel={captureChannel}
-      />
+      <AuthForm mode="signup" googleEnabled={enabledProviders.google} />
     </AuthShell>
   );
 }

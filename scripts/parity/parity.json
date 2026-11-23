@@ -582,7 +582,7 @@
       "id": "signup",
       "path": "floc/apps/web/src/app/signup",
       "status": "wontfix",
-      "why": "Creating an account, asking for a reset link and setting a new password are all on the phone now, against the same Better Auth instance; the reset and confirmation mails redirect to floc:// so they land back in the app. What stays web-only is the /signup page itself, which a phone install has no link to and no ?via= channel to record."
+      "why": "Creating an account, asking for a reset link and setting a new password are all on the phone now, against the same Better Auth instance; the reset and confirmation mails redirect to floc:// so they land back in the app. What stays web-only is the /signup page itself, which a phone install has no link to."
     },
     {
       "id": "explore-trip-page",
