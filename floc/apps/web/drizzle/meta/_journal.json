@@ -533,6 +533,13 @@
       "when": 1795461031081,
       "tag": "0075_long_siren",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "6",
+      "when": 1795461619772,
+      "tag": "0076_stale_human_cannonball",
+      "breakpoints": true
     }
   ]
 }

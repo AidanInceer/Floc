@@ -1,6 +1,6 @@
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { db, schema } from "@/db";
+import { savePrivacy } from "@/server/auth/privacy";
 import { setManualMark } from "@/server/itinerary/travel-map";
 import { befriend, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 
@@ -24,7 +24,7 @@ async function rings(
     isPrivate: boolean;
   }>,
 ): Promise<void> {
-  await db.insert(schema.userProfile).values({ userId, ...rings });
+  await savePrivacy(userId, rings);
 }
 
 describe("friends who saved what you saved (#544)", () => {

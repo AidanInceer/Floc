@@ -4,7 +4,7 @@ import { and, eq, exists, gte, inArray, isNotNull, isNull, lt, lte, notInArray, 
 import { alias } from "drizzle-orm/sqlite-core";
 
 import { db } from "@/db";
-import { activity, notification, pushToken, tripMembership, user, userProfile } from "@/db/schema";
+import { activity, notification, pushToken, tripMembership, user, userNotificationSettings } from "@/db/schema";
 import { planPushes, type Limits, type PendingPush, type PlannedPush } from "@floc/core/notifications/push-plan";
 import { LIMIT_FREE_KINDS, isReminder, skipsLimits, type ActivityKind } from "@floc/core/notifications/rules";
 import { touch } from "@/server/audit";
@@ -22,14 +22,14 @@ export type Channel = {
   words: (kind: ActivityKind, parts: { actor: string; trip: string | null; detail: string | null }) => string;
 };
 
-const recipientProfile = alias(userProfile, "recipient_profile");
+const recipientAlerts = alias(userNotificationSettings, "recipient_alerts");
 
 export const switchedOff = (key: "notifyPush" | "notifyEmail") =>
   exists(
     db
-      .select({ userId: recipientProfile.userId })
-      .from(recipientProfile)
-      .where(and(eq(recipientProfile.userId, notification.userId), eq(recipientProfile[key], false))),
+      .select({ userId: recipientAlerts.userId })
+      .from(recipientAlerts)
+      .where(and(eq(recipientAlerts.userId, notification.userId), eq(recipientAlerts[key], false))),
   );
 
 const recipient = alias(user, "recipient");

@@ -6,6 +6,7 @@ import { START_TRIP_HREF } from "@floc/core/notifications/notification-href";
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import { writeExpense } from "@/server/money/money";
+import { saveAlertSettings } from "@/server/notifications/alert-settings";
 import { listInbox } from "@/server/notifications/inbox";
 import { sendDueReminders } from "@/server/notifications/reminders";
 
@@ -66,7 +67,7 @@ describe("date reminders", () => {
 
   it("skips someone with reminders switched off", async () => {
     await dateOurs(today, addDays(today, 3));
-    await db.insert(schema.userProfile).values({ userId: world.member, notifyReminders: false });
+    await saveAlertSettings(world.member, { notifyReminders: false });
     await sendDueReminders(now);
     expect(await inboxText(world.member)).toEqual([]);
     expect(await inboxText(world.admin)).toEqual(["Ours starts today"]);
@@ -157,7 +158,7 @@ describe("the next trip prompt (#626)", () => {
       .update(schema.tripMembership)
       .set({ deletedAt: new Date() })
       .where(and(eq(schema.tripMembership.tripId, world.ours.id), eq(schema.tripMembership.userId, world.member)));
-    await db.insert(schema.userProfile).values({ userId: world.admin, notifyNextTrip: false });
+    await saveAlertSettings(world.admin, { notifyNextTrip: false });
 
     await sendDueReminders(now);
     expect(await asked(world.member)).toEqual([]);

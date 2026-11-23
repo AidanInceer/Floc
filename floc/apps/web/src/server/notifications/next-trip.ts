@@ -6,7 +6,7 @@ import { addDays, type IsoDate } from "@floc/core/dates/dates";
 import { START_TRIP_HREF } from "@floc/core/notifications/notification-href";
 import { NEXT_TRIP_AFTER_DAYS, nextTripDue } from "@floc/core/notifications/reminders";
 import { db } from "@/db";
-import { trip, tripMembership, userProfile } from "@/db/schema";
+import { trip, tripMembership, userNotificationSettings } from "@/db/schema";
 import { remind } from "@/server/notifications/remind";
 
 const live = (userId: string) =>
@@ -15,10 +15,10 @@ const live = (userId: string) =>
 async function candidates(day: IsoDate) {
   const ends = Object.values(NEXT_TRIP_AFTER_DAYS).map((days) => addDays(day, -days));
   const rows = await db
-    .select({ userId: tripMembership.userId, tripId: trip.id, endDate: trip.endDate, on: userProfile.notifyNextTrip })
+    .select({ userId: tripMembership.userId, tripId: trip.id, endDate: trip.endDate, on: userNotificationSettings.notifyNextTrip })
     .from(tripMembership)
     .innerJoin(trip, eq(trip.id, tripMembership.tripId))
-    .leftJoin(userProfile, eq(userProfile.userId, tripMembership.userId))
+    .leftJoin(userNotificationSettings, eq(userNotificationSettings.userId, tripMembership.userId))
     .where(and(isNull(tripMembership.deletedAt), isNull(trip.deletedAt), inArray(trip.endDate, ends)))
     .orderBy(trip.id)
     .all();

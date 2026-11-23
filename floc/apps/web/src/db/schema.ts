@@ -149,6 +149,48 @@ export const userProfile = sqliteTable("user_profile", {
     .notNull()
     .default("GBP"),
   vibeTags: text("vibe_tags", { mode: "json" }).$type<string[] | null>(),
+  retiredIsPrivate: integer("is_private", { mode: "boolean" }).notNull().default(false),
+  retiredVisibilityVibeTags: text("visibility_vibe_tags", { enum: VISIBILITIES })
+    .notNull()
+    .default("trip_members"),
+  retiredVisibilityTravelMap: text("visibility_travel_map", { enum: VISIBILITIES })
+    .notNull()
+    .default("trip_members"),
+  retiredVisibilityFriends: text("visibility_friends", { enum: VISIBILITIES })
+    .notNull()
+    .default("friends"),
+  retiredVisibilitySaved: text("visibility_saved", { enum: VISIBILITIES })
+    .notNull()
+    .default("private"),
+  retiredPastTripsShow: text("past_trips_show", { enum: PAST_TRIPS_SHOW })
+    .notNull()
+    .default("all"),
+  packTier: text("pack_tier", { enum: PACK_TIERS }).notNull().default("balanced"),
+  reduceMotion: integer("reduce_motion", { mode: "boolean" }).notNull().default(false),
+  tourSeenAt: integer("tour_seen_at", { mode: "timestamp" }),
+  retiredNotifyPush: integer("notify_push", { mode: "boolean" }).notNull().default(true),
+  retiredNotifyEmail: integer("notify_email", { mode: "boolean" }).notNull().default(true),
+  retiredNotifyReminders: integer("notify_reminders", { mode: "boolean" }).notNull().default(true),
+  retiredNotifyNextTrip: integer("notify_next_trip", { mode: "boolean" }).notNull().default(true),
+  retiredMarketingEmailConsentAt: integer("marketing_email_consent_at", { mode: "timestamp" }),
+  exploreAnswers: text("explore_answers", { mode: "json" }).$type<unknown>(),
+  bookingSites: text("booking_sites", { mode: "json" }).$type<unknown>(),
+  friendTag: text("friend_tag").unique(),
+  retiredHomeAirport: text("home_airport"),
+  retiredTravelCabin: text("travel_cabin", { enum: CABINS }),
+  retiredTravelStay: text("travel_stay", { enum: STAY_STYLES }),
+  retiredTravelPace: text("travel_pace", { enum: PACES }),
+  retiredStyleInGroupIdeas: integer("style_in_group_ideas", { mode: "boolean" }).notNull().default(true),
+  calendarAllDayOnly: integer("calendar_all_day_only", { mode: "boolean" }).notNull().default(false),
+  ...audit,
+});
+
+const stamps = { createdAt: audit.createdAt, lastModifiedAt: audit.lastModifiedAt };
+
+export const userPrivacy = sqliteTable("user_privacy", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
   isPrivate: integer("is_private", { mode: "boolean" }).notNull().default(false),
   visibilityVibeTags: text("visibility_vibe_tags", { enum: VISIBILITIES })
     .notNull()
@@ -165,24 +207,31 @@ export const userProfile = sqliteTable("user_profile", {
   pastTripsShow: text("past_trips_show", { enum: PAST_TRIPS_SHOW })
     .notNull()
     .default("all"),
-  packTier: text("pack_tier", { enum: PACK_TIERS }).notNull().default("balanced"),
-  reduceMotion: integer("reduce_motion", { mode: "boolean" }).notNull().default(false),
-  tourSeenAt: integer("tour_seen_at", { mode: "timestamp" }),
+  ...stamps,
+});
+
+export const userNotificationSettings = sqliteTable("user_notification_settings", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
   notifyPush: integer("notify_push", { mode: "boolean" }).notNull().default(true),
   notifyEmail: integer("notify_email", { mode: "boolean" }).notNull().default(true),
   notifyReminders: integer("notify_reminders", { mode: "boolean" }).notNull().default(true),
   notifyNextTrip: integer("notify_next_trip", { mode: "boolean" }).notNull().default(true),
   marketingEmailConsentAt: integer("marketing_email_consent_at", { mode: "timestamp" }),
-  exploreAnswers: text("explore_answers", { mode: "json" }).$type<unknown>(),
-  bookingSites: text("booking_sites", { mode: "json" }).$type<unknown>(),
-  friendTag: text("friend_tag").unique(),
+  ...stamps,
+});
+
+export const userTravelStyle = sqliteTable("user_travel_style", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
   homeAirport: text("home_airport"),
   travelCabin: text("travel_cabin", { enum: CABINS }),
   travelStay: text("travel_stay", { enum: STAY_STYLES }),
   travelPace: text("travel_pace", { enum: PACES }),
   styleInGroupIdeas: integer("style_in_group_ideas", { mode: "boolean" }).notNull().default(true),
-  calendarAllDayOnly: integer("calendar_all_day_only", { mode: "boolean" }).notNull().default(false),
-  ...audit,
+  ...stamps,
 });
 
 export const exploreSave = sqliteTable(

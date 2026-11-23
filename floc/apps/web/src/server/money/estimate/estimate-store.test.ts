@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
-import { ensureProfile, getProfile } from "@/server/auth/profile";
+import { ensureProfile } from "@/server/auth/profile";
 import {
   readEstimateChoices,
   readTravelProfile,
@@ -136,6 +136,10 @@ describe("travel profile", () => {
     await ensureProfile(world.admin);
     await setTravelProfile(world.admin, { homeAirport: "lhr", stay: "high" });
     expect(await readTravelProfile(world.admin)).toEqual({ homeAirport: "LHR", cabin: null, stay: "high", pace: null });
-    expect((await getProfile(world.admin))?.homeAirport).toBe("LHR");
+  });
+
+  it("keeps a travel style for a person who has no profile row yet", async () => {
+    await setTravelProfile(world.member, { pace: "easy" });
+    expect(await readTravelProfile(world.member)).toEqual({ homeAirport: null, cabin: null, stay: null, pace: "easy" });
   });
 });

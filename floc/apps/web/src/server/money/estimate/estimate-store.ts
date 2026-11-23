@@ -3,8 +3,9 @@ import "server-only";
 import { and, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
-import { estimateOverride, tripMemberBudget, userProfile } from "@/db/schema";
+import { estimateOverride, tripMemberBudget } from "@/db/schema";
 import { touch } from "@/server/audit";
+import { readTravelStyle, saveTravelStyle } from "@/server/auth/travel-style";
 import type { Currency } from "@floc/core/money/currency";
 import type { EstimateLine } from "@floc/core/money/estimate/lines";
 import type { Cabin, Pace, StayStyle, StyleChoice } from "@floc/core/money/estimate/style";
@@ -122,23 +123,15 @@ export async function setOwnLine(
 }
 
 export async function readTravelProfile(userId: string): Promise<TravelProfile> {
-  const row = await db
-    .select({ homeAirport: userProfile.homeAirport, cabin: userProfile.travelCabin, stay: userProfile.travelStay, pace: userProfile.travelPace })
-    .from(userProfile)
-    .where(eq(userProfile.userId, userId))
-    .get();
-  return { homeAirport: row?.homeAirport ?? null, cabin: row?.cabin ?? null, stay: row?.stay ?? null, pace: row?.pace ?? null };
+  const style = await readTravelStyle(userId);
+  return { homeAirport: style.homeAirport, cabin: style.travelCabin, stay: style.travelStay, pace: style.travelPace };
 }
 
 export async function setTravelProfile(userId: string, patch: Partial<TravelProfile>): Promise<void> {
-  await db
-    .update(userProfile)
-    .set({
-      ...(patch.homeAirport !== undefined && { homeAirport: patch.homeAirport?.toUpperCase() ?? null }),
-      ...(patch.cabin !== undefined && { travelCabin: patch.cabin }),
-      ...(patch.stay !== undefined && { travelStay: patch.stay }),
-      ...(patch.pace !== undefined && { travelPace: patch.pace }),
-      ...touch(),
-    })
-    .where(eq(userProfile.userId, userId));
+  await saveTravelStyle(userId, {
+    ...(patch.homeAirport !== undefined && { homeAirport: patch.homeAirport?.toUpperCase() ?? null }),
+    ...(patch.cabin !== undefined && { travelCabin: patch.cabin }),
+    ...(patch.stay !== undefined && { travelStay: patch.stay }),
+    ...(patch.pace !== undefined && { travelPace: patch.pace }),
+  });
 }

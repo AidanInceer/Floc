@@ -1,5 +1,8 @@
 import { requireUser } from "@/server/access";
+import { readPrivacy } from "@/server/auth/privacy";
 import { ensureProfile } from "@/server/auth/profile";
+import { readTravelStyle } from "@/server/auth/travel-style";
+import { readAlertSettings } from "@/server/notifications/alert-settings";
 import { listSignInMethods } from "@/server/auth/sign-in-methods";
 import { hasCalendarAccess } from "@/server/calendar/calendar-import";
 import { proPrices, subscriptionOf } from "@/server/billing/billing";
@@ -25,8 +28,11 @@ export default async function ProfilePage({
   const viewer = await requireUser(asked.section ? `/profile?section=${asked.section}` : "/profile");
   const proOff = allFeaturesFree();
 
-  const [profile, linkedAccounts, calendarGranted, pro, estimate] = await Promise.all([
+  const [profile, privacy, alerts, style, linkedAccounts, calendarGranted, pro, estimate] = await Promise.all([
     ensureProfile(viewer.id),
+    readPrivacy(viewer.id),
+    readAlertSettings(viewer.id),
+    readTravelStyle(viewer.id),
     listSignInMethods(viewer.id),
     hasCalendarAccess(viewer.id),
     proOff
@@ -61,6 +67,9 @@ export default async function ProfilePage({
           <AccountSettings
             email={viewer.email}
             profile={profile}
+            privacy={privacy}
+            alerts={alerts}
+            styleInGroupIdeas={style.styleInGroupIdeas}
             linkedAccounts={linkedAccounts}
             calendarGranted={calendarGranted}
             pro={pro}

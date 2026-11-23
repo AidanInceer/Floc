@@ -16,6 +16,7 @@ import {
   splitFriendships,
   syncCompletedCoTripFriendships,
 } from "@/server/social/friends";
+import { savePrivacy } from "@/server/auth/privacy";
 import { canSeeFriendsOf, requireProfileView } from "@/server/auth/visibility";
 
 let world: Scenario;
@@ -275,9 +276,7 @@ describe("friends of friends", () => {
   });
 
   it("widens to co-travellers when the owner says so", async () => {
-    await db
-      .insert(schema.userProfile)
-      .values({ userId: world.admin, visibilityFriends: "trip_members" });
+    await savePrivacy(world.admin, { visibilityFriends: "trip_members" });
 
     expect((await listFor(world.member))?.map((f) => f.name)).toEqual(["Sam"]);
   });
@@ -287,9 +286,7 @@ describe("friends of friends", () => {
 
     expect((await listFor(world.member))?.map((f) => f.id)).toEqual([stranger]);
 
-    await db
-      .insert(schema.userProfile)
-      .values({ userId: stranger, isPrivate: true });
+    await savePrivacy(stranger, { isPrivate: true });
     expect(await listFor(world.member)).toEqual([]);
   });
 
@@ -317,9 +314,7 @@ describe("friends of friends", () => {
 
   it("shuts the whole list off when the owner's profile is private", async () => {
     await befriend(world.admin, world.member);
-    await db
-      .insert(schema.userProfile)
-      .values({ userId: world.admin, isPrivate: true });
+    await savePrivacy(world.admin, { isPrivate: true });
 
     expect(await canSeeFriendsOf(world.admin, world.member)).toBe(false);
     expect(await listFor(world.member)).toBeNull();

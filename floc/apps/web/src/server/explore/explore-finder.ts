@@ -7,17 +7,36 @@ import { vibeLikes } from "@floc/core/trip/explore/finder/vibe-likes";
 import type { TravelProfile } from "@floc/core/trip/explore/fit/travel-profile";
 import { readVibeTags } from "@floc/core/trip/vibe-tags";
 
+import { eq } from "drizzle-orm";
+
+import { db } from "@/db";
+import { user, userProfile, userTravelStyle } from "@/db/schema";
 import { ensureProfile, getProfile, updateProfileFields } from "@/server/auth/profile";
 import { loadPastTravel } from "@/server/explore/travel-read";
 
 export type ExploreTaste = { finder: Finder | null; likes: TripTag[]; travel: TravelProfile };
 
 export async function loadTaste(userId: string): Promise<ExploreTaste> {
-  const [profile, past] = await Promise.all([getProfile(userId), loadPastTravel(userId)]);
-  const finder = savedFinder(profile?.exploreAnswers);
-  const vibes = readVibeTags(profile?.vibeTags);
+  const [told, past] = await Promise.all([whatTheyTold(userId), loadPastTravel(userId)]);
+  const finder = savedFinder(told?.exploreAnswers);
+  const vibes = readVibeTags(told?.vibeTags);
   const likes = [...new Set([...(finder?.likes ?? []), ...vibeLikes(vibes)])];
-  return { finder, likes, travel: { vibes, stay: profile?.travelStay ?? null, pace: profile?.travelPace ?? null, ...past } };
+  return { finder, likes, travel: { vibes, stay: told?.stay ?? null, pace: told?.pace ?? null, ...past } };
+}
+
+function whatTheyTold(userId: string) {
+  return db
+    .select({
+      exploreAnswers: userProfile.exploreAnswers,
+      vibeTags: userProfile.vibeTags,
+      stay: userTravelStyle.travelStay,
+      pace: userTravelStyle.travelPace,
+    })
+    .from(user)
+    .leftJoin(userProfile, eq(userProfile.userId, user.id))
+    .leftJoin(userTravelStyle, eq(userTravelStyle.userId, user.id))
+    .where(eq(user.id, userId))
+    .get();
 }
 
 export async function loadFinder(userId: string): Promise<Finder | null> {
