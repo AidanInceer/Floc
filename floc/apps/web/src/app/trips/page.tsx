@@ -10,8 +10,8 @@ import { loadTripCards } from "./cards";
 import { formatDateRange, hasEnded, splitEnded } from "@floc/core/dates/dates";
 import { Avatar, ButtonLink, Stack, cx, PageTitle } from "@/components/system/ui";
 import { SubmitButton } from "@/components/system/client-ui";
-import { ChevronIcon } from "@/components/system/icons";
 import type { TripCardData } from "@/components/trip/trip-card";
+import { PastTripsSection } from "@/components/trip/trips/past-trip-maps";
 import { TripBar } from "@/components/trip/trips/trip-bar";
 import { NewTripField } from "@/components/trip/trips/new-trip-field";
 import { TripDoors } from "@/components/onboarding/trip-doors";
@@ -109,13 +109,9 @@ function TripList({
 
 function PastTrips({ trips }: { trips: TripCardData[] }) {
   return (
-    <details className="past-trips">
-      <summary className="mx-auto flex h-[31px] w-fit cursor-pointer list-none items-center gap-2 text-ink-soft transition-colors hover:text-ink [&::-webkit-details-marker]:hidden">
-        <ChevronIcon direction="down" size={15} className="past-trips-chevron shrink-0" />
-        <span className="typed text-current">Past trips · {trips.length}</span>
-      </summary>
+    <PastTripsSection count={trips.length}>
       <TripList trips={trips} className="mt-5" />
-    </details>
+    </PastTripsSection>
   );
 }
 

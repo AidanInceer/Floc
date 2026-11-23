@@ -1,10 +1,11 @@
 import { and, eq } from "drizzle-orm";
-import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 import {
   acceptPendingRequest,
+  coTripNamesFor,
   countIncomingFriendRequests,
   declineFriendRequest,
   dropFriendship,
@@ -236,6 +237,52 @@ describe("sharedTripIds", () => {
       );
 
     expect(await sharedTripIds(world.admin, world.member)).toEqual([]);
+  });
+});
+
+describe("coTripNamesFor", () => {
+  const addSharedTrip = async (name: string, endDate: string | null, people: string[]) => {
+    const row = await db
+      .insert(schema.trip)
+      .values({ name, createdBy: world.admin, inviteToken: `token-${name}`, endDate })
+      .returning({ id: schema.trip.id })
+      .get();
+    await db.insert(schema.tripMembership).values(people.map((userId) => ({ tripId: row.id, userId })));
+    return row.id;
+  };
+
+  it("names the shared trip that ended last for each friend", async () => {
+    await addSharedTrip("Older", "2020-01-01", [world.admin, world.member]);
+    await addSharedTrip("Newer", "2021-01-01", [world.admin, world.member]);
+    await addSharedTrip("With Ozz", "2019-01-01", [world.admin, world.outsider]);
+
+    const names = await coTripNamesFor(world.admin, [world.member, world.outsider]);
+
+    expect(names.get(world.member)).toBe("Newer");
+    expect(names.get(world.outsider)).toBe("With Ozz");
+  });
+
+  it("falls back to a shared trip when none has ended", async () => {
+    expect((await coTripNamesFor(world.admin, [world.member])).get(world.member)).toBe("Ours");
+  });
+
+  it("leaves out a friend with no live shared trip", async () => {
+    const gone = await addSharedTrip("Deleted", "2020-01-01", [world.admin, world.outsider]);
+    await db.update(schema.trip).set({ deletedAt: new Date() }).where(eq(schema.trip.id, gone));
+
+    expect((await coTripNamesFor(world.admin, [world.outsider])).has(world.outsider)).toBe(false);
+  });
+
+  it("makes one database call however many friends it names", async () => {
+    const calls = vi.spyOn(db.$client, "execute");
+    await coTripNamesFor(world.admin, [world.member]);
+    const forOne = calls.mock.calls.length;
+    calls.mockClear();
+    await coTripNamesFor(world.admin, [world.member, world.outsider, "u-nobody"]);
+    const forThree = calls.mock.calls.length;
+    calls.mockRestore();
+
+    expect([forOne, forThree]).toEqual([1, 1]);
   });
 });
 

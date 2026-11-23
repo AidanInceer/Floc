@@ -15,6 +15,7 @@ vi.mock("@/server/auth/email", async (importOriginal) => ({
 
 import {
   addIdea,
+  friendsToInvite,
   inviteFriends,
   kickMember,
   leaveTrip,
@@ -103,6 +104,17 @@ describe("inviting (#312)", () => {
   it("is refused on a trip the viewer is not on (rule 5)", async () => {
     signIn(world.outsider);
     await expectNotFound(() => inviteFriends(form({ tripId: ours(), friendIds: world.admin })));
+  });
+
+  it("lists the viewer's friends when the Invite sheet opens", async () => {
+    await befriend(world.member, world.outsider);
+    signIn(world.member);
+    expect((await friendsToInvite(world.ours.id)).map((f) => f.id)).toEqual([world.outsider]);
+  });
+
+  it("lists no friends for someone not on the trip (rule 5)", async () => {
+    signIn(world.outsider);
+    await expectNotFound(() => friendsToInvite(world.ours.id));
   });
 });
 

@@ -260,25 +260,48 @@ export async function friendStateWith(
   return states.get(otherId) ?? "none";
 }
 
-export async function coTripNameFor(
-  userId: string,
-  otherId: string,
-): Promise<string | null> {
-  const ids = await sharedTripIds(userId, otherId);
-  if (ids.length === 0) return null;
+type SharedTrip = { name: string; endDate: string | null };
 
-  const shared = await db
-    .select({ name: trip.name, endDate: trip.endDate })
-    .from(trip)
-    .where(and(isNull(trip.deletedAt), inArray(trip.id, ids)))
-    .limit(LIMITS.tripsPerUser)
+function metOnName(shared: SharedTrip[], day: string): string {
+  const ended = shared
+    .filter((t) => t.endDate && t.endDate < day)
+    .sort((a, b) => (b.endDate ?? "").localeCompare(a.endDate ?? ""));
+  return (ended[0] ?? shared[0]).name;
+}
+
+export async function coTripNamesFor(
+  userId: string,
+  otherIds: string[],
+): Promise<Map<string, string>> {
+  if (otherIds.length === 0) return new Map();
+  const wanted = new Set(otherIds);
+  const mine = alias(tripMembership, "mine");
+  const theirs = alias(tripMembership, "theirs");
+
+  const rows = await db
+    .select({ otherId: theirs.userId, name: trip.name, endDate: trip.endDate })
+    .from(mine)
+    .innerJoin(trip, eq(trip.id, mine.tripId))
+    .innerJoin(theirs, eq(theirs.tripId, mine.tripId))
+    .where(
+      and(
+        eq(mine.userId, userId),
+        ne(theirs.userId, userId),
+        isNull(mine.deletedAt),
+        isNull(theirs.deletedAt),
+        isNull(trip.deletedAt),
+      ),
+    )
+    .orderBy(trip.id)
+    .limit(LIMITS.members * LIMITS.tripsPerUser)
     .all();
 
-  const ended = shared
-    .filter((t) => t.endDate && t.endDate < today())
-    .sort((a, b) => (b.endDate ?? "").localeCompare(a.endDate ?? ""));
-
-  return ended[0]?.name ?? shared[0]?.name ?? null;
+  const byFriend = new Map<string, SharedTrip[]>();
+  for (const { otherId, ...shared } of rows) {
+    if (wanted.has(otherId)) byFriend.set(otherId, [...(byFriend.get(otherId) ?? []), shared]);
+  }
+  const day = today();
+  return new Map([...byFriend].map(([otherId, shared]) => [otherId, metOnName(shared, day)]));
 }
 
 function samePair(a: string, b: string) {

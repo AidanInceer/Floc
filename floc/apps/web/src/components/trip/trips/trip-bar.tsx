@@ -1,22 +1,14 @@
 import { formatDateRange, fromIsoDate } from "@floc/core/dates/dates";
-import type { OverviewRoute } from "@floc/core/trip/overview/route";
-import { tripPastel, type TripColor } from "@floc/core/trip/trip-color";
+import { tripPastel } from "@floc/core/trip/trip-color";
 
 import { AvatarRow, PASTEL_BY_KEY, cx } from "@/components/system/ui";
 import { TripMarkIcon } from "@/components/system/icons/trip-mark";
 import { NavGlyph } from "@/components/system/icons/nav";
-import { OverviewGlobe } from "@/components/trip/overview/globe/overview-globe";
 import { TripCardActions, type TripCardData } from "@/components/trip/trip-card";
 import { tripBarStatus } from "@/lib/trips/trip-bar-status";
-import { DotMap } from "./dot-map";
+import { BarMap } from "./bar-map";
+import { PastBarMap } from "./past-trip-maps";
 import { TripOpenLink } from "./trip-open-link";
-
-function BarMap({ route, tone }: { route: OverviewRoute | null; tone: TripColor }) {
-  if (!route || route.stops.length === 0) {
-    return <DotMap label={route && route.missing.length > 0 ? "Not on the map yet" : "No stops yet"} />;
-  }
-  return <OverviewGlobe quiet route={route} tone={tone} label={`The route: ${route.stops.map((s) => s.place).join(", ")}`} />;
-}
 
 function StatusLine({ trip, next }: { trip: TripCardData; next: boolean }) {
   const [lead, rest] = tripBarStatus(trip, next).split(" · ");
@@ -73,7 +65,7 @@ export function TripBar({ trip, next = false }: { trip: TripCardData; next?: boo
       </div>
 
       <div className="pointer-events-none relative order-first h-28 overflow-hidden rounded-t-md border-b border-rule bg-sheet-2 sm:order-none sm:h-auto sm:rounded-tl-none sm:rounded-r-md sm:border-b-0 sm:border-l">
-        <BarMap route={trip.route ?? null} tone={colour} />
+        {trip.route === undefined ? <PastBarMap tripId={trip.id} tone={colour} /> : <BarMap route={trip.route} tone={colour} />}
       </div>
 
       <div className="absolute right-3 top-[7.75rem] z-10 sm:right-[calc(44%+0.75rem)] sm:top-3">
