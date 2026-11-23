@@ -58,7 +58,7 @@ async function recentSameChange(tx: Tx, change: Change): Promise<number | undefi
 }
 
 export function groupedActivityWrites(
-  change: Omit<Change, "subjectId"> & { tripId: number; subjectId: number | SQL },
+  change: Omit<Change, "subjectId"> & { tripId: number; subjectId: number | SQL | null },
   members: string[],
 ): BatchItem<"sqlite">[] {
   const recipients = recipientsFor({
@@ -75,7 +75,7 @@ export function groupedActivityWrites(
         eq(activity.actorId, change.actorId),
         eq(activity.kind, change.kind),
         eq(activity.tripId, change.tripId),
-        eq(activity.subjectId, change.subjectId),
+        change.subjectId === null ? isNull(activity.subjectId) : eq(activity.subjectId, change.subjectId),
         gte(activity.lastModifiedAt, new Date(Date.now() - GROUP_WINDOW_MS)),
         isNull(activity.deletedAt),
       ),
