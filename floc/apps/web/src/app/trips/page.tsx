@@ -16,6 +16,7 @@ import { TripBar } from "@/components/trip/trips/trip-bar";
 import { NewTripField } from "@/components/trip/trips/new-trip-field";
 import { TripDoors } from "@/components/onboarding/trip-doors";
 import { WelcomeModal } from "@/components/onboarding/welcome/welcome-modal";
+import { welcomeFor } from "@/server/auth/welcome/welcome";
 import { startPeople, welcomeView } from "@/server/auth/welcome/welcome-view";
 import { acceptTripInvite, declineTripInvite } from "./actions";
 import "./past-trips.css";
@@ -35,16 +36,17 @@ export default async function TripsPage({
 
   const wishId = wishListParam(params.wish);
 
-  const [cardRows, invites, friends, groups, along] = await Promise.all([
+  const [cardRows, invites, friends, groups, along, welcomeState] = await Promise.all([
     loadTripCards(viewer.id, { archived: false }),
     listPendingInvitesFor(viewer.id),
     listFriendsFor(viewer.id),
     listGroupsFor(viewer.id),
     wishId ? wishListPeopleToAsk(viewer.id, wishId) : Promise.resolve([]),
+    welcomeFor(viewer.id),
   ]);
 
   const people = startPeople([friends, ...groups.map((g) => g.members), along]);
-  const welcome = await welcomeView(viewer, people);
+  const welcome = await welcomeView(viewer, people, null, welcomeState);
   const cards = cardRows.map((c) => c.card);
   const ordered = orderCards(
     tag ? cards.filter((card) => card.tags?.some((value) => value.toLowerCase() === tag)) : cards,

@@ -6,10 +6,15 @@ import { airportLabel, chosenAirport, countryAirports, loadAirports } from "@flo
 
 import type { WelcomeProps } from "@/components/onboarding/welcome/welcome-modal";
 import type { StartPerson } from "@/components/onboarding/start/start-who";
-import { seedWelcomeCurrency, welcomeFor } from "@/server/auth/welcome/welcome";
+import { seedWelcomeCurrency, welcomeFor, type WelcomeState } from "@/server/auth/welcome/welcome";
 
-export async function welcomeView(viewer: { id: string; name: string }, people: StartPerson[], invited: string | null = null): Promise<WelcomeProps | null> {
-  const state = await welcomeFor(viewer.id);
+export async function welcomeView(
+  viewer: { id: string; name: string },
+  people: StartPerson[],
+  invited: string | null = null,
+  alreadyRead?: WelcomeState,
+): Promise<WelcomeProps | null> {
+  const state = alreadyRead ?? (await welcomeFor(viewer.id));
   if (!state.due) return null;
   const request = await headers();
   const country = request.get("cf-ipcountry") ?? request.get("x-vercel-ip-country");
