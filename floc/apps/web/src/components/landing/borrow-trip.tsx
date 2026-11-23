@@ -22,7 +22,7 @@ import "./borrow-trip.css";
 const LONDON = { lat: 51.507, lng: -0.128 };
 
 export function BorrowTrip({ cards, signedIn, explore }: { cards: Card[]; signedIn: boolean; explore: string }) {
-  const places = useMemo(() => cards.flatMap((c) => (c.stops[0] ? [{ lat: c.stops[0].lat, lng: c.stops[0].lng }] : [])), [cards]);
+  const places = useMemo(() => cards.flatMap((c) => (c.route.stops[0] ? [{ lat: c.route.stops[0].lat, lng: c.route.stops[0].lng }] : [])), [cards]);
   const events = useRef<GlobeEvents>({});
   const { canvas, lit, said, globe } = useSpinGlobe(LONDON, places, events);
   const { faces, spin, settle } = useBorrowHand(places, globe);

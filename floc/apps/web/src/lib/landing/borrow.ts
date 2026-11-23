@@ -1,18 +1,12 @@
 import { stopsOf } from "@floc/core/trip/explore/listing-stops";
 import type { PresetTrip, Region } from "@floc/core/trip/explore/preset-trips";
-import type { TransportType } from "@floc/core/vocabulary";
 import { listingPrice, type ListingRates } from "@floc/core/trip/explore/listing-price";
 
 import { tripRoute, type TripRoute } from "@/lib/explore/route/trip-route";
 
-type Hop = { mode: TransportType; detail: string };
-
 type BorrowStop = {
   name: string;
   nights: number;
-  lat: number;
-  lng: number;
-  hop?: Hop;
   outs: string[];
 };
 
@@ -51,21 +45,15 @@ export function leadFirst(trips: PresetTrip[], lead: string[]): string[] {
   return [...known, ...trips.map((t) => t.id).filter((id) => !known.includes(id))];
 }
 
-export const hopWords = ({ mode, detail }: Hop) =>
-  mode === "other" ? detail : `${mode[0]!.toUpperCase()}${mode.slice(1)}, ${detail}`;
-
 export function placeWords(place: string) {
   const [first = "", ...rest] = place.split(", ");
   return rest.length ? `${first} +${rest.length}` : first;
 }
 
 function stopsFor(trip: PresetTrip): BorrowStop[] {
-  return stopsOf(trip).map(({ place, nights, lat, lng, arrive, dayOuts }) => ({
+  return stopsOf(trip).map(({ place, nights, dayOuts }) => ({
     name: place,
     nights,
-    lat,
-    lng,
-    ...(arrive && { hop: { mode: arrive.mode, detail: arrive.detail } }),
     outs: dayOuts.map((out) => out.place),
   }));
 }
