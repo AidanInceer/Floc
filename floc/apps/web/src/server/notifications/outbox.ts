@@ -1,26 +1,45 @@
 import "server-only";
 
-import { and, eq, exists, gte, inArray, isNotNull, isNull, lt, lte, notInArray, or, type SQL } from "drizzle-orm";
+import { and, eq, exists, gte, inArray, isNotNull, isNull, lt, lte, notInArray, or, sql, type SQL } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 
 import { db } from "@/db";
-import { activity, notification, pushToken, tripMembership, user, userNotificationSettings } from "@/db/schema";
+import {
+  activity,
+  notification,
+  notificationDelivery,
+  pushToken,
+  tripMembership,
+  user,
+  userNotificationSettings,
+  type DeliveryChannel,
+} from "@/db/schema";
 import { planPushes, type Limits, type PendingPush, type PlannedPush } from "@floc/core/notifications/push-plan";
-import { LIMIT_FREE_KINDS, isReminder, skipsLimits, type ActivityKind } from "@floc/core/notifications/rules";
+import { INBOX_KEEP_DAYS, LIMIT_FREE_KINDS, isReminder, skipsLimits, type ActivityKind } from "@floc/core/notifications/rules";
 import { touch } from "@/server/audit";
 import { answeredHref, notificationRows, stillVisible } from "@/server/notifications/visible";
 
 const CLAIM_LEASE_MS = 5 * 60_000;
 const BATCH = 500;
+const DAY_MS = 86_400_000;
+const WAITING_WINDOW_MS = (INBOX_KEEP_DAYS + 1) * DAY_MS;
 
 export type Channel = {
-  claimKey: "pushClaimedAt" | "emailClaimedAt";
-  sentKey: "pushedAt" | "emailedAt";
+  name: DeliveryChannel;
   waitMs: number;
   limits: Limits;
   reaches: () => SQL | undefined;
   words: (kind: ActivityKind, parts: { actor: string; trip: string | null; detail: string | null }) => string;
 };
+
+export function deliveriesFor(activityId: number | SQL): SQL {
+  return sql`insert into notification_delivery (notification_id, channel)
+    select notification.id, channels.value
+    from notification, json_each('["push","email"]') as channels
+    where notification.activity_id = ${activityId} and notification.loud = 1
+    on conflict (notification_id, channel) do update set last_modified_at = unixepoch()
+    where notification_delivery.sent_at is null`;
+}
 
 const recipientAlerts = alias(userNotificationSettings, "recipient_alerts");
 
@@ -56,19 +75,27 @@ export const hasPhone = () =>
       ),
   );
 
-const unclaimed = (channel: Channel, now: Date) =>
-  or(
-    isNull(notification[channel.claimKey]),
-    lt(notification[channel.claimKey], new Date(now.getTime() - CLAIM_LEASE_MS)),
+const unclaimed = (now: Date) =>
+  or(isNull(notificationDelivery.claimedAt), lt(notificationDelivery.claimedAt, new Date(now.getTime() - CLAIM_LEASE_MS)));
+
+const waiting = (channel: Channel, now: Date) =>
+  and(
+    eq(notificationDelivery.channel, channel.name),
+    isNull(notificationDelivery.sentAt),
+    isNull(notificationDelivery.deletedAt),
+    unclaimed(now),
   );
 
 async function due(channel: Channel, now: Date): Promise<PendingPush[]> {
+  const stillWaiting = db
+    .select({ id: notificationDelivery.notificationId })
+    .from(notificationDelivery)
+    .where(and(waiting(channel, now), gte(notificationDelivery.lastModifiedAt, new Date(Date.now() - WAITING_WINDOW_MS))));
   const rows = await notificationRows(
     and(
+      inArray(notification.id, stillWaiting),
       eq(notification.loud, true),
       isNull(notification.readAt),
-      isNull(notification[channel.sentKey]),
-      unclaimed(channel, now),
       lte(activity.lastModifiedAt, new Date(now.getTime() - channel.waitMs)),
       stillVisible(),
       isNotNull(answeredHref()),
@@ -91,13 +118,18 @@ async function due(channel: Channel, now: Date): Promise<PendingPush[]> {
 }
 
 async function sentToday(channel: Channel, now: Date) {
-  const sent = notification[channel.sentKey];
   const rows = await db
-    .selectDistinct({ userId: notification.userId, tripId: activity.tripId, sentAt: sent })
-    .from(notification)
+    .selectDistinct({ userId: notification.userId, tripId: activity.tripId, sentAt: notificationDelivery.sentAt })
+    .from(notificationDelivery)
+    .innerJoin(notification, eq(notification.id, notificationDelivery.notificationId))
     .innerJoin(activity, eq(activity.id, notification.activityId))
     .where(
-      and(isNotNull(sent), gte(sent, new Date(now.getTime() - 86_400_000)), notInArray(activity.kind, LIMIT_FREE_KINDS)),
+      and(
+        eq(notificationDelivery.channel, channel.name),
+        isNotNull(notificationDelivery.sentAt),
+        gte(notificationDelivery.sentAt, new Date(now.getTime() - DAY_MS)),
+        notInArray(activity.kind, LIMIT_FREE_KINDS),
+      ),
     )
     .all();
   return rows.map((r) => ({ userId: r.userId, tripId: r.tripId, sentAt: r.sentAt! }));
@@ -107,25 +139,28 @@ export async function planDue(channel: Channel, now: Date): Promise<PlannedPush[
   return planPushes(await due(channel, now), await sentToday(channel, now), now, channel.limits);
 }
 
+const these = (channel: Channel, ids: number[]) =>
+  and(eq(notificationDelivery.channel, channel.name), inArray(notificationDelivery.notificationId, ids));
+
 export async function claim(channel: Channel, ids: number[], now: Date): Promise<number[]> {
   const won = await db
-    .update(notification)
-    .set({ [channel.claimKey]: now })
-    .where(and(inArray(notification.id, ids), isNull(notification[channel.sentKey]), unclaimed(channel, now)))
-    .returning({ id: notification.id })
+    .update(notificationDelivery)
+    .set({ claimedAt: now })
+    .where(and(waiting(channel, now), inArray(notificationDelivery.notificationId, ids)))
+    .returning({ id: notificationDelivery.notificationId })
     .all();
   return won.map((w) => w.id);
 }
 
 export async function release(channel: Channel, ids: number[]): Promise<void> {
   if (ids.length === 0) return;
-  await db.update(notification).set({ [channel.claimKey]: null }).where(inArray(notification.id, ids));
+  await db.update(notificationDelivery).set({ claimedAt: null }).where(these(channel, ids));
 }
 
 export async function markSent(channel: Channel, ids: number[], now: Date): Promise<void> {
   if (ids.length === 0) return;
   await db
-    .update(notification)
-    .set({ [channel.sentKey]: now, ...touch() })
-    .where(inArray(notification.id, ids));
+    .update(notificationDelivery)
+    .set({ sentAt: now, ...touch() })
+    .where(these(channel, ids));
 }

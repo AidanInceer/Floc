@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "90a5b672-7eb8-4cf4-8f05-d0571e64d779",
-  "prevId": "e7454137-1c3d-44ad-b57e-f18b864ce443",
+  "id": "6692a49f-b0a7-4922-9f65-d9c5ca4b9c18",
+  "prevId": "90a5b672-7eb8-4cf4-8f05-d0571e64d779",
   "tables": {
     "account": {
       "name": "account",
@@ -2612,6 +2612,115 @@
             "id"
           ],
           "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "notification_delivery": {
+      "name": "notification_delivery",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "notification_id": {
+          "name": "notification_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "channel": {
+          "name": "channel",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "claimed_at": {
+          "name": "claimed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "sent_at": {
+          "name": "sent_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "last_modified_at": {
+          "name": "last_modified_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(unixepoch())"
+        }
+      },
+      "indexes": {
+        "notification_delivery_one_idx": {
+          "name": "notification_delivery_one_idx",
+          "columns": [
+            "notification_id",
+            "channel"
+          ],
+          "isUnique": true
+        },
+        "notification_delivery_waiting_idx": {
+          "name": "notification_delivery_waiting_idx",
+          "columns": [
+            "channel",
+            "last_modified_at"
+          ],
+          "isUnique": false,
+          "where": "sent_at IS NULL"
+        },
+        "notification_delivery_sent_idx": {
+          "name": "notification_delivery_sent_idx",
+          "columns": [
+            "channel",
+            "sent_at"
+          ],
+          "isUnique": false,
+          "where": "sent_at IS NOT NULL"
+        }
+      },
+      "foreignKeys": {
+        "notification_delivery_notification_id_notification_id_fk": {
+          "name": "notification_delivery_notification_id_notification_id_fk",
+          "tableFrom": "notification_delivery",
+          "tableTo": "notification",
+          "columnsFrom": [
+            "notification_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },

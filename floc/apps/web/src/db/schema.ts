@@ -1045,18 +1045,40 @@ export const notification = sqliteTable(
     loud: integer("loud", { mode: "boolean" }).notNull(),
     seenAt: integer("seen_at", { mode: "timestamp" }),
     readAt: integer("read_at", { mode: "timestamp" }),
-    pushClaimedAt: integer("push_claimed_at", { mode: "timestamp" }),
-    pushedAt: integer("pushed_at", { mode: "timestamp" }),
-    emailClaimedAt: integer("email_claimed_at", { mode: "timestamp" }),
-    emailedAt: integer("emailed_at", { mode: "timestamp" }),
+    retiredPushClaimedAt: integer("push_claimed_at", { mode: "timestamp" }),
+    retiredPushedAt: integer("pushed_at", { mode: "timestamp" }),
+    retiredEmailClaimedAt: integer("email_claimed_at", { mode: "timestamp" }),
+    retiredEmailedAt: integer("emailed_at", { mode: "timestamp" }),
     ...audit,
   },
   (t) => [
     uniqueIndex("notification_one_idx").on(t.activityId, t.userId),
     index("notification_user_idx").on(t.userId),
     index("notification_user_seen_idx").on(t.userId, t.seenAt),
-    index("notification_push_idx").on(t.loud, t.pushedAt),
-    index("notification_email_idx").on(t.loud, t.emailedAt),
+    index("notification_push_idx").on(t.loud, t.retiredPushedAt),
+    index("notification_email_idx").on(t.loud, t.retiredEmailedAt),
+  ],
+);
+
+export const DELIVERY_CHANNELS = ["push", "email"] as const;
+export type DeliveryChannel = (typeof DELIVERY_CHANNELS)[number];
+
+export const notificationDelivery = sqliteTable(
+  "notification_delivery",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    notificationId: integer("notification_id")
+      .notNull()
+      .references(() => notification.id, { onDelete: "cascade" }),
+    channel: text("channel", { enum: DELIVERY_CHANNELS }).notNull(),
+    claimedAt: integer("claimed_at", { mode: "timestamp" }),
+    sentAt: integer("sent_at", { mode: "timestamp" }),
+    ...audit,
+  },
+  (t) => [
+    uniqueIndex("notification_delivery_one_idx").on(t.notificationId, t.channel),
+    index("notification_delivery_waiting_idx").on(t.channel, t.lastModifiedAt).where(sql`sent_at IS NULL`),
+    index("notification_delivery_sent_idx").on(t.channel, t.sentAt).where(sql`sent_at IS NOT NULL`),
   ],
 );
 

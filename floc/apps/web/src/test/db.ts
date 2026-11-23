@@ -21,6 +21,7 @@ const TABLES = [
   schema.inboundMail,
   schema.reminder,
   schema.pushToken,
+  schema.notificationDelivery,
   schema.notification,
   schema.activity,
   schema.packingClaim,
