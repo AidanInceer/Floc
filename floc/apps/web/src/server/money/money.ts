@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, count, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, count, desc, eq, inArray, isNull, sql, type SQL } from "drizzle-orm";
 
 import { db } from "@/db";
 import { expense, expenseSplit, settlement, user, userProfile } from "@/db/schema";
@@ -85,9 +85,9 @@ export async function writeExpense(
   const { held, members } = room ?? (await readExpenseRoom(tripId, expenseId));
   if (held !== null) assertRoom("expenses", held);
 
-  const splitRows = (id: number) =>
+  const splitRows = (id: number | SQL) =>
     splits.map((s) => ({ expenseId: id, userId: s.userId, owedAmountMinor: s.owedAmountMinor }));
-  const change = (subjectId: number) => ({
+  const change = (subjectId: number | SQL) => ({
     tripId,
     actorId: createdBy,
     subjectId,
@@ -108,14 +108,12 @@ export async function writeExpense(
     return;
   }
 
-  await db.transaction(async (tx) => {
-    const [row] = await tx
-      .insert(expense)
-      .values({ tripId, createdBy, ...fields })
-      .returning({ id: expense.id });
-    await tx.insert(expenseSplit).values(splitRows(row.id));
-    await recordActivity(tx, { kind: "expense_added", ...change(row.id) }, { members, fresh: true });
-  });
+  const newExpenseId = sql`(select max(${expense.id}) from ${expense} where ${expense.tripId} = ${tripId})`;
+  await db.batch([
+    db.insert(expense).values({ tripId, createdBy, ...fields }),
+    db.insert(expenseSplit).values(splitRows(newExpenseId)),
+    ...groupedActivityWrites({ kind: "expense_added", ...change(newExpenseId) }, members),
+  ]);
 }
 
 export async function findLiveExpense(
