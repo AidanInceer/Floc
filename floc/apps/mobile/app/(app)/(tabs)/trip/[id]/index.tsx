@@ -102,11 +102,11 @@ export default function Overview() {
       <TripMapSection route={route} tone={pastelOf(tripPastel(readTripColor(trip.data.colorKey), tripId))} />
 
       <View onLayout={mark("ideas")}>
-        {days.isPending ? <Loading /> : (
+        {days.isPending ? <Loading /> : days.isError ? <Failed onRetry={() => days.refetch()} /> : (
           <IdeasSection
             tripId={tripId}
-            startOpen={ideasStartOpen({ startDate: trip.data.startDate, endDate: trip.data.endDate, days: days.data ?? [] })}
-            days={days.data ?? []}
+            startOpen={ideasStartOpen({ startDate: trip.data.startDate, endDate: trip.data.endDate, days: days.data })}
+            days={days.data}
           />
         )}
       </View>

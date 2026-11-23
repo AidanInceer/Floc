@@ -33,6 +33,9 @@ export function ideasIn<T extends { category: string }>(rows: readonly T[], tab:
   return rows.filter((row) => fold(row.category) === fold(tab));
 }
 
+export const activeIdeaTab = (tabs: readonly IdeaCategoryTab[], chosen: string): string =>
+  tabs.some((t) => fold(t.id) === fold(chosen)) ? chosen : ALL_IDEAS;
+
 export function ideaCategoryTabs(rows: readonly { category: string }[], made: readonly string[] = []): IdeaCategoryTab[] {
   const own = new Map<string, string>();
   for (const name of [...rows.map((r) => r.category), ...made]) {

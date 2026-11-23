@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  activeIdeaTab,
   ALL_IDEAS,
   IDEA_CATEGORY_MAX,
   ideaCategoryLabel,
@@ -67,6 +68,19 @@ describe("ideaCategoryTabs", () => {
   it("does not repeat a made category that already exists", () => {
     expect(ideaCategoryTabs(rows, ["ART", "food"]).filter((t) => t.label.toLowerCase() === "art")).toHaveLength(1);
     expect(ideaCategoryTabs(rows, ["food"]).filter((t) => t.id === "food")).toHaveLength(1);
+  });
+});
+
+describe("activeIdeaTab", () => {
+  const tabs = ideaCategoryTabs([{ category: "Beaches" }]);
+
+  it("keeps a tab that still exists, whatever its case", () => {
+    expect(activeIdeaTab(tabs, "food")).toBe("food");
+    expect(activeIdeaTab(tabs, "beaches")).toBe("beaches");
+  });
+
+  it("falls back to All when the chosen category has gone", () => {
+    expect(activeIdeaTab(tabs, "Museums")).toBe(ALL_IDEAS);
   });
 });
 

@@ -23,7 +23,7 @@ export function IdeaDaysSheet({
   busy: boolean;
   onClose: () => void;
   onDates: () => void;
-  onAdd: (dayId: number, time: string | null, label: string) => void;
+  onAdd: (dayId: number, time: string | null, label: string, date: string) => void;
 }) {
   const { c } = useTheme();
   const [dayId, setDayId] = useState<number | null>(null);
@@ -45,7 +45,7 @@ export function IdeaDaysSheet({
         <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: space.sm, paddingHorizontal: space.lg, paddingTop: space.md }}>
           <Button label="Cancel" fit="small" variant="quiet" onPress={onClose} />
           {days.length > 0 ? (
-            <Button label="Add to Days" fit="small" busy={busy} disabled={!chosen} onPress={() => chosen && onAdd(chosen.id, time, formatDate(chosen.date))} />
+            <Button label="Add to Days" fit="small" busy={busy} disabled={!chosen} onPress={() => chosen && onAdd(chosen.id, time, formatDate(chosen.date), chosen.date)} />
           ) : null}
         </View>
       }

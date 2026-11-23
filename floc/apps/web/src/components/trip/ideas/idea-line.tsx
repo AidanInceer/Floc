@@ -4,12 +4,12 @@ import { useState, useTransition } from "react";
 
 import { renameIdeaTitle, voteIdea } from "@/app/trip/[id]/overview/actions";
 import { ArrowRightIcon, CrossIcon } from "@/components/system/icons";
-import { Button, Input, cx, iconButtonClass, pressArea } from "@/components/system/ui";
+import { IdeaGlyph } from "@/components/system/icons/idea-glyph";
+import { Button, Input, busyMark, cx, iconFrameClass, pressArea } from "@/components/system/ui";
 import { EVENT_CATEGORIES } from "@floc/core/itinerary/event-categories";
 import { ideaCategoryLabel, ideaEventType } from "@floc/core/trip/idea-categories";
 import type { IdeaRow } from "@floc/core/trip/ideas";
 import { TEXT_CAPS } from "@floc/core/text/text";
-import { IdeaGlyph } from "./idea-glyph";
 import { IdeaMenu } from "./idea-menu";
 import { IdeaVoteButton } from "./idea-vote-button";
 
@@ -42,7 +42,7 @@ export function IdeaLine({
         <IdeaGlyph category={idea.category} />
       </span>
       <span className="grid min-w-0 leading-tight max-sm:col-start-2 max-sm:row-start-1">
-        <span className="truncate text-sm font-semibold text-ink">{idea.title}</span>
+        <span title={idea.title} className="text-sm font-semibold text-ink max-sm:line-clamp-2 sm:truncate">{idea.title}</span>
         {showCategory ? <span className="truncate text-xs text-ink-soft">{ideaCategoryLabel(idea.category)}</span> : null}
       </span>
       <button
@@ -101,9 +101,9 @@ function IdeaRename({ tripId, idea, onDone }: { tripId: number; idea: IdeaRow; o
           className="!h-[31px] min-w-0 flex-1 !py-0"
         />
         <Button type="submit" variant="primary" disabled={busy || !title.trim()} className="!h-[31px]">
-          {failed ? "Try again" : "Save"}
+          {failed ? "Try again" : "Save"}{busyMark(busy)}
         </Button>
-        <button type="button" aria-label="Cancel editing" onClick={onDone} className={iconButtonClass(false)}>
+        <button type="button" aria-label="Cancel editing" onClick={onDone} className={iconFrameClass()}>
           <CrossIcon size={12} />
         </button>
       </form>

@@ -5,7 +5,7 @@ import { useEffect, useId, useState, useTransition, type ReactNode } from "react
 import { removeIdea, undoIdeaOnDays, undoRemoveIdea } from "@/app/trip/[id]/overview/actions";
 import { cx } from "@/components/system/ui";
 import { formatDate } from "@floc/core/dates/dates";
-import { ALL_IDEAS, ideaCategoryTabs, ideasIn, readIdeaCategory } from "@floc/core/trip/idea-categories";
+import { ALL_IDEAS, activeIdeaTab, ideaCategoryTabs, ideasIn, readIdeaCategory } from "@floc/core/trip/idea-categories";
 import { sortIdeas, type IdeaRow } from "@floc/core/trip/ideas";
 import { IdeaAddField } from "./idea-add-field";
 import { IdeaCategoryTrack } from "./idea-category-track";
@@ -31,7 +31,7 @@ export function IdeasBox({
 }) {
   const foldId = useId();
   const [open, setOpen] = useState(startOpen);
-  const [tab, setTab] = useState<string>(ALL_IDEAS);
+  const [chosenTab, setTab] = useState<string>(ALL_IDEAS);
   const [made, setMade] = useState<string[]>([]);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [placing, setPlacing] = useState<IdeaRow | null>(null);
@@ -39,6 +39,7 @@ export function IdeasBox({
   const [, start] = useTransition();
   const steady = useSteadyOrder(sortIdeas(ideas, "votes"));
   const tabs = ideaCategoryTabs(ideas, made);
+  const tab = activeIdeaTab(tabs, chosenTab);
   const shown = ideasIn(steady, tab);
 
   useEffect(() => {
@@ -96,7 +97,7 @@ export function IdeasBox({
       <header className="grid items-center gap-x-3.5 gap-y-2 px-4 py-3 max-sm:px-3 sm:grid-cols-[auto_minmax(0,1fr)] lg:grid-cols-[auto_minmax(14rem,1fr)_auto] xl:grid-cols-[minmax(0,1fr)_minmax(14rem,22rem)_minmax(0,1fr)]">
         <IdeasToggle open={open} count={ideas.length} controls={foldId} onToggle={() => setOpen(!open)} />
         <IdeaAddField tripId={tripId} tab={tab} tabs={tabs} onAdded={added} />
-        <div className={cx("min-w-0 max-lg:col-span-full lg:justify-self-end", !open && "max-lg:hidden lg:invisible")}>
+        <div className={cx("min-w-0 max-lg:col-span-full lg:w-full", !open && "max-lg:hidden lg:invisible")}>
           <IdeaCategoryTrack tabs={tabs} tab={tab} onPick={setTab} onMake={makeCategory} />
         </div>
       </header>

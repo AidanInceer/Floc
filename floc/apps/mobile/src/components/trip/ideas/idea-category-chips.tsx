@@ -57,7 +57,8 @@ export function IdeaCategoryChips({
               accessibilityState={{ selected: on }}
               accessibilityLabel={`${option.label}, ${option.count === 1 ? "1 idea" : `${option.count} ideas`}`}
               onPress={() => onPick(option.id)}
-              style={{ minHeight: 34, justifyContent: "center", paddingHorizontal: space.md, borderRadius: radius.sm, backgroundColor: on ? c.sheet : "transparent" }}
+              hitSlop={{ top: 3, bottom: 3 }}
+              style={{ minHeight: 28, justifyContent: "center", paddingHorizontal: space.md, borderRadius: radius.sm, backgroundColor: on ? c.sheet : "transparent" }}
             >
               <Text style={{ color: on ? c.ink : c["ink-2"], fontFamily: on ? fonts.sansBold : fonts.sans, fontSize: size.small }}>{option.label}</Text>
             </Pressable>

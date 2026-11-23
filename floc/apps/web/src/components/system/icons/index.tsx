@@ -33,6 +33,14 @@ export function LineIcon({
 
 export type IconProps = { size?: number; className?: string };
 
+export function BulbIcon(props: IconProps) {
+  return (
+    <LineIcon {...props}>
+      <path d="M5.2 10.2h3.6M5.6 12h2.8M7 1.8a3.6 3.6 0 0 0-2.2 6.4c.4.3.5.7.5 1.1v.9h3.4v-.9c0-.4.1-.8.5-1.1A3.6 3.6 0 0 0 7 1.8Z" />
+    </LineIcon>
+  );
+}
+
 export function MoreIcon() {
   return (
     <svg viewBox="0 0 14 14" width="13" height="13" fill="currentColor" aria-hidden="true">

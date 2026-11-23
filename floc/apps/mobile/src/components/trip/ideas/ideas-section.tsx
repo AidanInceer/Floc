@@ -1,4 +1,4 @@
-import { ALL_IDEAS, ideaCategoryTabs, ideasIn, readIdeaCategory } from "@floc/core/trip/idea-categories";
+import { ALL_IDEAS, activeIdeaTab, ideaCategoryTabs, ideasIn, readIdeaCategory } from "@floc/core/trip/idea-categories";
 import type { IdeaRow } from "@floc/core/trip/ideas";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
@@ -46,13 +46,14 @@ function IdeasBox({ tripId, rows, startOpen, days }: { tripId: number; rows: Ide
   const router = useRouter();
   const actions = useIdeaActions(tripId);
   const [toggled, setToggled] = useState<boolean | null>(null);
-  const [tab, setTab] = useState<string>(ALL_IDEAS);
+  const [chosenTab, setTab] = useState<string>(ALL_IDEAS);
   const [made, setMade] = useState<string[]>([]);
   const [placing, setPlacing] = useState<IdeaRow | null>(null);
   const [menuFor, setMenuFor] = useState<IdeaRow | null>(null);
   const open = toggled ?? startOpen;
   const steady = useSteadyIdeas(rows);
   const tabs = ideaCategoryTabs(rows, made);
+  const tab = activeIdeaTab(tabs, chosenTab);
   const shown = ideasIn(steady, tab);
 
   const makeCategory = (name: string) => {
@@ -117,7 +118,9 @@ function IdeasBox({ tripId, rows, startOpen, days }: { tripId: number; rows: Ide
             setPlacing(null);
             router.push(`/trip/${tripId}/dates` as never);
           }}
-          onAdd={(dayId, time, label) => actions.place(placing.id, dayId, time, label, () => setPlacing(null))}
+          onAdd={(dayId, time, label, date) =>
+            actions.place(placing.id, dayId, time, label, () => router.push({ pathname: "/trip/[id]/days", params: { id: tripId, date } }), () => setPlacing(null))
+          }
         />
       ) : null}
 
@@ -150,6 +153,11 @@ function NoticeLine({ notice }: { notice: IdeaNotice }) {
   return (
     <View accessibilityLiveRegion="polite" style={{ flexDirection: "row", alignItems: "center", gap: space.md }}>
       <Text numberOfLines={1} style={{ flex: 1, color: c.ink, fontFamily: fonts.sans, fontSize: size.small }}>{notice.text}</Text>
+      {notice.see ? (
+        <Pressable accessibilityRole="link" accessibilityLabel="See it on Days" onPress={notice.see} hitSlop={8}>
+          <Text style={{ color: c["pen-deep"], fontFamily: fonts.sans, fontSize: size.small, textDecorationLine: "underline" }}>See it on Days</Text>
+        </Pressable>
+      ) : null}
       {notice.undo ? (
         <Pressable accessibilityRole="button" accessibilityLabel="Undo" onPress={notice.undo} hitSlop={8}>
           <Text style={{ color: c["pen-deep"], fontFamily: fonts.sansBold, fontSize: size.small, textDecorationLine: "underline" }}>Undo</Text>

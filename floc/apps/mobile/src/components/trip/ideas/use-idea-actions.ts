@@ -6,7 +6,7 @@ import { trpc } from "@/lib/api";
 const SHOWN_MS = 8000;
 const NOT_SAVED = "That did not save. Try again.";
 
-export type IdeaNotice = { text: string; undo?: () => void };
+export type IdeaNotice = { text: string; see?: () => void; undo?: () => void };
 
 export function useIdeaActions(tripId: number) {
   const queryClient = useQueryClient();
@@ -55,12 +55,13 @@ export function useIdeaActions(tripId: number) {
             },
           }),
       }),
-    place: (ideaId: number, dayId: number, time: string | null, label: string, done: () => void) =>
+    place: (ideaId: number, dayId: number, time: string | null, label: string, see: () => void, done: () => void) =>
       placeOne.mutate({ tripId, ideaId, dayId, time }, {
         onSuccess: () => {
           done();
           setNotice({
             text: `Added to ${label}`,
+            see,
             undo: () => {
               setNotice(null);
               unplaceOne.mutate({ tripId, ideaId });

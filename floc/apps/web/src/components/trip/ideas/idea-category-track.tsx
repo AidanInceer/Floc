@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { CrossIcon, PlusIcon } from "@/components/system/icons";
 import { SegmentTrack } from "@/components/system/segment-track";
-import { Button, Input, cx, iconButtonClass, iconFrameClass, trackSegmentClass } from "@/components/system/ui";
+import { Button, Input, cx, iconFrameClass, trackSegmentClass } from "@/components/system/ui";
 import { IDEA_CATEGORY_MAX, type IdeaCategoryTab } from "@floc/core/trip/idea-categories";
 
 export function IdeaCategoryTrack({
@@ -28,7 +28,7 @@ export function IdeaCategoryTrack({
 
   return (
     <div className="flex min-w-0 items-center justify-end gap-1">
-      <SegmentTrack role="group" aria-label="Show ideas by category" className="flex min-w-0 items-center gap-0.5 overflow-x-auto !p-1 [scrollbar-width:none] max-lg:flex-1">
+      <SegmentTrack role="group" aria-label="Show ideas by category" className="flex min-w-0 items-center gap-0.5 overflow-x-auto !p-1 [scrollbar-width:none] max-lg:flex-1 lg:flex-wrap lg:justify-end lg:overflow-visible">
         {tabs.map((option) => {
           const on = option.id.toLowerCase() === tab.toLowerCase();
           return (
@@ -38,7 +38,7 @@ export function IdeaCategoryTrack({
               aria-pressed={on}
               aria-label={`${option.label}, ${option.count === 1 ? "1 idea" : `${option.count} ideas`}`}
               onClick={() => onPick(option.id)}
-              className={cx(trackSegmentClass(on), "h-[23px] shrink-0 whitespace-nowrap px-2.5 text-sm max-sm:h-[31px]")}
+              className={cx(trackSegmentClass(on), "h-[23px] shrink-0 whitespace-nowrap px-2.5 text-sm max-sm:after:absolute max-sm:after:inset-x-0 max-sm:after:-inset-y-1 max-sm:after:content-['']")}
             >
               <span className="relative">{option.label}</span>
             </button>
@@ -67,7 +67,7 @@ export function IdeaCategoryTrack({
             className="!h-[31px] !w-28 !py-0"
           />
           <Button type="submit" variant="primary" disabled={!name.trim()} className="!h-[31px]">Add</Button>
-          <button type="button" aria-label="Cancel new category" onClick={finish} className={iconButtonClass(false)}>
+          <button type="button" aria-label="Cancel new category" onClick={finish} className={iconFrameClass()}>
             <CrossIcon size={12} />
           </button>
         </form>

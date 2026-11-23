@@ -22,6 +22,7 @@ export function IdeaMenu({ title, onEdit, onRemove }: { title: string; onEdit: (
       if (!panel.current?.contains(target) && !trigger.current?.contains(target)) close();
     };
     const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Tab") close();
       if (event.key !== "Escape") return;
       close();
       trigger.current?.focus();

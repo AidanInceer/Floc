@@ -47,7 +47,10 @@ export function IdeaAddField({
 
   return (
     <form
-      action={submit}
+      onSubmit={(event) => {
+        event.preventDefault();
+        void submit(new FormData(event.currentTarget));
+      }}
       className={cx(
         "flex h-[31px] min-w-0 items-stretch overflow-hidden rounded-sm border bg-sheet transition-colors focus-within:border-transparent focus-within:outline focus-within:outline-2 focus-within:-outline-offset-1 focus-within:outline-pen max-sm:h-10",
         failed ? "border-red" : "border-rule-strong hover:border-ink-faint",

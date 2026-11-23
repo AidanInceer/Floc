@@ -71,7 +71,7 @@ export function IdeaDaysDialog({
         <>
           <div className={panelBandClass}>
             <h3 className={panelTitleClass}>Day</h3>
-            <div role="group" aria-label="Day" className="mt-2 flex gap-1 overflow-x-auto p-px [scrollbar-width:none]">
+            <div role="group" aria-label="Day" className="mt-2 flex gap-1 overflow-x-auto p-px [scrollbar-width:none] sm:grid sm:grid-cols-7 sm:overflow-visible">
               {days.map((day) => {
                 const parts = dayParts(day.date);
                 return (
