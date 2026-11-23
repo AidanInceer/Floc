@@ -17,7 +17,7 @@ export function IdeaAddField({
   tripId: number;
   tab: string;
   tabs: IdeaCategoryTab[];
-  onAdded: (title: string, category: string) => void;
+  onAdded: (category: string) => void;
 }) {
   const [title, setTitle] = useState("");
   const [picked, setPicked] = useState<string | null>(null);
@@ -35,7 +35,7 @@ export function IdeaAddField({
         setFailed(true);
         return;
       }
-      onAdded(title.trim(), category);
+      onAdded(category);
       setTitle("");
       setPicked(null);
     } catch {
