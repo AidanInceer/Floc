@@ -99,7 +99,7 @@ export const account = sqliteTable(
   },
   (t) => [
     index("account_user_idx").on(t.userId),
-    index("account_provider_idx").on(t.providerId, t.accountId),
+    uniqueIndex("account_provider_account_idx").on(t.providerId, t.accountId),
   ],
 );
 
@@ -701,7 +701,12 @@ export const place = sqliteTable(
     countryCode: text("country_code"),
     ...audit,
   },
-  (t) => [index("place_provider_idx").on(t.providerId)],
+  (t) => [
+    index("place_provider_idx").on(t.providerId),
+    uniqueIndex("place_live_provider_idx")
+      .on(t.providerId)
+      .where(sql`provider_id IS NOT NULL AND deleted_at IS NULL`),
+  ],
 );
 
 export const day = sqliteTable(
@@ -779,7 +784,12 @@ export const expenseSplit = sqliteTable(
     owedAmountMinor: integer("owed_amount_minor").notNull(),
     ...audit,
   },
-  (t) => [index("expense_split_expense_idx").on(t.expenseId)],
+  (t) => [
+    index("expense_split_expense_idx").on(t.expenseId),
+    uniqueIndex("expense_split_live_person_idx")
+      .on(t.expenseId, t.userId)
+      .where(sql`deleted_at IS NULL`),
+  ],
 );
 
 export const settlement = sqliteTable(

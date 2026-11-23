@@ -192,10 +192,18 @@ export async function upsertPlace(input: {
       lng: input.lng ?? null,
       countryCode,
     })
+    .onConflictDoNothing()
     .returning({ id: place.id })
     .get();
+  if (inserted) return inserted.id;
 
-  return inserted.id;
+  const winner = await db
+    .select({ id: place.id })
+    .from(place)
+    .where(and(eq(place.providerId, input.providerId ?? ""), isNull(place.deletedAt)))
+    .get();
+  if (!winner) throw new Error("Could not save the place");
+  return winner.id;
 }
 
 export type TripPlaceRow = {

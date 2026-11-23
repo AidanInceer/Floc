@@ -498,6 +498,13 @@
       "when": 1795456928886,
       "tag": "0070_premium_sphinx",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "6",
+      "when": 1795457130577,
+      "tag": "0071_bouncy_professor_monster",
+      "breakpoints": true
     }
   ]
 }

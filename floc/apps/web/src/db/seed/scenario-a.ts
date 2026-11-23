@@ -1,5 +1,5 @@
 import { db } from "../index.ts";
-import { availability, day, dayEvent, place } from "../schema.ts";
+import { availability, day, dayEvent } from "../schema.ts";
 import type { Person } from "./people.ts";
 import { seedNotesPages } from "./notes-pages.ts";
 import { FRIENDS_ONLY, OPEN, PRIVATE } from "./profiles.ts";
@@ -10,6 +10,7 @@ import {
   addPersonalPackingLine,
   isoIn,
   makeTrip,
+  seedPlace,
 } from "./world.ts";
 
 const PEOPLE: Person[] = [
@@ -93,25 +94,19 @@ export async function buildScenarioA(): Promise<string> {
 }
 
 async function planPortugal(tripId: number): Promise<{ id: number }[]> {
-  const [lisbon] = await db
-    .insert(place)
-    .values({
-      providerId: "osm:relation:5400890",
-      name: "Lisbon, Portugal",
-      lat: 38.7223,
-      lng: -9.1393,
-    })
-    .returning({ id: place.id });
+  const lisbon = await seedPlace({
+    providerId: "osm:relation:5400890",
+    name: "Lisbon, Portugal",
+    lat: 38.7223,
+    lng: -9.1393,
+  });
 
-  const [lagos] = await db
-    .insert(place)
-    .values({
-      providerId: "osm:relation:5978639",
-      name: "Lagos, Portugal",
-      lat: 37.1028,
-      lng: -8.6742,
-    })
-    .returning({ id: place.id });
+  const lagos = await seedPlace({
+    providerId: "osm:relation:5978639",
+    name: "Lagos, Portugal",
+    lat: 37.1028,
+    lng: -8.6742,
+  });
 
   const days = await db
     .insert(day)

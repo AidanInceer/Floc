@@ -1,5 +1,5 @@
 import { db } from "../index.ts";
-import { availability, day, dayEvent, note, place, tripInvite } from "../schema.ts";
+import { availability, day, dayEvent, note, tripInvite } from "../schema.ts";
 import type { Person } from "./people.ts";
 import { FRIENDS_ONLY, MIXED, OPEN, PRIVATE } from "./profiles.ts";
 import { befriend, ensureDevUser, requestFriendship, seedPerson } from "./people.ts";
@@ -9,6 +9,7 @@ import {
   addPersonalPackingLine,
   isoIn,
   makeTrip,
+  seedPlace,
 } from "./world.ts";
 
 const PEOPLE: Person[] = [
@@ -142,15 +143,12 @@ async function planDolomites(
   tripId: number,
   { mei, callum }: { mei: string; callum: string },
 ): Promise<{ id: number }[]> {
-  const [cortina] = await db
-    .insert(place)
-    .values({
-      providerId: "osm:relation:44924",
-      name: "Cortina d'Ampezzo, Italy",
-      lat: 46.5405,
-      lng: 12.1357,
-    })
-    .returning({ id: place.id });
+  const cortina = await seedPlace({
+    providerId: "osm:relation:44924",
+    name: "Cortina d'Ampezzo, Italy",
+    lat: 46.5405,
+    lng: 12.1357,
+  });
 
   const days = await db
     .insert(day)
@@ -383,16 +381,13 @@ async function buildPastTrip(you: string, crew: string[]): Promise<number> {
     ],
   });
 
-  const [krakow] = await db
-    .insert(place)
-    .values({
-      providerId: "osm:relation:449696",
-      name: "Krakow, Poland",
-      countryCode: "PL",
-      lat: 50.0647,
-      lng: 19.945,
-    })
-    .returning({ id: place.id });
+  const krakow = await seedPlace({
+    providerId: "osm:relation:449696",
+    name: "Krakow, Poland",
+    countryCode: "PL",
+    lat: 50.0647,
+    lng: 19.945,
+  });
 
   await db.insert(day).values(
     [0, 1, 2, 3, 4, 5, 6].map((offset) => ({

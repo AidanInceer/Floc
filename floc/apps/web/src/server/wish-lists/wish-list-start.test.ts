@@ -15,7 +15,6 @@ beforeEach(async () => {
   await resetDb();
   world = await seedScenario();
   await befriend(world.admin, world.outsider);
-  await befriend(world.outsider, world.admin);
   await db.insert(schema.exploreSave).values([
     { userId: world.admin, presetId: both },
     { userId: world.outsider, presetId: both },

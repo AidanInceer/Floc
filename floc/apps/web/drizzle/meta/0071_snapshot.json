@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "e431ed3c-33c8-41aa-a93e-9c71aeed1336",
-  "prevId": "80d1837c-e842-497e-a884-a40c3ccba81a",
+  "id": "9d8ab244-3fa9-4aea-a93b-200c43950dae",
+  "prevId": "e431ed3c-33c8-41aa-a93e-9c71aeed1336",
   "tables": {
     "account": {
       "name": "account",
@@ -109,13 +109,13 @@
           ],
           "isUnique": false
         },
-        "account_provider_idx": {
-          "name": "account_provider_idx",
+        "account_provider_account_idx": {
+          "name": "account_provider_account_idx",
           "columns": [
             "provider_id",
             "account_id"
           ],
-          "isUnique": false
+          "isUnique": true
         }
       },
       "foreignKeys": {
@@ -1370,6 +1370,15 @@
             "expense_id"
           ],
           "isUnique": false
+        },
+        "expense_split_live_person_idx": {
+          "name": "expense_split_live_person_idx",
+          "columns": [
+            "expense_id",
+            "user_id"
+          ],
+          "isUnique": true,
+          "where": "deleted_at IS NULL"
         }
       },
       "foreignKeys": {
@@ -3167,6 +3176,14 @@
             "provider_id"
           ],
           "isUnique": false
+        },
+        "place_live_provider_idx": {
+          "name": "place_live_provider_idx",
+          "columns": [
+            "provider_id"
+          ],
+          "isUnique": true,
+          "where": "provider_id IS NOT NULL AND deleted_at IS NULL"
         }
       },
       "foreignKeys": {},
