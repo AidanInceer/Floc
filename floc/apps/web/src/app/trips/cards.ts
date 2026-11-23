@@ -2,6 +2,7 @@ import "server-only";
 
 import { listMembersFor, type TripMember } from "@/server/access";
 import { readTripRoutes, type TripRoutes } from "@/server/itinerary/routes-for-trips";
+import { firstPlaces } from "@/server/trips/past-trip-maps";
 import { listTripsFor } from "@/server/trips/trips";
 import { hasEnded } from "@floc/core/dates/dates";
 import { readTags } from "@floc/core/trip/tags";
@@ -17,15 +18,20 @@ export async function loadTripCards(
 ): Promise<TripListCard[]> {
   const rows = await listTripsFor(viewerId, { archived });
   const tripIds = rows.map((r) => r.id);
+  const liveIds = rows.filter((r) => !hasEnded(r.endDate)).map((r) => r.id);
+  const pastIds = rows.filter((r) => hasEnded(r.endDate)).map((r) => r.id);
 
   const none: TripRoutes = { routes: new Map(), firstPlace: new Map() };
-  const [membersByTrip, { routes, firstPlace: whereByTrip }] = await Promise.all([
+  const [membersByTrip, { routes, firstPlace }, pastPlaces] = await Promise.all([
     listMembersFor(tripIds),
-    archived ? none : readTripRoutes(tripIds),
+    archived ? none : readTripRoutes(liveIds),
+    archived ? new Map<number, string>() : firstPlaces(pastIds),
   ]);
+  const whereByTrip = new Map([...firstPlace, ...pastPlaces]);
 
   return rows.map((r) => {
     const members = membersByTrip.get(r.id) ?? [];
+    const readOnOpen = !archived && hasEnded(r.endDate);
     return {
       members,
       card: {
@@ -47,7 +53,7 @@ export async function loadTripCards(
         tags: readTags(r.tags),
         color: readTripColor(r.colorKey),
         mark: readTripMark(r.mark),
-        route: routes.get(r.id) ?? null,
+        route: readOnOpen ? undefined : (routes.get(r.id) ?? null),
       },
     };
   });

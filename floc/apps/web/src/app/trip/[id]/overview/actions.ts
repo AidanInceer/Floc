@@ -11,6 +11,7 @@ import { castIdeaVote, deleteIdea, saveIdea } from "@/server/ideas/ideas";
 import { addIdeaToDays, renameIdea, restoreIdea, takeIdeaOffDays } from "@/server/ideas/idea-writes";
 import { readIdeaCategory } from "@floc/core/trip/idea-categories";
 import { LIMITS } from "@/server/limits";
+import { listFriendsFor, type Person } from "@/server/social/friends";
 import { inviteToTrip } from "@/server/trips/invites";
 import {
   leaveTripAs,
@@ -30,6 +31,11 @@ export async function nudge(tripId: number, task: string, toUserIds: string[]): 
   const plan = await sendNudges(access, known, ids);
   if (plan.send.length > 0) refreshNudged(access.trip.id);
   return { sent: plan.send.length, capped: plan.capped };
+}
+
+export async function friendsToInvite(tripId: number): Promise<Person[]> {
+  const access = await requireTripAccess(tripId);
+  return listFriendsFor(access.viewer.id);
 }
 
 export async function inviteFriends(formData: FormData) {

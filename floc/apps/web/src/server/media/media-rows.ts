@@ -27,6 +27,10 @@ export async function listMedia(tripId: number) {
   return bounded(rows, "tripMedia", `trip:${tripId}`);
 }
 
+export async function mediaPlaceIds(tripId: number): Promise<{ placeId: number | null }[]> {
+  return db.selectDistinct({ placeId: tripMedia.placeId }).from(tripMedia).where(live(tripId)).limit(LIMITS.tripMedia).all();
+}
+
 export async function mediaHeld(tripId: number): Promise<{ total: number; photos: number; usedBytes: number }> {
   const row = await db
     .select({

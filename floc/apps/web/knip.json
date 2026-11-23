@@ -2,6 +2,7 @@
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "entry": [
     "scripts/*.mjs",
+    "scripts/perf/cron-scale.*.ts",
     "e2e/serve.mjs",
     "e2e/auth.setup.ts"
   ],
