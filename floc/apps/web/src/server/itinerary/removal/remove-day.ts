@@ -10,7 +10,7 @@ import { touch } from "@/server/audit";
 import { refresh } from "@/server/freshness";
 import { listDays } from "@/server/itinerary/itinerary";
 import { LIMITS } from "@/server/limits";
-import { recordActivity, type Tx } from "@/server/notifications/activity";
+import { groupedActivityWrites, liveMemberIds } from "@/server/notifications/activity";
 
 type TripWindow = { id: number; startDate: string | null; endDate: string | null };
 
@@ -63,29 +63,30 @@ export async function dayRemovalPlanFor(
   return planDayRemoval(days, dayId, target, bookings);
 }
 
-async function clearDay(tx: Tx, dayId: number, now: Date): Promise<void> {
-  const gone = await tx
-    .update(dayEvent)
-    .set({ deletedAt: now, lastModifiedAt: now })
-    .where(and(eq(dayEvent.dayId, dayId), isNull(dayEvent.deletedAt)))
-    .returning({ id: dayEvent.id })
-    .all();
-  if (gone.length) {
-    await tx.update(document).set({ dayEventId: null }).where(inArray(document.dayEventId, gone.map((e) => e.id)));
-  }
-  await tx.update(expense).set({ dayId: null }).where(eq(expense.dayId, dayId));
-  await tx.update(document).set({ dayId: null }).where(eq(document.dayId, dayId));
+function clearDayWrites(dayId: number, now: Date) {
+  const liveOnDay = and(eq(dayEvent.dayId, dayId), isNull(dayEvent.deletedAt));
+  return [
+    db
+      .update(document)
+      .set({ dayEventId: null })
+      .where(inArray(document.dayEventId, db.select({ id: dayEvent.id }).from(dayEvent).where(liveOnDay))),
+    db.update(dayEvent).set({ deletedAt: now, lastModifiedAt: now }).where(liveOnDay),
+    db.update(expense).set({ dayId: null }).where(eq(expense.dayId, dayId)),
+    db.update(document).set({ dayId: null }).where(eq(document.dayId, dayId)),
+  ] as const;
 }
 
-async function movePlan(tx: Tx, from: number, to: number, overnightPlaceId: number | null): Promise<void> {
-  await tx.update(dayEvent).set({ dayId: to, ...touch() }).where(and(eq(dayEvent.dayId, from), isNull(dayEvent.deletedAt)));
-  await tx.update(expense).set({ dayId: to }).where(eq(expense.dayId, from));
-  await tx.update(document).set({ dayId: to }).where(eq(document.dayId, from));
-  await tx.update(day).set({ overnightPlaceId, ...touch() }).where(eq(day.id, to));
+function movePlanWrites(from: number, to: number, overnightPlaceId: number | null) {
+  return [
+    db.update(dayEvent).set({ dayId: to, ...touch() }).where(and(eq(dayEvent.dayId, from), isNull(dayEvent.deletedAt))),
+    db.update(expense).set({ dayId: to }).where(eq(expense.dayId, from)),
+    db.update(document).set({ dayId: to }).where(eq(document.dayId, from)),
+    db.update(day).set({ overnightPlaceId, ...touch() }).where(eq(day.id, to)),
+  ];
 }
 
 export async function removeTripDay(target: TripWindow, dayId: number, by: string): Promise<void> {
-  const days = await listDays(target.id);
+  const [days, members] = await Promise.all([listDays(target.id), liveMemberIds(db, target.id)]);
   const plan = planDayRemoval(days, dayId, target, []);
   if (!plan) return;
   const index = days.findIndex((d) => d.id === dayId);
@@ -93,27 +94,32 @@ export async function removeTripDay(target: TripWindow, dayId: number, by: strin
   const lastRow = plan.position === "first" || plan.position === "only" ? days[0] : days[days.length - 1];
   const now = new Date();
 
-  await db.transaction(async (tx) => {
-    await clearDay(tx, dayId, now);
-    for (let i = 1; i < moving.length; i++) {
-      await movePlan(tx, moving[i].id, moving[i - 1].id, moving[i].overnightPlaceId);
-    }
-    await tx.update(day).set({ deletedAt: now, lastModifiedAt: now }).where(eq(day.id, lastRow.id));
-    if (plan.position === "only" || (target.startDate && target.endDate)) {
-      await tx
-        .update(trip)
-        .set({ startDate: plan.start, endDate: plan.end, ...touch() })
-        .where(and(eq(trip.id, target.id), isNull(trip.deletedAt)));
-    }
-    await recordActivity(tx, {
-      kind: "days_removed",
-      tripId: target.id,
-      actorId: by,
-      subjectId: null,
-      href: tripHref(target.id, "days"),
-      affected: [],
-    });
-  });
+  const movesWindow = plan.position === "only" || Boolean(target.startDate && target.endDate);
+
+  await db.batch([
+    ...clearDayWrites(dayId, now),
+    ...moving.slice(1).flatMap((row, i) => movePlanWrites(row.id, moving[i].id, row.overnightPlaceId)),
+    db.update(day).set({ deletedAt: now, lastModifiedAt: now }).where(eq(day.id, lastRow.id)),
+    ...(movesWindow
+      ? [
+          db
+            .update(trip)
+            .set({ startDate: plan.start, endDate: plan.end, ...touch() })
+            .where(and(eq(trip.id, target.id), isNull(trip.deletedAt))),
+        ]
+      : []),
+    ...groupedActivityWrites(
+      {
+        kind: "days_removed",
+        tripId: target.id,
+        actorId: by,
+        subjectId: null,
+        href: tripHref(target.id, "days"),
+        affected: [],
+      },
+      members,
+    ),
+  ]);
 
   refresh({ kind: "tripWindow", tripId: target.id });
 }

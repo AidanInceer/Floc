@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
@@ -90,6 +90,46 @@ describe("removing a day", () => {
     expect(after.find((d) => d.date === "2026-11-04")?.overnightPlaceId).toBe(placeRow.id);
     const doc = await db.select().from(schema.document).where(eq(schema.document.id, file)).get();
     expect(doc?.dayId).toBe(day["06"]);
+  });
+
+  it("removes a day in one trip to the database (rule 2)", async () => {
+    const day = await aWeek();
+    const target = await tripOf(world.ours.id);
+    const interactive = vi.spyOn(db, "transaction");
+    const batch = vi.spyOn(db, "batch");
+
+    await removeTripDay(target, day["03"], world.admin);
+
+    expect(interactive).not.toHaveBeenCalled();
+    expect(batch).toHaveBeenCalledTimes(1);
+    interactive.mockRestore();
+    batch.mockRestore();
+  });
+
+  it("leaves every day and plan in place when a removal fails (rule 2)", async () => {
+    const day = await aWeek();
+    const staying = await anEvent(day["03"], "Museum");
+    const moving = await anEvent(day["05"], "Boat trip");
+
+    await expect(removeTripDay(await tripOf(world.ours.id), day["03"], "nobody")).rejects.toThrow();
+
+    expect(await dates()).toHaveLength(7);
+    expect(await tripOf(world.ours.id)).toMatchObject({ startDate: "2026-11-01", endDate: "2026-11-07" });
+    expect(await eventDay(staying)).toMatchObject({ dayId: day["03"], deletedAt: null });
+    expect((await eventDay(moving)).dayId).toBe(day["05"]);
+  });
+
+  it("clears a file's link to an event on the removed day, and keeps the file", async () => {
+    const day = await aWeek();
+    const event = await anEvent(day["03"], "Museum");
+    const file = await aFile(day["02"], "ticket.pdf");
+    await db.update(schema.document).set({ dayId: null, dayEventId: event }).where(eq(schema.document.id, file));
+
+    await removeTripDay(await tripOf(world.ours.id), day["03"], world.admin);
+
+    const doc = await db.select().from(schema.document).where(eq(schema.document.id, file)).get();
+    expect(doc?.dayEventId).toBeNull();
+    expect(doc?.deletedAt).toBeNull();
   });
 
   it("moves an expense with its day", async () => {
