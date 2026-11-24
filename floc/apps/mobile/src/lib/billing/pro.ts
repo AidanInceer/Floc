@@ -1,7 +1,8 @@
 import type { BillingStatus, StoreClaim } from "@floc/api/port";
 import { billingHome } from "@floc/core/billing/billing-home";
-import { intervalOfProduct } from "@floc/core/billing/store-products";
-import { isLive, renewalLabel, yearlySaving } from "@floc/core/billing/subscription-copy";
+import type { BillingInterval } from "@floc/core/billing/plans";
+import { STORE_PRODUCT_IDS, intervalOfProduct } from "@floc/core/billing/store-products";
+import { isLive, periodSaving, renewalLabel } from "@floc/core/billing/subscription-copy";
 
 export type ProView =
   | { kind: "hidden" }
@@ -40,9 +41,28 @@ export function offerTokenOf(
   return product?.subscriptionOffers?.find((offer) => offer.offerTokenAndroid)?.offerTokenAndroid ?? null;
 }
 
-type Priced = { price?: number | null } | undefined;
+type StoreProduct = { id: string; displayPrice: string; price?: number | null };
 
-export function yearlySavingOf(monthly: Priced, yearly: Priced): number | null {
-  if (!monthly?.price || !yearly?.price) return null;
-  return yearlySaving(Math.round(monthly.price * 100), Math.round(yearly.price * 100));
+const OFFERS: { interval: BillingInterval; per: string; months: number }[] = [
+  { interval: "yearly", per: "a year", months: 12 },
+  { interval: "quarterly", per: "every 3 months", months: 3 },
+  { interval: "monthly", per: "a month", months: 1 },
+];
+
+function savingOf(monthly: StoreProduct | undefined, product: StoreProduct, months: number): number | null {
+  if (!monthly?.price || !product.price) return null;
+  return periodSaving(Math.round(monthly.price * 100), Math.round(product.price * 100), months);
+}
+
+export function storeOffers<P extends StoreProduct>(products: readonly P[]): { product: P; label: string; lead: boolean }[] {
+  const monthly = products.find((p) => p.id === STORE_PRODUCT_IDS.monthly);
+  const offers = OFFERS.flatMap(({ interval, per, months }) => {
+    const product = products.find((p) => p.id === STORE_PRODUCT_IDS[interval]);
+    if (!product?.displayPrice) return [];
+    const saving = savingOf(monthly, product, months) ?? 0;
+    return [{ product, saving, label: `${product.displayPrice} ${per}${saving ? ` · save ${saving}%` : ""}` }];
+  });
+  const most = Math.max(0, ...offers.map((offer) => offer.saving));
+  const leadAt = most > 0 ? offers.findIndex((offer) => offer.saving === most) : 0;
+  return offers.map(({ product, label }, i) => ({ product, label, lead: i === leadAt }));
 }

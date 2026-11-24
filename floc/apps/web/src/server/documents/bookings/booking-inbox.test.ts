@@ -5,8 +5,11 @@ import path from "node:path";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
+import { FREE_ACCOUNT_STORAGE_BYTES } from "@floc/core/documents/documents";
+
 import { db } from "@/db";
 import { bookingInbox, document, trip, tripMembership } from "@/db/schema";
+import { insertDocument } from "@/server/documents/documents";
 import { fileFields, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 
 import {
@@ -122,6 +125,19 @@ describe("choosing its trip", () => {
     const id = await onlyId(world.member);
     expect(await placeWaitingBooking(world.admin, id, world.ours.id)).toBe("That file is no longer waiting.");
     expect(await waitingBookings(world.member)).toHaveLength(1);
+  });
+
+  it("waits outside the 1 GB, then counts once it is placed (#523, ADR-083)", async () => {
+    await insertDocument({
+      tripId: world.theirs.id, uploadedBy: world.member, ownerId: world.member, name: "elsewhere.pdf",
+      storageKey: "elsewhere", mimeType: "application/pdf", sizeBytes: FREE_ACCOUNT_STORAGE_BYTES, category: "other",
+    });
+
+    expect(await upload(world.member)).toBeNull();
+    expect(await placeWaitingBooking(world.member, await onlyId(world.member), world.ours.id)).toBe(
+      "Your free account has used all of its 1 GB. Remove a file to make room.",
+    );
+    expect(await waitingCount(world.member)).toBe(1);
   });
 
   it("offers only the member's own live trips", async () => {

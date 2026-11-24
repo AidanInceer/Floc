@@ -786,6 +786,7 @@ export const document = sqliteTable(
     index("document_day_idx").on(t.dayId),
     index("document_day_event_idx").on(t.dayEventId),
     index("document_stored_file_idx").on(t.storedFileId),
+    index("document_uploaded_by_idx").on(t.uploadedBy),
   ],
 );
 
@@ -811,6 +812,7 @@ export const tripMedia = sqliteTable(
     index("trip_media_trip_idx").on(t.tripId),
     index("trip_media_place_idx").on(t.placeId),
     index("trip_media_stored_file_idx").on(t.storedFileId),
+    index("trip_media_uploaded_by_idx").on(t.uploadedBy),
   ],
 );
 

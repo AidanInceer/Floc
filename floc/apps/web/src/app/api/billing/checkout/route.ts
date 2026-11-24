@@ -22,7 +22,7 @@ export async function POST(request: Request): Promise<Response> {
   if (!session?.user) return refuse(401, "Sign in first");
 
   const interval = await readInterval(request);
-  if (!interval) return refuse(400, "Pick monthly or yearly");
+  if (!interval) return refuse(400, "Pick a billing period");
 
   const price = priceFor(interval);
   if (!price) return refuse(503, "That price is not configured");
@@ -36,6 +36,7 @@ export async function POST(request: Request): Promise<Response> {
   const terms = checkoutTerms(appUrl());
   const checkout = await api.checkout.sessions.create({
     mode: "subscription",
+    managed_payments: { enabled: false },
     customer,
     line_items: [{ price, quantity: 1 }],
     client_reference_id: session.user.id,

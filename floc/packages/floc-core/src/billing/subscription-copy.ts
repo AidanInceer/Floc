@@ -25,13 +25,14 @@ export function renewalLabel(s: SubscriptionFacts, now = new Date()): string {
   return s.cancelAtPeriodEnd ? `Ends ${when}` : `Renews ${when}`;
 }
 
-export function yearlySaving(
+export function periodSaving(
   monthlyMinor: number,
-  yearlyMinor: number,
+  periodMinor: number,
+  months: number,
 ): number | null {
-  const twelve = monthlyMinor * 12;
-  if (twelve <= 0) return null;
+  const full = monthlyMinor * months;
+  if (full <= 0) return null;
 
-  const saved = Math.round(((twelve - yearlyMinor) / twelve) * 100);
+  const saved = Math.round(((full - periodMinor) / full) * 100);
   return saved > 0 ? saved : null;
 }

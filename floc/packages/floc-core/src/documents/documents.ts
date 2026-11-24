@@ -124,12 +124,29 @@ export function tripStorageBytes(pro: boolean): number {
   return pro ? PRO_TRIP_STORAGE_BYTES : FREE_TRIP_STORAGE_BYTES;
 }
 
-export function rejectForSpace(usedBytes: number, incomingBytes: number, quotaBytes: number): string | null {
+export const FREE_ACCOUNT_STORAGE_BYTES = 1024 ** 3;
+
+export function rejectForSpace(usedBytes: number, incomingBytes: number, quotaBytes: number, own = false): string | null {
   const left = quotaBytes - usedBytes;
   const quota = formatBytes(quotaBytes);
-  if (left <= 0) return `This trip has used all of its ${quota}. Remove a file to make room.`;
+  if (left <= 0) {
+    return own
+      ? `Your files on this trip have used all of your ${quota}. Remove a file to make room.`
+      : `This trip has used all of its ${quota}. Remove a file to make room.`;
+  }
   if (incomingBytes <= left) return null;
-  return `This trip has ${formatBytes(left)} of its ${quota} left, and that file is ${formatBytes(incomingBytes)}.`;
+  const size = formatBytes(incomingBytes);
+  return own
+    ? `You have ${formatBytes(left)} of your ${quota} left on this trip, and that file is ${size}.`
+    : `This trip has ${formatBytes(left)} of its ${quota} left, and that file is ${size}.`;
+}
+
+export function rejectForAccount(usedBytes: number, incomingBytes: number): string | null {
+  const left = FREE_ACCOUNT_STORAGE_BYTES - usedBytes;
+  const quota = formatBytes(FREE_ACCOUNT_STORAGE_BYTES);
+  if (left <= 0) return `Your free account has used all of its ${quota}. Remove a file to make room.`;
+  if (incomingBytes <= left) return null;
+  return `Your free account has ${formatBytes(left)} of its ${quota} left, and that file is ${formatBytes(incomingBytes)}.`;
 }
 
 const HEIC_BRANDS = ["heic", "heix", "hevc", "heim", "heis", "mif1", "msf1"];

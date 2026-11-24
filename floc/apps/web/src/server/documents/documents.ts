@@ -3,7 +3,7 @@ import "server-only";
 import { and, count, desc, eq, isNull, or, sum } from "drizzle-orm";
 
 import { db } from "@/db";
-import { dayEvent, document, storedFile, user, userProfile } from "@/db/schema";
+import { dayEvent, document, storedFile, trip, tripMedia, user, userProfile } from "@/db/schema";
 import { fileColumns, linkTo } from "@/server/documents/stored-file";
 import { parseBookingDetails, type BookingDetails } from "@floc/core/documents/booking/booking-details";
 import type { DocCategory } from "@floc/core/documents/documents";
@@ -112,14 +112,36 @@ export async function countDocuments(tripId: number): Promise<number> {
   return row?.n ?? 0;
 }
 
-export async function usedBytes(tripId: number): Promise<number> {
-  const row = await db
-    .select({ bytes: sum(storedFile.sizeBytes).mapWith(Number) })
+export async function bytesByUploader(tripId: number): Promise<Map<string, number>> {
+  const rows = await db
+    .select({ uploadedBy: document.uploadedBy, bytes: sum(storedFile.sizeBytes).mapWith(Number) })
     .from(document)
     .innerJoin(storedFile, eq(storedFile.id, document.storedFileId))
     .where(and(eq(document.tripId, tripId), isNull(document.deletedAt)))
-    .get();
-  return row?.bytes ?? 0;
+    .groupBy(document.uploadedBy)
+    .limit(LIMITS.documents)
+    .all();
+  return new Map(rows.map((row) => [row.uploadedBy, row.bytes ?? 0]));
+}
+
+export async function accountBytes(userId: string): Promise<number> {
+  const [files, pictures] = await Promise.all([
+    db
+      .select({ bytes: sum(storedFile.sizeBytes).mapWith(Number) })
+      .from(document)
+      .innerJoin(storedFile, eq(storedFile.id, document.storedFileId))
+      .innerJoin(trip, eq(trip.id, document.tripId))
+      .where(and(eq(document.uploadedBy, userId), isNull(document.deletedAt), isNull(trip.deletedAt)))
+      .get(),
+    db
+      .select({ bytes: sum(storedFile.sizeBytes).mapWith(Number) })
+      .from(tripMedia)
+      .innerJoin(storedFile, eq(storedFile.id, tripMedia.storedFileId))
+      .innerJoin(trip, eq(trip.id, tripMedia.tripId))
+      .where(and(eq(tripMedia.uploadedBy, userId), isNull(tripMedia.deletedAt), isNull(trip.deletedAt)))
+      .get(),
+  ]);
+  return (files?.bytes ?? 0) + (pictures?.bytes ?? 0);
 }
 
 export async function insertDocument(input: {

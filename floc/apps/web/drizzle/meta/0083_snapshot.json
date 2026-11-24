@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "d1d75181-0968-4a70-b389-12fcacdf723e",
-  "prevId": "6b3cde5d-8701-438b-b18b-734a4d9c51eb",
+  "id": "6d851521-a59e-4d63-aca6-e0fc5a4ff56f",
+  "prevId": "533ed175-1d50-4dce-af56-c4bf05fd16d1",
   "tables": {
     "account": {
       "name": "account",
@@ -1280,6 +1280,13 @@
           "name": "document_stored_file_idx",
           "columns": [
             "stored_file_id"
+          ],
+          "isUnique": false
+        },
+        "document_uploaded_by_idx": {
+          "name": "document_uploaded_by_idx",
+          "columns": [
+            "uploaded_by"
           ],
           "isUnique": false
         }
@@ -5802,6 +5809,13 @@
           "name": "trip_media_stored_file_idx",
           "columns": [
             "stored_file_id"
+          ],
+          "isUnique": false
+        },
+        "trip_media_uploaded_by_idx": {
+          "name": "trip_media_uploaded_by_idx",
+          "columns": [
+            "uploaded_by"
           ],
           "isUnique": false
         }

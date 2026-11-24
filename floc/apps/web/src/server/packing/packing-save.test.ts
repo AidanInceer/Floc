@@ -158,6 +158,11 @@ describe("removing packing lines", () => {
 describe("auto packing ideas (#469)", () => {
   beforeEach(() => givePro(world.admin));
 
+  it("refuses a free member on a trip with a Pro member (#523)", async () => {
+    await expect(takeIdea(await as(world.member), "Toothbrush")).rejects.toThrow("Pro");
+    expect(await bag(world.member)).toEqual([]);
+  });
+
   it("takes one idea into the viewer's bag, marked suggested", async () => {
     await takeIdea(await as(world.admin), "Toothbrush");
     expect((await bag(world.admin)).map((l) => [l.label, l.origin])).toEqual([["toothbrush", "suggested"]]);

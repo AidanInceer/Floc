@@ -33,9 +33,9 @@ const rows = () =>
   db.select().from(schema.subscription).where(eq(schema.subscription.storeTransactionId, "orig-1"));
 
 describe("recording a store subscription", () => {
-  it("makes the account's trips Pro through the same gate as Stripe", async () => {
+  it("makes the account Pro through the same gate as Stripe", async () => {
     await recordStoreSubscription({ userId: world.admin, source: "app_store", facts: facts() });
-    expect(await canUseFeature("dates.weather", world.ours.id)).toBe(true);
+    expect(await canUseFeature("dates.weather", world.admin)).toBe(true);
   });
 
   it("overwrites on a repeat rather than adding a second row", async () => {

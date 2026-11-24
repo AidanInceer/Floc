@@ -44,7 +44,7 @@ export default async function FilesPage({
   const category = parseCategoryFilter((await searchParams).category);
   const [docs, space, archived, tripDays, reads] = documentsEnabled()
     ? await Promise.all([
-        listDocuments(tripId, viewerId), storageUsage(tripId), archivedFiles(access),
+        listDocuments(tripId, viewerId), storageUsage(tripId, viewerId), archivedFiles(access),
         listDays(tripId), canUseFeature("bookings.autoFile", viewerId),
       ])
     : [[], null, [], [], false];
