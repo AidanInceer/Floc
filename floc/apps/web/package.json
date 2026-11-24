@@ -39,7 +39,10 @@
   },
   "dependencies": {
     "@apple/app-store-server-library": "^3.1.0",
+    "@better-auth/cimd": "1.7.14",
     "@better-auth/expo": "~1.7.14",
+    "@better-auth/mcp": "1.7.14",
+    "@better-auth/oauth-provider": "1.7.14",
     "@floc/api": "workspace:*",
     "@floc/core": "workspace:*",
     "@floc/editor": "workspace:*",
@@ -47,6 +50,7 @@
     "@hocuspocus/provider": "^4.7.0",
     "@hocuspocus/server": "^4.7.0",
     "@libsql/client": "^0.14.0",
+    "@modelcontextprotocol/server": "2.4.0",
     "@opentelemetry/api": "1.10.0",
     "@opentelemetry/context-async-hooks": "3.1.1",
     "@opentelemetry/core": "3.1.1",
@@ -71,6 +75,7 @@
     "y-indexeddb": "^9.0.12",
     "y-protocols": "^1.0.7",
     "yjs": "^13.6.32",
+    "zod": "^4.6.6",
     "zxing-wasm": "^3.1.6"
   },
   "devDependencies": {

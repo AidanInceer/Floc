@@ -3,8 +3,11 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("better-auth", () => ({ betterAuth: (options: unknown) => ({ options }) }));
 vi.mock("better-auth/adapters/drizzle", () => ({ drizzleAdapter: () => ({}) }));
 vi.mock("better-auth/next-js", () => ({ nextCookies: () => ({}) }));
-vi.mock("better-auth/plugins", () => ({ anonymous: () => ({}), bearer: () => ({}) }));
+vi.mock("better-auth/plugins", () => ({ anonymous: () => ({}), bearer: () => ({}), jwt: () => ({}) }));
 vi.mock("@better-auth/expo", () => ({ expo: () => ({}) }));
+vi.mock("@better-auth/mcp", () => ({ mcp: () => ({}) }));
+vi.mock("@better-auth/cimd", () => ({ cimd: () => ({}) }));
+vi.mock("@better-auth/cimd/node", () => ({ fetchClientMetadataResource: () => ({}) }));
 
 import { TERMS_VERSION } from "@floc/core/legal/terms";
 

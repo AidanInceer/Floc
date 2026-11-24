@@ -3,8 +3,11 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("better-auth", () => ({ betterAuth: (options: unknown) => ({ options }) }));
 vi.mock("better-auth/adapters/drizzle", () => ({ drizzleAdapter: () => ({}) }));
 vi.mock("better-auth/next-js", () => ({ nextCookies: () => ({}) }));
-vi.mock("better-auth/plugins", () => ({ anonymous: () => ({}), bearer: () => ({}) }));
+vi.mock("better-auth/plugins", () => ({ anonymous: () => ({}), bearer: () => ({}), jwt: () => ({}) }));
 vi.mock("@better-auth/expo", () => ({ expo: () => ({}) }));
+vi.mock("@better-auth/mcp", () => ({ mcp: () => ({}) }));
+vi.mock("@better-auth/cimd", () => ({ cimd: () => ({}) }));
+vi.mock("@better-auth/cimd/node", () => ({ fetchClientMetadataResource: () => ({}) }));
 
 const loadAuth = async () => (await vi.importActual<typeof import("./auth")>("./auth")).auth;
 
@@ -21,6 +24,18 @@ describe("sign-in rate limits", () => {
       "/request-password-reset": { window: 3600, max: 5 },
       "/send-verification-email": { window: 3600, max: 5 },
     });
+  });
+});
+
+describe("agent sign-in (#354)", () => {
+  it("issues agent tokens only from the OAuth route", async () => {
+    const auth = await loadAuth();
+    expect(auth.options.disabledPaths).toContain("/token");
+  });
+
+  it("lets no member register an app", async () => {
+    const auth = await loadAuth();
+    expect(auth.options.disabledPaths).toContain("/oauth2/create-client");
   });
 });
 
