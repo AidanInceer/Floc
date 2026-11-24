@@ -11,7 +11,7 @@ export function AccountBell({ unread, latest }: { unread: number; latest: InboxP
       label={unread ? `Inbox, ${shown} new` : "Inbox"}
       triggerClassName={cx(BEAD_ITEM, "h-9")}
       anchor="parent"
-      panelClassName={cx(BEAD_PANEL, "w-[19rem]")}
+      panelClassName={cx(BEAD_PANEL, "w-[24rem] max-w-[calc(100vw-1rem)]")}
       trigger={
         <span className={cx(BEAD_TILE, "relative")}>
           <BellIcon size={15} />
@@ -19,7 +19,7 @@ export function AccountBell({ unread, latest }: { unread: number; latest: InboxP
         </span>
       }
     >
-      <AccountInbox unread={unread} items={latest} />
+      <AccountInbox items={latest} />
     </Menu>
   );
 }

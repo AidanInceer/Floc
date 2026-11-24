@@ -1,15 +1,17 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, type Href } from "expo-router";
 import { useEffect } from "react";
-import { FlatList, Pressable, View } from "react-native";
+import { Pressable, SectionList, Text, View } from "react-native";
 
 import { commentTime } from "@floc/core/notes/notes";
+import { groupByTrip, lineUnderTrip, planFirst } from "@floc/core/notifications/by-trip";
 import { phoneRoute } from "@floc/core/notifications/notification-href";
 
+import { ChangeWords } from "@/components/notifications/change-words";
 import { useTheme } from "@/components/system/theme";
-import { Body, Button, Empty, Failed, Label, Loading } from "@/components/system/ui";
+import { Body, Button, Empty, Failed, Label, Loading, SectionTitle } from "@/components/system/ui";
 import { trpc } from "@/lib/api";
-import { radius, space } from "@/lib/theme";
+import { fonts, radius, size, space } from "@/lib/theme";
 
 export default function Inbox() {
   const router = useRouter();
@@ -48,12 +50,17 @@ export default function Inbox() {
 
   const items = pages.data.pages.flatMap((page) => page.items);
   const anyUnread = items.some((item) => !item.read);
+  const sections = pages.data.pages.flatMap((page, index) =>
+    groupByTrip(page.items).map((group) => ({ key: `${index}-${group.tripId ?? "none"}`, title: group.tripName, data: planFirst(group.items) })),
+  );
 
   return (
-    <FlatList
-      data={items}
+    <SectionList
+      sections={sections}
       keyExtractor={(item) => String(item.id)}
-      contentContainerStyle={{ padding: space.lg, gap: space.sm }}
+      stickySectionHeadersEnabled={false}
+      contentContainerStyle={{ padding: space.lg }}
+      ItemSeparatorComponent={() => <View style={{ height: space.sm }} />}
       ListHeaderComponent={
         anyUnread ? (
           <View style={{ alignItems: "flex-end" }}>
@@ -71,6 +78,15 @@ export default function Inbox() {
       onEndReached={() => {
         if (pages.hasNextPage && !pages.isFetchingNextPage) void pages.fetchNextPage();
       }}
+      renderSectionHeader={({ section }) =>
+        section.title ? (
+          <View style={{ paddingTop: space.md, paddingBottom: space.sm }}>
+            <SectionTitle>{section.title}</SectionTitle>
+          </View>
+        ) : (
+          <View style={{ height: space.md }} />
+        )
+      }
       renderItem={({ item }) => (
         <Pressable
           accessibilityRole={item.href === null ? "text" : "button"}
@@ -89,9 +105,16 @@ export default function Inbox() {
           })}
         >
           <View style={{ flex: 1, gap: space.xs }}>
-            <Body tone={item.read ? "ink-2" : "ink"}>{item.text}</Body>
+            <Body tone={item.read ? "ink-2" : "ink"}>{lineUnderTrip(item.text, item.tripName)}</Body>
+            {item.was || item.now ? <ChangeWords was={item.was} now={item.now} /> : null}
             <Label>{commentTime(new Date(item.at))}</Label>
           </View>
+          {item.share ? (
+            <View style={{ alignItems: "flex-end" }}>
+              <Text style={{ color: c["ink-2"], fontFamily: fonts.sans, fontSize: size.label }}>Your share</Text>
+              <Text style={{ color: c.ink, fontFamily: fonts.type, fontSize: size.small, fontVariant: ["tabular-nums"] }}>{item.share}</Text>
+            </View>
+          ) : null}
           {item.read ? null : <Label>New</Label>}
         </Pressable>
       )}

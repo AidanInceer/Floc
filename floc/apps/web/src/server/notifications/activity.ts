@@ -23,6 +23,7 @@ export type Change = {
   href: string;
   affected: string[];
   detail?: string | null;
+  mergeDetail?: (previous: string | null) => string;
 };
 
 export type KnownBefore = {
@@ -40,9 +41,9 @@ export async function liveMemberIds(tx: Tx | typeof db, tripId: number | null): 
   return rows.map((r) => r.userId);
 }
 
-async function recentSameChange(tx: Tx, change: Change): Promise<number | undefined> {
-  const row = await tx
-    .select({ id: activity.id })
+async function recentSameChange(tx: Tx, change: Change) {
+  return tx
+    .select({ id: activity.id, detail: activity.detail })
     .from(activity)
     .where(
       and(
@@ -55,7 +56,6 @@ async function recentSameChange(tx: Tx, change: Change): Promise<number | undefi
       ),
     )
     .get();
-  return row?.id;
 }
 
 export function groupedActivityWrites(
@@ -110,7 +110,8 @@ export async function recordActivity(tx: Tx, change: Change, known: KnownBefore 
     members: known.members ?? (await liveMemberIds(tx, change.tripId)),
   });
 
-  let activityId = known.fresh ? undefined : await recentSameChange(tx, change);
+  const recent = known.fresh ? undefined : await recentSameChange(tx, change);
+  let activityId = recent?.id;
   if (activityId === undefined) {
     const row = await tx
       .insert(activity)
@@ -126,13 +127,17 @@ export async function recordActivity(tx: Tx, change: Change, known: KnownBefore 
       .get();
     activityId = row.id;
   } else {
-    await tx.update(activity).set(touch()).where(eq(activity.id, activityId));
+    const merged = change.mergeDetail ? { detail: change.mergeDetail(recent?.detail ?? null) } : {};
+    await tx.update(activity).set({ ...merged, ...touch() }).where(eq(activity.id, activityId));
   }
 
   if (recipients.length === 0) return;
   await tx
     .insert(notification)
     .values(recipients.map((r) => ({ activityId: activityId!, userId: r.userId, loud: r.loud })))
-    .onConflictDoUpdate({ target: [notification.activityId, notification.userId], set: touch() });
+    .onConflictDoUpdate({
+      target: [notification.activityId, notification.userId],
+      set: change.mergeDetail ? { readAt: null, seenAt: null, ...touch() } : touch(),
+    });
   await tx.run(deliveriesFor(activityId));
 }

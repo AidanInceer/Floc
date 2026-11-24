@@ -4,6 +4,7 @@ import { formatDate, formatShortRange } from "@floc/core/dates/dates";
 import { hopLabel, type Leg } from "@floc/core/trip/overview/legs";
 import type { TripDocument } from "@/server/documents/documents";
 import type { DayEventRow } from "@/server/itinerary/itinerary";
+import type { PlanNote } from "@/server/notifications/plan-note";
 import { TravelModeIcon } from "@/components/system/icons/travel-mode";
 import { StopDay } from "./stop-day";
 import { nightsLabel } from "@floc/core/itinerary/stops";
@@ -32,10 +33,12 @@ export function StopPanel({
   tripId,
   leg,
   events,
+  note,
 }: {
   tripId: number;
   leg: Leg<TripDocument>;
   events: Map<number, DayEventRow[]>;
+  note?: PlanNote | null;
 }) {
   return (
     <section id={`stop-${leg.no}`} className="relative scroll-mt-4 rounded-md border border-rule-strong bg-sheet px-3 pb-2 pt-4 sm:px-[18px] sm:pb-3">
@@ -49,7 +52,7 @@ export function StopPanel({
       </header>
       <ol className="mt-3">
         {leg.days.map((d) => (
-          <StopDay key={d.dayId} tripId={tripId} date={d.date} events={events.get(d.dayId) ?? []} />
+          <StopDay key={d.dayId} tripId={tripId} date={d.date} events={events.get(d.dayId) ?? []} note={note} />
         ))}
       </ol>
     </section>

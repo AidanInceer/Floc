@@ -8,6 +8,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { RibbonGlyph } from "../../system/glyphs";
 import { useTheme } from "../../system/theme";
 import { TravelModeGlyph } from "../../system/travel-mode-glyph";
+import type { StopMark } from "../overview/change-note";
 import { collapseQuiet } from "@/lib/overview/collapse-days";
 import { QuietRun } from "./quiet-run";
 import { StopDayRow } from "./stop-day-row";
@@ -16,13 +17,15 @@ import { shortPlace } from "@floc/core/itinerary/names/place-name";
 
 type Named = LegFile & { name: string };
 
-export function StopList({ legs, events, onOpen }: { legs: Leg<Named>[]; events: Map<number, DayEvent[]>; onOpen: (date: string) => void }) {
+type Marking = { mark?: StopMark | null; onMarked?: (row: View) => void };
+
+export function StopList({ legs, events, onOpen, mark, onMarked }: { legs: Leg<Named>[]; events: Map<number, DayEvent[]>; onOpen: (date: string) => void } & Marking) {
   return (
     <View>
       {legs.map((leg) => (
         <Fragment key={leg.days[0].dayId}>
           {leg.no > 1 ? <Arrival leg={leg} /> : null}
-          <StopCard leg={leg} events={events} onOpen={onOpen} />
+          <StopCard leg={leg} events={events} onOpen={onOpen} mark={mark} onMarked={onMarked} />
         </Fragment>
       ))}
     </View>
@@ -53,7 +56,7 @@ function Arrival({ leg }: { leg: Leg<Named> }) {
   );
 }
 
-function StopCard({ leg, events, onOpen }: { leg: Leg<Named>; events: Map<number, DayEvent[]>; onOpen: (date: string) => void }) {
+function StopCard({ leg, events, onOpen, mark, onMarked }: { leg: Leg<Named>; events: Map<number, DayEvent[]>; onOpen: (date: string) => void } & Marking) {
   const { c } = useTheme();
   return (
     <View
@@ -79,9 +82,16 @@ function StopCard({ leg, events, onOpen }: { leg: Leg<Named>; events: Map<number
           {`${nightsLabel(leg.nights)} · ${formatShortRange(leg.arrive, leg.leave)}`}
         </Text>
       </View>
-      {collapseQuiet(leg.days.map((d) => ({ ...d, count: events.get(d.dayId)?.length ?? 0 }))).map((item) =>
+      {collapseQuiet(leg.days.map((d) => ({ ...d, count: (events.get(d.dayId)?.length ?? 0) + (mark?.date === d.date ? 1 : 0) }))).map((item) =>
         item.kind === "day" ? (
-          <StopDayRow key={item.day.dayId} date={item.day.date} events={events.get(item.day.dayId) ?? []} onOpen={() => onOpen(item.day.date)} />
+          <StopDayRow
+            key={item.day.dayId}
+            date={item.day.date}
+            events={events.get(item.day.dayId) ?? []}
+            onOpen={() => onOpen(item.day.date)}
+            mark={mark?.date === item.day.date ? mark : null}
+            onMarked={onMarked}
+          />
         ) : (
           <QuietRun
             key={item.days[0].dayId}

@@ -4,11 +4,12 @@ import { TRANSPORT_TYPES, type TransportType } from "@floc/core/vocabulary";
 
 import type { TripAccess } from "@/server/access";
 import { refresh } from "@/server/freshness";
+import { logEventAdded } from "@/server/itinerary/event-log";
 import { insertEvent } from "@/server/itinerary/itinerary";
 
 import { placeDocument } from "../documents";
 
-type Access = Pick<TripAccess, "trip" | "day" | "document">;
+type Access = Pick<TripAccess, "trip" | "viewer" | "day" | "document">;
 
 export type TravelEventInput = {
   dayId: number;
@@ -33,6 +34,7 @@ export async function addTravelFileToDays(access: Access, documentId: number, in
     endTime: clock(input.endTime),
   });
   await placeDocument(doc.id, { dayId: null, dayEventId: eventId });
+  await logEventAdded(access.viewer.id, eventId);
   refresh({ kind: "itinerary", tripId: access.trip.id });
   refresh({ kind: "documents", tripId: access.trip.id });
   return null;

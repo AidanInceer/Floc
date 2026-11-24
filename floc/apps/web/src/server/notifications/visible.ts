@@ -9,6 +9,7 @@ import {
   bookingInbox,
   comment,
   expense,
+  expenseSplit,
   friendship,
   notification,
   settlement,
@@ -34,6 +35,8 @@ export function notificationRows(where: SQL | undefined, limit: number) {
         detail: activity.detail,
         loud: notification.loud,
         readAt: notification.readAt,
+        shareMinor: expenseSplit.owedAmountMinor,
+        shareCurrency: expense.currency,
         at: activity.lastModifiedAt,
         tripName: trip.name,
         actorName: user.name,
@@ -73,6 +76,14 @@ function withSubjects<T extends SQLiteSelect>(query: T) {
     )
     .leftJoin(comment, and(eq(comment.id, activity.subjectId), inArray(activity.kind, COMMENT_KINDS)))
     .leftJoin(expense, and(eq(expense.id, activity.subjectId), inArray(activity.kind, EXPENSE_KINDS)))
+    .leftJoin(
+      expenseSplit,
+      and(
+        eq(expenseSplit.expenseId, expense.id),
+        eq(expenseSplit.userId, notification.userId),
+        isNull(expenseSplit.deletedAt),
+      ),
+    )
     .leftJoin(
       settlement,
       and(eq(settlement.id, activity.subjectId), eq(activity.kind, "settlement_recorded")),
@@ -154,6 +165,7 @@ export function stillVisible(now = new Date()) {
     ),
     or(notInArray(activity.kind, COMMENT_KINDS), isNull(comment.deletedAt)),
     or(notInArray(activity.kind, EXPENSE_KINDS), isNull(expense.deletedAt)),
+    or(notInArray(activity.kind, EXPENSE_KINDS), isNotNull(expenseSplit.id), eq(expense.paidBy, notification.userId)),
     or(ne(activity.kind, "settlement_recorded"), isNull(settlement.deletedAt)),
   );
 }

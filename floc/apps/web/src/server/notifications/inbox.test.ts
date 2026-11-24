@@ -12,7 +12,7 @@ import { closeWaiting, insertWaiting } from "@/server/documents/bookings/booking
 import { recordActivity } from "@/server/notifications/activity";
 import { softDeleteTrip } from "@/server/trips/trips";
 import { tripHref } from "@floc/core/notifications/notification-href";
-import { countUnread, listInbox, listUnseen, markAllRead, markInboxSeen, openNotification } from "@/server/notifications/inbox";
+import { countUnread, listInbox, listUnread, markAllRead, markInboxSeen, openNotification } from "@/server/notifications/inbox";
 
 let world: Scenario;
 
@@ -173,21 +173,23 @@ describe("a notice that asks you to act", () => {
 });
 
 describe("the account menu's preview", () => {
-  it("shows the newest few you have not seen, up to the cap", async () => {
+  it("shows the newest few you have not read, up to the cap", async () => {
     await nudge("dates");
     await nudge("money");
     await nudge("dates");
 
-    const shown = await listUnseen(world.member, 2);
+    const shown = await listUnread(world.member, 2);
     expect(shown).toHaveLength(2);
     expect(shown[0].id).toBeGreaterThan(shown[1].id);
     expect(shown[0]).toMatchObject({ text: "Ada nudged you to mark your days on the trip Ours" });
   });
 
-  it("empties once the inbox has been landed on", async () => {
+  it("keeps a change after the inbox is landed on, until it is read", async () => {
     await nudge();
     await markInboxSeen(world.member);
-    expect(await listUnseen(world.member, 3)).toEqual([]);
+    expect(await listUnread(world.member, 3)).toHaveLength(1);
+    await markAllRead(world.member);
+    expect(await listUnread(world.member, 3)).toEqual([]);
   });
 });
 
