@@ -38,7 +38,7 @@ export function ProPriceCard({ plans, initial, href }: { plans: ProPlan[]; initi
                 <span className="text-[15px] text-ink-2">{p.per}</span>
               </p>
               <p className="mt-1 text-[13px] text-ink-3">
-                {p.saving ? <>Save <span className="nums">{p.saving}</span> on the year</> : "Cancel any time"}
+                {p.saving ? <>Save <span className="nums">{p.saving}</span> {p.savingOn}</> : "Cancel any time"}
               </p>
             </div>
           ))}

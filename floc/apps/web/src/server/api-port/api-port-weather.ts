@@ -12,8 +12,8 @@ export const weatherPort: WeatherPort = {
   async loadTripForecast(viewerId, tripId) {
     await scoped(viewerId, tripId);
     const [unlocked, forecast] = await Promise.all([
-      canUseFeature("dates.weather", tripId),
-      getTripForecast(tripId),
+      canUseFeature("dates.weather", viewerId),
+      getTripForecast(tripId, viewerId),
     ]);
     return { locked: !unlocked, forecast };
   },

@@ -19,9 +19,17 @@ describe("the forecast through the port", () => {
     });
   });
 
-  it("unlocks once anybody on the trip is Pro", async () => {
-    await givePro(world.admin);
+  it("unlocks for the person who has Pro", async () => {
+    await givePro(world.member);
     expect((await webPort.loadTripForecast(world.member, world.ours.id)).locked).toBe(false);
+  });
+
+  it("stays locked for a free member on a trip with a Pro member (#523)", async () => {
+    await givePro(world.admin);
+    expect(await webPort.loadTripForecast(world.member, world.ours.id)).toEqual({
+      locked: true,
+      forecast: null,
+    });
   });
 
   it("refuses a trip the viewer is not on", async () => {

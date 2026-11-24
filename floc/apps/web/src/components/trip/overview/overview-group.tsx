@@ -1,13 +1,11 @@
 import { goingNames, goingNotes } from "@floc/core/trip/overview/going";
-import { INVITE_LINK_LIFE } from "@floc/core/trip/group/invite-link";
-import { AvatarRow, SheetFooter, Stack } from "@/components/system/ui";
-import { CopyLink, Sheet, SubmitButton } from "@/components/system/client-ui";
-import { FriendPicker } from "@/components/social/friend-picker";
+import { AvatarRow, SheetFooter } from "@/components/system/ui";
+import { CopyLink, Sheet } from "@/components/system/client-ui";
+import { InviteFriends } from "@/components/trip/overview/invite-friends";
 import { InviteeRow, MemberRow } from "@/components/trip/overview/overview-member";
-import type { FriendState, Person } from "@/server/social/friends";
+import type { FriendState } from "@/server/social/friends";
 import type { PendingInvitee } from "@/server/trips/invites";
 import type { TripMember } from "@/server/access";
-import { inviteFriends } from "@/app/trip/[id]/overview/actions";
 
 type Props = {
   tripId: number;
@@ -18,7 +16,6 @@ type Props = {
   friendStates: Map<string, FriendState>;
   pendingInvitees: PendingInvitee[];
   declinedInvitees: PendingInvitee[];
-  friends: Person[];
   needDates: Set<string>;
 };
 
@@ -83,7 +80,7 @@ function RosterSheet({ tripId, viewerId, members, isAdmin, inviteUrl, friendStat
   );
 }
 
-function InviteSheet({ tripId, members, pendingInvitees, friends, inviteUrl }: Props) {
+function InviteSheet({ tripId, members, pendingInvitees, inviteUrl }: Props) {
   return (
     <Sheet
       trigger={
@@ -95,31 +92,12 @@ function InviteSheet({ tripId, members, pendingInvitees, friends, inviteUrl }: P
       title="Invite friends"
       triggerClassName="shrink-0"
     >
-      {friends.length === 0 ? (
-        <Stack gap={3}>
-          <p className="text-sm text-ink-soft">You have no friends on Floc yet. Share the trip link instead.</p>
-          <span className="flex flex-wrap items-center gap-x-3 gap-y-2">
-            <CopyLink value={inviteUrl} label="Copy invite link" variant="primary" icon={<LinkIcon />} />
-            <span className="text-sm text-ink-soft">{INVITE_LINK_LIFE}</span>
-          </span>
-        </Stack>
-      ) : (
-        <form action={inviteFriends}>
-          <input type="hidden" name="tripId" value={tripId} />
-          <Stack gap={3}>
-            <FriendPicker
-              friends={friends}
-              excludeIds={[...members.map((m) => m.userId), ...pendingInvitees.map((p) => p.userId)]}
-              emptyNote="Everyone you're friends with is already on this trip, or has been asked."
-            />
-            <span className="flex flex-wrap items-center justify-end gap-2">
-              <span className="mr-auto text-sm text-ink-soft max-sm:basis-full">{INVITE_LINK_LIFE}</span>
-              <CopyLink value={inviteUrl} label="Copy link" icon={<LinkIcon />} />
-              <SubmitButton>Send invites</SubmitButton>
-            </span>
-          </Stack>
-        </form>
-      )}
+      <InviteFriends
+        tripId={tripId}
+        inviteUrl={inviteUrl}
+        linkIcon={<LinkIcon />}
+        excludeIds={[...members.map((m) => m.userId), ...pendingInvitees.map((p) => p.userId)]}
+      />
     </Sheet>
   );
 }

@@ -8,7 +8,7 @@ const create = vi.fn();
 const billing = vi.hoisted(() => ({ configured: true }));
 
 vi.mock("@/server/billing/billing", () => ({
-  BILLING_INTERVALS: ["monthly", "yearly"],
+  BILLING_INTERVALS: ["monthly", "quarterly", "yearly"],
   stripe: () => (billing.configured ? { checkout: { sessions: { create } } } : null),
   priceFor: () => "price_test",
   customerFor: async () => "cus_test",
@@ -28,6 +28,13 @@ beforeEach(async () => {
 });
 
 describe("starting a Pro checkout", () => {
+  it("turns Managed Payments off, because Stripe refuses the terms text with it on (ADR-058)", async () => {
+    await ask("quarterly");
+    const session = create.mock.calls[0][0];
+    expect(session.managed_payments).toEqual({ enabled: false });
+    expect(session.custom_text.submit.message).toContain("14 days");
+  });
+
   it("says above the pay button that Pro starts now, and records the terms the buyer saw (#549)", async () => {
     const answer = await ask("monthly");
     expect(await answer.json()).toEqual({ url: "https://checkout.stripe.test/session" });

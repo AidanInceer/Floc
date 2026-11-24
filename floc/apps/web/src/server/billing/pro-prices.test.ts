@@ -32,6 +32,15 @@ it("sells Pro without a price it cannot read, and logs no price id", async () =>
   expect(JSON.stringify(lines)).not.toContain("price_yearly_unit");
 });
 
+it("sells the 3-month price from its own variable (#523)", async () => {
+  sellingPro();
+  vi.stubEnv("STRIPE_PRICE_QUARTERLY", "price_quarterly_unit");
+  retrieve.mockImplementation(async (id: string) => ({ unit_amount: id === "price_quarterly_unit" ? 899 : 399, currency: "gbp" }));
+  const { priceFor, proPrices } = await import("./billing");
+  expect(priceFor("quarterly")).toBe("price_quarterly_unit");
+  expect(await proPrices()).toContainEqual({ interval: "quarterly", amountMinor: 899, currency: "GBP" });
+});
+
 it("reads the prices from Stripe once, not on every page view", async () => {
   sellingPro();
   retrieve.mockResolvedValue({ unit_amount: 399, currency: "gbp" });

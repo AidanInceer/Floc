@@ -4,14 +4,14 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { FREE_TRIP_STORAGE_BYTES } from "@floc/core/documents/documents";
+import { FREE_ACCOUNT_STORAGE_BYTES, FREE_TRIP_STORAGE_BYTES } from "@floc/core/documents/documents";
 
 import { db, schema } from "@/db";
 import { findTripAccess, type TripAccess } from "@/server/access";
 import { eraseAccount } from "@/server/auth/erase-account";
 import { removeDocument, saveDocument } from "@/server/documents/document-save";
 import { insertDocument, listDocuments } from "@/server/documents/documents";
-import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
+import { givePro, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 
 import { archivedFiles, purgeArchivedFiles, restoreDocument } from "./archive";
 
@@ -157,6 +157,44 @@ describe("an archive bigger than the trip's own space", () => {
 
     expect((await archivedFiles(await as(world.member))).map((f) => f.id)).toEqual([second]);
     expect(await onDisk()).toHaveLength(1);
+  });
+});
+
+describe("restoring past a storage limit (#523, ADR-083)", () => {
+  const holdElsewhere = (userId: string, sizeBytes: number) =>
+    insertDocument({
+      tripId: world.theirs.id, uploadedBy: userId, ownerId: userId, name: "elsewhere.pdf",
+      storageKey: `elsewhere-${userId}`, mimeType: "application/pdf", sizeBytes, category: "other",
+    });
+
+  it("never refuses a restore because the account is at its 1 GB", async () => {
+    const id = await upload(world.member, "ferry.pdf");
+    await removeDocument(await as(world.member), id);
+    await holdElsewhere(world.member, FREE_ACCOUNT_STORAGE_BYTES);
+
+    expect(await restoreDocument(await as(world.member), id)).toBeNull();
+  });
+
+  it("lets someone whose Pro ended restore a file while over the free limit", async () => {
+    await givePro(world.member);
+    const id = await upload(world.member, "ferry.pdf");
+    const other = await upload(world.member, "scan.pdf");
+    await resize(other, FREE_TRIP_STORAGE_BYTES * 2);
+    await removeDocument(await as(world.member), id);
+    await db.update(schema.subscription).set({ status: "canceled" }).where(eq(schema.subscription.userId, world.member));
+
+    expect(await restoreDocument(await as(world.member), id)).toBeNull();
+  });
+
+  it("keeps a Pro member's removed files in their own room, not the group's", async () => {
+    await givePro(world.member);
+    const big = await upload(world.member, "scan.pdf");
+    await resize(big, FREE_TRIP_STORAGE_BYTES * 2);
+    await removeDocument(await as(world.member), big);
+    const small = await upload(world.admin, "ferry.pdf");
+    await removeDocument(await as(world.admin), small);
+
+    expect((await archivedFiles(await as(world.member))).map((f) => f.id).sort()).toEqual([big, small].sort());
   });
 });
 
