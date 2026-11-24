@@ -2,6 +2,7 @@
 
 import { DAY_EVENT_TYPES, TRANSPORT_TYPES, type DayEventType, type TransportType } from "@/db/schema";
 import { requireTripAccess } from "@/server/access";
+import { withEventMoves } from "@/server/itinerary/event-log";
 import { removeEvent, saveEvent } from "@/server/itinerary/event-save";
 import { applyOvernight, type OvernightPlaceInput } from "@/server/itinerary/overnight";
 import { insertAt, permuteEventSlots } from "@floc/core/itinerary/event-order";
@@ -64,9 +65,8 @@ export async function reorderEvents(
 ) {
   const access = await requireTripAccess(tripId);
 
-  await applyEventSlots(
-    permuteEventSlots(await listEventSlots(access.trip.id, dayId), newOrder),
-  );
+  const slots = permuteEventSlots(await listEventSlots(access.trip.id, dayId), newOrder);
+  await withEventMoves(access.viewer.id, slots.map((slot) => slot.id), () => applyEventSlots(slots));
 
   refresh({ kind: "itinerary", tripId: access.trip.id });
 }
@@ -99,10 +99,12 @@ async function insertEventAt(
     index,
   );
 
-  await moveEventToDay(eventId, toDayId, {
-    target,
-    source: source.filter((e) => e.id !== eventId).map((e) => e.id),
-  });
+  await withEventMoves(access.viewer.id, [eventId], () =>
+    moveEventToDay(eventId, toDayId, {
+      target,
+      source: source.filter((e) => e.id !== eventId).map((e) => e.id),
+    }),
+  );
 
   refresh({ kind: "itinerary", tripId: access.trip.id });
 }
@@ -130,7 +132,7 @@ export async function rescheduleEvent(
     const start = readClockTime(time);
     if (!start) return;
 
-    await moveEventTo(target.id, toDay.id, start, readClockTime(endTime));
+    await withEventMoves(access.viewer.id, [target.id], () => moveEventTo(target.id, toDay.id, start, readClockTime(endTime)));
 
     refresh({ kind: "itinerary", tripId: access.trip.id });
   });

@@ -13,7 +13,7 @@ export const LIMITS = {
   packingKits: 50,
   packingKitItems: 200,
   members: 100,
-  tripsPerUser: 500,
+  tripsPerUser: 100,
   tripLinks: 200,
   invites: 200,
   documents: 500,
@@ -31,6 +31,7 @@ export const LIMITS = {
   wishListItems: 200,
   mapLegs: 20,
   fitPastTrips: 10,
+  connectedApps: 50,
 } as const;
 
 export type LimitKey = keyof typeof LIMITS;

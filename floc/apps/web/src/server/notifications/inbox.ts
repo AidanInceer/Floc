@@ -6,6 +6,8 @@ import { db } from "@/db";
 import { activity, notification } from "@/db/schema";
 import { notificationText } from "@floc/core/notifications/notification-text";
 import { INBOX_PAGE, type ActivityKind } from "@floc/core/notifications/rules";
+import { isPlanChange, planChangeHref, readPlanChange, spotWords, type PlanChange } from "@floc/core/notifications/plan-change";
+import { formatMoney } from "@floc/core/money/money";
 import { touch } from "@/server/audit";
 import { refresh } from "@/server/freshness";
 import { countNotifications, notificationRows, stillVisible } from "@/server/notifications/visible";
@@ -18,6 +20,11 @@ export type InboxItem = {
   loud: boolean;
   read: boolean;
   at: Date;
+  tripId: number | null;
+  tripName: string | null;
+  change: PlanChange | null;
+  words: { was: string | null; now: string | null } | null;
+  share: string | null;
 };
 
 export type InboxPage = { items: InboxItem[]; next: string | null };
@@ -39,6 +46,7 @@ function parseCursor(cursor: InboxCursor) {
 }
 
 function toItem(r: Awaited<ReturnType<typeof notificationRows>>[number]): InboxItem {
+  const change = isPlanChange(r.kind) ? readPlanChange(r.detail) : null;
   return {
     id: r.id,
     kind: r.kind,
@@ -47,6 +55,11 @@ function toItem(r: Awaited<ReturnType<typeof notificationRows>>[number]): InboxI
     loud: r.loud,
     read: r.readAt !== null || r.href === null,
     at: r.at,
+    tripId: r.tripId,
+    tripName: r.tripName,
+    change,
+    words: change && isPlanChange(r.kind) ? spotWords(r.kind, change) : null,
+    share: r.shareMinor !== null && r.shareCurrency ? formatMoney(r.shareMinor, r.shareCurrency) : null,
   };
 }
 
@@ -65,9 +78,9 @@ export async function countUnread(userId: string): Promise<number> {
   return countNotifications(and(visibleTo(userId), isNull(notification.seenAt)), 100);
 }
 
-export async function listUnseen(userId: string, limit: number): Promise<InboxItem[]> {
-  const rows = await notificationRows(and(visibleTo(userId), isNull(notification.seenAt)), limit);
-  return rows.map(toItem);
+export async function listUnread(userId: string, limit: number): Promise<InboxItem[]> {
+  const rows = await notificationRows(and(visibleTo(userId), isNull(notification.readAt)), limit);
+  return rows.map(toItem).filter((item) => !item.read);
 }
 
 export async function markInboxSeen(userId: string): Promise<void> {
@@ -104,5 +117,6 @@ export async function openNotification(userId: string, notificationId: number): 
     .get();
   const [row] = opened ? await notificationRows(eq(notification.id, opened.id), 1) : [];
   refresh({ kind: "inbox" });
-  return row?.href ?? null;
+  if (!row?.href) return null;
+  return isPlanChange(row.kind) ? planChangeHref(row.href, row.id) : row.href;
 }

@@ -28,11 +28,10 @@ export type PackingPlan = {
 
 const NO_WEATHER = { hottest: null, firstRain: null };
 
-export async function packingPlanFor(trip: {
-  id: number;
-  startDate: string | null;
-  endDate: string | null;
-}): Promise<PackingPlan> {
+export async function packingPlanFor(
+  trip: { id: number; startDate: string | null; endDate: string | null },
+  viewerId: string,
+): Promise<PackingPlan> {
   const { startDate, endDate } = trip;
   if (!startDate || !endDate) {
     return { nights: null, climate: null, gap: "no-dates", places: [], ...NO_WEATHER };
@@ -42,7 +41,7 @@ export async function packingPlanFor(trip: {
 
   const [anchor, forecast, overnight] = await Promise.all([
     tripForecastAnchor(trip.id),
-    getTripForecast(trip.id),
+    getTripForecast(trip.id, viewerId),
     listOvernightPlaces(trip.id),
   ]);
   if (!anchor) {

@@ -68,7 +68,7 @@ function Header({
     <>
       <Text
         style={{
-          flex: 1,
+          ...(summary ? { flexShrink: 0, maxWidth: "62%" } : { flex: 1 }),
           color: danger ? c.red : tint ? c["ink-2"] : c.ink,
           fontFamily: tint ? fonts.sans : fonts.sansBold,
           fontSize: size.body,
@@ -80,7 +80,7 @@ function Header({
       {summary ? (
         <Text
           numberOfLines={1}
-          style={{ flexShrink: 1, color: c["ink-3"], fontFamily: fonts.type, fontSize: size.small }}
+          style={{ flex: 1, textAlign: "right", color: c["ink-3"], fontFamily: fonts.type, fontSize: size.small }}
         >
           {summary}
         </Text>

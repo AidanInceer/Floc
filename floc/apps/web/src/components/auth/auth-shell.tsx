@@ -19,7 +19,7 @@ export function AuthShell({
     <div className="mx-auto w-full max-w-[27rem] px-4 pb-20 pt-12 sm:px-6">
       <header className="text-center">
         {eyebrow ? <p className="typed">{eyebrow}</p> : null}
-        <h1 className={cx(eyebrow && "mt-3", "text-[clamp(1.8rem,4vw,2.5rem)]")}>{title}</h1>
+        <h1 className={cx(eyebrow && "mt-3", "break-words text-[clamp(1.8rem,4vw,2.5rem)]")}>{title}</h1>
         {blurb ? <p className="mt-3 text-sm text-ink-soft">{blurb}</p> : null}
       </header>
       <div className="mt-8 rounded-md bg-sheet p-6">{children}</div>

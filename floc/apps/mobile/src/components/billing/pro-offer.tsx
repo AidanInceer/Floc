@@ -13,7 +13,7 @@ import { Platform, View } from "react-native";
 import { TextLink } from "../system/text-controls";
 import { ProButton, ProText } from "./pro-parts";
 import { space } from "@/lib/theme";
-import { claimOf, offerTokenOf, yearlySavingOf } from "@/lib/billing/pro";
+import { claimOf, offerTokenOf, storeOffers } from "@/lib/billing/pro";
 
 const PLATFORM: StoreClaim["platform"] = Platform.OS === "ios" ? "ios" : "android";
 const STORE = Platform.OS === "ios" ? "App Store" : "Google Play";
@@ -70,12 +70,9 @@ export function ProOffer({
     void fetchProducts({ skus: SKUS, type: "subs" });
   }, [connected, fetchProducts]);
 
-  const monthly = store.subscriptions.find((p) => p.id === STORE_PRODUCT_IDS.monthly);
-  const yearly = store.subscriptions.find((p) => p.id === STORE_PRODUCT_IDS.yearly);
-  const saving = yearlySavingOf(monthly, yearly);
+  const offers = storeOffers(store.subscriptions);
 
-  function buy(product: typeof monthly) {
-    if (!product) return;
+  function buy(product: (typeof store.subscriptions)[number]) {
     setBusy(true);
     setMessage(null);
     const offerToken = offerTokenOf(product);
@@ -113,19 +110,13 @@ export function ProOffer({
 
   return (
     <View style={{ gap: space.sm }}>
-      {yearly || monthly ? (
-        <View style={{ flexDirection: "row", gap: space.sm }}>
-          {yearly ? (
-            <ProButton
-              lead
-              label={`${yearly.displayPrice} a year${saving ? ` · save ${saving}%` : ""}`}
-              disabled={busy}
-              onPress={() => buy(yearly)}
-            />
-          ) : null}
-          {monthly ? (
-            <ProButton label={`${monthly.displayPrice} a month`} disabled={busy} onPress={() => buy(monthly)} />
-          ) : null}
+      {offers.length > 0 ? (
+        <View style={{ gap: space.sm }}>
+          {offers.map(({ product, label, lead }) => (
+            <View key={product.id} style={{ flexDirection: "row" }}>
+              <ProButton lead={lead} label={label} disabled={busy} onPress={() => buy(product)} />
+            </View>
+          ))}
         </View>
       ) : (
         <ProText quiet>{connected ? `Pro is not on sale in ${IN_STORE} yet.` : `Waiting for ${IN_STORE}…`}</ProText>

@@ -1,23 +1,56 @@
 import { commentTime } from "@floc/core/notes/notes";
+import { groupByTrip, lineUnderTrip, planFirst } from "@floc/core/notifications/by-trip";
 
 import { openNotification, readEverything, seeInbox } from "./actions";
 import { requireUser } from "@/server/access";
-import { countUnread, listInbox } from "@/server/notifications/inbox";
+import { countUnread, listInbox, type InboxItem } from "@/server/notifications/inbox";
 import { AccountPage, Panel } from "@/components/auth/account-ui";
+import { ChangeWords } from "@/components/notifications/change-words";
 import { SeenOnLanding } from "@/components/notifications/seen-on-landing";
 import { SubmitButton } from "@/components/system/client-ui";
 import { Badge, ButtonLink, EmptyState, cx } from "@/components/system/ui";
 
 export const metadata = { title: "Inbox" };
 
-function InboxLine({ text, at, read }: { text: string; at: Date; read: boolean }) {
+function InboxLine({ item }: { item: InboxItem }) {
   return (
     <span className="min-w-0">
-      <span className={cx("block text-sm transition-colors group-hover:text-pen-deep", read ? "text-ink-2" : "text-ink")}>
-        {text}
+      <span className={cx("block text-sm transition-colors group-hover:text-pen-deep", item.read ? "text-ink-2" : "text-ink")}>
+        {lineUnderTrip(item.text, item.tripName)}
       </span>
-      <span className="font-mono text-[11px] text-ink-faint">{commentTime(at)}</span>
+      {item.words ? <ChangeWords words={item.words} /> : null}
+      {item.share ? (
+        <span className="block text-xs text-ink-soft">
+          Your share <span className="nums text-ink">{item.share}</span>
+        </span>
+      ) : null}
+      <span className="font-mono text-[11px] text-ink-faint">{commentTime(item.at)}</span>
     </span>
+  );
+}
+
+function InboxRow({ item }: { item: InboxItem }) {
+  if (item.href === null) {
+    return (
+      <div className="flex w-full items-center px-3 py-3">
+        <InboxLine item={item} />
+      </div>
+    );
+  }
+  return (
+    <form action={openNotification}>
+      <input type="hidden" name="id" value={item.id} />
+      <button
+        type="submit"
+        className={cx(
+          "group flex w-full items-center justify-between gap-3 rounded-sm px-3 py-3 text-left",
+          item.read ? null : "bg-pen-soft",
+        )}
+      >
+        <InboxLine item={item} />
+        {item.read ? null : <Badge tone="marine">New</Badge>}
+      </button>
+    </form>
   );
 }
 
@@ -49,31 +82,18 @@ export default async function InboxPage({
         <EmptyState title={after ? "Nothing older" : "Nothing new"} />
       ) : (
         <Panel>
-          <ul className="flex flex-col divide-y divide-rule">
-            {page.items.map((item) => (
-              <li key={item.id}>
-                {item.href === null ? (
-                  <div className="flex w-full items-center px-3 py-3">
-                    <InboxLine text={item.text} at={item.at} read={item.read} />
-                  </div>
-                ) : (
-                  <form action={openNotification}>
-                    <input type="hidden" name="id" value={item.id} />
-                    <button
-                      type="submit"
-                      className={cx(
-                        "group flex w-full items-center justify-between gap-3 rounded-sm px-3 py-3 text-left",
-                        item.read ? null : "bg-pen-soft",
-                      )}
-                    >
-                      <InboxLine text={item.text} at={item.at} read={item.read} />
-                      {item.read ? null : <Badge tone="marine">New</Badge>}
-                    </button>
-                  </form>
-                )}
-              </li>
-            ))}
-          </ul>
+          {groupByTrip(page.items).map((group) => (
+            <section key={group.tripId ?? "none"} className="border-t border-rule first:border-t-0">
+              {group.tripName ? <h2 className="px-3 pb-1 pt-3 font-display text-md">{group.tripName}</h2> : null}
+              <ul className="flex flex-col divide-y divide-rule">
+                {planFirst(group.items).map((item) => (
+                  <li key={item.id}>
+                    <InboxRow item={item} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
         </Panel>
       )}
       {page.next ? (

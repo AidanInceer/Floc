@@ -8,6 +8,8 @@ import type { listSignInMethods } from "@/server/auth/sign-in-methods";
 import { GoogleCalendarIcon } from "@/components/system/icons/google-calendar";
 import { isLive, renewalLabel } from "@floc/core/billing/subscription-copy";
 import { ToggleRow } from "@/components/auth/account-ui";
+import type { ConnectedApp } from "@/server/auth/connected-apps";
+import { ConnectedAppsRow } from "@/components/settings/connected-apps-row";
 import { DataRow } from "@/components/settings/data-row";
 import type { ConsentChoice } from "@floc/core/consent/consent";
 import { ActionForm, ConfirmSubmit, SubmitButton } from "@/components/system/client-ui";
@@ -56,6 +58,7 @@ export type AccountSettingsProps = {
   styleInGroupIdeas: boolean;
   linkedAccounts: Awaited<ReturnType<typeof listSignInMethods>>;
   calendarGranted: boolean;
+  connectedApps: ConnectedApp[];
   pro: { subscription: Subscription; prices: ProPrice[] } | null;
   opened: SettingsSection | null;
   billing?: string;
@@ -63,7 +66,7 @@ export type AccountSettingsProps = {
   consent: ConsentChoice | null;
 };
 
-export function AccountSettings({ email, profile, privacy, alerts, styleInGroupIdeas, linkedAccounts, calendarGranted, pro, opened, billing, estimate, consent }: AccountSettingsProps) {
+export function AccountSettings({ email, profile, privacy, alerts, styleInGroupIdeas, linkedAccounts, calendarGranted, connectedApps, pro, opened, billing, estimate, consent }: AccountSettingsProps) {
   const vibeTags = readVibeTags(profile.vibeTags);
   const row = (id: SettingsSection) => ({ id: `settings-${id}`, open: opened === id });
 
@@ -146,6 +149,8 @@ export function AccountSettings({ email, profile, privacy, alerts, styleInGroupI
             ))}
           </AutoSaveForm>
         </SettingsRow>
+
+        <ConnectedAppsRow {...row("apps")} apps={connectedApps} />
 
         <DataRow {...row("data")} consent={consent} advertisingEmail={Boolean(alerts.marketingEmailConsentAt)} />
       </SettingsSheet>

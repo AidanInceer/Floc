@@ -43,18 +43,22 @@ const audit = {
     .default(now),
 };
 
-export const user = sqliteTable("user", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  emailVerified: integer("email_verified", { mode: "boolean" })
-    .notNull()
-    .default(false),
-  image: text("image"),
-  isAnonymous: integer("is_anonymous", { mode: "boolean" }).notNull().default(false),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(now),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(now),
-});
+export const user = sqliteTable(
+  "user",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    email: text("email").notNull().unique(),
+    emailVerified: integer("email_verified", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    image: text("image"),
+    isAnonymous: integer("is_anonymous", { mode: "boolean" }).notNull().default(false),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(now),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(now),
+  },
+  (t) => [index("user_guest_created_idx").on(t.createdAt).where(sql`is_anonymous = 1`)],
+);
 
 export const session = sqliteTable(
   "session",
@@ -114,6 +118,186 @@ export const verification = sqliteTable(
   },
   (t) => [index("verification_identifier_idx").on(t.identifier)],
 );
+
+export const oauthClient = sqliteTable(
+  "oauth_client",
+  {
+    id: text("id").primaryKey(),
+    clientId: text("client_id").notNull().unique(),
+    clientSecret: text("client_secret"),
+    clientDiscoveryId: text("client_discovery_id"),
+    disabled: integer("disabled", { mode: "boolean" }).default(false),
+    skipConsent: integer("skip_consent", { mode: "boolean" }),
+    enableEndSession: integer("enable_end_session", { mode: "boolean" }),
+    subjectType: text("subject_type"),
+    scopes: text("scopes"),
+    clientCredentialsScopes: text("client_credentials_scopes"),
+    userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
+    createdAt: integer("created_at", { mode: "timestamp" }),
+    updatedAt: integer("updated_at", { mode: "timestamp" }),
+    name: text("name"),
+    uri: text("uri"),
+    icon: text("icon"),
+    contacts: text("contacts"),
+    tos: text("tos"),
+    policy: text("policy"),
+    softwareId: text("software_id"),
+    softwareVersion: text("software_version"),
+    softwareStatement: text("software_statement"),
+    redirectUris: text("redirect_uris").notNull(),
+    postLogoutRedirectUris: text("post_logout_redirect_uris"),
+    backchannelLogoutUri: text("backchannel_logout_uri"),
+    backchannelLogoutSessionRequired: integer("backchannel_logout_session_required", { mode: "boolean" }),
+    tokenEndpointAuthMethod: text("token_endpoint_auth_method"),
+    applicationType: text("application_type"),
+    jwks: text("jwks"),
+    jwksUri: text("jwks_uri"),
+    grantTypes: text("grant_types"),
+    responseTypes: text("response_types"),
+    requirePKCE: integer("require_pkce", { mode: "boolean" }),
+    dpopBoundAccessTokens: integer("dpop_bound_access_tokens", { mode: "boolean" }).default(false),
+    referenceId: text("reference_id"),
+    metadata: text("metadata"),
+  },
+  (t) => [index("oauth_client_user_idx").on(t.userId)],
+);
+
+export const oauthResource = sqliteTable("oauth_resource", {
+  id: text("id").primaryKey(),
+  identifier: text("identifier").notNull().unique(),
+  name: text("name").notNull(),
+  accessTokenTtl: integer("access_token_ttl"),
+  refreshTokenTtl: integer("refresh_token_ttl"),
+  signingAlgorithm: text("signing_algorithm"),
+  signingKeyId: text("signing_key_id"),
+  allowedScopes: text("allowed_scopes"),
+  customClaims: text("custom_claims"),
+  dpopBoundAccessTokensRequired: integer("dpop_bound_access_tokens_required", { mode: "boolean" }).default(false),
+  disabled: integer("disabled", { mode: "boolean" }).default(false),
+  createdAt: integer("created_at", { mode: "timestamp" }),
+  updatedAt: integer("updated_at", { mode: "timestamp" }),
+  policyVersion: integer("policy_version").default(1),
+  metadata: text("metadata"),
+});
+
+export const oauthClientResource = sqliteTable(
+  "oauth_client_resource",
+  {
+    id: text("id").primaryKey(),
+    clientId: text("client_id")
+      .notNull()
+      .references(() => oauthClient.clientId, { onDelete: "cascade" }),
+    resourceId: text("resource_id")
+      .notNull()
+      .references(() => oauthResource.identifier, { onDelete: "cascade" }),
+    metadata: text("metadata"),
+    createdAt: integer("created_at", { mode: "timestamp" }),
+  },
+  (t) => [
+    index("oauth_client_resource_resource_idx").on(t.resourceId),
+    uniqueIndex("oauth_client_resource_pair_idx").on(t.clientId, t.resourceId),
+  ],
+);
+
+export const oauthRefreshToken = sqliteTable(
+  "oauth_refresh_token",
+  {
+    id: text("id").primaryKey(),
+    token: text("token").notNull().unique(),
+    clientId: text("client_id")
+      .notNull()
+      .references(() => oauthClient.clientId, { onDelete: "cascade" }),
+    sessionId: text("session_id").references(() => session.id, { onDelete: "set null" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    referenceId: text("reference_id"),
+    authorizationCodeId: text("authorization_code_id"),
+    resources: text("resources"),
+    requestedUserInfoClaims: text("requested_user_info_claims"),
+    expiresAt: integer("expires_at", { mode: "timestamp" }),
+    createdAt: integer("created_at", { mode: "timestamp" }),
+    revoked: integer("revoked", { mode: "timestamp" }),
+    rotatedAt: integer("rotated_at", { mode: "timestamp" }),
+    rotationReplayResponse: text("rotation_replay_response"),
+    rotationReplayExpiresAt: integer("rotation_replay_expires_at", { mode: "timestamp" }),
+    authTime: integer("auth_time", { mode: "timestamp" }),
+    confirmation: text("confirmation"),
+    scopes: text("scopes").notNull(),
+  },
+  (t) => [
+    index("oauth_refresh_token_client_idx").on(t.clientId),
+    index("oauth_refresh_token_session_idx").on(t.sessionId),
+    index("oauth_refresh_token_user_idx").on(t.userId),
+    index("oauth_refresh_token_code_idx").on(t.authorizationCodeId),
+  ],
+);
+
+export const oauthAccessToken = sqliteTable(
+  "oauth_access_token",
+  {
+    id: text("id").primaryKey(),
+    token: text("token").unique(),
+    clientId: text("client_id")
+      .notNull()
+      .references(() => oauthClient.clientId, { onDelete: "cascade" }),
+    sessionId: text("session_id").references(() => session.id, { onDelete: "set null" }),
+    userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
+    referenceId: text("reference_id"),
+    authorizationCodeId: text("authorization_code_id"),
+    resources: text("resources"),
+    requestedUserInfoClaims: text("requested_user_info_claims"),
+    refreshId: text("refresh_id").references(() => oauthRefreshToken.id, { onDelete: "cascade" }),
+    expiresAt: integer("expires_at", { mode: "timestamp" }),
+    createdAt: integer("created_at", { mode: "timestamp" }),
+    revoked: integer("revoked", { mode: "timestamp" }),
+    confirmation: text("confirmation"),
+    scopes: text("scopes").notNull(),
+  },
+  (t) => [
+    index("oauth_access_token_client_idx").on(t.clientId),
+    index("oauth_access_token_session_idx").on(t.sessionId),
+    index("oauth_access_token_user_idx").on(t.userId),
+    index("oauth_access_token_code_idx").on(t.authorizationCodeId),
+    index("oauth_access_token_refresh_idx").on(t.refreshId),
+  ],
+);
+
+export const oauthConsent = sqliteTable(
+  "oauth_consent",
+  {
+    id: text("id").primaryKey(),
+    clientId: text("client_id")
+      .notNull()
+      .references(() => oauthClient.clientId, { onDelete: "cascade" }),
+    userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
+    referenceId: text("reference_id"),
+    resources: text("resources"),
+    requestedUserInfoClaims: text("requested_user_info_claims"),
+    scopes: text("scopes").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" }),
+    updatedAt: integer("updated_at", { mode: "timestamp" }),
+  },
+  (t) => [
+    index("oauth_consent_client_idx").on(t.clientId),
+    index("oauth_consent_user_idx").on(t.userId),
+  ],
+);
+
+export const oauthClientAssertion = sqliteTable("oauth_client_assertion", {
+  id: text("id").primaryKey(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+});
+
+export const jwks = sqliteTable("jwks", {
+  id: text("id").primaryKey(),
+  publicKey: text("public_key").notNull(),
+  privateKey: text("private_key").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }),
+  alg: text("alg"),
+  crv: text("crv"),
+});
 
 export { CURRENCIES } from "@floc/core/money/currency";
 export type { Currency } from "@floc/core/money/currency";
@@ -230,10 +414,7 @@ export const userCountryMark = sqliteTable(
     state: text("state", { enum: COUNTRY_MARK_STATES }).notNull(),
     ...audit,
   },
-  (t) => [
-    primaryKey({ columns: [t.userId, t.countryCode] }),
-    index("user_country_mark_user_idx").on(t.userId),
-  ],
+  (t) => [primaryKey({ columns: [t.userId, t.countryCode] })],
 );
 
 export const FRIENDSHIP_STATUSES = ["pending", "accepted"] as const;
@@ -357,7 +538,6 @@ export const wishListItemVote = sqliteTable(
     ...audit,
   },
   (t) => [
-    index("wish_list_item_vote_item_idx").on(t.itemId),
     uniqueIndex("wish_list_item_vote_one_idx").on(t.itemId, t.userId),
   ],
 );
@@ -379,7 +559,11 @@ export const trip = sqliteTable(
     archivedAt: integer("archived_at", { mode: "timestamp" }),
     ...audit,
   },
-  (t) => [index("trip_created_by_idx").on(t.createdBy)],
+  (t) => [
+    index("trip_created_by_idx").on(t.createdBy),
+    index("trip_start_date_idx").on(t.startDate),
+    index("trip_end_date_idx").on(t.endDate),
+  ],
 );
 
 export const TRIP_ROLES = ["admin", "member"] as const;
@@ -516,8 +700,8 @@ export const ideaVote = sqliteTable(
     ...audit,
   },
   (t) => [
-    index("idea_vote_idea_idx").on(t.ideaId),
     uniqueIndex("idea_vote_one_idx").on(t.ideaId, t.userId),
+    index("idea_vote_user_idx").on(t.userId),
   ],
 );
 
@@ -543,7 +727,6 @@ export const packingLine = sqliteTable(
     ...audit,
   },
   (t) => [
-    index("packing_line_trip_idx").on(t.tripId),
     index("packing_line_owner_idx").on(t.tripId, t.ownerId),
   ],
 );
@@ -599,11 +782,11 @@ export const document = sqliteTable(
     ...audit,
   },
   (t) => [
-    index("document_trip_idx").on(t.tripId),
     index("document_owner_idx").on(t.tripId, t.ownerId),
     index("document_day_idx").on(t.dayId),
     index("document_day_event_idx").on(t.dayEventId),
     index("document_stored_file_idx").on(t.storedFileId),
+    index("document_uploaded_by_idx").on(t.uploadedBy),
   ],
 );
 
@@ -629,6 +812,7 @@ export const tripMedia = sqliteTable(
     index("trip_media_trip_idx").on(t.tripId),
     index("trip_media_place_idx").on(t.placeId),
     index("trip_media_stored_file_idx").on(t.storedFileId),
+    index("trip_media_uploaded_by_idx").on(t.uploadedBy),
   ],
 );
 
@@ -711,6 +895,7 @@ export const availability = sqliteTable(
   },
   (t) => [
     uniqueIndex("availability_unique_idx").on(t.tripId, t.userId, t.date),
+    index("availability_user_idx").on(t.userId),
   ],
 );
 
@@ -957,7 +1142,6 @@ export const commentReaction = sqliteTable(
     ...audit,
   },
   (t) => [
-    index("comment_reaction_comment_idx").on(t.commentId),
     uniqueIndex("comment_reaction_one_idx").on(t.commentId, t.userId, t.kind),
   ],
 );
@@ -1019,7 +1203,6 @@ export const notification = sqliteTable(
   },
   (t) => [
     uniqueIndex("notification_one_idx").on(t.activityId, t.userId),
-    index("notification_user_idx").on(t.userId),
     index("notification_user_seen_idx").on(t.userId, t.seenAt),
   ],
 );

@@ -2,7 +2,7 @@ import { acceptFriend, declineFriend, cancelRequest } from "./actions";
 import { today } from "@floc/core/dates/dates";
 import { requireUser } from "@/server/access";
 import {
-  coTripNameFor,
+  coTripNamesFor,
   listFriendshipsFor,
   peopleByIds,
   splitFriendships,
@@ -44,13 +44,11 @@ export default async function FriendsPage() {
   const people = await peopleByIds(rows.map(otherIdOf));
   const personFor = (id: string) => people.get(id) ?? UNKNOWN(id);
 
-  const acceptedPeople = await Promise.all(
-    accepted.map(async (r) => {
-      const otherId = otherIdOf(r);
-      const metOn = r.origin === "co_trip" ? await coTripNameFor(viewer.id, otherId) : null;
-      return { person: personFor(otherId), origin: r.origin, metOn };
-    }),
-  );
+  const metOn = await coTripNamesFor(viewer.id, accepted.filter((r) => r.origin === "co_trip").map(otherIdOf));
+  const acceptedPeople = accepted.map((r) => {
+    const otherId = otherIdOf(r);
+    return { person: personFor(otherId), origin: r.origin, metOn: r.origin === "co_trip" ? (metOn.get(otherId) ?? null) : null };
+  });
 
   const incomingPeople = incoming.map((r) => ({
     requesterId: otherIdOf(r),

@@ -126,8 +126,8 @@ async function stopSteps(stop: Stop): Promise<Step[] | null> {
   }
 }
 
-export async function getTripForecast(tripId: number): Promise<TripForecast | null> {
-  if (!(await canUseFeature("dates.weather", tripId))) return null;
+export async function getTripForecast(tripId: number, viewerId: string): Promise<TripForecast | null> {
+  if (!(await canUseFeature("dates.weather", viewerId))) return null;
 
   const nights = placeForEachNight(await tripNights(tripId));
   if (nights.size === 0) return null;

@@ -29,9 +29,12 @@ export function stripe(): Stripe | null {
 }
 
 export function priceFor(interval: BillingInterval): string | undefined {
-  return interval === "monthly"
-    ? process.env.STRIPE_PRICE_MONTHLY
-    : process.env.STRIPE_PRICE_YEARLY;
+  const prices: Record<BillingInterval, string | undefined> = {
+    monthly: process.env.STRIPE_PRICE_MONTHLY,
+    quarterly: process.env.STRIPE_PRICE_QUARTERLY,
+    yearly: process.env.STRIPE_PRICE_YEARLY,
+  };
+  return prices[interval];
 }
 
 export async function customerFor(user: {

@@ -8,12 +8,13 @@ import type { TripAccess } from "@/server/access";
 import { touch } from "@/server/audit";
 import { refresh } from "@/server/freshness";
 import { openIdeas } from "@/server/ideas/open-ideas";
+import { logEventAdded, withEventRemoved } from "@/server/itinerary/event-log";
 import { eventCount, insertEvent } from "@/server/itinerary/itinerary";
 import { assertRoom } from "@/server/limits";
 import { ideaEventType, readIdeaCategory } from "@floc/core/trip/idea-categories";
 import { capText } from "@floc/core/text/text";
 
-type Access = Pick<TripAccess, "trip" | "day">;
+type Access = Pick<TripAccess, "trip" | "viewer" | "day">;
 
 const CLOCK = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -48,7 +49,7 @@ export async function addIdeaToDays(access: Access, ideaId: number, dayId: numbe
 
   const clock = time && CLOCK.test(time) ? time : null;
   const soFar = await eventCount(row.id);
-  await db.transaction(async (tx) => {
+  const added = await db.transaction(async (tx) => {
     const eventId = await insertEvent(
       row.id,
       { type: ideaEventType(readIdeaCategory(target.category)), title: target.title, time: clock, allDay: !clock },
@@ -56,7 +57,9 @@ export async function addIdeaToDays(access: Access, ideaId: number, dayId: numbe
       tx,
     );
     await tx.update(idea).set({ dayEventId: eventId, ...touch() }).where(eq(idea.id, target.id));
+    return eventId;
   });
+  await logEventAdded(access.viewer.id, added);
   refresh({ kind: "ideas", tripId }, { kind: "itinerary", tripId });
 }
 
@@ -70,9 +73,11 @@ export async function takeIdeaOffDays(access: Access, ideaId: number): Promise<v
   if (!row?.eventId) return;
   const eventId = row.eventId;
 
-  await db.transaction(async (tx) => {
-    await tx.update(dayEvent).set({ deletedAt: new Date(), ...touch() }).where(and(eq(dayEvent.id, eventId), isNull(dayEvent.deletedAt)));
-    await tx.update(idea).set({ dayEventId: null, ...touch() }).where(eq(idea.id, ideaId));
-  });
+  await withEventRemoved(access.viewer.id, eventId, () =>
+    db.transaction(async (tx) => {
+      await tx.update(dayEvent).set({ deletedAt: new Date(), ...touch() }).where(and(eq(dayEvent.id, eventId), isNull(dayEvent.deletedAt)));
+      await tx.update(idea).set({ dayEventId: null, ...touch() }).where(eq(idea.id, ideaId));
+    }),
+  );
   refresh({ kind: "ideas", tripId }, { kind: "itinerary", tripId });
 }

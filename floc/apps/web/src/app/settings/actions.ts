@@ -8,6 +8,7 @@ import { VISIBILITIES } from "@/db/schema";
 import type { Visibility } from "@/db/schema";
 import { requireUser } from "@/server/access";
 import { removeCalendarAccess } from "@/server/calendar/calendar-import";
+import { disconnectApp } from "@/server/auth/connected-apps";
 import { unlinkSignIn } from "@/server/auth/sign-in-methods";
 import { eraseAccount } from "@/server/auth/erase-account";
 import { bookingSitesOf, toggleBookingSite } from "@/server/auth/booking-sites";
@@ -82,6 +83,17 @@ export async function removeGoogleCalendar(): Promise<{ error?: string }> {
   const viewer = await requireUser();
   const refusal = await removeCalendarAccess(viewer.id);
   return refusal ? { error: refusal } : {};
+}
+
+export async function disconnectConnectedApp(formData: FormData): Promise<{ error?: string }> {
+  const viewer = await requireUser();
+  try {
+    await disconnectApp(viewer.id, String(formData.get("clientId") ?? ""));
+  } catch {
+    return { error: "Could not disconnect. Try again." };
+  }
+  refresh({ kind: "accountSettings" });
+  return {};
 }
 
 export async function toggleBookingSiteAction(kind: SiteKind, site: BookingSite): Promise<BookingSites> {

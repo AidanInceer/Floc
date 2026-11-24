@@ -1,7 +1,7 @@
 import "server-only";
 
 import {
-  allowedType, bytesMatchType, cleanFileName, rejectForSpace, rejectUpload,
+  allowedType, bytesMatchType, cleanFileName, rejectUpload,
   renamedFileName, type DocCategory,
 } from "@floc/core/documents/documents";
 
@@ -14,7 +14,8 @@ import {
   countDocuments, insertDocument, placeDocument, setDocumentCategory,
   setDocumentName, softDeleteDocument,
 } from "./documents";
-import { storageUsage } from "./storage-quota";
+import { refuseNewFile } from "./storage-quota";
+import { logFileAdded } from "@/server/notifications/file-log";
 
 type Access = Pick<TripAccess, "trip" | "viewer" | "day" | "event" | "document">;
 type Upload = {
@@ -36,20 +37,23 @@ export async function saveDocument(access: Access, input: Upload): Promise<strin
   if (refusal) return refusal;
   const type = allowedType(input.mimeType);
   if (!type || !bytesMatchType(type.mimeType, input.bytes)) return "Only PDFs and images can go here";
-  const [held, space] = await Promise.all([countDocuments(access.trip.id), storageUsage(access.trip.id)]);
+  const [held, noSpace] = await Promise.all([
+    countDocuments(access.trip.id),
+    refuseNewFile(access.trip.id, access.viewer.id, input.bytes.byteLength),
+  ]);
   if (held >= LIMITS.documents) return "This trip is holding as many files as it can";
-  const noSpace = rejectForSpace(space.usedBytes, input.bytes.byteLength, space.quotaBytes);
   if (noSpace) return noSpace;
 
   const dayEventId = input.dayEventId != null ? (await access.event(input.dayEventId)).id : null;
   const dayId = input.dayId != null && !dayEventId ? (await access.day(input.dayId)).id : null;
   const storageKey = await putDocument(input.bytes, type);
+  const name = cleanFileName(input.name);
   try {
     await insertDocument({
       tripId: access.trip.id,
       uploadedBy: access.viewer.id,
       ownerId: input.shared ? null : access.viewer.id,
-      name: cleanFileName(input.name),
+      name,
       storageKey,
       mimeType: type.mimeType,
       sizeBytes: input.bytes.byteLength,
@@ -62,6 +66,7 @@ export async function saveDocument(access: Access, input: Upload): Promise<strin
     await dropDocument(storageKey);
     throw error;
   }
+  await logFileAdded({ tripId: access.trip.id, by: access.viewer.id, name, shared: input.shared });
   changed(access);
   return null;
 }

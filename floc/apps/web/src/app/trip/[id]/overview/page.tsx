@@ -11,7 +11,7 @@ import { listExpenses, listSettlements, listSplits } from "@/server/money/money"
 import { welcomeView } from "@/server/auth/welcome/welcome-view";
 import { homeCurrenciesFor } from "@/server/auth/profile";
 import { absoluteUrl } from "@/server/auth/email";
-import { friendStatesFor, listFriendsFor } from "@/server/social/friends";
+import { friendStatesFor } from "@/server/social/friends";
 import { yourPosition } from "@floc/core/money/position";
 import { settleUpFrom } from "@/server/money/settle-up";
 import { tripStateFor } from "@floc/core/trip/trip-state";
@@ -30,7 +30,9 @@ import { IdeasWaiting } from "@/components/trip/ideas/ideas-waiting";
 import { OverviewCard } from "@/components/trip/overview/overview-card";
 import { OverviewFiles } from "@/components/trip/overview/overview-files";
 import { shortPlace } from "@floc/core/itinerary/names/place-name";
-import { PhotosCard } from "@/components/trip/overview/media/photos-card";
+import { PhotosPlaceholder } from "@/components/trip/overview/media/photos-placeholder";
+import { groupMedia } from "@floc/core/media/media";
+import { mediaPlaceIds } from "@/server/media/media-rows";
 import { readMediaView } from "@/server/media/media-view";
 import { BookingsCard } from "@/components/trip/overview/stops/bookings-card";
 import { OverviewStops } from "@/components/trip/overview/stops/overview-stops";
@@ -41,28 +43,43 @@ import { TripArrival } from "@/components/trip/overview/trip-arrival";
 import { ToDoBanner } from "@/components/trip/overview/to-do-banner";
 import { RecapFoot } from "@/components/trip/overview/recap/recap-foot";
 import { readPacking, toDoFor } from "./to-do-for";
-import { PanelPlaceholder, StreamedEstimate, StreamedGroup } from "./streamed";
+import { PanelPlaceholder, StreamedEstimate, StreamedGroup, StreamedPhotos } from "./streamed";
 import { canUseFeature } from "@/server/billing/entitlements";
 import { readEstimate } from "@/server/money/estimate/estimate-view";
 import { WelcomeModal } from "@/components/onboarding/welcome/welcome-modal";
 import { mintShareToken } from "@/server/trips/invite-link";
 import { nudgeTargetsFor } from "@/server/trips/nudges";
 import { NUDGE_TASKS } from "@floc/core/trip/nudge/nudge";
+import { readPlanNote } from "@/server/notifications/plan-note";
 
 export const metadata = { title: "Overview" };
 
-async function photosCard(
-  on: boolean,
-  access: Parameters<typeof readMediaView>[0],
-  legs: { placeId: number; no: number; placeName: string }[],
-) {
-  if (!on) return null;
-  const stops = legs.map((leg) => ({ placeId: leg.placeId, no: leg.no, name: shortPlace(leg.placeName) }));
-  return <PhotosCard tripId={access.trip.id} view={await readMediaView(access, stops)} />;
+function noteFrom(viewerId: string, tripId: number, change: string | string[] | undefined) {
+  const id = typeof change === "string" ? Number(change) : Number.NaN;
+  return Number.isSafeInteger(id) && id > 0 ? readPlanNote(viewerId, tripId, id) : null;
 }
 
-export default async function OverviewPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+function streamedPhotos(
+  access: Parameters<typeof readMediaView>[0],
+  legs: { placeId: number; no: number; placeName: string }[],
+  held: { placeId: number | null }[],
+) {
+  const stops = legs.map((leg) => ({ placeId: leg.placeId, no: leg.no, name: shortPlace(leg.placeName) }));
+  return (
+    <Suspense fallback={<PhotosPlaceholder groups={groupMedia(held, stops)} />}>
+      <StreamedPhotos tripId={access.trip.id} view={readMediaView(access, stops)} />
+    </Suspense>
+  );
+}
+
+export default async function OverviewPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ change?: string | string[] }>;
+}) {
+  const [{ id }, { change }] = await Promise.all([params, searchParams]);
   const access = await requireTripAccess(id, `/trip/${id}/overview`);
   const { trip, members, isAdmin, viewer } = access;
   const tripId = trip.id;
@@ -71,17 +88,15 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
   const groupExtras = Promise.all([
     friendStatesFor(viewer.id, members.map((m) => m.userId)),
     listInviteesByAnswer(tripId),
-    listFriendsFor(viewer.id),
-  ]).then(([friendStates, invitees, friends]) => ({
+  ]).then(([friendStates, invitees]) => ({
     friendStates,
     pendingInvitees: invitees.pending,
     declinedInvitees: invitees.declined,
-    friends,
   }));
 
   const now = today();
-  const packing = readPacking(tripId, viewer.id);
-  const [availabilityRows, expenseRows, tripDays, splitRows, settlementRows, welcome, ideas, docs, homes] =
+  const note = await noteFrom(viewer.id, tripId, change);
+  const [availabilityRows, expenseRows, tripDays, splitRows, settlementRows, welcome, ideas, docs, homes, packing, heldPhotos] =
     await Promise.all([
       listAvailability(tripId),
       listExpenses(tripId),
@@ -92,6 +107,8 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
       listIdeas(tripId, viewer.id),
       files ? listDocuments(tripId, viewer.id) : Promise.resolve([]),
       homeCurrenciesFor([...new Set([viewer.id, ...members.map((m) => m.userId)])]),
+      readPacking(tripId, viewer.id),
+      files ? mediaPlaceIds(tripId) : Promise.resolve([]),
     ]);
 
   const { days: dayRows, routeDays, transport } = tripDays;
@@ -111,7 +128,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
   const { legs, wholeTrip } = tripLegs({ days: routeDays, modes, files: docs, tripEnd: trip.endDate });
   const route = overviewRoute({ legs, days: routeDays, hops: transport });
   const google = googleMapsConfig();
-  const photos = await photosCard(files, access, legs);
+  const photos = files ? streamedPhotos(access, legs, heldPhotos) : null;
   const estimate = canUseFeature("money.estimate", viewer.id).then((pro) =>
     pro ? readEstimate(trip, viewer.id, { expenses: expenseRows, splits: splitRows, days: routeDays }) : null,
   );
@@ -135,7 +152,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
     settle: settle.rows,
     legs,
     nudges,
-  }, await packing);
+  }, packing);
 
   return (
     <div className="mx-auto flex w-full max-w-[84rem] flex-col gap-7 px-4 pb-20 pt-6 sm:px-6">
@@ -212,6 +229,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
         events={new Map(dayRows.map((d) => [d.id, d.events]))}
         bookings={files && !hasEnded(trip.endDate) ? <BookingsCard tripId={tripId} legs={legs} wholeTrip={wholeTrip} /> : null}
         photos={photos}
+        note={note}
       />
 
       {welcome ? <WelcomeModal {...welcome} /> : null}
