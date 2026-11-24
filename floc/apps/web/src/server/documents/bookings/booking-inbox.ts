@@ -14,7 +14,7 @@ import { LIMITS } from "@/server/limits";
 
 import { documentsEnabled, dropDocument, hasDocument, putDocument } from "../document-store";
 import { countDocuments, insertDocument } from "../documents";
-import { storageUsage } from "../storage-quota";
+import { refuseNewFile } from "../storage-quota";
 import { releaseBytes } from "../stored-file";
 import {
   closeWaiting, insertWaiting, keysPastTheMonth, reopenWaiting, tripsToPlaceIn, waitingRows, waitingUsage,
@@ -102,9 +102,8 @@ export async function placeWaitingBooking(userId: string, id: number, tripId: nu
   const [access, open] = await Promise.all([findTripAccess(tripId, userId), tripsToPlaceIn(userId)]);
   if (!access || !open.some((trip) => trip.id === tripId)) return "Choose one of your trips.";
 
-  const [held, space] = await Promise.all([countDocuments(tripId), storageUsage(tripId)]);
+  const [held, noSpace] = await Promise.all([countDocuments(tripId), refuseNewFile(tripId, userId, row.sizeBytes)]);
   if (held >= LIMITS.documents) return "This trip is holding as many files as it can";
-  const noSpace = rejectForSpace(space.usedBytes, row.sizeBytes, space.quotaBytes);
   if (noSpace) return noSpace;
 
   if (!(await closeWaiting(userId, row.id, true))) return GONE;

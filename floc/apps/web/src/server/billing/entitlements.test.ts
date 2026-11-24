@@ -3,7 +3,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { db, schema } from "@/db";
 import { migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
-import { assertFeature, canUseFeature } from "@/server/billing/entitlements";
+import { assertFeature, canUseFeature, proStanding } from "@/server/billing/entitlements";
 import type { SubscriptionSource, SubscriptionStatus } from "@/db/schema";
 
 let world: Scenario;
@@ -36,14 +36,14 @@ function give(
   });
 }
 
-const weather = () => canUseFeature("dates.weather", world.ours.id);
+const weather = () => canUseFeature("dates.weather", world.admin);
 
 describe("who is Pro", () => {
   it("nobody, with no subscription anywhere", async () => {
     expect(await weather()).toBe(false);
   });
 
-  it("an active subscription makes the trip Pro", async () => {
+  it("an active subscription makes that person Pro", async () => {
     await give(world.admin);
     expect(await weather()).toBe(true);
   });
@@ -71,36 +71,66 @@ describe("who is Pro", () => {
 
 describe("comped access", () => {
   it("a comp with no end date is Pro, through the same path as a payment", async () => {
-    await give(world.member, { source: "comp", currentPeriodEnd: null });
+    await give(world.admin, { source: "comp", currentPeriodEnd: null });
     expect(await weather()).toBe(true);
   });
 });
 
-describe("who it spreads to", () => {
-  it("one Pro member makes the whole trip Pro", async () => {
+describe("Pro is personal (#523, ADR-041)", () => {
+  it("gives a free member nothing from a Pro member on the same trip", async () => {
     await give(world.member);
-    expect(await weather()).toBe(true);
+    expect(await canUseFeature("dates.weather", world.member)).toBe(true);
+    expect(await weather()).toBe(false);
   });
 
-  it("does not leak to a trip the Pro member is not on", async () => {
-    await give(world.admin);
-    expect(await canUseFeature("dates.weather", world.theirs.id)).toBe(false);
-  });
-
-  it("a member who has left takes their Pro with them", async () => {
+  it("stays with the person when they leave a trip", async () => {
     await give(world.member);
     await db
       .update(schema.tripMembership)
       .set({ deletedAt: new Date() })
       .where(eqMembership(world.ours.id, world.member));
 
-    expect(await weather()).toBe(false);
+    expect(await canUseFeature("dates.weather", world.member)).toBe(true);
+  });
+});
+
+describe("proStanding (#523)", () => {
+  it("leaves out someone who never had Pro", async () => {
+    expect((await proStanding([world.admin])).has(world.admin)).toBe(false);
+  });
+
+  it("calls a live subscription Pro", async () => {
+    await give(world.admin);
+    expect((await proStanding([world.admin])).get(world.admin)).toBe("pro");
+  });
+
+  it("remembers someone whose Pro has ended", async () => {
+    await give(world.admin, { status: "canceled" });
+    expect((await proStanding([world.admin])).get(world.admin)).toBe("ended");
+  });
+
+  it("does not count a checkout that was never paid", async () => {
+    await give(world.admin, { status: "incomplete_expired" });
+    expect((await proStanding([world.admin])).has(world.admin)).toBe(false);
+  });
+
+  it("prefers a live subscription over an old one", async () => {
+    await give(world.admin, { status: "canceled" });
+    await give(world.admin);
+    expect((await proStanding([world.admin])).get(world.admin)).toBe("pro");
   });
 });
 
 describe("assertFeature", () => {
   it("refuses without Pro", async () => {
-    await expect(assertFeature("dates.weather", world.ours.id)).rejects.toThrow(
+    await expect(assertFeature("dates.weather", world.admin)).rejects.toThrow(
+      "Pro",
+    );
+  });
+
+  it("refuses a free member on a trip with a Pro member (#523)", async () => {
+    await give(world.member);
+    await expect(assertFeature("dates.weather", world.admin)).rejects.toThrow(
       "Pro",
     );
   });
@@ -108,7 +138,7 @@ describe("assertFeature", () => {
   it("says nothing with Pro", async () => {
     await give(world.admin);
     await expect(
-      assertFeature("dates.weather", world.ours.id),
+      assertFeature("dates.weather", world.admin),
     ).resolves.toBeUndefined();
   });
 });
@@ -118,21 +148,26 @@ describe("the all-features-free switch", () => {
     delete process.env.NEXT_PUBLIC_ALL_FEATURES_FREE;
   });
 
-  it("hands a gated feature to a trip with no subscription", async () => {
+  it("hands a gated feature to a person with no subscription", async () => {
     process.env.NEXT_PUBLIC_ALL_FEATURES_FREE = "true";
-    expect(await canUseFeature("dates.weather", world.ours.id)).toBe(true);
+    expect(await canUseFeature("dates.weather", world.admin)).toBe(true);
   });
 
   it("lets the write path through too", async () => {
     process.env.NEXT_PUBLIC_ALL_FEATURES_FREE = "true";
     await expect(
-      assertFeature("dates.weather", world.ours.id),
+      assertFeature("dates.weather", world.admin),
     ).resolves.toBeUndefined();
+  });
+
+  it("counts everyone as Pro for storage too", async () => {
+    process.env.NEXT_PUBLIC_ALL_FEATURES_FREE = "true";
+    expect((await proStanding([world.admin])).get(world.admin)).toBe("pro");
   });
 
   it("does nothing when set to anything but true", async () => {
     process.env.NEXT_PUBLIC_ALL_FEATURES_FREE = "1";
-    expect(await canUseFeature("dates.weather", world.ours.id)).toBe(false);
+    expect(await canUseFeature("dates.weather", world.admin)).toBe(false);
   });
 });
 

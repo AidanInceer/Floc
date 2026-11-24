@@ -46,7 +46,7 @@ async function fill() {
     tripId: world.ours.id,
     ownerId: world.admin,
     tier: "balanced",
-    plan: await packingPlanFor((await tripRow())!),
+    plan: await packingPlanFor((await tripRow())!, world.admin),
   });
 }
 
@@ -60,7 +60,7 @@ describe("filling a bag", () => {
       tripId: world.ours.id,
       ownerId: world.outsider,
       tier: "balanced",
-      plan: await packingPlanFor((await tripRow())!),
+      plan: await packingPlanFor((await tripRow())!, world.admin),
     });
 
     expect(added).toBe(0);
@@ -69,13 +69,13 @@ describe("filling a bag", () => {
 
 describe("what the trip tells us", () => {
   it("says so rather than throwing when the trip has no dates (rule 9)", async () => {
-    const plan = await packingPlanFor((await tripRow())!);
+    const plan = await packingPlanFor((await tripRow())!, world.admin);
     expect(plan).toEqual({ nights: null, climate: null, gap: "no-dates", places: [], hottest: null, firstRain: null });
   });
 
   it("counts the nights, and names the missing place rather than the missing forecast", async () => {
     await setDates("2026-09-01", "2026-09-06");
-    const plan = await packingPlanFor((await tripRow())!);
+    const plan = await packingPlanFor((await tripRow())!, world.admin);
     expect(plan.nights).toBe(5);
     expect(plan.climate).toBeNull();
     expect(plan.gap).toBe("no-place");
@@ -102,7 +102,7 @@ describe("what the trip tells us", () => {
       return { ok: true, json: async () => ({ properties: { timeseries } }) };
     }));
 
-    const plan = await packingPlanFor((await tripRow())!);
+    const plan = await packingPlanFor((await tripRow())!, world.admin);
 
     expect(plan.hottest).toBe(31);
     vi.unstubAllGlobals();
@@ -189,7 +189,7 @@ describe("suggested lines (#469)", () => {
       tripId: world.ours.id,
       ownerId: world.admin,
       tier: "balanced",
-      plan: await packingPlanFor((await tripRow())!),
+      plan: await packingPlanFor((await tripRow())!, world.admin),
       label,
     });
   }
@@ -231,7 +231,7 @@ describe("suggested lines (#469)", () => {
   it("never reaches another member's bag", async () => {
     await takePackingIdea({
       tripId: world.ours.id, ownerId: world.member, tier: "balanced",
-      plan: await packingPlanFor((await tripRow())!), label: "toothbrush",
+      plan: await packingPlanFor((await tripRow())!, world.admin), label: "toothbrush",
     });
     expect(await softDeleteSuggestedLines(world.ours.id, world.admin)).toBe(0);
     expect(await listPersonalPackingLines(world.ours.id, world.member)).toHaveLength(1);

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { requireTripAccess } from "@/server/access";
 import { listAvailability } from "@/server/itinerary/availability";
 import { listGuests, type Guest } from "@/server/guests/guests";
@@ -24,9 +26,11 @@ import {
 } from "@floc/core/trip/trip-window";
 import {
   AvatarRow,
+  buttonClass,
   menuDangerItemClass,
   PageTitle,
 } from "@/components/system/ui";
+import { settingsHref } from "@/lib/settings/settings-section";
 import {
   ConfirmSubmit,
   Menu,
@@ -57,6 +61,15 @@ import { nounFor } from "@floc/core/text/count-word";
 
 export const metadata = { title: "Dates" };
 
+function ForecastLock() {
+  return (
+    <div className="grid justify-items-start gap-3 p-4">
+      <p className="text-sm text-ink-soft">The weather on each of the trip&apos;s days comes with Floc Pro.</p>
+      <Link href={settingsHref({ section: "billing" })} className={buttonClass("pro")}>See Floc Pro</Link>
+    </div>
+  );
+}
+
 export default async function DatesPage({
   params,
   searchParams,
@@ -76,8 +89,8 @@ export default async function DatesPage({
     listLengthChoices(tripId),
     listDayLoads(tripId),
     listRouteDays(tripId),
-    getTripForecast(tripId),
-    canUseFeature("dates.weather", tripId),
+    getTripForecast(tripId, viewer.id),
+    canUseFeature("dates.weather", viewer.id),
     listGuests(tripId),
     files ? listDocuments(tripId, viewer.id) : Promise.resolve([]),
     bookingSitesOf(viewer.id),
@@ -186,11 +199,7 @@ export default async function DatesPage({
           />
         ),
         trip: <TripBlock start={trip.startDate} end={trip.endDate} />,
-        locked: (
-          <p className="p-4 text-sm text-ink-soft">
-            The weather on each of the trip&apos;s days comes with Floc Pro.
-          </p>
-        ),
+        locked: <ForecastLock />,
       }}
       save={saveAvailability.bind(null, tripId)}
       saveDates={setTripDates.bind(null, tripId)}

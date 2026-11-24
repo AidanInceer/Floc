@@ -6,13 +6,16 @@ import { eq } from "drizzle-orm";
 import sharp from "sharp";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
+import { FREE_ACCOUNT_STORAGE_BYTES } from "@floc/core/documents/documents";
+import { MEDIA_LIMITS } from "@floc/core/media/media";
+
 import { db, schema } from "@/db";
 import { findTripAccess, type TripAccess } from "@/server/access";
 import { eraseAccount } from "@/server/auth/erase-account";
 import { givePro, migrateTestDb, resetDb, seedScenario, type Scenario } from "@/test/db";
 
 import { mediaTokenHolder, mintMediaToken } from "./media-link";
-import { listMedia, liveMedia, mediaPlaceIds } from "./media-rows";
+import { insertMedia, listMedia, liveMedia, mediaPlaceIds } from "./media-rows";
 import { removeMedia, saveMedia } from "./media-save";
 
 let world: Scenario;
@@ -126,6 +129,53 @@ describe("adding a video", () => {
     expect(result.error).toBeUndefined();
     const [row] = await listMedia(world.ours.id);
     expect(row).toMatchObject({ kind: "video", sizeBytes: bytes.byteLength, durationSeconds: 12, width: 1920 });
+  });
+
+  it("refuses a free member on a trip with a Pro member, who still sees that member's video (#523)", async () => {
+    await givePro(world.admin);
+    const admin = (await findTripAccess(world.ours.id, world.admin))!;
+    expect((await upload({ body: stream(fakeMp4()), mimeType: "video/mp4" }, admin)).error).toBeUndefined();
+
+    const result = await upload({ body: stream(fakeMp4()), mimeType: "video/mp4" });
+
+    expect(result.error).toBe("Video needs Pro.");
+    expect((await listMedia(world.ours.id)).map((m) => m.kind)).toEqual(["video"]);
+  });
+});
+
+describe("whose room a picture fills (#523, ADR-083)", () => {
+  const heldBy = (uploadedBy: string, sizeBytes: number, tripId = world.ours.id) =>
+    insertMedia({ tripId, uploadedBy, kind: "photo", storageKey: `held-${uploadedBy}-${tripId}`, mimeType: "image/jpeg", sizeBytes });
+
+  it("keeps a Pro member's pictures out of the group's space", async () => {
+    await givePro(world.admin);
+    await heldBy(world.admin, MEDIA_LIMITS.free.spaceBytes);
+
+    expect((await upload()).error).toBeUndefined();
+  });
+
+  it("gives a free member the free limit however much a Pro member holds", async () => {
+    await givePro(world.admin);
+    await heldBy(world.outsider, MEDIA_LIMITS.free.spaceBytes);
+
+    expect((await upload()).error).toMatch(/photo and video space left/);
+  });
+
+  it("when Pro ends, keeps the group's space and stops that person adding", async () => {
+    await givePro(world.admin);
+    await heldBy(world.admin, MEDIA_LIMITS.free.spaceBytes);
+    await db.update(schema.subscription).set({ status: "canceled" }).where(eq(schema.subscription.userId, world.admin));
+    const admin = (await findTripAccess(world.ours.id, world.admin))!;
+
+    expect((await upload()).error).toBeUndefined();
+    expect((await upload({}, admin)).error).toBe("Your free account has used all of its 1 GB. Remove a file to make room.");
+  });
+
+  it("counts pictures toward a free account's 1 GB, on every trip", async () => {
+    await heldBy(world.member, FREE_ACCOUNT_STORAGE_BYTES, world.theirs.id);
+
+    expect((await upload()).error).toBe("Your free account has used all of its 1 GB. Remove a file to make room.");
+    expect(await stored()).toEqual([]);
   });
 });
 
