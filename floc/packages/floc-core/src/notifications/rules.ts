@@ -26,6 +26,10 @@ export const ACTIVITY_KINDS = [
   "next_trip_6m",
   "booking_filed",
   "booking_waiting",
+  "event_added",
+  "event_moved",
+  "event_removed",
+  "file_added",
 ] as const;
 export type ActivityKind = (typeof ACTIVITY_KINDS)[number];
 
@@ -98,6 +102,10 @@ const RULES: Record<ActivityKind, Rule> = {
   next_trip_6m: { audience: "affected", loud: "affected" },
   booking_filed: { audience: "self", loud: "nobody" },
   booking_waiting: { audience: "self", loud: "nobody" },
+  event_added: { audience: "trip", loud: "nobody" },
+  event_moved: { audience: "trip", loud: "nobody" },
+  event_removed: { audience: "trip", loud: "nobody" },
+  file_added: { audience: "trip", loud: "nobody" },
 };
 
 export type Recipient = { userId: string; loud: boolean };

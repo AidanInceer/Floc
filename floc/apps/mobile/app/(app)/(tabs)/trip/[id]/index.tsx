@@ -11,7 +11,7 @@ import { readTripColor, tripPastel } from "@floc/core/trip/trip-color";
 import { transportModes, tripLegs } from "@floc/core/trip/overview/legs";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { Alert, ScrollView, View, type LayoutChangeEvent } from "react-native";
 
 import { GoingLine } from "@/components/trip/going-section";
@@ -21,6 +21,7 @@ import { ToDoBanner } from "@/components/trip/to-do-banner";
 import { BookingsCard } from "@/components/trip/overview/bookings-card";
 import { PhotosCard } from "@/components/trip/overview/photos-card";
 import { shortPlace } from "@floc/core/itinerary/names/place-name";
+import { useStopMark, type StopMark } from "@/components/trip/overview/change-note";
 import { FilesLine } from "@/components/trip/overview/files-line";
 import { OverviewCard } from "@/components/trip/overview-card";
 import { RecapFoot } from "@/components/trip/overview/recap-foot";
@@ -44,7 +45,7 @@ import { space } from "@/lib/theme";
 type Outputs = inferRouterOutputs<AppRouter>;
 
 export default function Overview() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, change } = useLocalSearchParams<{ id: string; change?: string }>();
   const tripId = Number(id);
   const ready = Number.isFinite(tripId);
   const router = useRouter();
@@ -61,6 +62,7 @@ export default function Overview() {
   const scroll = useRef<ScrollView>(null);
   const sections = useRef(new Map<OverviewSection, number>());
   const mark = (section: OverviewSection) => (e: LayoutChangeEvent) => void sections.current.set(section, e.nativeEvent.layout.y);
+  const stopMark = useStopMark(tripId, change);
 
   if (trip.isPending) return <Loading />;
   if (trip.isError) return <Failed onRetry={() => trip.refetch()} />;
@@ -115,12 +117,7 @@ export default function Overview() {
 
       <PhotosCard tripId={tripId} stops={legs.map((leg) => ({ placeId: leg.placeId, no: leg.no, name: shortPlace(leg.placeName) }))} />
 
-      {legs.length > 0 ? (
-        <View style={{ gap: space.sm }}>
-          <SectionTitle>Stops</SectionTitle>
-          <StopList legs={legs} events={events} onOpen={openDay} />
-        </View>
-      ) : null}
+      <StopsSection legs={legs} events={events} onOpen={openDay} mark={stopMark} scroll={scroll} />
 
       {draft !== null ? (
         <EditSheet
@@ -132,6 +129,48 @@ export default function Overview() {
         />
       ) : null}
     </ScrollView>
+  );
+}
+
+function StopsSection({
+  legs,
+  events,
+  onOpen,
+  mark,
+  scroll,
+}: {
+  legs: ReturnType<typeof tripLegsFrom>["legs"];
+  events: Map<number, Outputs["itinerary"]["days"][number]["events"]>;
+  onOpen: (date: string) => void;
+  mark: StopMark | null;
+  scroll: RefObject<ScrollView | null>;
+}) {
+  const markedRow = useRef<{ row: View; at: number } | null>(null);
+  const toRow = useCallback((row: View) => {
+    const inner = (scroll.current as (ScrollView & { getInnerViewRef(): View | null }) | null)?.getInnerViewRef();
+    if (!inner) return;
+    row.measureLayout(inner, (_x, y) => scroll.current?.scrollTo({ y: Math.max(0, y - 96), animated: false }));
+  }, [scroll]);
+  const reveal = useCallback((row: View) => {
+    markedRow.current = { row, at: Date.now() };
+    toRow(row);
+  }, [toRow]);
+  const offPlan = mark && !legs.some((leg) => leg.days.some((d) => d.date === mark.date));
+  return (
+    <>
+      {offPlan ? mark.note(false) : null}
+      {legs.length > 0 ? (
+        <View
+          style={{ gap: space.sm }}
+          onLayout={() => {
+            if (markedRow.current && Date.now() - markedRow.current.at < 2000) toRow(markedRow.current.row);
+          }}
+        >
+          <SectionTitle>Stops</SectionTitle>
+          <StopList legs={legs} events={events} onOpen={onOpen} mark={mark} onMarked={reveal} />
+        </View>
+      ) : null}
+    </>
   );
 }
 

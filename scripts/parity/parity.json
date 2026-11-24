@@ -338,6 +338,9 @@
     "notifications.open": {
       "mobile": "yes"
     },
+    "notifications.planNote": {
+      "mobile": "yes"
+    },
     "notifications.readAll": {
       "mobile": "yes"
     },

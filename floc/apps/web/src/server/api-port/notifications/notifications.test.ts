@@ -31,6 +31,15 @@ describe("the notifications port", () => {
     expect(typeof page.items[0].at).toBe("string");
   });
 
+  it("hands the phone a plan change with its trip and its note", async () => {
+    await webPort.addEvent(world.admin, world.ours.id, world.ours.dayId, { type: "activity", title: "Benagil caves", transportType: null, time: "10:30", endTime: null, allDay: false, note: null });
+    const [item] = (await webPort.listNotifications(world.member, null)).items;
+
+    expect(item).toMatchObject({ tripId: world.ours.id, tripName: "Ours", was: null });
+    expect(await webPort.readPlanChangeNote(world.member, world.ours.id, item.id)).toMatchObject({ kind: "event_added", title: "Benagil caves", index: 0, total: 1 });
+    expect(await webPort.readPlanChangeNote(world.admin, world.ours.id, item.id)).toBeNull();
+  });
+
   it("counts the bell as unseen, and empties it on seeing without reading", async () => {
     await nudge();
     expect(await webPort.countUnreadNotifications(world.member)).toBe(1);

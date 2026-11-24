@@ -15,6 +15,7 @@ import {
   setDocumentName, softDeleteDocument,
 } from "./documents";
 import { storageUsage } from "./storage-quota";
+import { logFileAdded } from "@/server/notifications/file-log";
 
 type Access = Pick<TripAccess, "trip" | "viewer" | "day" | "event" | "document">;
 type Upload = {
@@ -44,12 +45,13 @@ export async function saveDocument(access: Access, input: Upload): Promise<strin
   const dayEventId = input.dayEventId != null ? (await access.event(input.dayEventId)).id : null;
   const dayId = input.dayId != null && !dayEventId ? (await access.day(input.dayId)).id : null;
   const storageKey = await putDocument(input.bytes, type);
+  const name = cleanFileName(input.name);
   try {
     await insertDocument({
       tripId: access.trip.id,
       uploadedBy: access.viewer.id,
       ownerId: input.shared ? null : access.viewer.id,
-      name: cleanFileName(input.name),
+      name,
       storageKey,
       mimeType: type.mimeType,
       sizeBytes: input.bytes.byteLength,
@@ -62,6 +64,7 @@ export async function saveDocument(access: Access, input: Upload): Promise<strin
     await dropDocument(storageKey);
     throw error;
   }
+  await logFileAdded({ tripId: access.trip.id, by: access.viewer.id, name, shared: input.shared });
   changed(access);
   return null;
 }

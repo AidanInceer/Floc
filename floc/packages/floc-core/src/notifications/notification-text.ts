@@ -1,4 +1,5 @@
 import { isReceipt, isReminder, type ActivityKind, type ReceiptKind, type ReminderKind } from "./rules";
+import { isPlanChange, readPlanChange } from "./plan-change";
 import { NUDGE_TODO, readNudgeTask } from "../trip/nudge/nudge";
 
 type Change = Exclude<ActivityKind, ReminderKind | ReceiptKind>;
@@ -26,7 +27,23 @@ const LINES: Record<Change, { did: string; joins: string | null }> = {
   friend_accepted: { did: "accepted your friend request", joins: null },
   wish_list_invited: { did: "invited you to a wish list", joins: null },
   wish_list_joined: { did: "joined your wish list", joins: null },
+  event_added: { did: "added an event", joins: "to" },
+  event_moved: { did: "moved an event", joins: "on" },
+  event_removed: { did: "removed an event", joins: "from" },
+  file_added: { did: "added a file", joins: "to" },
 };
+
+const NAMED_VERBS: Partial<Record<ActivityKind, string>> = {
+  event_added: "added",
+  event_moved: "moved",
+  event_removed: "removed",
+  file_added: "added",
+};
+
+function namedThing(kind: ActivityKind, detail: string | null | undefined): string | null {
+  if (kind === "file_added") return detail || null;
+  return isPlanChange(kind) ? (readPlanChange(detail)?.title ?? null) : null;
+}
 
 const NEXT_TRIP = "Have you thought about your next trip yet?";
 
@@ -50,6 +67,8 @@ export function notificationText(kind: ActivityKind, { actor, trip, detail }: Pa
   const task = kind === "nudge_sent" ? readNudgeTask(detail) : null;
   if (task) return `${actor} nudged you to ${NUDGE_TODO[task]} on the trip ${tripName}`;
   const { did, joins } = LINES[kind];
+  const named = namedThing(kind, detail);
+  if (named) return `${actor} ${NAMED_VERBS[kind]} ${named} ${joins} ${tripName}`;
   if (joins === null) return `${actor} ${did}`;
   return [actor, did, joins, tripName].filter(Boolean).join(" ");
 }

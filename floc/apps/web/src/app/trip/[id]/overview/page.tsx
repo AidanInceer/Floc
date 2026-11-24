@@ -48,8 +48,14 @@ import { WelcomeModal } from "@/components/onboarding/welcome/welcome-modal";
 import { mintShareToken } from "@/server/trips/invite-link";
 import { nudgeTargetsFor } from "@/server/trips/nudges";
 import { NUDGE_TASKS } from "@floc/core/trip/nudge/nudge";
+import { readPlanNote } from "@/server/notifications/plan-note";
 
 export const metadata = { title: "Overview" };
+
+function noteFrom(viewerId: string, tripId: number, change: string | string[] | undefined) {
+  const id = typeof change === "string" ? Number(change) : Number.NaN;
+  return Number.isSafeInteger(id) && id > 0 ? readPlanNote(viewerId, tripId, id) : null;
+}
 
 async function photosCard(
   on: boolean,
@@ -61,8 +67,14 @@ async function photosCard(
   return <PhotosCard tripId={access.trip.id} view={await readMediaView(access, stops)} />;
 }
 
-export default async function OverviewPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function OverviewPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ change?: string | string[] }>;
+}) {
+  const [{ id }, { change }] = await Promise.all([params, searchParams]);
   const access = await requireTripAccess(id, `/trip/${id}/overview`);
   const { trip, members, isAdmin, viewer } = access;
   const tripId = trip.id;
@@ -81,6 +93,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
 
   const now = today();
   const packing = readPacking(tripId, viewer.id);
+  const note = await noteFrom(viewer.id, tripId, change);
   const [availabilityRows, expenseRows, tripDays, splitRows, settlementRows, welcome, ideas, docs, homes] =
     await Promise.all([
       listAvailability(tripId),
@@ -212,6 +225,7 @@ export default async function OverviewPage({ params }: { params: Promise<{ id: s
         events={new Map(dayRows.map((d) => [d.id, d.events]))}
         bookings={files && !hasEnded(trip.endDate) ? <BookingsCard tripId={tripId} legs={legs} wholeTrip={wholeTrip} /> : null}
         photos={photos}
+        note={note}
       />
 
       {welcome ? <WelcomeModal {...welcome} /> : null}
